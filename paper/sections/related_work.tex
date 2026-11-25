@@ -1,0 +1,73 @@
+\section{Related work}
+\label{sec:related}
+
+\paragraph{Small and efficient language models.}
+The Qwen series demonstrates that compact open models can be competitive on
+general benchmarks \citep{qwen3_2025,qwen25coder}. Qwen3.5-0.8B extends the
+family with a hybrid architecture that mixes gated full-attention and
+linear-attention blocks and includes a vision tower
+\citep{qwen35_model_card}. This architecture is not a conventional dense
+transformer, which motivates the compatibility work in
+Section~\ref{sec:architecture}. Our work does not propose a new base model; it
+studies post-training and deployment of an existing compact checkpoint.
+
+\paragraph{Parameter-efficient fine-tuning.}
+LoRA freezes the base weights and learns low-rank updates
+\citep{hu2021lora}. QLoRA combines low-rank adapters with 4-bit quantized base
+weights, reducing memory further \citep{dettmers2023qlora}. The PEFT library
+provides the implementation used here \citep{peft2022}, on top of PyTorch
+\citep{paszke2019pytorch} and Transformers \citep{wolf2020transformers}. Prior
+work has established these methods broadly; our question is their practical
+behaviour on a hybrid sub-billion checkpoint under consumer memory budgets, and
+their effect on cybersecurity-specific tasks.
+
+\paragraph{Knowledge distillation.}
+Distillation transfers behaviour from a teacher to a student
+\citep{hinton2015distillation}. Logit matching requires a shared vocabulary and
+substantial teacher memory. \cyberlite{} begins with offline sequence-level
+distillation: a local teacher generates responses, which are filtered,
+deduplicated, reviewed, and used as supervised data. This is cheaper and simpler
+than online logit matching, but it propagates teacher errors and licenses. We
+treat online distillation as future work and do not conflate the two.
+
+\paragraph{Code completion and fill-in-the-middle.}
+Code models are often trained with fill-in-the-middle objectives so that they can
+use both left and right context \citep{bavarian2022fim,li2023starcoder}. The
+Qwen tokenizer exposes FIM control tokens, but token availability does not prove
+that a checkpoint was trained for FIM. We therefore implement both FIM and
+prefix/instruction completion and treat the comparison as an empirical question,
+including latency, exact match, edit similarity, and syntax validity.
+
+\paragraph{Cybersecurity evaluation.}
+CyberSecEval and CyberSecEval 2 provide secure-coding and risk evaluations
+\citep{bhatt2023cyberseceval,bhatt2024cyberseceval2}. SecEval provides
+multiple-choice cybersecurity knowledge questions and is distributed under a
+non-commercial, share-alike license \citep{li2023seceval}. Holistic evaluation
+argues for multi-metric reporting rather than a single score
+\citep{liang2022helm}. \cyberlite{} adopts task-specific metrics, confidence
+intervals, and explicit license handling. It does not redistribute benchmark
+data and does not train on benchmark test items.
+
+\paragraph{Retrieval augmentation.}
+Retrieval-augmented generation conditions a model on retrieved evidence
+\citep{lewis2020rag}. Long-context models do not eliminate retrieval failures
+\citep{liu2023lost}, and retrieved text can carry prompt injection. Our baseline
+uses a dependency-free BM25 index with provenance and citation-bearing, clearly
+untrusted evidence. Dense retrieval is a planned ablation, not an assumed
+improvement.
+
+\paragraph{Quantization and local serving.}
+Post-training quantization reduces memory and can improve throughput
+\citep{frantar2022gptq,lin2023awq}. Serving systems such as PagedAttention
+optimize memory management at scale \citep{kwon2023vllm}; for a single consumer
+device, simpler runtimes and GGUF-style exports are often more practical
+\citep{gerganov_llamacpp}. \cyberlite{} separates training quantization
+(QLoRA/bitsandbytes) from deployment quantization (bitsandbytes, TorchAO,
+GGUF) and requires measured parity checks rather than assuming equivalence.
+
+\paragraph{Reproducibility and responsible reporting.}
+Concerns about compute cost and environmental impact
+\citep{schwartz2019green}, model documentation \citep{mitchell2019modelcards},
+and risk management \citep{nist2023airmf} inform the reporting discipline.
+The repository records configurations, manifests, seeds, environment versions,
+and raw predictions, and labels unmeasured tables as pending.

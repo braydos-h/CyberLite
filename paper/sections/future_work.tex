@@ -1,0 +1,61 @@
+\section{Future work}
+\label{sec:future}
+
+\paragraph{Completed research runs.}
+The immediate next step is to run the pre-registered conditions at research
+scale, freeze the dataset and evaluation versions, and replace every placeholder
+in this manuscript with reviewed measurements. Negative results will be kept.
+
+\paragraph{Online distillation.}
+Sequence-level distillation is a pragmatic baseline. Future work can compare it
+with logit matching, intermediate-layer distillation, and on-policy distillation
+when the student and teacher share a tokenizer and the teacher fits in memory.
+The compute and licensing costs of each must be reported.
+
+\paragraph{Retrieval.}
+BM25 is reproducible and dependency-free, but dense retrieval, hybrid retrieval,
+reranking, and query rewriting may improve grounding. Future work should measure
+whether gains survive on consumer hardware and whether citations remain faithful.
+Prompt-injection robustness of retrieved evidence is a priority.
+
+\paragraph{Autocomplete.}
+A controlled editor study is needed to measure acceptance, latency sensitivity,
+and error modes across Bash, Python, PowerShell, YARA, Sigma, and configuration
+files. FIM quality should be compared across base checkpoints with known training
+recipes. A language-server integration and a sandboxed evaluation of generated
+commands (never automatic execution) are future engineering goals.
+
+\paragraph{Quantization and CPU deployment.}
+GGUF conversion support for Qwen3.5 must be validated as llama.cpp evolves.
+Future work should compare 4-bit, 5-bit, 8-bit, and mixed-precision deployments
+on end-task accuracy, not only perplexity, and should measure laptop-class CPU
+latency with realistic context lengths.
+
+\paragraph{Larger controls and scaling.}
+The architecture-aware pipeline supports larger Qwen3.5 checkpoints and other
+text models. A scaling study could test whether the performance/compute frontier
+changes at 1.7B, 4B, and 8B parameters under the same data and evaluation
+protocol. This is optional and should not delay the core sub-billion study.
+
+\paragraph{Multimodal security tasks.}
+The checkpoint includes a vision tower. Future work could evaluate screenshot
+triage, diagram understanding, and phishing-image analysis, but this requires new
+data, safety review, and a separate evaluation protocol. It is outside the
+current text-only scope.
+
+\paragraph{Human evaluation.}
+Task metrics cannot capture whether an explanation is actionable and safe.
+Future work should include structured human review with rubrics, inter-annotator
+agreement, and disagreement analysis, especially for remediation advice and
+detection rules.
+
+\paragraph{Interpretability and forgetting.}
+Mechanistic and representation-level analyses could explain why narrow SFT
+improves some tasks and degrades others. Measuring forgetting on a broader
+retention suite, and testing replay or regularization, would make the efficiency
+claim more complete.
+
+\paragraph{Community artifacts.}
+The project would benefit from independently reproduced runs, additional
+licensed datasets, editor integrations, and adversarial evaluations. All should
+follow the repository's provenance and reporting standards.

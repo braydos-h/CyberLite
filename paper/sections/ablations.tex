@@ -1,0 +1,54 @@
+\section{Ablation studies}
+\label{sec:ablations}
+
+Ablations are designed to separate the contributions of adaptation method, data,
+retrieval, and deployment quantization. Each ablation changes one factor at a
+time at a fixed budget; when that is impossible (e.g., memory constraints), the
+deviation is reported.
+
+\begin{table}[t]
+\centering
+\small
+\caption{Planned ablations. Each row states the manipulated factor, the
+controlled factors, and the primary outcome.}
+\label{tab:ablations}
+\begin{tabular}{@{}p{0.22\linewidth}p{0.36\linewidth}p{0.32\linewidth}@{}}
+\toprule
+Factor & Levels & Primary outcome \\
+\midrule
+Adapter rank & 4, 8, 16, 32 at fixed data/steps & held-out accuracy vs trainable parameters and peak VRAM \\
+Base precision & bf16 LoRA vs 4-bit QLoRA & accuracy retention, peak VRAM, duration \\
+Sequence length & 512, 1024, 2048 & task accuracy, truncation rate, memory \\
+Data mixture & knowledge-heavy, code-heavy, balanced & per-task accuracy and retention \\
+Distillation & direct SFT vs offline teacher data & task accuracy, refusal, grounding proxy \\
+Retrieval & closed-book, BM25 top-1/3/5, no-citation prompt & grounding proxy, token F1, citation precision, latency \\
+Evidence order & best-first vs shuffled & robustness to position effects \\
+Autocomplete mode & FIM vs prefix & exact match, edit similarity, syntax validity, latency \\
+Quantization & bf16, 8-bit, 4-bit, GGUF & task accuracy, memory, tokens/second \\
+Vision tower & frozen vs trainable (text-only data) & accuracy and trainable parameters; expected null or negative \\
+Prompt style & chat vs raw for base/instruct & format validity and accuracy \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Interpretation rules}
+
+\begin{itemize}[leftmargin=1.4em]
+  \item A rank increase is only useful if the accuracy gain exceeds its
+  confidence interval and the memory cost.
+  \item QLoRA is not declared equivalent to LoRA from a single task. We report
+  per-task differences and the pre-specified retention threshold.
+  \item Retrieval gains are separated from citation-format gains by evaluating a
+  no-citation baseline and a citation-required condition.
+  \item FIM results are conditioned on the checkpoint's training recipe; a
+  failure does not imply that FIM is intrinsically unsuitable.
+  \item Quantization is evaluated on end-task accuracy, not only perplexity.
+\end{itemize}
+
+\subsection{Negative and null results}
+
+Ablations that do not improve the primary metric will be reported. In
+particular, training the vision tower on text-only data is expected to be
+unhelpful; reporting it prevents others from repeating an expensive dead end.
+Similarly, if retrieval increases latency without improving grounding, that is a
+practical finding for consumer deployment.

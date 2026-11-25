@@ -1,0 +1,61 @@
+\section{Introduction}
+\label{sec:introduction}
+
+Large language models are increasingly used for security knowledge work:
+explaining weaknesses, drafting detections, reviewing code, summarizing
+vulnerabilities, and assisting with incident response. The most capable systems,
+however, are commonly served from data centers with enterprise GPUs. Training
+and even inference can require hardware that independent researchers, students,
+small security teams, and air-gapped organizations do not have. This is not only
+an efficiency problem; it shapes who can study, audit, and deploy security AI.
+
+\cyberlite{} investigates a deliberately constrained alternative. The primary
+model is Qwen3.5-0.8B, a sub-billion-parameter checkpoint with a hybrid
+linear/full-attention architecture and a vision tower that is unused in this
+work. The research question is:
+
+\begin{quote}
+\emph{Can a 0.8-billion-parameter language model achieve competitive performance
+on specialized cybersecurity tasks through parameter-efficient fine-tuning,
+knowledge distillation, retrieval augmentation, and quantization, while remaining
+practical to train and deploy on consumer hardware?}
+\end{quote}
+
+Answering this question requires more than a training script. It requires
+licensed and auditable data, contamination control, reproducible configurations,
+task-specific metrics, memory and latency measurement, and a clear separation
+between hypotheses, engineering validation, and scientific results. This
+manuscript and the accompanying repository provide that scaffolding.
+
+\paragraph{Contributions.}
+\begin{enumerate}[leftmargin=1.4em]
+  \item An architecture-aware, low-VRAM post-training pipeline for Qwen3.5-0.8B
+  that explicitly handles its hybrid attention, multimodal checkpoint class,
+  LoRA target modules, and fill-in-the-middle tokenizer.
+  \item A provenance-first dataset preparation pipeline with license gates,
+  secret redaction, exact and near-duplicate removal, deterministic splitting,
+  and 13-gram benchmark contamination screening.
+  \item A local inference and autocomplete stack with streaming, an
+  OpenAI-compatible subset, non-executing completion, and CPU/GPU/MPS paths.
+  \item A task-specific evaluation harness with fixed seeds, uncertainty
+  intervals, false-positive measurement, lexical grounding proxies, and
+  measured memory/latency/cost reporting.
+  \item A falsifiable experimental design and a paper scaffold in which every
+  performance result is explicitly marked pending.
+\end{enumerate}
+
+\paragraph{Status.}
+This is a work-in-progress manuscript. The repository contains a working
+minimum viable pipeline, but \textbf{no trained research checkpoint and no
+verified benchmark result are reported here}. Statements about Qwen3.5's
+architecture and parameter count are verified against the checkpoint
+configuration and a local load. Statements about future performance are
+hypotheses. Numerical tables without measurements are placeholders and must not
+be cited as findings.
+
+\paragraph{Reproducibility and safety.}
+The default workflow uses no paid APIs, does not download datasets
+automatically, and never executes generated commands. The repository records
+effective configurations, dataset manifests, environment versions, hardware,
+and Git state for every run. These choices are part of the research
+contribution, not an afterthought.

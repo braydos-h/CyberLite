@@ -1,0 +1,32 @@
+name: Paper
+
+on:
+  push:
+    paths:
+      - "paper/**"
+      - ".github/workflows/paper.yml"
+  pull_request:
+    paths:
+      - "paper/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compile LaTeX
+        uses: xu-cheng/latex-action@v3
+        with:
+          working_directory: paper
+          root_file: main.tex
+          args: -pdf -file-line-error -interaction=nonstopmode -halt-on-error
+      - name: Upload PDF
+        uses: actions/upload-artifact@v4
+        with:
+          name: cyberlite-paper
+          path: paper/main.pdf
+          if-no-files-found: error

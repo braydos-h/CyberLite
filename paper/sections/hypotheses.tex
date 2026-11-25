@@ -1,0 +1,57 @@
+\section{Research hypotheses}
+\label{sec:hypotheses}
+
+The following hypotheses are stated before the main experiments. Thresholds are
+design choices for this project, not universal standards. A hypothesis is
+falsified if the pre-specified comparison fails; null and negative results will
+be reported.
+
+\begin{table}[t]
+\centering
+\small
+\caption{Pre-registered hypotheses and operational tests. All thresholds are
+project-specific and may be revised only before results are inspected, with the
+revision documented.}
+\label{tab:hypotheses}
+\begin{tabular}{@{}p{0.07\linewidth}p{0.52\linewidth}p{0.31\linewidth}@{}}
+\toprule
+ID & Hypothesis & Falsification criterion \\
+\midrule
+H1 & QLoRA adaptation improves held-out cybersecurity MCQ accuracy over the
+unadapted base model by at least 5 percentage points at matched prompting. &
+Observed improvement $<5$ points, or confidence interval includes zero. \\
+H2 & At a fixed data and step budget, 4-bit QLoRA retains at least 90\% of the
+held-out accuracy of bf16 LoRA while reducing peak training VRAM. &
+Accuracy retention $<90\%$ or no measurable VRAM reduction. \\
+H3 & Offline distillation from a larger local teacher improves held-out task
+performance over supervised training on the same prompts at equal student
+compute. & No improvement, or a degradation larger than the pre-specified
+non-inferiority margin. \\
+H4 & Retrieval augmentation reduces the lexical unsupported-token proxy on
+evidence-grounded questions relative to closed-book generation, without a
+significant drop in answer token F1. & No reduction, or token F1 drops beyond
+the pre-specified margin. \\
+H5 & FIM or prefix autocomplete produces usable completions (syntax-valid and
+above a task-specific similarity threshold) at interactive latency on at least
+one consumer profile. & Threshold not met on any target profile. \\
+H6 & Narrow cybersecurity SFT causes a general-capability retention drop of no
+more than 3 percentage points on the selected retention set. & Drop $>3$ points
+with a confidence interval excluding the threshold. \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Why these hypotheses?}
+H1--H2 address the core efficiency claim. H3 tests whether a larger local
+teacher adds value beyond direct supervision. H4 tests whether retrieval
+compensates for limited parametric knowledge. H5 addresses the autocomplete
+objective, which is often omitted from cybersecurity model papers. H6 makes
+catastrophic forgetting a reported outcome rather than a hidden cost
+\citep{kirkpatrick2017}.
+
+\paragraph{Analysis discipline.}
+Each hypothesis has a primary metric, a fixed evaluation set version, a fixed
+prompt template, and a pre-specified comparison. Secondary metrics are reported
+but do not replace the primary test. Confidence intervals are computed by
+bootstrap resampling \citep{efron1979bootstrap}. If a planned experiment cannot
+be completed, the result is reported as missing rather than imputed.

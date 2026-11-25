@@ -1,0 +1,63 @@
+\section{Research motivation}
+\label{sec:motivation}
+
+\subsection{The accessibility gap}
+
+Security practitioners increasingly encounter AI assistants that assume
+connectivity to a hosted provider. This creates at least four barriers. First,
+\emph{cost}: training and inference are priced for organizations, not
+individuals. Second, \emph{hardware}: full fine-tuning of even a few billion
+parameters can exceed consumer VRAM. Third, \emph{privacy}: security telemetry,
+source code, and incident data are sensitive and may be regulated. Fourth,
+\emph{availability}: offline and air-gapped environments cannot depend on an
+external API.
+
+A sub-billion-parameter model will not match the broad capability of a
+frontier model. The relevant question is whether specialization, retrieval, and
+careful post-training can make a small model useful for bounded defensive tasks
+at a fraction of the cost. If the answer is yes for even a subset of tasks, the
+result is valuable for education, local tooling, and reproducible research. If
+the answer is no, the negative result is also informative: it would quantify the
+capability floor of current sub-billion models under realistic constraints.
+
+\subsection{Why cybersecurity?}
+
+Cybersecurity is a challenging but tractable specialization domain. It has
+authoritative, structured public knowledge (ATT\&CK, CWE, NVD, OWASP, vendor
+advisories), strong conventions for code and command syntax, and tasks with
+verifiable answers such as vulnerability classification or secure-code
+completion. It also has high safety stakes: a fluent but wrong answer can lead
+to a misconfiguration or an unsafe command. This makes honest evaluation and
+non-execution defaults especially important.
+
+\subsection{Design priorities}
+
+The project optimizes for the following, in order:
+
+\begin{enumerate}[leftmargin=1.4em]
+  \item \textbf{Low training cost.} A single consumer GPU or CPU should be
+  enough to run the pipeline at small scale.
+  \item \textbf{Low VRAM.} QLoRA, gradient checkpointing, short sequences, and
+  measured memory reporting are first-class.
+  \item \textbf{Fast, local inference.} CPU, GPU, and MPS paths; streaming;
+  optional quantization; no provider dependency.
+  \item \textbf{Offline operation.} After model download, inference and
+  evaluation require no network.
+  \item \textbf{Domain specialization.} Cybersecurity data, secure coding,
+  detection engineering, and defensive workflows.
+  \item \textbf{Context-aware autocomplete.} Bash, Python, PowerShell, YAML
+  rules, regular expressions, filters, and configuration files.
+  \item \textbf{Reproducibility.} Seeds, hashes, manifests, pinned environment
+  records, and raw predictions.
+  \item \textbf{Accessibility.} Apache-2.0 code, explicit third-party licenses,
+  and a workflow that does not require paid services.
+\end{enumerate}
+
+\subsection{Target hardware as an experimental variable}
+
+The project targets 4, 6, 8, 12, and 16 GB VRAM classes, plus CPU-only
+deployment. These are experimental targets rather than guaranteed requirements.
+Memory use depends on the attention kernel, sequence length, batch size,
+optimizer, allocator, and framework version. The pipeline therefore records
+measured peak memory next to each run instead of asserting that a configuration
+``fits.''

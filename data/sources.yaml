@@ -1,0 +1,191 @@
+schema_version: 1
+# Source registry for CyberLite dataset preparation.
+#
+# Rules:
+#   * Nothing is downloaded unless the caller passes --download SOURCE.
+#   * Every source carries an explicit license identifier. Unknown licenses are
+#     quarantined by the preparation pipeline.
+#   * ``redistributable`` describes whether CyberLite may redistribute derived
+#     records. The default is false; obtain permission from the upstream source.
+#   * This file is a starting point, not legal advice. Re-verify licenses and
+#     terms before publishing derived data or models.
+sources:
+  mitre_attack:
+    title: MITRE ATT&CK Enterprise (STIX 2.1)
+    kind: stix_attack
+    license: MITRE-ATTACK
+    homepage: https://attack.mitre.org/
+    url: https://raw.githubusercontent.com/mitre-attack/attack-stix-data/master/enterprise-attack/enterprise-attack.json
+    filename: enterprise-attack.json
+    enabled: true
+    redistributable: false
+    citation: >-
+      The MITRE Corporation. MITRE ATT&CK. https://attack.mitre.org
+    notes: >-
+      MITRE grants a royalty-free license for research, development, and commercial use,
+      subject to its terms and attribution requirements. Derived datasets must preserve
+      attribution. Do not redistribute raw STIX data from this repository.
+
+  mitre_cwe:
+    title: MITRE Common Weakness Enumeration (CWE)
+    kind: cwe_xml
+    license: MITRE-CWE
+    homepage: https://cwe.mitre.org/
+    url: https://cwe.mitre.org/data/xml/cwec_latest.xml.zip
+    filename: cwec_latest.xml.zip
+    enabled: true
+    redistributable: false
+    citation: >-
+      The MITRE Corporation. Common Weakness Enumeration. https://cwe.mitre.org
+    notes: >-
+      CWE is free to use for research, development, and commercial purposes with
+      attribution and the CWE terms of use. Preserve the MITRE copyright designation in
+      derived distributions.
+
+  nist_nvd:
+    title: NIST National Vulnerability Database (NVD) API 2.0
+    kind: nvd_json
+    license: Public-Domain
+    homepage: https://nvd.nist.gov/
+    url: https://services.nvd.nist.gov/rest/json/cves/2.0?resultsPerPage=2000
+    filename: nvdcve-page.json
+    enabled: false
+    redistributable: true
+    citation: >-
+      National Institute of Standards and Technology. National Vulnerability Database.
+    notes: >-
+      NVD feeds are large and paginated. Download explicitly and obey NVD rate limits.
+      NIST data is generally a U.S. Government work; NVD requests attribution. Do not
+      auto-download the full corpus in CI.
+
+  owasp_cheatsheets:
+    title: OWASP Cheat Sheet Series
+    kind: markdown
+    license: CC-BY-SA-4.0
+    homepage: https://cheatsheetseries.owasp.org/
+    url: https://github.com/OWASP/CheatSheetSeries
+    filename: ""
+    enabled: false
+    redistributable: false
+    citation: OWASP Foundation. OWASP Cheat Sheet Series.
+    notes: >-
+      Clone the repository locally, then pass a Markdown file with --input. The share-alike
+      license may affect redistribution of derived text; review before publishing.
+
+  linux_docs:
+    title: Linux man-pages and kernel documentation
+    kind: markdown
+    license: GPL-2.0-or-later
+    homepage: https://www.kernel.org/doc/man-pages/
+    url: https://git.kernel.org/pub/scm/docs/man-pages/man-pages.git
+    filename: ""
+    enabled: false
+    redistributable: false
+    citation: Linux man-pages project and Linux kernel documentation.
+    notes: >-
+      Copyleft documentation. Training use is permitted, but redistribution of derived
+      text may trigger license obligations. Prefer local, minimal excerpts and attribute.
+
+  networking_docs:
+    title: IETF networking standards and operational guidance
+    kind: markdown
+    license: IETF-Trust
+    homepage: https://www.ietf.org/process/rfcs/
+    url: https://www.rfc-editor.org/
+    filename: ""
+    enabled: false
+    redistributable: false
+    citation: IETF Trust. RFC series.
+    notes: >-
+      RFC text is subject to the IETF Trust legal provisions. Extract only the material
+      needed for the experiment and retain copyright notices.
+
+  security_tool_docs:
+    title: Defensive security tool documentation
+    kind: markdown
+    license: See-source
+    homepage: ""
+    url: ""
+    filename: ""
+    enabled: false
+    redistributable: false
+    citation: Varies by tool.
+    notes: >-
+      Tool documentation licenses vary (some are proprietary). Add an explicit license
+      per document before ingestion; the default pipeline will quarantine "See-source".
+
+  defensive_workflows:
+    title: Project-authored defensive workflows
+    kind: jsonl
+    license: Synthetic
+    homepage: ""
+    url: ""
+    filename: workflows.jsonl
+    enabled: false
+    redistributable: true
+    citation: CyberLite contributors.
+    notes: Human-reviewed incident response and hardening procedures, authored for this project.
+
+  secure_coding:
+    title: Project-authored secure coding examples
+    kind: jsonl
+    license: Synthetic
+    homepage: ""
+    url: ""
+    filename: secure_coding.jsonl
+    enabled: false
+    redistributable: true
+    citation: CyberLite contributors.
+    notes: Small, reviewable examples; no copied proprietary code.
+
+  vulnerability_remediation:
+    title: Project-authored vulnerability remediation notes
+    kind: jsonl
+    license: Synthetic
+    homepage: ""
+    url: ""
+    filename: remediation.jsonl
+    enabled: false
+    redistributable: true
+    citation: CyberLite contributors.
+    notes: Must be checked against vendor advisories before being treated as operational advice.
+
+  authorized_labs:
+    title: Authorized lab exercises (synthetic)
+    kind: jsonl
+    license: Synthetic
+    homepage: ""
+    url: ""
+    filename: labs.jsonl
+    enabled: false
+    redistributable: true
+    citation: CyberLite contributors.
+    notes: >-
+      Only include exercises performed in environments where the author has explicit
+      authorization. No live target data or credentials.
+
+  cyberlite_smoke:
+    title: CyberLite synthetic smoke dataset
+    kind: jsonl
+    license: Synthetic
+    homepage: ""
+    url: ""
+    filename: smoke.jsonl
+    enabled: true
+    redistributable: true
+    citation: CyberLite contributors.
+    notes: Tiny, original examples for pipeline validation only. Not a benchmark.
+
+  teacher-distillation:
+    title: Teacher-generated distillation corpus
+    kind: jsonl
+    license: Synthetic
+    homepage: ""
+    url: ""
+    filename: distill_raw.jsonl
+    enabled: false
+    redistributable: false
+    citation: Generated by a locally run teacher model.
+    notes: >-
+      License status depends on the teacher model. Review the teacher license before
+      redistributing generated text; the preparation pipeline records provenance.

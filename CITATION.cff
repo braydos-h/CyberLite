@@ -1,0 +1,34 @@
+cff-version: 1.2.0
+message: "If you use CyberLite, please cite this repository and the eventual paper."
+title: "CyberLite: Resource-Efficient Post-Training of Sub-Billion-Parameter Language Models for Cybersecurity and Context-Aware Autocompletion"
+type: software
+authors:
+  - name: "CyberLite Contributors"
+repository-code: "https://github.com/braydos-h/CyberLite"
+url: "https://github.com/braydos-h/CyberLite"
+abstract: >-
+  CyberLite is an open research project investigating whether a sub-billion-parameter
+  language model can be post-trained into a practical, locally deployable cybersecurity
+  assistant using LoRA/QLoRA, knowledge distillation, retrieval augmentation, and
+  quantization. The repository provides a reproducible data pipeline, training and
+  inference tooling, a cybersecurity autocomplete engine, evaluation harnesses, and a
+  paper scaffold. No trained research checkpoint or verified benchmark result is
+  released in version 0.1.0.
+keywords:
+  - cybersecurity
+  - large language models
+  - parameter-efficient fine-tuning
+  - LoRA
+  - QLoRA
+  - knowledge distillation
+  - quantization
+  - autocomplete
+  - reproducibility
+  - low-resource computing
+license: Apache-2.0
+version: "0.1.0"
+date-released: "2026-11-25"
+references:
+  - type: generic
+    title: "CyberLite paper (work in progress; results are placeholders)"
+    notes: "A publication-ready manuscript scaffold is included under paper/. It contains no verified benchmark results yet."

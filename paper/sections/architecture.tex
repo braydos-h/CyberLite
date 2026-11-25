@@ -1,0 +1,139 @@
+\section{Model architecture and compatibility}
+\label{sec:architecture}
+
+\subsection{Checkpoint audit}
+
+Qwen3.5-0.8B is distributed as a multimodal checkpoint with a
+\texttt{ForConditionalGeneration} architecture class \citep{qwen35_model_card}. Its text
+configuration contains 24 layers, of which 6 use gated full attention and 18 use
+linear attention, with a hidden size of 1024, 8 attention heads, 2 key/value
+heads, a head dimension of 256, a vocabulary of 248,320, and tied embeddings.
+The configuration advertises up to 262,144 positions, which is a model capability,
+not a consumer-hardware recommendation. A 12-layer vision tower is present but
+unused. A local load counts 852,985,920 parameters in total, including
+100,592,896 vision parameters. Table~\ref{tab:model-facts} records the facts used
+by the implementation.
+
+\begin{table}[t]
+\centering
+\small
+\caption{Verified properties of the primary checkpoint. Values come from the
+upstream configuration and a local load, not from the model name.}
+\label{tab:model-facts}
+\begin{tabular}{@{}ll@{}}
+\toprule
+Property & Value \\
+\midrule
+Checkpoint & \texttt{Qwen/Qwen3.5-0.8B} \\
+Architecture class & \texttt{Qwen3\_5ForConditionalGeneration} \\
+Modalities & text, image, video (this work uses text only) \\
+Text layers & 24 (6 full attention, 18 linear attention) \\
+Hidden size / heads / KV heads & 1024 / 8 / 2 \\
+Vocabulary / context config & 248,320 / 262,144 \\
+Total parameters & 852,985,920 \\
+Vision parameters & 100,592,896 \\
+FIM tokens & \texttt{<|fim\_prefix|>}, \texttt{<|fim\_suffix|>}, \texttt{<|fim\_middle|>}, \texttt{<|fim\_pad|>} \\
+License & Apache-2.0 (upstream; verify) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Why architecture-aware loading matters}
+
+A conventional loader that assumes a dense decoder-only transformer can fail or
+silently produce an invalid adapter. The presence of a vision tower changes the
+auto-class choice, and the linear-attention projections are not covered by the
+usual \texttt{q\_proj}/\texttt{v\_proj} LoRA recipe. \cyberlite{} therefore:
+
+\begin{enumerate}[leftmargin=1.4em]
+  \item loads \texttt{AutoConfig} and inspects \texttt{vision\_config} and the
+  declared architecture;
+  \item selects \texttt{AutoModelForImageTextToText} for multimodal checkpoints
+  and \texttt{AutoModelForCausalLM} otherwise;
+  \item freezes vision parameters by default;
+  \item resolves LoRA targets against the actual module names and fails on a
+  missing target;
+  \item records the loaded class, auto class, parameter counts, dtype, and
+  multimodal flag in run metadata.
+\end{enumerate}
+
+\subsection{LoRA target selection}
+
+The default adapter targets both block families:
+\begin{itemize}[leftmargin=1.4em]
+  \item full attention: \texttt{q\_proj}, \texttt{k\_proj}, \texttt{v\_proj},
+  \texttt{o\_proj};
+  \item linear attention: \texttt{in\_proj\_qkv}, \texttt{in\_proj\_z},
+  \texttt{in\_proj\_b}, \texttt{in\_proj\_a}, \texttt{out\_proj};
+  \item MLP: \texttt{gate\_proj}, \texttt{up\_proj}, \texttt{down\_proj}.
+\end{itemize}
+At rank 4 this yields about 2.71 million trainable parameters, or 0.32\% of the
+loaded model. The vision tower remains frozen.
+
+\subsection{Fill-in-the-middle}
+
+The tokenizer defines FIM control tokens, and the training pipeline uses the
+standard order
+\begin{center}
+\texttt{<|fim\_prefix|>}\,$p$\,\texttt{<|fim\_suffix|>}\,$s$\,\texttt{<|fim\_middle|>}\,$m$.
+\end{center}
+The existence of these tokens is necessary but not sufficient: the base
+checkpoint may not have been trained on FIM. The autocomplete engine therefore
+supports both FIM and instruction/prefix modes, reports the mode used, and treats
+the comparison as an experiment. A smoke adapter trained for two steps produced
+poor FIM output, which is expected and is not evidence about a fully trained
+model.
+
+\subsection{System overview}
+
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}[
+  node distance=7mm and 9mm,
+  box/.style={draw, rounded corners=2pt, align=center, font=\scriptsize,
+              minimum height=8mm, text width=27mm, fill=blue!4},
+  data/.style={box, fill=green!5},
+  train/.style={box, fill=orange!6},
+  serve/.style={box, fill=purple!5},
+  arr/.style={-{Latex[length=1.5mm]}, thick}
+]
+\node[data] (src) {Licensed sources\\and local files};
+\node[data, below=of src] (prep) {prepare\_dataset.py\\clean, redact, dedup};
+\node[data, below=of prep] (man) {manifest + splits\\contamination screen};
+\node[train, right=of prep] (base) {Qwen3.5-0.8B\\text-only use};
+\node[train, below=of base] (lora) {LoRA / QLoRA\\SFT};
+\node[train, left=of lora] (teacher) {Local teacher\\(optional)};
+\node[train, below=of lora] (adapter) {adapter +\\run metadata};
+\node[serve, right=of lora] (quant) {quantize\\bnb / TorchAO / GGUF};
+\node[serve, below=of quant] (api) {OpenAI-compatible\\local API};
+\node[serve, below=of api] (auto) {autocomplete\\API (no execution)};
+\node[serve, left=of auto] (rag) {BM25 retrieval\\+ citations};
+\node[serve, below=of api] (eval) {evaluate.py\\local held-out data};
+\draw[arr] (src) -- (prep);
+\draw[arr] (prep) -- (man);
+\draw[arr] (man) -- (lora);
+\draw[arr] (base) -- (lora);
+\draw[arr] (teacher) -- (man);
+\draw[arr] (lora) -- (adapter);
+\draw[arr] (adapter) -- (quant);
+\draw[arr] (adapter) -- (api);
+\draw[arr] (adapter) -- (auto);
+\draw[arr] (rag) -- (api);
+\draw[arr] (adapter) -- (eval);
+\end{tikzpicture}
+\caption{Research pipeline. Data preparation is offline-first and provenance
+aware. Post-training produces adapters and metadata, never committed weights.
+Deployment paths return text only; no generated command is executed.}
+\label{fig:pipeline}
+\end{figure}
+
+\subsection{Implementation validation}
+
+The loader was exercised locally on CPU with PyTorch 2.15.0 and Transformers
+5.24.1. The model loaded as
+\texttt{Qwen3\_5ForConditionalGeneration}, the vision tower was frozen, a rank-4
+LoRA adapter attached, and a forward/backward pass on a two-example batch
+produced a finite loss and non-zero adapter gradients. A two-step smoke run
+completed, saved an adapter, and reloaded it for generation. These are
+engineering checks, not capability measurements; they are recorded in the
+repository's reproducibility log.

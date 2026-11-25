@@ -1,0 +1,52 @@
+\subsection{Artifact inventory}
+
+\begin{itemize}[leftmargin=1.4em]
+  \item Code: Apache-2.0; package \texttt{cyberlite}; CLI scripts under
+  \texttt{scripts/}.
+  \item Configurations:
+  \begin{itemize}
+    \item \texttt{configs/low\_vram.yaml}
+    \item \texttt{configs/lora.yaml}
+    \item \texttt{configs/qlora.yaml}
+    \item \texttt{configs/distillation.yaml}
+    \item \texttt{configs/smoke.yaml}
+  \end{itemize}
+  \item Data: source registry and synthetic smoke examples only; bulk corpora
+  are reproduced locally.
+  \item Model: no research checkpoint released in version 0.1.0.
+  \item Paper: this scaffold; results pending.
+\end{itemize}
+
+\subsection{Run metadata}
+
+Training records the effective config, config SHA-256, dataset manifest and split
+hashes, model class and parameter counts, hardware, package versions, Git commit
+and dirty state, command, duration, peak VRAM/RSS, and cost assumptions.
+Evaluation records the dataset hash, prompt style, decoding settings, seeds,
+model info, latency, memory, and a run hash.
+
+\subsection{Reproduction commands}
+
+\begin{verbatim}
+python scripts/check_hardware.py --json
+python scripts/prepare_dataset.py --smoke
+python scripts/train.py --config configs/smoke.yaml --smoke --force
+python scripts/evaluate.py \
+  --dataset data/evaluation/smoke_eval.jsonl --dry-run
+pytest -m "not integration"
+python scripts/validate_repo.py
+\end{verbatim}
+
+\subsection{Checklist for a publishable result}
+
+\begin{enumerate}[leftmargin=1.4em]
+  \item Clean commit and pinned environment.
+  \item Dataset manifest, license record, and contamination report.
+  \item Fixed evaluation version and prompt template.
+  \item Raw predictions and summary JSON archived.
+  \item Measured hardware, latency, and memory.
+  \item Confidence intervals and all pre-registered tests.
+  \item Human review of safety-relevant samples.
+  \item Negative results and limitations reported.
+  \item No benchmark test item used in training.
+\end{enumerate}

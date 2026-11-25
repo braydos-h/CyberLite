@@ -1,0 +1,90 @@
+\section{Dataset methodology}
+\label{sec:dataset}
+
+\subsection{Provenance-first records}
+
+Every record has a source, license, task, optional URL, and content. Chat records
+contain a user/assistant exchange; completion records contain a prompt and
+response; FIM records contain prefix, suffix, and middle. The JSONL schema is
+validated before training. Unknown fields are rejected to catch silent schema
+drift.
+
+\subsection{Sources and licenses}
+
+The starter registry includes MITRE ATT\&CK \citep{mitre_attack}, MITRE CWE
+\citep{mitre_cwe}, NIST NVD \citep{nist_nvd}, OWASP guidance
+\citep{owasp2021}, Linux and networking documentation, tool documentation, and
+project-authored workflows. Licenses differ substantially. ATT\&CK and CWE
+permit broad use under their terms and attribution requirements; NVD is
+generally a U.S. Government work with attribution requested; OWASP projects may
+use CC-BY-SA; Linux documentation is copyleft; some tool documentation is
+proprietary. The pipeline records the declared license and quarantines unknown
+values, but legal compliance remains the user's responsibility.
+
+\subsection{Preparation pipeline}
+
+\begin{algorithm}[t]
+\caption{Offline-first dataset preparation}
+\label{alg:data}
+\begin{algorithmic}[1]
+\Require local source files, source registry, allowed licenses, seed
+\Ensure train/validation/test splits, quarantine, manifest
+\State Normalize each source into the common record schema
+\State Normalize text while preserving code indentation
+\State Detect and redact credential-like spans
+\State Reject records with missing provenance or disallowed licenses
+\State Reject structurally invalid or too-short records
+\State Exact-hash deduplicate, then banded SimHash near-duplicate filter
+\State Remove records overlapping local evaluation n-grams
+\State Assign splits by a seeded content-ID hash
+\State Write splits, quarantine reasons, and a hash-addressed manifest
+\end{algorithmic}
+\end{algorithm}
+
+Cleaning normalizes Unicode and line endings, strips trailing whitespace, and
+collapses excessive blank lines without collapsing interior spaces. Secret
+detection covers private keys, cloud access keys, GitHub and OpenAI-style
+tokens, JWTs, connection-string passwords, and contextually high-entropy blobs.
+High-entropy detection is deliberately conservative to avoid redacting hashes
+and test vectors.
+
+Deduplication uses an exact normalized hash and a 64-bit SimHash with four
+16-bit bands. The default Hamming threshold is 3 bits; a threshold of 0 disables
+near-duplicate removal. This is a trade-off: aggressive deduplication can remove
+legitimate templated examples, while weak deduplication inflates training data.
+
+\subsection{Contamination control}
+
+Benchmark contamination is a first-order validity threat. For every local
+evaluation JSONL file, the pipeline computes hashed 13-gram fingerprints and
+removes training records whose candidate n-grams overlap at or above 20\%.
+The screen catches verbatim and near-verbatim leakage. It does not catch
+paraphrase, translation, or semantic leakage, so manual review and benchmark
+version pinning remain necessary. Benchmark test items are never used for
+training, and SecEval is treated as evaluation-only because of its
+non-commercial license \citep{li2023seceval}.
+
+\subsection{Splits and versions}
+
+Splits are assigned by hashing the seed and record ID, not by row order. The
+default ratio is 90/5/5, with 75/12.5/12.5 for the tiny smoke set so that each
+split is non-empty. The dataset version hashes all record IDs and text in sorted
+order, making identical inputs and options produce identical versions. The
+manifest records split SHA-256 hashes, source registry hash, license counts,
+deduplication statistics, and contamination findings.
+
+\subsection{Distillation corpus}
+
+Offline distillation uses a local teacher to generate responses to prompts.
+Generated records are filtered by length, deduplicated, and secret-redacted
+before entering the standard preparation pipeline. The teacher's license can
+constrain redistribution; the manifest records the teacher and generation
+settings. This corpus is not the same as online logit distillation and is not
+described as such.
+
+\subsection{Committed data}
+
+Only 34 original synthetic training examples and 8 synthetic evaluation items
+are committed. They exist to validate the pipeline and are not a representative
+corpus. Bulk data, restricted benchmark items, model weights, and credentials
+are excluded from version control.

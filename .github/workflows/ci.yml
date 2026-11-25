@@ -1,0 +1,83 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Python ${{ matrix.python-version }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+          cache-dependency-path: |
+            pyproject.toml
+            requirements*.txt
+
+      - name: Install CPU PyTorch
+        run: |
+          python -m pip install --upgrade pip
+          pip install torch --index-url https://download.pytorch.org/whl/cpu
+
+      - name: Install package and dev dependencies
+        run: pip install -e ".[dev]"
+
+      - name: Lint
+        run: |
+          ruff check cyberlite scripts tests
+          ruff format --check cyberlite scripts tests
+
+      - name: Type check
+        run: mypy cyberlite
+
+      - name: Repository validation
+        run: python scripts/validate_repo.py
+
+      - name: Unit tests
+        run: pytest -m "not integration" --cov=cyberlite --cov-report=term-missing
+
+      - name: Dataset smoke pipeline
+        run: |
+          python scripts/prepare_dataset.py --smoke --out data/processed/ci-smoke --force
+          python scripts/evaluate.py --dataset data/evaluation/smoke_eval.jsonl --dry-run
+          python scripts/benchmark.py --dry-run --prompt-lengths 16,32
+          python scripts/quantize.py --dry-run --backend bitsandbytes --bits 4
+
+  integration:
+    name: Integration (manual only)
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install CPU PyTorch
+        run: |
+          python -m pip install --upgrade pip
+          pip install torch --index-url https://download.pytorch.org/whl/cpu
+      - name: Install package
+        run: pip install -e ".[dev]"
+      - name: Model integration tests
+        env:
+          CYBERLITE_RUN_INTEGRATION: "1"
+        run: pytest tests/integration -q

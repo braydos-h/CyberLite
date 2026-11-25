@@ -1,0 +1,94 @@
+\section{Experimental design}
+\label{sec:design}
+
+\subsection{Conditions}
+
+\begin{table}[t]
+\centering
+\small
+\caption{Planned experimental conditions. Status reflects the repository state at
+the time of writing; no condition has produced a research result.}
+\label{tab:conditions}
+\begin{tabular}{@{}lll@{}}
+\toprule
+ID & Condition & Status \\
+\midrule
+E0 & Qwen3.5-0.8B instruct reference; base reference where available & Planned \\
+E1 & \cyberlite{} LoRA (bf16) & Planned \\
+E2 & \cyberlite{} QLoRA (4-bit) & Planned \\
+E3 & \cyberlite{} offline-distilled student & Planned \\
+E4 & E1/E2 with BM25 retrieval (RAG) & Planned \\
+E5 & Quantized inference: bnb 4/8-bit, TorchAO, GGUF & Planned \\
+E6 & CPU-only deployment profile & Planned \\
+E7 & Larger general-purpose control models (optional) & Optional \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+E0 establishes the unadapted baseline under identical prompts. E1 and E2 test
+the efficiency hypothesis at matched data and steps. E3 tests whether a larger
+teacher adds value. E4 tests retrieval as a substitute for parametric knowledge.
+E5 tests deployment quantization, and E6 tests the CPU constraint. E7 is not
+required for the core claims and is only included when compute permits; mixing
+different base models requires reporting tokenizer, prompt, and license
+differences.
+
+\subsection{Hardware profiles}
+
+Experiments are grouped by target VRAM class: 4, 6, 8, 12, and 16 GB, plus CPU.
+Each run records the exact GPU/CPU model, driver, CUDA, PyTorch, Transformers,
+attention backend, dtype, and quantization. A configuration is reported as
+feasible only if it completes with measured peak memory below the target and
+without out-of-memory errors. Planning estimates are not feasibility evidence.
+
+\subsection{Data and evaluation separation}
+
+Training data comes only from the prepared corpus. Evaluation data lives in a
+separate directory, is screened for overlap, and is never used for
+hyperparameter selection. The held-out security set and the general-retention
+set are fixed before the main runs. Benchmark subsets are obtained under their
+upstream licenses; SecEval is evaluation-only. Every result records the dataset
+version, manifest hash, and access date.
+
+\subsection{Prompting and decoding}
+
+All conditions use the same prompt templates for a given task. Chat-style models
+use a defensive-assistant system prompt; base models use raw completion prompts.
+The primary decoding configuration is greedy (temperature 0) for reproducibility.
+A secondary sample-based run may be reported for autocomplete, with fixed seeds
+and reported variance. Maximum new tokens are fixed per task and reported.
+
+\subsection{Statistical analysis}
+
+For accuracy, we report point estimates and 95\% percentile bootstrap confidence
+intervals \citep{efron1979bootstrap}. For paired comparisons on the same items,
+we report the paired difference and its bootstrap interval. Classification
+results include macro F1 and false-positive rate. Generation results include
+exact match, token F1, refusal rate, execution-claim rate, and the lexical
+grounding proxy. Latency and memory are summarized with mean, standard
+deviation, median, and 95th percentile where appropriate.
+
+We do not use a single composite score to declare a winner. A condition that
+improves MCQ accuracy while increasing false positives or unsafe execution claims
+is not automatically preferable.
+
+\subsection{Stopping and exclusion rules}
+
+\begin{itemize}[leftmargin=1.4em]
+  \item A run that fails to produce a finite loss or save a checkpoint is
+  reported as failed, not silently excluded.
+  \item Out-of-memory runs are reported with the attempted configuration; the
+  next lower sequence length or rank is documented.
+  \item Evaluation items with malformed gold labels are corrected before the run
+  and the correction is logged.
+  \item No evaluation item is removed because a model answers it incorrectly.
+  \item Hyperparameters are selected on validation data, not test data.
+\end{itemize}
+
+\subsection{Compute and cost accounting}
+
+For each run we record wall-clock duration, peak VRAM, process RSS, and
+tokens/second. Cost is computed only from user-supplied rates. Two cost views are
+reported when possible: a compute rate (for rented hardware) and an energy
+estimate (watts $\times$ hours $\times$ price per kWh). We avoid presenting a
+single dollar figure without its assumptions.

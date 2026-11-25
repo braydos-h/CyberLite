@@ -1,0 +1,34 @@
+name: Feature or research proposal
+description: Propose a capability, experiment, or documentation improvement.
+labels: [enhancement]
+body:
+  - type: textarea
+    id: motivation
+    attributes:
+      label: Motivation
+      description: What research or engineering gap does this address?
+    validations:
+      required: true
+  - type: textarea
+    id: design
+    attributes:
+      label: Proposed design
+      description: Describe the smallest viable change, dependencies, and safety implications.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence plan
+      description: How would the change be validated? Which dataset, hardware, seeds, and metrics?
+    validations:
+      required: false
+  - type: checkboxes
+    id: constraints
+    attributes:
+      label: Constraints
+      options:
+        - label: This does not require paid APIs for the default workflow.
+        - label: This does not execute generated commands automatically.
+        - label: Any data source has a verified license and provenance plan.
+        - label: This does not add model weights or bulk data to the repository.

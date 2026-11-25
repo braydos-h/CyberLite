@@ -1,0 +1,90 @@
+\documentclass[11pt]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage{natbib}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,fit,backgrounds}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{microtype}
+\usepackage{enumitem}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue!50!black,
+  citecolor=blue!50!black,
+  urlcolor=blue!50!black
+}
+
+\newcommand{\pending}[1]{\textcolor{orange}{\textsf{[PENDING]}}}
+\newcommand{\verified}[1]{\textcolor{green!45!black}{\textsf{[VERIFIED: #1]}}}
+\newcommand{\cyberlite}{\textsc{CyberLite}}
+
+\title{\bfseries \cyberlite: Resource-Efficient Post-Training of\\
+Sub-Billion-Parameter Language Models for Cybersecurity\\
+and Context-Aware Autocompletion}
+
+\author{
+  CyberLite Contributors\\
+  \small Open research project\\
+  \small \url{https://github.com/braydos-h/CyberLite}
+}
+
+\date{November 2026 \quad -- \quad Work in progress (results pending)}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Modern cybersecurity language models often assume enterprise GPUs, substantial
+VRAM, and continuous connectivity, which excludes independent researchers,
+students, small security teams, and air-gapped environments. \cyberlite{} is an
+open research program that asks whether a sub-billion-parameter model can be
+post-trained into a useful cybersecurity assistant while remaining practical to
+train and deploy on consumer hardware. The primary experimental model is
+Qwen3.5-0.8B, a hybrid linear/full-attention multimodal checkpoint that requires
+architecture-aware loading. The program combines LoRA and QLoRA supervised
+fine-tuning, offline knowledge distillation from a larger local teacher,
+retrieval augmentation, quantization, and a cybersecurity-aware
+fill-in-the-middle/prefix autocomplete engine. This manuscript is a living
+research scaffold: it specifies hypotheses, data methodology, training
+protocols, evaluation metrics, and ablation plans, and it reports verified
+engineering facts about the implementation. \textbf{It does not report
+benchmark results.} All performance tables are explicitly marked as pending.
+The contribution at this stage is a reproducible, safety-conscious pipeline and
+a falsifiable experimental design, not a claim of state-of-the-art capability.
+\end{abstract}
+
+\input{sections/introduction}
+\input{sections/motivation}
+\input{sections/related_work}
+\input{sections/hypotheses}
+\input{sections/architecture}
+\input{sections/dataset}
+\input{sections/method}
+\input{sections/experimental_design}
+\input{sections/metrics}
+\input{sections/results}
+\input{sections/ablations}
+\input{sections/limitations}
+\input{sections/responsible_deployment}
+\input{sections/future_work}
+\input{sections/conclusion}
+
+\bibliographystyle{plainnat}
+\bibliography{references}
+
+\appendix
+\section{Reproducibility checklist}
+\input{sections/appendix_reproducibility}
+
+\end{document}

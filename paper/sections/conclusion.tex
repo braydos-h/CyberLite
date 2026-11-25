@@ -1,0 +1,28 @@
+\section{Conclusion}
+\label{sec:conclusion}
+
+\cyberlite{} asks whether a sub-billion-parameter language model can be
+post-trained into a useful cybersecurity assistant under consumer hardware
+constraints. The project contributes an architecture-aware pipeline for
+Qwen3.5-0.8B, a provenance-first dataset methodology, a non-executing local
+inference and autocomplete stack, and a task-specific evaluation harness with
+explicit uncertainty and memory reporting.
+
+At this stage, the honest conclusion is about readiness, not performance. The
+pipeline runs end to end on CPU at smoke scale, the hybrid checkpoint loads and
+trains through LoRA, adapters reload for inference, and the test suite validates
+the data, metrics, retrieval, autocomplete, and API paths without downloading
+model weights. The research conditions, however, have not been run, and this
+manuscript reports no benchmark numbers.
+
+The central philosophy is that cybersecurity AI should be accessible without
+enterprise-grade hardware. Accessibility without rigor would be a liability.
+The project therefore pairs low-resource engineering with licensed data,
+contamination screening, fixed seeds, confidence intervals, measured memory, and
+a refusal to invent results. If the hypotheses hold, the outcome is a practical
+local assistant and a reusable research stack. If they fail, the negative result
+will still clarify the capability floor of compact models under realistic
+constraints.
+
+We invite independent reproduction, criticism, and collaboration---especially
+from researchers and practitioners who work outside well-resourced labs.

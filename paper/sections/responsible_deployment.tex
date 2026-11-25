@@ -1,0 +1,81 @@
+\section{Responsible deployment}
+\label{sec:responsible}
+
+\subsection{Defensive scope}
+
+\cyberlite{} is framed for defensive security: detection engineering, secure
+coding, vulnerability remediation, hardening, and authorized education. It is not
+an autonomous exploitation system. The repository does not provide tools for
+unauthorized access, and examples emphasize authorization, evidence handling, and
+verification.
+
+\subsection{No execution}
+
+Generated commands and code are returned as text. The inference, autocomplete,
+evaluation, and server modules contain no shell or tool-execution path.
+Autocomplete responses explicitly report \texttt{executed: false} and
+\texttt{requires\_review: true}. Evaluation checks Python syntax with
+\texttt{ast.parse} but never runs generated code. Integrators must add a sandbox,
+authorization checks, and human review if they choose to execute anything.
+
+\subsection{Human oversight}
+
+Security advice is consequential. A fluent answer can be wrong, outdated, or
+unsafe. Deployments should:
+
+\begin{itemize}[leftmargin=1.4em]
+  \item present outputs as suggestions, not decisions;
+  \item require verification against authoritative sources and tested
+  configurations;
+  \item log model/version/prompt for auditability without logging secrets;
+  \item provide an escalation path to a human expert;
+  \item restrict use to authorized environments.
+\end{itemize}
+
+\subsection{Privacy and data handling}
+
+Local inference reduces exposure to third-party providers but does not eliminate
+risk. Prompts, logs, feedback files, and evaluation outputs can contain sensitive
+data. The feedback endpoint stores hashes rather than completion text by default,
+but operators must configure retention and redaction. Do not send production
+credentials, personal data, or customer telemetry to a model without policy
+approval.
+
+\subsection{Dual use}
+
+Cybersecurity knowledge is dual-use. The training corpus may contain descriptions
+of attacks, vulnerabilities, and malware. Defensive framing reduces but does not
+eliminate the risk of harmful recombination. The project supports evaluation of
+refusal and over-refusal, and it encourages red-teaming before release. Model
+cards and dataset cards should state intended and out-of-scope use
+\citep{mitchell2019modelcards}.
+
+\subsection{Licensing and attribution}
+
+Code is Apache-2.0. Model weights and datasets retain their own licenses. ATT\&CK
+and CWE require attribution under their terms; OWASP content may be share-alike;
+SecEval is evaluation-only and non-commercial; CyberSecEval is obtained under
+upstream terms. The project does not redistribute restricted data. Users are
+responsible for compliance when publishing derived datasets or models.
+
+\subsection{Disclosure}
+
+Security vulnerabilities in the repository should be reported privately according
+to \texttt{SECURITY.md}. Vulnerabilities in upstream models, libraries, or
+datasets should be reported to their maintainers. The project will document
+known limitations rather than claiming safety from a smoke test.
+
+\subsection{Deployment checklist}
+
+Before exposing a \cyberlite{} service:
+
+\begin{enumerate}[leftmargin=1.4em]
+  \item bind to loopback or authenticated, encrypted access;
+  \item set an API key and rate limits if other users can reach it;
+  \item redact or disable prompt-body logging;
+  \item never connect output to a shell, CI runner, or production system;
+  \item monitor memory, latency, and abuse;
+  \item publish the model card, dataset card, evaluation protocol, and
+  limitations;
+  \item re-evaluate after model, data, or dependency changes.
+\end{enumerate}

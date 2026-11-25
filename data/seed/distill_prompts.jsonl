@@ -1,0 +1,6 @@
+{"id": "distill-1", "prompt": "Write a concise defensive checklist for reviewing an SSH configuration on a Linux server."}
+{"id": "distill-2", "prompt": "Explain how to triage a suspected phishing email without opening it on a production workstation."}
+{"id": "distill-3", "prompt": "Compare parameterized queries and input sanitization for preventing SQL injection."}
+{"id": "distill-4", "prompt": "Write a Sigma rule outline for detecting a suspicious curl download followed by shell execution on Linux."}
+{"id": "distill-5", "prompt": "Describe a safe procedure for validating a TLS certificate on an internal service."}
+{"id": "distill-6", "prompt": "Give a Python example that resolves a user-selected file path safely inside a fixed root."}

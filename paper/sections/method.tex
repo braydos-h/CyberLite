@@ -1,0 +1,99 @@
+\section{Post-training methodology}
+\label{sec:method}
+
+\subsection{Supervised fine-tuning with masked loss}
+
+For a chat example, the tokenizer's chat template renders the conversation. The
+loss is computed only on assistant content and the turn terminator; system and
+user tokens are masked with $-100$. For completion and FIM examples, only the
+response or middle segment is supervised. Given input tokens $x_{1:T}$ and
+labels $y_{1:T}$, the objective is
+\begin{equation}
+\mathcal{L}_{\mathrm{SFT}}(\theta)
+= -\sum_{t=1}^{T} \frac{\mathbb{1}[y_t \neq -100]}{\sum_{s=1}^{T}\mathbb{1}[y_s \neq -100]}
+  \log p_\theta(y_t \mid x_{<t}).
+\end{equation}
+Packing is not enabled by default; sequences are truncated to a configured
+maximum and examples with no supervised tokens are skipped.
+
+\subsection{LoRA and QLoRA}
+
+LoRA freezes the base weights $W$ and learns a low-rank update
+\begin{equation}
+W' = W + \frac{\alpha}{r}BA,
+\end{equation}
+where $A \in \mathbb{R}^{r \times d_{\mathrm{in}}}$ and
+$B \in \mathbb{R}^{d_{\mathrm{out}} \times r}$ \citep{hu2021lora}. QLoRA stores
+the base weights in 4-bit NF4 format and computes adapters in a higher-precision
+compute dtype \citep{dettmers2023qlora}. The implementation supports gradient
+checkpointing, gradient accumulation, mixed precision, checkpoint resumption,
+and configurable sequence length. QLoRA requires CUDA in this pipeline because
+bitsandbytes 4/8-bit loading is not supported on CPU here.
+
+\subsection{Offline distillation}
+
+A local teacher generates a response $\hat{y}$ for each prompt $x$. After
+filtering, the student is trained with the same masked SFT objective on
+$(x,\hat{y})$. This is sequence-level knowledge distillation
+\citep{hinton2015distillation}. It avoids storing teacher logits and works with
+different model families, but it cannot correct teacher errors and may amplify
+style artifacts. The paper reports it as offline distillation, not as logit
+matching.
+
+\subsection{Retrieval augmentation}
+
+The baseline retriever is BM25 over chunked documents with source, license, and
+URL metadata. For query $q$, the top-$k$ documents are formatted as evidence
+blocks \texttt{[S1]}, \texttt{[S2]}, and so on. The system prompt instructs the
+model to cite evidence and to treat it as untrusted data. Citations are parsed
+for coverage and precision. Dense retrieval and reranking are planned ablations.
+
+\subsection{Autocomplete}
+
+For FIM, the prompt is
+\begin{equation}
+\texttt{<|fim\_prefix|>}p\;\texttt{<|fim\_suffix|>}s\;\texttt{<|fim\_middle|>}.
+\end{equation}
+For prefix mode, a chat prompt provides the before/after-cursor text and asks for
+the completion only. Generated text is cleaned of fences and control tokens.
+The engine has no execution path, returns \texttt{executed: false}, and requires
+review. Completion quality is measured with held-out exact match, token F1,
+character edit similarity, and Python syntax validity; latency and memory are
+measured separately.
+
+\subsection{Quantized deployment}
+
+Training quantization and deployment quantization are separated. QLoRA uses
+4-bit base weights during training. Deployment may use bitsandbytes 4/8-bit on
+CUDA, TorchAO int8 (experimental), or GGUF export through a local llama.cpp
+checkout. Every path requires a measured parity check against the unquantized
+model; no accuracy equivalence is assumed.
+
+\subsection{Training configuration}
+
+\begin{table}[t]
+\centering
+\small
+\caption{Planned starting configurations. These are hypotheses to test, not
+tuned recommendations. VRAM targets are experimental.}
+\label{tab:training-configs}
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+Setting & Low VRAM & QLoRA & LoRA & Distilled \\
+\midrule
+Target class & 4 GB & 6--8 GB & 12--16 GB & 6--8 GB \\
+Base precision & 4-bit & 4-bit & bf16 & 4-bit \\
+LoRA rank & 8 & 16 & 16 & 16 \\
+Max sequence length & 512 & 1024 & 1024 & 2048 \\
+Per-device batch & 1 & 1 & 1 & 1 \\
+Gradient accumulation & 16 & 8 & 8 & 8 \\
+Learning rate & $2\times10^{-4}$ & $2\times10^{-4}$ & $2\times10^{-4}$ & $1\times10^{-4}$ \\
+Optimizer & paged AdamW 8-bit & paged AdamW 8-bit & AdamW & paged AdamW 8-bit \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+All runs use fixed seeds, explicit warmup, cosine or constant schedules, and
+checkpoint saving. Peak memory, duration, tokens/second, and cost assumptions are
+recorded. A run may be resumed from a checkpoint; the resumed path and config
+hash are stored in metadata.

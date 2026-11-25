@@ -1,0 +1,33 @@
+CyberLite
+Copyright 2026 CyberLite Contributors
+
+This product includes software and documentation developed by the CyberLite
+project, licensed under the Apache License, Version 2.0.
+
+Third-party notices and dependencies:
+
+- Qwen3.5-0.8B is developed by the Qwen team and distributed under the
+  Apache License 2.0. Model weights are not included in this repository.
+  https://huggingface.co/Qwen/Qwen3.5-0.8B
+- PyTorch, Hugging Face Transformers, PEFT, Accelerate, FastAPI, and NumPy are
+  distributed under their respective licenses. Refer to the installed packages.
+- MITRE ATT&CK is a trademark of The MITRE Corporation. ATT&CK content is used
+  only when a user explicitly downloads it and is subject to MITRE's terms.
+  https://attack.mitre.org/
+- Common Weakness Enumeration (CWE) is a trademark of The MITRE Corporation and
+  is subject to the CWE Terms of Use. https://cwe.mitre.org/
+- The National Vulnerability Database is produced by NIST. NVD data is generally
+  a U.S. Government work; attribution is requested. https://nvd.nist.gov/
+- OWASP content is subject to the license of the specific OWASP project; the
+  Cheat Sheet Series is documented as CC BY-SA 4.0. https://owasp.org/
+- CyberSecEval / CyberSecEval 2 are distributed by Meta under upstream terms.
+  CyberLite does not redistribute benchmark data.
+- SecEval is distributed under CC BY-NC-SA and is evaluation-only. CyberLite
+  does not redistribute it.
+
+No third-party dataset is bundled except the original, synthetic smoke examples
+authored for this repository. Users are responsible for verifying upstream
+licenses before training, publishing, or redistributing derived artifacts.
+
+The CyberLite name and logo are project identifiers, not a claim of endorsement
+by any upstream project.

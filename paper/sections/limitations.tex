@@ -1,0 +1,73 @@
+\section{Limitations}
+\label{sec:limitations}
+
+\subsection{Evidence status}
+
+This manuscript reports no trained research checkpoint and no benchmark result.
+The implementation has been smoke-tested, but model capability, safety, and
+efficiency claims remain untested. Readers should treat the experimental
+sections as a protocol, not a finding.
+
+\subsection{Model capacity}
+
+A 0.8B-parameter model has limited parametric knowledge and limited multi-step
+reasoning. It may memorize common facts while failing on novel combinations,
+version-specific advice, or long contexts. Fine-tuning on cybersecurity data can
+improve domain style and recall but cannot reliably create capabilities absent
+from the base model. The project therefore includes retrieval and explicit
+uncertainty rather than assuming that specialization solves knowledge limits.
+
+\subsection{Architecture and tooling}
+
+Qwen3.5's hybrid linear/full attention and multimodal checkpoint require a recent
+Transformers implementation. Compatibility can change across library releases.
+The CPU reference path is correct but slow; optional accelerated kernels are not
+installed by default. The vision tower is unused, and the multimodal capability
+of the checkpoint is outside scope.
+
+\subsection{Data and licensing}
+
+Public cybersecurity sources have different licenses and quality. Some are
+copyleft or share-alike; some documentation is proprietary. Derived datasets and
+models may inherit obligations. The project records licenses but cannot provide
+legal clearance. NVD and ATT\&CK descriptions can be incomplete or outdated.
+Teacher-generated data can contain errors and may be constrained by the teacher's
+license. The committed smoke data is synthetic and unrepresentative.
+
+\subsection{Contamination}
+
+The 13-gram screen catches verbatim overlap only. Paraphrased benchmark leakage,
+memorization, and semantic contamination may remain. Benchmark test items must be
+excluded by construction, and the paper must report versions and subset choices.
+No automated screen can prove absence of contamination.
+
+\subsection{Evaluation validity}
+
+Multiple-choice accuracy, token F1, and lexical grounding proxies are imperfect.
+A model can score well by learning answer formats or by exploiting artifacts.
+False-positive rates depend on the chosen positive label and class balance.
+Syntax validity is not functional correctness, and the harness does not execute
+generated code. Human review is required for safety and factual claims, and
+inter-annotator agreement should be reported when human evaluation is used.
+
+\subsection{Hardware and cost}
+
+Memory estimates are approximations. Actual peak memory depends on kernels,
+allocator behavior, sequence length, batch size, and concurrent workloads.
+Consumer hardware varies widely. Cost is only meaningful with explicit rates and
+a stated utilization assumption. Single-machine latency numbers are not portable.
+
+\subsection{Deployment and safety}
+
+The local API is a compatibility subset, not a production serving system. It has
+no sandbox for generated commands because it does not execute them; integrators
+who add execution own the sandbox and authorization controls. Prompt injection
+through retrieved documents or code remains a risk. Small models can be
+confidently wrong, and security decisions require human verification.
+
+\subsection{Generalization}
+
+The planned corpus emphasizes English-language, Linux/networking, and
+web-security content. Results may not transfer to Windows-heavy enterprises,
+industrial control systems, non-English environments, or proprietary tooling.
+Larger models and additional data are needed to test generality.

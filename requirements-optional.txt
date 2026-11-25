@@ -1,0 +1,4 @@
+# Optional accelerators. These are not required for the default CPU workflow.
+# Verify platform support before relying on them in an experiment.
+bitsandbytes>=0.44; platform_system == "Linux"
+torchao>=0.7

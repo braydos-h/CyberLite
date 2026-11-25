@@ -1,0 +1,43 @@
+name: Bug report
+description: Report a reproducible problem with CyberLite.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Do not include credentials, private keys, customer data, or restricted benchmark items.
+        Security vulnerabilities must be reported privately per SECURITY.md.
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: A clear description of the problem.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Minimal reproduction
+      description: Commands, config overrides, and a small synthetic input.
+    validations:
+      required: true
+  - type: input
+    id: commit
+    attributes:
+      label: Commit or version
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: OS, Python, PyTorch, Transformers, PEFT, GPU/CPU, and memory. Paste `python scripts/check_hardware.py --json` if safe.
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: Redact paths, tokens, and data.
+    validations:
+      required: false

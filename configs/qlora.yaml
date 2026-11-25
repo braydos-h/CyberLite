@@ -1,0 +1,97 @@
+# 6-8 GB class: 4-bit QLoRA. This is the recommended default for consumer GPUs.
+schema_version: 1
+run:
+  name: cyberlite-qlora
+  seed: 42
+  output_dir: runs/qlora
+  tags: [qlora, 8gb]
+  notes: Recommended starting point for 6-8 GB GPUs; measure peak VRAM before scaling.
+
+model:
+  id: Qwen/Qwen3.5-0.8B
+  revision: null
+  dtype: bfloat16
+  device: auto
+  attn_implementation: sdpa
+  trust_remote_code: false
+  freeze_vision: true
+  use_cache: false
+  parameters_b: 0.853
+
+quantization:
+  load_in_4bit: true
+  load_in_8bit: false
+  bnb_4bit_quant_type: nf4
+  bnb_4bit_use_double_quant: true
+  bnb_4bit_compute_dtype: bfloat16
+
+lora:
+  enabled: true
+  r: 16
+  alpha: 32
+  dropout: 0.05
+  target_modules: auto
+  bias: none
+  task_type: CAUSAL_LM
+
+training:
+  epochs: 1
+  max_steps: -1
+  per_device_batch_size: 1
+  gradient_accumulation_steps: 8
+  learning_rate: 0.0002
+  weight_decay: 0.01
+  warmup_ratio: 0.03
+  lr_scheduler_type: cosine
+  max_seq_length: 1024
+  gradient_checkpointing: true
+  optim: paged_adamw_8bit
+  bf16: true
+  fp16: false
+  tf32: true
+  logging_steps: 10
+  save_steps: 100
+  eval_steps: 100
+  save_total_limit: 3
+  dataloader_num_workers: 0
+  report_to: []
+  resume_from_checkpoint: null
+  smoke: false
+
+data:
+  train_file: data/processed/train.jsonl
+  validation_file: data/processed/validation.jsonl
+  test_file: data/processed/test.jsonl
+  format: auto
+  system_prompt: >-
+    You are CyberLite, a defensive cybersecurity assistant. Prefer verifiable,
+    safe guidance. Never claim to have executed commands or accessed systems.
+  chat_template_kwargs:
+    enable_thinking: false
+  max_train_samples: null
+  max_eval_samples: 256
+  require_license: true
+  allowed_licenses:
+    - Apache-2.0
+    - MIT
+    - BSD-2-Clause
+    - BSD-3-Clause
+    - CC-BY-4.0
+    - CC-BY-SA-4.0
+    - CC0-1.0
+    - Public-Domain
+    - Synthetic
+    - MITRE-ATTACK
+    - MITRE-CWE
+    - GPL-2.0-only
+    - GPL-2.0-or-later
+    - IETF-Trust
+
+distillation:
+  enabled: false
+
+reporting:
+  json_logs: false
+  cost_per_gpu_hour_usd: null
+  electricity_cost_per_kwh_usd: null
+  hardware_watts: null

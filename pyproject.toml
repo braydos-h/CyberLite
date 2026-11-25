@@ -1,0 +1,116 @@
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[project]
+name = "cyberlite"
+version = "0.1.0"
+description = "Resource-efficient post-training and evaluation of sub-billion-parameter cybersecurity language models."
+readme = "README.md"
+license = { text = "Apache-2.0" }
+requires-python = ">=3.11"
+authors = [{ name = "CyberLite Contributors" }]
+keywords = [
+  "cybersecurity",
+  "language-models",
+  "lora",
+  "qlora",
+  "knowledge-distillation",
+  "quantization",
+  "autocomplete",
+  "reproducibility",
+]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Science/Research",
+  "License :: OSI Approved :: Apache Software License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+  "Topic :: Security",
+]
+dependencies = [
+  "torch>=2.6,<3",
+  "transformers>=4.57,<6",
+  "peft>=0.14,<1",
+  "accelerate>=1.2,<2",
+  "huggingface-hub>=0.27",
+  "safetensors>=0.4",
+  "numpy>=1.26,<3",
+  "PyYAML>=6.0",
+  "pydantic>=2.8,<3",
+  "fastapi>=0.115",
+  "uvicorn>=0.32",
+  "httpx>=0.27",
+]
+
+[project.optional-dependencies]
+train = ["datasets>=3.2,<5"]
+quant = [
+  "bitsandbytes>=0.44; platform_system == 'Linux'",
+  "torchao>=0.7",
+]
+dev = [
+  "pytest>=8.3",
+  "pytest-cov>=6.0",
+  "ruff>=0.8",
+  "mypy>=1.13",
+  "build>=1.2",
+]
+docs = []
+
+[project.scripts]
+cyberlite-serve = "cyberlite.inference.server:main"
+cyberlite-autocomplete = "cyberlite.autocomplete.server:main"
+
+[project.urls]
+Homepage = "https://github.com/braydos-h/CyberLite"
+Documentation = "https://github.com/braydos-h/CyberLite/tree/main/docs"
+Issues = "https://github.com/braydos-h/CyberLite/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["cyberlite"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+src = ["cyberlite", "scripts", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "SIM", "RUF"]
+ignore = ["E501", "B008", "SIM108"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101"]
+
+[tool.mypy]
+python_version = "3.11"
+warn_unused_ignores = true
+warn_redundant_casts = true
+warn_unused_configs = true
+no_implicit_optional = true
+check_untyped_defs = true
+ignore_missing_imports = true
+exclude = ["paper/", "benchmarks/"]
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+addopts = "-ra --strict-markers"
+testpaths = ["tests"]
+markers = [
+  "integration: tests that download model weights or require a GPU (opt in with CYBERLITE_RUN_INTEGRATION=1)",
+  "slow: long-running tests",
+]
+filterwarnings = [
+  "ignore::DeprecationWarning:transformers.*",
+  "ignore::UserWarning:torch.*",
+]
+
+[tool.coverage.run]
+source = ["cyberlite"]
+omit = ["cyberlite/**/__main__.py"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true

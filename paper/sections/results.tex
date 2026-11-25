@@ -1,0 +1,104 @@
+\section{Results}
+\label{sec:results}
+
+\subsection{Current status: no verified benchmark results}
+
+At the time of writing, no condition in Table~\ref{tab:conditions} has completed a
+research-scale training and evaluation cycle. Consequently, this section reports
+\textbf{no performance numbers}. The tables below are reporting templates. Dashes
+and \pending{} markers are intentional. They must not be cited as
+findings, and they must not be replaced with borrowed numbers from other models
+or blog posts.
+
+\begin{table}[t]
+\centering
+\small
+\caption{Primary results template. Every cell is pending. A completed table must
+include dataset versions, prompt templates, seeds, hardware, and raw
+predictions.}
+\label{tab:results-main}
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}lrrrrr@{}}
+\toprule
+Metric & Base & LoRA & QLoRA & Distilled & +RAG \\
+\midrule
+Held-out security MCQ accuracy & \pending{} & \pending{} & \pending{} & \pending{} & \pending{} \\
+MCQ 95\% CI & \pending{} & \pending{} & \pending{} & \pending{} & \pending{} \\
+Vulnerability macro F1 & \pending{} & \pending{} & \pending{} & \pending{} & \pending{} \\
+Vulnerability FPR & \pending{} & \pending{} & \pending{} & \pending{} & \pending{} \\
+Secure-code exact match & \pending{} & \pending{} & \pending{} & \pending{} & \pending{} \\
+Secure-code syntax valid & \pending{} & \pending{} & \pending{} & \pending{} & \pending{} \\
+Grounded QA token F1 & \pending{} & \pending{} & \pending{} & \pending{} & \pending{} \\
+Grounding proxy (lower better) & \pending{} & \pending{} & \pending{} & \pending{} & \pending{} \\
+General retention accuracy & \pending{} & \pending{} & \pending{} & \pending{} & \pending{} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[t]
+\centering
+\small
+\caption{Operational results template. Peak memory and latency are measured on
+the stated hardware, not inferred from model size.}
+\label{tab:results-ops}
+\begin{tabular}{@{}lrrrrr@{}}
+\toprule
+Measurement & Base & LoRA & QLoRA & Distilled & 4-bit \\
+\midrule
+Peak training VRAM (GB) & \pending{} & \pending{} & \pending{} & \pending{} & \pending{} \\
+Training duration (hours) & \pending{} & \pending{} & \pending{} & \pending{} & \pending{} \\
+Peak inference memory (GB) & \pending{} & \pending{} & \pending{} & \pending{} & \pending{} \\
+Tokens/second (CPU) & \pending{} & \pending{} & \pending{} & \pending{} & \pending{} \\
+Tokens/second (GPU) & \pending{} & \pending{} & \pending{} & \pending{} & \pending{} \\
+Cost at stated rate (USD) & \pending{} & \pending{} & \pending{} & \pending{} & \pending{} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Implementation validation (not a scientific result)}
+
+The following engineering facts were verified during repository construction on a
+6-thread Intel i5-9500T CPU with 15.4 GiB RAM, no GPU, PyTorch 2.15.0+CPU,
+Transformers 5.24.1, PEFT 0.22.0, and Python 3.12:
+
+\begin{itemize}[leftmargin=1.4em]
+  \item the checkpoint loaded as \texttt{Qwen3\_5ForConditionalGeneration} with
+  852,985,920 parameters;
+  \item a rank-4 LoRA adapter added 2.71 million trainable parameters after
+  freezing the vision tower;
+  \item a forward/backward pass on a two-example batch produced a finite loss and
+  gradients;
+  \item a two-step smoke run completed in 26--29 seconds of training after model
+  load, used about 6.25 GiB peak RSS, saved an adapter, and reloaded it for
+  generation;
+  \item the FIM and prefix autocomplete code paths executed without a hidden
+  execution path.
+\end{itemize}
+
+These checks establish that the plumbing runs. They say nothing about
+cybersecurity capability, and the smoke adapter is intentionally undertrained.
+A poor chat answer or a poor FIM completion from this adapter is expected; it is
+not a result about a trained \cyberlite{} model.
+
+\subsection{What will count as a result}
+
+A result will be promoted only after:
+
+\begin{enumerate}[leftmargin=1.4em]
+  \item the training run has a clean commit, config hash, and dataset manifest;
+  \item the evaluation uses a fixed, licensed held-out set that was not used for
+  tuning;
+  \item raw predictions are archived with the summary;
+  \item the hardware, software, decoding, and seeds are recorded;
+  \item the authors have reviewed a sample for unsafe or unsupported claims;
+  \item the table includes negative or null findings, not only improvements.
+\end{enumerate}
+
+\subsection{Expected failure modes}
+
+We anticipate several possible outcomes, all of which are reportable:
+the 0.8B model may improve on knowledge questions but remain weak at multi-step
+reasoning; QLoRA may match LoRA on some tasks but diverge on others; retrieval
+may improve grounding while adding latency; FIM may fail if the base checkpoint
+was not FIM-trained; and narrow SFT may degrade general capability. These are
+hypotheses, not predictions disguised as results.

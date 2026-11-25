@@ -1,0 +1,85 @@
+# Tiny end-to-end pipeline validation. CPU-compatible but still loads the 0.8B
+# checkpoint, so expect a few minutes and several GB of RAM on CPU.
+schema_version: 1
+run:
+  name: cyberlite-smoke
+  seed: 42
+  output_dir: runs/smoke
+  tags: [smoke, ci]
+  notes: Two optimization steps on the bundled synthetic smoke dataset.
+
+model:
+  id: Qwen/Qwen3.5-0.8B
+  revision: null
+  dtype: float32
+  device: auto
+  attn_implementation: sdpa
+  trust_remote_code: false
+  freeze_vision: true
+  use_cache: false
+  parameters_b: 0.853
+
+quantization:
+  load_in_4bit: false
+  load_in_8bit: false
+  bnb_4bit_quant_type: nf4
+  bnb_4bit_use_double_quant: true
+  bnb_4bit_compute_dtype: bfloat16
+
+lora:
+  enabled: true
+  r: 4
+  alpha: 8
+  dropout: 0.05
+  target_modules: auto
+  bias: none
+  task_type: CAUSAL_LM
+
+training:
+  epochs: 1
+  max_steps: 2
+  per_device_batch_size: 1
+  gradient_accumulation_steps: 2
+  learning_rate: 0.0002
+  weight_decay: 0.01
+  warmup_ratio: 0.0
+  lr_scheduler_type: constant
+  max_seq_length: 256
+  gradient_checkpointing: true
+  optim: adamw_torch
+  bf16: false
+  fp16: false
+  tf32: false
+  logging_steps: 1
+  save_steps: 2
+  eval_steps: 2
+  save_total_limit: 1
+  dataloader_num_workers: 0
+  report_to: []
+  resume_from_checkpoint: null
+  smoke: true
+
+data:
+  train_file: data/processed/smoke/train.jsonl
+  validation_file: data/processed/smoke/validation.jsonl
+  test_file: data/processed/smoke/test.jsonl
+  format: auto
+  system_prompt: >-
+    You are CyberLite, a defensive cybersecurity assistant. Prefer verifiable,
+    safe guidance. Never claim to have executed commands or accessed systems.
+  chat_template_kwargs:
+    enable_thinking: false
+  max_train_samples: 8
+  max_eval_samples: 4
+  require_license: true
+  allowed_licenses:
+    - Synthetic
+
+distillation:
+  enabled: false
+
+reporting:
+  json_logs: false
+  cost_per_gpu_hour_usd: null
+  electricity_cost_per_kwh_usd: null
+  hardware_watts: null

@@ -1,0 +1,86 @@
+\section{Evaluation metrics}
+\label{sec:metrics}
+
+\subsection{Task metrics}
+
+\begin{table}[t]
+\centering
+\small
+\caption{Metric definitions. All metrics are computed locally; generated code is
+not executed.}
+\label{tab:metrics}
+\begin{tabular}{@{}p{0.27\linewidth}p{0.63\linewidth}@{}}
+\toprule
+Metric & Definition and interpretation \\
+\midrule
+MCQ accuracy & Fraction of parsed answer letters equal to the key; bootstrap 95\% CI. \\
+Invalid rate & Fraction of outputs with no parseable answer; a format-following signal. \\
+Classification accuracy & Exact label match on a fixed label set. \\
+Macro F1 & Unweighted mean of per-label F1; sensitive to rare classes. \\
+False-positive rate & Among truly negative items, fraction predicted positive. Reported for binary tasks with a stated positive label. \\
+Exact match & Normalized string equality; strict and often low for free-form text. \\
+Token F1 & SQuAD-style token overlap; partial credit, still lexical. \\
+Edit similarity & Character-level similarity for code completion. \\
+Syntax-valid rate & Fraction of Python completions accepted by \texttt{ast.parse}; does not imply security or correctness. \\
+Refusal rate & Fraction matching refusal patterns; a behaviour metric. \\
+Execution-claim rate & Fraction claiming a command was run or a system accessed; a safety-relevant hallucination proxy. \\
+Unsupported-token rate & Answer tokens absent from the evidence or reference; a lexical grounding proxy, not factual accuracy. \\
+Latency / throughput & Wall-clock seconds and tokenizer tokens/second, with hardware metadata. \\
+Peak memory & CUDA allocated/reserved counters and process RSS. \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Why no single hallucination rate?}
+
+``Hallucination'' is not a single observable. A model can omit a citation, cite a
+real source for a wrong claim, paraphrase correctly, or state a confident false
+fact with high lexical overlap. The harness reports an explicit lexical proxy and
+separate refusal/execution-claim rates, and it recommends human review for
+factual claims. Presenting the proxy as a hallucination rate would overstate
+what is measured.
+
+\subsection{Performance-to-compute metrics}
+
+For a score $s \in [0,1]$ and a model with $P$ billion parameters, we report
+\begin{equation}
+\mathrm{score\ per\ billion} = \frac{100s}{P},
+\end{equation}
+and, when an explicit cost $C>0$ is available,
+\begin{equation}
+\mathrm{score\ per\ dollar} = \frac{100s}{C}.
+\end{equation}
+These ratios are descriptive, not utility functions. A cheaper model with a
+lower score may be preferable for a given deployment; the paper reports both
+dimensions rather than collapsing them. Training cost and inference cost are
+reported separately.
+
+\subsection{Uncertainty and multiplicity}
+
+Confidence intervals are computed by bootstrap resampling of evaluation items.
+When multiple hypotheses are tested, we report all tests and avoid selective
+significance claims. Effect sizes and intervals are emphasized over $p$-values.
+Small evaluation sets produce wide intervals; the paper will state the number of
+items per task and avoid over-interpreting differences smaller than the interval.
+
+\subsection{Safety metrics}
+
+In addition to task accuracy, we report:
+
+\begin{itemize}[leftmargin=1.4em]
+  \item execution-claim rate (the model should not claim to have run commands),
+  \item refusal rate on benign defensive questions (over-refusal is a utility
+  cost),
+  \item citation precision for RAG outputs,
+  \item a manual review of a stratified sample for unsafe or unauthorized
+  guidance,
+  \item a prompt-injection probe using synthetic malicious instructions embedded
+  in retrieved evidence or code comments.
+\end{itemize}
+
+\subsection{Reporting template}
+
+Every result table will include the model/checkpoint, adapter, quantization,
+dataset version and license, prompt style, decoding settings, number of items,
+hardware, software versions, and seed. A number without this context is not a
+result.

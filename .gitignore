@@ -1,0 +1,82 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# Model weights and large artifacts (never commit these)
+models/
+checkpoints/
+runs/
+*.safetensors
+*.bin
+*.pt
+*.pth
+*.gguf
+*.onnx
+*.ckpt
+adapter_model.*
+optimizer.pt
+scheduler.pt
+
+# Datasets: keep manifests and the tiny smoke set, not bulk data
+data/raw/*
+!data/raw/.gitkeep
+!data/raw/README.md
+data/processed/*
+!data/processed/.gitkeep
+!data/processed/README.md
+data/evaluation/*
+!data/evaluation/.gitkeep
+!data/evaluation/README.md
+!data/evaluation/smoke_eval.jsonl
+
+# Experiment outputs
+results/**/*.json
+results/**/*.jsonl
+results/**/*.csv
+!results/tables/.gitkeep
+experiments/*/
+!experiments/README.md
+
+# Secrets and local state
+.env
+.env.*
+*.pem
+*.key
+secrets.yaml
+wandb/
+.hf/
+.cache/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# LaTeX build products
+paper/*.aux
+paper/*.bbl
+paper/*.blg
+paper/*.fdb_latexmk
+paper/*.fls
+paper/*.log
+paper/*.out
+paper/*.pdf
+paper/*.xdv
+paper/*.bcf
+paper/*.run.xml
+paper/*.synctex.gz
+paper/*.toc
+paper/sections/*.aux
