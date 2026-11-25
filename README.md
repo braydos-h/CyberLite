@@ -406,6 +406,20 @@ If you use this code or the research design, cite the repository using
 [CITATION.cff](CITATION.cff). A paper is in preparation; its results sections
 currently contain explicit placeholders.
 
+## Contact
+
+CyberLite is maintained by **Brayden Habets**.
+
+| | |
+|---|---|
+| Author | Brayden Habets |
+| Email | braydenhabets19(at)gmail.com |
+| Website | [cyberlite.braydos.com](https://cyberlite.braydos.com) |
+
+Please use issues on the [GitHub repository](https://github.com/braydos-h/CyberLite)
+for bugs and feature requests, and [SECURITY.md](SECURITY.md) for vulnerability
+reports. Email is best for private or project-level enquiries.
+
 ## License
 
 Original CyberLite code is licensed under the **Apache License 2.0**. Model

@@ -24,6 +24,7 @@ Move entries into a versioned section only when a release is tagged.
 
 ### Docs
 
+- `README.md` adds a Contact section with the maintainer's name, email, and project website.
 - `README.md` documents the planned hardware path: CPU-first training and testing, followed by a funding request for a CUDA GPU to continue post-training at research scale.
 
 ### Changed
