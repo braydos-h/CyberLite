@@ -97,6 +97,19 @@ Outputs:
 Predictions can contain benchmark-derived outputs; store them according to the
 upstream license and your organization's policy.
 
+## Baseline snapshots
+
+Frozen reference runs live in [`results/baseline/`](../results/baseline/README.md).
+They pair task metrics from `scripts/evaluate.py` with a separate throughput
+protocol from `scripts/benchmark.py` (time to first token, tokens per second,
+and peak memory at fixed prompt lengths). The bundled data is project-authored
+and small: use these snapshots for regression checks and for comparing later
+adapters against a fixed starting point, not as benchmark results.
+
+Keep task quality and throughput separate. A single composite score would hide
+the trade-off between knowledge accuracy, selective classification, generation
+quality, and speed.
+
 ## Reporting checklist
 
 - [ ] Model/checkpoint revision and adapter hash

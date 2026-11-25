@@ -40,6 +40,7 @@ data/evaluation/*
 !data/evaluation/.gitkeep
 !data/evaluation/README.md
 !data/evaluation/smoke_eval.jsonl
+!data/evaluation/baseline_probe_v1.jsonl
 
 # Experiment outputs
 results/**/*.json
