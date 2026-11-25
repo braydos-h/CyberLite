@@ -1,4 +1,4 @@
-.PHONY: install install-dev test lint format typecheck validate progress progress-check smoke data paper clean
+.PHONY: install install-dev test lint format typecheck validate progress progress-check smoke data paper deploy-web preview-web clean
 
 install:
 	python -m pip install -e .
@@ -35,6 +35,12 @@ smoke:
 
 paper:
 	cd paper && latexmk -pdf main.tex
+
+preview-web:
+	npx --yes serve web
+
+deploy-web:
+	npx --yes wrangler@latest pages deploy web --project-name cyberlite --branch main
 
 clean:
 	rm -rf .pytest_cache .ruff_cache .mypy_cache htmlcov .coverage
