@@ -8,6 +8,9 @@ needed to render the page is in this folder.
 ```text
 web/
 ├── index.html
+├── _headers
+├── robots.txt
+├── sitemap.xml
 ├── assets/
 │   ├── styles.css
 │   ├── main.js
@@ -18,7 +21,12 @@ web/
 
 ## Preview
 
-Open `index.html` directly in a browser, or drop the folder on any static host.
+Open `index.html` directly in a browser, or serve the folder locally:
+
+```bash
+npx --yes serve web
+# or: python -m http.server 8000 --directory web
+```
 
 ## Paper PDF
 
@@ -30,18 +38,48 @@ directly. Refresh the snapshot after rebuilding the paper:
 cp ../paper/main.pdf assets/cyberlite-paper.pdf
 ```
 
-## Deploy to Cloudflare Pages
+## Deploy with npx (Cloudflare Pages)
 
-- **Build command:** none
-- **Build output directory:** `web`
+The site is static: build command **none**, output directory **`web`**. Nothing
+in the repository needs to be compiled before deployment.
+
+One-time setup on a machine with a browser:
+
+```bash
+npx --yes wrangler@latest login
+npx --yes wrangler@latest pages project create cyberlite --production-branch main
+```
+
+Deploy the current `web/` folder to production:
+
+```bash
+npx --yes wrangler@latest pages deploy web --project-name cyberlite --branch main
+```
+
+The same command is available as `make deploy-web`. Omit `--branch main` to
+upload a preview deployment instead of production.
+
+For CI or another headless environment, set a token with **Cloudflare Pages:
+Edit** permission and the account ID:
+
+```bash
+CLOUDFLARE_API_TOKEN=... CLOUDFLARE_ACCOUNT_ID=... \
+  npx --yes wrangler@latest pages deploy web --project-name cyberlite --branch main
+```
+
+No Cloudflare credentials are stored in this repository, and deployment is not
+run by GitHub Actions.
 
 The page uses relative asset paths, so it works at a domain root or a subpath.
-If you deploy at a hostname other than `cyberlite.braydos.com`, update the
-`rel="canonical"` and `og:url` values in `index.html`.
+`_headers` adds security and cache headers on Cloudflare Pages and is ignored by
+hosts that do not support it. `robots.txt` and `sitemap.xml` assume the
+canonical host `cyberlite.braydos.com`; update all three files, plus the
+`rel="canonical"` and `og:url` values in `index.html`, if you deploy elsewhere.
 
-For a Git-connected Cloudflare Pages project, use the repository root as the
-project root and `web` as the build output directory. For Direct Upload, use
-this folder as the upload root.
+To attach the domain, open the Pages project → **Custom domains** →
+`cyberlite.braydos.com` and follow the DNS instructions. For a Git-connected
+Pages project instead of the npx upload, use the repository root as the project
+root and `web` as the build output directory.
 
 ## Keeping the page accurate
 
