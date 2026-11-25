@@ -29,6 +29,7 @@ Move entries into a versioned section only when a release is tagged.
 
 ### Docs
 
+- `README.md` documents the conditional scaling path from the 0.8B Qwen3.5 target to a 26B Inkling-2-mini follow-on, so the larger-model ambition is stated as a plan rather than left implied.
 - `web/README.md` now distinguishes the recommended Git-connected Cloudflare Pages setup from manual Wrangler uploads, and documents the `SKIP_DEPENDENCY_INSTALL` and `Authentication error [code: 10000]` pitfalls.
 - `README.md` adds a Contact section with the maintainer's name, email, and project website.
 - `README.md` documents the planned hardware path: CPU-first training and testing, followed by a funding request for a CUDA GPU to continue post-training at research scale.

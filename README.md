@@ -45,6 +45,16 @@ model is **Qwen3.5-0.8B**; larger models are supported as experimental controls.
 **Central philosophy:** cybersecurity AI should be accessible without
 enterprise-grade hardware.
 
+### Scaling path
+
+CyberLite starts deliberately small: **Qwen3.5-0.8B** is the target because it
+keeps every experiment cheap, reproducible, and runnable on consumer hardware.
+If the project's results and funding justify it, the next rung is
+**Inkling-2-mini**, a 26B model that is substantially more capable, with the
+same data, post-training, and evaluation protocol repeated at that scale. The
+0.8B model remains the default and the low-hardware reference; the larger model
+is a conditional follow-on, not a replacement for the current plan.
+
 ## Goals and live progress
 
 Project goals, success criteria, and verifiable milestones live in
