@@ -22,6 +22,10 @@ Move entries into a versioned section only when a release is tagged.
 - `AGENTS.md` with working rules for contributors and AI agents, including the mandatory changelog and progress workflow.
 - `CHANGELOG.md` (this file) as the single record of notable changes.
 
+### Docs
+
+- `README.md` documents the planned hardware path: CPU-first training and testing, followed by a funding request for a CUDA GPU to continue post-training at research scale.
+
 ### Changed
 
 - `Makefile` gains `progress` and `progress-check` targets.

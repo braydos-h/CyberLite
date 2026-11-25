@@ -174,6 +174,18 @@ python scripts/train.py --config configs/qlora.yaml --estimate-only --force
 Estimates are for planning only. The training pipeline writes measured peak
 VRAM, wall-clock time, and throughput next to every run.
 
+### Planned hardware path
+
+The current plan is to train and test as much of the pipeline as possible on
+CPU first, and to publish what the CPU path can and cannot do. That work is the
+baseline: it establishes which steps are reproducible without a GPU, how long
+they take, and where the bottlenecks actually are.
+
+Once the CPU evidence is in place, the next step is to seek funding for a CUDA
+GPU so post-training can continue at research scale (larger LoRA/QLoRA runs,
+distillation, and the full experimental matrix). Until that happens, any GPU
+results in this repository should be read as planned, not measured.
+
 ## Installation
 
 CyberLite supports Linux, macOS (including Apple MPS where available), and
