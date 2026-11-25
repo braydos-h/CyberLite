@@ -380,6 +380,7 @@ CyberLite/
 ├── paper/                 # LaTeX paper scaffold with placeholders
 ├── experiments/           # experiment definitions and reviewed analysis
 ├── benchmarks/            # local, license-compliant benchmark adapters
+├── web/                   # static project website (no build step)
 └── results/               # reviewed artifacts only; currently empty of results
 ```
 

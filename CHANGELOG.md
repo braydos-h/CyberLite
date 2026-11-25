@@ -16,6 +16,7 @@ Move entries into a versioned section only when a release is tagged.
 
 ### Added
 
+- Static project website under `web/` with the research overview, verified model facts, hypotheses, progress snapshot, safety boundaries, and explicitly pending benchmark results.
 - `data/evaluation/baseline_probe_v1.jsonl`, a 36-item project-authored capability probe (24 MCQ, 12 classification) with balanced, interleaved answer positions and labels.
 - E0 capability and throughput snapshot for `Qwen/Qwen3.5-0.8B`: 23/24 MCQ, 0.50 classification accuracy with all items labelled `vulnerable` (FPR 1.0), 5.79–6.63 tokens/s and 1.12–2.59 s TTFT on CPU fp32, with the probe, predictions, and benchmark artifacts hash-pinned.
 - E0 pre-training baseline snapshot of `Qwen/Qwen3.5-0.8B` on the smoke evaluation set, with run hashes, per-item predictions, and measured CPU latency/memory, so post-training conditions can be compared against a fixed starting point.
