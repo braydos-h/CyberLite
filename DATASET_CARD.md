@@ -8,7 +8,7 @@ smoke set used to validate the pipeline.
 
 | Field | Value |
 |---|---|
-| Committed smoke set | 34 training corpus examples + 8 evaluation examples |
+| Committed smoke set | 34 training corpus examples + 8 harness-validation evaluations + 36 baseline-probe evaluations |
 | Language | English |
 | Tasks | knowledge QA, attack techniques, weaknesses, vulnerabilities, hardening, secure coding, autocomplete |
 | Licenses | `Synthetic` for committed examples; source-dependent for local corpora |
@@ -43,7 +43,10 @@ The pipeline exists to make cybersecurity post-training data auditable:
 
 These examples are deliberately small and are **not** representative of the
 domain. `data/evaluation/smoke_eval.jsonl` contains eight disjoint synthetic
-items for harness validation.
+items for harness validation. `data/evaluation/baseline_probe_v1.jsonl` contains
+36 additional project-authored items (24 MCQ, 12 classification) for a small
+capability probe with balanced answer positions and labels; it is a regression
+baseline, not a validated benchmark.
 
 ### Planned external sources
 
