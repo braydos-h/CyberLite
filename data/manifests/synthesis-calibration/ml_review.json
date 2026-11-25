@@ -1,0 +1,3078 @@
+{
+  "generated_by": "ml-training-review (Agent I)",
+  "summary": {
+    "records": 500,
+    "splits": {
+      "train": 444,
+      "validation": 33,
+      "test": 23
+    },
+    "kinds": {
+      "completion": 473,
+      "fim": 15,
+      "chat": 12
+    },
+    "families": 24,
+    "encode_failures": 0,
+    "discarded": 0,
+    "truncated_at_1024": 0,
+    "over_1024": 0,
+    "longest_tokens": 819,
+    "families_lt_10_records": [
+      "attack-technique-recognition",
+      "detection-rule-interpretation",
+      "general-retention",
+      "incident-investigation",
+      "uncertainty-handling",
+      "vulnerability-classification",
+      "vulnerability-remediation"
+    ],
+    "family_cap_violations": [],
+    "min_share_violations": [
+      "uncertainty-handling"
+    ],
+    "curriculum_covered_record_share": 0.536,
+    "license_gate_status": "blocked",
+    "recommended_epochs": 2,
+    "recommended_tokens_per_epoch": 7276089
+  },
+  "dataset_snapshot": {
+    "build_id": "cyberlite-syn-2.0.0-04a21fdaa5ec",
+    "dataset_version": "cyberlite-syn-2.0.0-04a21fdaa5ec",
+    "manifest_created_at": "2026-11-25T13:22:29.111693+00:00",
+    "analysis_utc": "2026-11-25T13:32:48+00:00",
+    "files": {
+      "train": {
+        "records": 444,
+        "sha256": "5e9673dc4b354ff20df9f02eeb0fdfa6873311742d48793004cf956849abc971"
+      },
+      "validation": {
+        "records": 33,
+        "sha256": "5a018a4fd645d069f2a9c19111bc43a68d90371c0ca139c5f67e44a77b98343f"
+      },
+      "test": {
+        "records": 23,
+        "sha256": "e131502494c867f5ef19df856c974288300ab5d95228ea5ddfc3a7fc1dcdb059"
+      }
+    },
+    "note": "The calibration files were regenerated during this review; these hashes are the snapshot measured here."
+  },
+  "policy_snapshot": {
+    "path": "configs/synthesis/mix.yaml",
+    "sha256": "2e02126df5d5ddb380023246dacc468ecf0fa9fefb308c1ea923a8c15410150c",
+    "mtime_utc": "2026-11-25T13:30:27+00:00",
+    "note": "The policy was edited during the review; the current file is used for all cap/minimum/curriculum results."
+  },
+  "config_training_gate": {
+    "config_files": [
+      "configs/lora.yaml",
+      "configs/qlora.yaml"
+    ],
+    "config_train_file": "data/processed/pilot-v2/train.jsonl",
+    "config_manifest_file": "data/manifests/pilot-v2/manifest.json",
+    "config_dataset_version": "cyberlite-data-2.0.0-04b01b437805",
+    "config_expected_split_counts": {
+      "train": 6351,
+      "validation": 416,
+      "test": 421
+    },
+    "calibration_split_counts": {
+      "train": 444,
+      "validation": 33,
+      "test": 23
+    },
+    "calibration_dataset_version": "cyberlite-syn-2.0.0-04a21fdaa5ec",
+    "require_resolved_licenses": true,
+    "allow_unresolved_licenses": [],
+    "license_gate": {
+      "train": {
+        "ok": false,
+        "accepted": 30,
+        "rejected": 414,
+        "reasons": {
+          "unresolved_license": 414
+        },
+        "unresolved_licenses": [
+          "CC-BY-SA-4.0",
+          "GPL-1.0-or-later",
+          "GPL-2.0-only",
+          "GPL-2.0-or-later",
+          "IETF-Trust",
+          "Linux-man-pages-1-para",
+          "Linux-man-pages-copyleft",
+          "MITRE-ATTACK",
+          "MITRE-CWE",
+          "Synthetic"
+        ]
+      },
+      "validation": {
+        "ok": false,
+        "accepted": 3,
+        "rejected": 30,
+        "reasons": {
+          "unresolved_license": 30
+        },
+        "unresolved_licenses": [
+          "CC-BY-SA-4.0",
+          "MITRE-ATTACK",
+          "Synthetic"
+        ]
+      },
+      "test": {
+        "ok": false,
+        "accepted": 0,
+        "rejected": 23,
+        "reasons": {
+          "unresolved_license": 23
+        },
+        "unresolved_licenses": [
+          "IETF-Trust",
+          "MITRE-ATTACK",
+          "Synthetic"
+        ]
+      }
+    },
+    "status": "blocked",
+    "note": "The shipped configs point at pilot-v2, not synthesis-calibration, and the license gate rejects unresolved-license records. This is a governance gate, not a tokenization failure."
+  },
+  "tokenizer": {
+    "name": "Qwen/Qwen3.5-0.8B",
+    "class": "Qwen3_5Tokenizer",
+    "revision": "2fc06364715b967f1860aea9cf38778875588b17",
+    "local_only": true,
+    "is_fast": true,
+    "vocab_size": 248044,
+    "eos_token": "<|im_end|>",
+    "eos_token_id": 248046,
+    "pad_token": "<|endoftext|>",
+    "pad_token_id": 248044,
+    "fim_token_ids": {
+      "prefix": 248060,
+      "suffix": 248062,
+      "middle": 248061,
+      "pad": 248063
+    },
+    "chat_template": "Qwen3.5 (enable_thinking=False)",
+    "system_prompt_used": "You are CyberLite, a defensive cybersecurity assistant. Prefer verifiable, safe guidance. Never claim to have executed commands or accessed systems."
+  },
+  "corpus": {
+    "records": 500,
+    "splits": {
+      "train": 444,
+      "validation": 33,
+      "test": 23
+    },
+    "kinds": {
+      "completion": 473,
+      "fim": 15,
+      "chat": 12
+    },
+    "families": 24,
+    "total_tokens": 146674,
+    "total_supervised_tokens": 91205,
+    "mean_tokens": 293.35
+  },
+  "token_distributions": {
+    "all": {
+      "n": 500,
+      "min": 33,
+      "mean": 293.348,
+      "p50": 278,
+      "p90": 408,
+      "p95": 444,
+      "p99": 557,
+      "max": 819,
+      "sum": 146674,
+      "over_1024": 0,
+      "over_1024_ratio": 0.0,
+      "over_768": 1,
+      "over_512": 12
+    },
+    "by_kind": {
+      "chat": {
+        "n": 12,
+        "min": 376,
+        "mean": 473.75,
+        "p50": 472,
+        "p90": 536,
+        "p95": 577,
+        "p99": 615,
+        "max": 625,
+        "sum": 5685,
+        "over_1024": 0,
+        "over_1024_ratio": 0.0,
+        "over_768": 0,
+        "over_512": 3
+      },
+      "completion": {
+        "n": 473,
+        "min": 151,
+        "mean": 295.655,
+        "p50": 279,
+        "p90": 400,
+        "p95": 431,
+        "p99": 551,
+        "max": 819,
+        "sum": 139845,
+        "over_1024": 0,
+        "over_1024_ratio": 0.0,
+        "over_768": 1,
+        "over_512": 9
+      },
+      "fim": {
+        "n": 15,
+        "min": 33,
+        "mean": 76.267,
+        "p50": 70,
+        "p90": 109,
+        "p95": 118,
+        "p99": 132,
+        "max": 136,
+        "sum": 1144,
+        "over_1024": 0,
+        "over_1024_ratio": 0.0,
+        "over_768": 0,
+        "over_512": 0
+      }
+    },
+    "by_family": {
+      "attack-technique-recognition": {
+        "n": 4,
+        "min": 219,
+        "mean": 239.5,
+        "p50": 229,
+        "p90": 265,
+        "p95": 273,
+        "p99": 279,
+        "max": 281,
+        "sum": 958,
+        "over_1024": 0,
+        "over_1024_ratio": 0.0,
+        "over_768": 0,
+        "over_512": 0
+      },
+      "code-remediation": {
+        "n": 17,
+        "min": 258,
+        "mean": 322.706,
+        "p50": 325,
+        "p90": 360,
+        "p95": 390,
+        "p99": 453,
+        "max": 469,
+        "sum": 5486,
+        "over_1024": 0,
+        "over_1024_ratio": 0.0,
+        "over_768": 0,
+        "over_512": 0
+      },
+      "command-explanation": {
+        "n": 47,
+        "min": 205,
+        "mean": 250.553,
+        "p50": 249,
+        "p90": 281,
+        "p95": 287,
+        "p99": 298,
+        "max": 305,
+        "sum": 11776,
+        "over_1024": 0,
+        "over_1024_ratio": 0.0,
+        "over_768": 0,
+        "over_512": 0
+      },
+      "comparison": {
+        "n": 13,
+        "min": 271,
+        "mean": 341.846,
+        "p50": 322,
+        "p90": 414,
+        "p95": 426,
+        "p99": 436,
+        "max": 438,
+        "sum": 4444,
+        "over_1024": 0,
+        "over_1024_ratio": 0.0,
+        "over_768": 0,
+        "over_512": 0
+      },
+      "configuration-analysis": {
+        "n": 30,
+        "min": 225,
+        "mean": 326.333,
+        "p50": 317,
+        "p90": 385,
+        "p95": 417,
+        "p99": 538,
+        "max": 581,
+        "sum": 9790,
+        "over_1024": 0,
+        "over_1024_ratio": 0.0,
+        "over_768": 0,
+        "over_512": 1
+      },
+      "configuration-completion": {
+        "n": 20,
+        "min": 268,
+        "mean": 339.5,
+        "p50": 338,
+        "p90": 403,
+        "p95": 431,
+        "p99": 445,
+        "max": 448,
+        "sum": 6790,
+        "over_1024": 0,
+        "over_1024_ratio": 0.0,
+        "over_768": 0,
+        "over_512": 0
+      },
+      "detection-rule-interpretation": {
+        "n": 4,
+        "min": 233,
+        "mean": 267.25,
+        "p50": 276,
+        "p90": 285,
+        "p95": 285,
+        "p99": 285,
+        "max": 285,
+        "sum": 1069,
+        "over_1024": 0,
+        "over_1024_ratio": 0.0,
+        "over_768": 0,
+        "over_512": 0
+      },
+      "error-diagnosis": {
+        "n": 20,
+        "min": 223,
+        "mean": 247.85,
+        "p50": 236,
+        "p90": 288,
+        "p95": 311,
+        "p99": 332,
+        "max": 337,
+        "sum": 4957,
+        "over_1024": 0,
+        "over_1024_ratio": 0.0,
+        "over_768": 0,
+        "over_512": 0
+      },
+      "evidence-grounded-qa": {
+        "n": 41,
+        "min": 270,
+        "mean": 352.659,
+        "p50": 352,
+        "p90": 411,
+        "p95": 417,
+        "p99": 449,
+        "max": 464,
+        "sum": 14459,
+        "over_1024": 0,
+        "over_1024_ratio": 0.0,
+        "over_768": 0,
+        "over_512": 0
+      },
+      "false-positive-recognition": {
+        "n": 10,
+        "min": 304,
+        "mean": 398.0,
+        "p50": 400,
+        "p90": 454,
+        "p95": 474,
+        "p99": 490,
+        "max": 494,
+        "sum": 3980,
+        "over_1024": 0,
+        "over_1024_ratio": 0.0,
+        "over_768": 0,
+        "over_512": 0
+      },
+      "fill-in-the-middle": {
+        "n": 15,
+        "min": 33,
+        "mean": 76.267,
+        "p50": 70,
+        "p90": 109,
+        "p95": 118,
+        "p99": 132,
+        "max": 136,
+        "sum": 1144,
+        "over_1024": 0,
+        "over_1024_ratio": 0.0,
+        "over_768": 0,
+        "over_512": 0
+      },
+      "general-retention": {
+        "n": 8,
+        "min": 310,
+        "mean": 349.25,
+        "p50": 344,
+        "p90": 390,
+        "p95": 396,
+        "p99": 400,
+        "max": 401,
+        "sum": 2794,
+        "over_1024": 0,
+        "over_1024_ratio": 0.0,
+        "over_768": 0,
+        "over_512": 0
+      },
+      "incident-investigation": {
+        "n": 2,
+        "min": 516,
+        "mean": 532.5,
+        "p50": 532,
+        "p90": 546,
+        "p95": 547,
+        "p99": 549,
+        "max": 549,
+        "sum": 1065,
+        "over_1024": 0,
+        "over_1024_ratio": 0.0,
+        "over_768": 0,
+        "over_512": 2
+      },
+      "instruction-response": {
+        "n": 50,
+        "min": 151,
+        "mean": 245.0,
+        "p50": 238,
+        "p90": 318,
+        "p95": 324,
+        "p99": 347,
+        "max": 351,
+        "sum": 12250,
+        "over_1024": 0,
+        "over_1024_ratio": 0.0,
+        "over_768": 0,
+        "over_512": 0
+      },
+      "log-interpretation": {
+        "n": 25,
+        "min": 253,
+        "mean": 330.52,
+        "p50": 305,
+        "p90": 391,
+        "p95": 408,
+        "p99": 546,
+        "max": 589,
+        "sum": 8263,
+        "over_1024": 0,
+        "over_1024_ratio": 0.0,
+        "over_768": 0,
+        "over_512": 1
+      },
+      "misconception-correction": {
+        "n": 20,
+        "min": 172,
+        "mean": 209.75,
+        "p50": 210,
+        "p90": 248,
+        "p95": 250,
+        "p99": 255,
+        "max": 256,
+        "sum": 4195,
+        "over_1024": 0,
+        "over_1024_ratio": 0.0,
+        "over_768": 0,
+        "over_512": 0
+      },
+      "multi-turn-troubleshooting": {
+        "n": 12,
+        "min": 376,
+        "mean": 473.75,
+        "p50": 472,
+        "p90": 536,
+        "p95": 577,
+        "p99": 615,
+        "max": 625,
+        "sum": 5685,
+        "over_1024": 0,
+        "over_1024_ratio": 0.0,
+        "over_768": 0,
+        "over_512": 3
+      },
+      "multiple-choice": {
+        "n": 65,
+        "min": 171,
+        "mean": 220.769,
+        "p50": 217,
+        "p90": 272,
+        "p95": 284,
+        "p99": 297,
+        "max": 316,
+        "sum": 14350,
+        "over_1024": 0,
+        "over_1024_ratio": 0.0,
+        "over_768": 0,
+        "over_512": 0
+      },
+      "multiple-choice-multi-answer": {
+        "n": 25,
+        "min": 180,
+        "mean": 256.36,
+        "p50": 260,
+        "p90": 280,
+        "p95": 285,
+        "p99": 296,
+        "max": 299,
+        "sum": 6409,
+        "over_1024": 0,
+        "over_1024_ratio": 0.0,
+        "over_768": 0,
+        "over_512": 0
+      },
+      "secure-code-review": {
+        "n": 21,
+        "min": 226,
+        "mean": 341.619,
+        "p50": 341,
+        "p90": 416,
+        "p95": 423,
+        "p99": 433,
+        "max": 435,
+        "sum": 7174,
+        "over_1024": 0,
+        "over_1024_ratio": 0.0,
+        "over_768": 0,
+        "over_512": 0
+      },
+      "structured-json": {
+        "n": 30,
+        "min": 256,
+        "mean": 402.767,
+        "p50": 392,
+        "p90": 492,
+        "p95": 524,
+        "p99": 549,
+        "max": 557,
+        "sum": 12083,
+        "over_1024": 0,
+        "over_1024_ratio": 0.0,
+        "over_768": 0,
+        "over_512": 3
+      },
+      "uncertainty-handling": {
+        "n": 9,
+        "min": 274,
+        "mean": 347.778,
+        "p50": 339,
+        "p90": 394,
+        "p95": 395,
+        "p99": 396,
+        "max": 396,
+        "sum": 3130,
+        "over_1024": 0,
+        "over_1024_ratio": 0.0,
+        "over_768": 0,
+        "over_512": 0
+      },
+      "vulnerability-classification": {
+        "n": 9,
+        "min": 223,
+        "mean": 391.667,
+        "p50": 251,
+        "p90": 746,
+        "p95": 783,
+        "p99": 812,
+        "max": 819,
+        "sum": 3525,
+        "over_1024": 0,
+        "over_1024_ratio": 0.0,
+        "over_768": 1,
+        "over_512": 2
+      },
+      "vulnerability-remediation": {
+        "n": 3,
+        "min": 242,
+        "mean": 299.333,
+        "p50": 243,
+        "p90": 379,
+        "p95": 396,
+        "p99": 410,
+        "max": 413,
+        "sum": 898,
+        "over_1024": 0,
+        "over_1024_ratio": 0.0,
+        "over_768": 0,
+        "over_512": 0
+      }
+    },
+    "by_split": {
+      "train": {
+        "n": 444,
+        "min": 33,
+        "mean": 294.347,
+        "p50": 279,
+        "p90": 408,
+        "p95": 454,
+        "p99": 571,
+        "max": 819,
+        "sum": 130690,
+        "over_1024": 0,
+        "over_1024_ratio": 0.0,
+        "over_768": 1,
+        "over_512": 12
+      },
+      "validation": {
+        "n": 33,
+        "min": 151,
+        "mean": 288.97,
+        "p50": 272,
+        "p90": 391,
+        "p95": 415,
+        "p99": 441,
+        "max": 449,
+        "sum": 9536,
+        "over_1024": 0,
+        "over_1024_ratio": 0.0,
+        "over_768": 0,
+        "over_512": 0
+      },
+      "test": {
+        "n": 23,
+        "min": 197,
+        "mean": 280.348,
+        "p50": 256,
+        "p90": 388,
+        "p95": 414,
+        "p99": 424,
+        "max": 426,
+        "sum": 6448,
+        "over_1024": 0,
+        "over_1024_ratio": 0.0,
+        "over_768": 0,
+        "over_512": 0
+      }
+    },
+    "by_difficulty": {
+      "advanced": {
+        "n": 125,
+        "min": 68,
+        "mean": 282.2,
+        "p50": 272,
+        "p90": 387,
+        "p95": 422,
+        "p99": 533,
+        "max": 589,
+        "sum": 35275,
+        "over_1024": 0,
+        "over_1024_ratio": 0.0,
+        "over_768": 0,
+        "over_512": 2
+      },
+      "expert": {
+        "n": 25,
+        "min": 173,
+        "mean": 272.4,
+        "p50": 275,
+        "p90": 362,
+        "p95": 379,
+        "p99": 389,
+        "max": 391,
+        "sum": 6810,
+        "over_1024": 0,
+        "over_1024_ratio": 0.0,
+        "over_768": 0,
+        "over_512": 0
+      },
+      "foundational": {
+        "n": 150,
+        "min": 57,
+        "mean": 294.0,
+        "p50": 274,
+        "p90": 409,
+        "p95": 438,
+        "p99": 538,
+        "max": 625,
+        "sum": 44100,
+        "over_1024": 0,
+        "over_1024_ratio": 0.0,
+        "over_768": 0,
+        "over_512": 3
+      },
+      "intermediate": {
+        "n": 200,
+        "min": 33,
+        "mean": 302.445,
+        "p50": 286,
+        "p90": 416,
+        "p95": 464,
+        "p99": 582,
+        "max": 819,
+        "sum": 60489,
+        "over_1024": 0,
+        "over_1024_ratio": 0.0,
+        "over_768": 1,
+        "over_512": 7
+      }
+    }
+  },
+  "supervised_token_distributions_by_kind": {
+    "chat": {
+      "n": 12,
+      "min": 197,
+      "mean": 221.5,
+      "p50": 218,
+      "p90": 247,
+      "p95": 249,
+      "p99": 251,
+      "max": 251,
+      "sum": 2658
+    },
+    "completion": {
+      "n": 473,
+      "min": 65,
+      "mean": 186.717,
+      "p50": 183,
+      "p90": 267,
+      "p95": 287,
+      "p99": 350,
+      "max": 386,
+      "sum": 88317
+    },
+    "fim": {
+      "n": 15,
+      "min": 6,
+      "mean": 15.333,
+      "p50": 13,
+      "p90": 25,
+      "p95": 26,
+      "p99": 28,
+      "max": 29,
+      "sum": 230
+    }
+  },
+  "longest_records": [
+    {
+      "id": "grnd-nist-nvd-nist-nvd-001f4beaa8f927d0-triage",
+      "split": "train",
+      "kind": "completion",
+      "family": "vulnerability-classification",
+      "tokens": 819,
+      "supervised_tokens": 298,
+      "truncated": false,
+      "discarded": null
+    },
+    {
+      "id": "grnd-nist-nvd-nist-nvd-00515c5c766e67b7-triage",
+      "split": "train",
+      "kind": "completion",
+      "family": "vulnerability-classification",
+      "tokens": 728,
+      "supervised_tokens": 258,
+      "truncated": false,
+      "discarded": null
+    },
+    {
+      "id": "syn-monitoring-detection-soc-log-network-layers-012-triage-dialogue",
+      "split": "train",
+      "kind": "chat",
+      "family": "multi-turn-troubleshooting",
+      "tokens": 625,
+      "supervised_tokens": 227,
+      "truncated": false,
+      "discarded": null
+    },
+    {
+      "id": "syn-incident-response-forensics-threat-intel-mal-c2-039-log-1",
+      "split": "train",
+      "kind": "completion",
+      "family": "log-interpretation",
+      "tokens": 589,
+      "supervised_tokens": 260,
+      "truncated": false,
+      "discarded": null
+    },
+    {
+      "id": "syn-incident-response-forensics-threat-intel-ti-stix-048-config-1",
+      "split": "train",
+      "kind": "completion",
+      "family": "configuration-analysis",
+      "tokens": 581,
+      "supervised_tokens": 253,
+      "truncated": false,
+      "discarded": null
+    },
+    {
+      "id": "grnd-nist-nvd-nist-nvd-00795ecd6c9525f0-json",
+      "split": "train",
+      "kind": "completion",
+      "family": "structured-json",
+      "tokens": 557,
+      "supervised_tokens": 74,
+      "truncated": false,
+      "discarded": null
+    },
+    {
+      "id": "syn-incident-response-forensics-threat-intel-forensics-antiforensics-032-incident-plan",
+      "split": "train",
+      "kind": "completion",
+      "family": "incident-investigation",
+      "tokens": 549,
+      "supervised_tokens": 359,
+      "truncated": false,
+      "discarded": null
+    },
+    {
+      "id": "syn-monitoring-detection-soc-log-powershell-encoded-108-triage-dialogue",
+      "split": "train",
+      "kind": "chat",
+      "family": "multi-turn-troubleshooting",
+      "tokens": 538,
+      "supervised_tokens": 248,
+      "truncated": false,
+      "discarded": null
+    },
+    {
+      "id": "syn-incident-response-forensics-threat-intel-attack-initial-053-checklist",
+      "split": "train",
+      "kind": "completion",
+      "family": "structured-json",
+      "tokens": 530,
+      "supervised_tokens": 294,
+      "truncated": false,
+      "discarded": null
+    },
+    {
+      "id": "syn-monitoring-detection-soc-log-benign-corroboration-112-triage-dialogue",
+      "split": "train",
+      "kind": "chat",
+      "family": "multi-turn-troubleshooting",
+      "tokens": 519,
+      "supervised_tokens": 215,
+      "truncated": false,
+      "discarded": null
+    },
+    {
+      "id": "syn-incident-response-forensics-threat-intel-mal-elf-037-checklist",
+      "split": "train",
+      "kind": "completion",
+      "family": "structured-json",
+      "tokens": 517,
+      "supervised_tokens": 286,
+      "truncated": false,
+      "discarded": null
+    },
+    {
+      "id": "syn-incident-response-forensics-threat-intel-ir-ransom-008-incident-plan",
+      "split": "train",
+      "kind": "completion",
+      "family": "incident-investigation",
+      "tokens": 516,
+      "supervised_tokens": 347,
+      "truncated": false,
+      "discarded": null
+    },
+    {
+      "id": "syn-monitoring-detection-soc-log-http-access-011-triage-dialogue",
+      "split": "train",
+      "kind": "chat",
+      "family": "multi-turn-troubleshooting",
+      "tokens": 500,
+      "supervised_tokens": 229,
+      "truncated": false,
+      "discarded": null
+    },
+    {
+      "id": "syn-monitoring-detection-soc-log-clock-skew-017-triage-dialogue",
+      "split": "train",
+      "kind": "chat",
+      "family": "multi-turn-troubleshooting",
+      "tokens": 495,
+      "supervised_tokens": 251,
+      "truncated": false,
+      "discarded": null
+    },
+    {
+      "id": "grnd-nist-nvd-nist-nvd-00961af1e44e313b-applicability",
+      "split": "train",
+      "kind": "completion",
+      "family": "false-positive-recognition",
+      "tokens": 494,
+      "supervised_tokens": 152,
+      "truncated": false,
+      "discarded": null
+    }
+  ],
+  "manifest_cross_check": {
+    "manifest": {
+      "limitations": "Token counts are a length signal, not a quality measure. Truncation risk assumes the configured maximum sequence length and does not model the training collator or packing.",
+      "max_sequence_tokens": 1024,
+      "records": 500,
+      "removed_over_limit": 0,
+      "tokenizer": "Qwen/Qwen3.5-0.8B",
+      "tokenizer_info": {
+        "estimated": false,
+        "kind": "transformers",
+        "local_only": true,
+        "name": "Qwen/Qwen3.5-0.8B",
+        "revision": ""
+      },
+      "tokens": {
+        "max": 819,
+        "mean": 292.43,
+        "min": 29,
+        "p50": 278,
+        "p90": 401,
+        "p95": 438,
+        "p99": 557
+      },
+      "truncation": {
+        "over_limit": 0,
+        "ratio": 0.0,
+        "removed_over_limit": 0,
+        "risk": "low"
+      },
+      "truncation_by_limit": {
+        "1024": {
+          "over_limit": 0,
+          "ratio": 0.0
+        },
+        "2048": {
+          "over_limit": 0,
+          "ratio": 0.0
+        },
+        "4096": {
+          "over_limit": 0,
+          "ratio": 0.0
+        },
+        "512": {
+          "over_limit": 10,
+          "ratio": 0.02
+        },
+        "8192": {
+          "over_limit": 0,
+          "ratio": 0.0
+        }
+      }
+    },
+    "measured_overall": {
+      "n": 500,
+      "min": 33,
+      "mean": 293.348,
+      "p50": 278,
+      "p90": 408,
+      "p95": 444,
+      "p99": 557,
+      "max": 819,
+      "sum": 146674,
+      "over_1024": 0,
+      "over_1024_ratio": 0.0,
+      "over_768": 1,
+      "over_512": 12
+    },
+    "note": "manifest counts and this review agree within a few tokens; review includes the configured system prompt for chat and a terminating EOS."
+  },
+  "formatting_and_sft_compatibility": {
+    "records": 500,
+    "encode_failures": [],
+    "encode_failure_count": 0,
+    "chat": {
+      "count": 12,
+      "invalid_roles": [],
+      "not_ending_assistant": [],
+      "assistant_turn_without_span": [],
+      "span_coverage_below_0_98": [],
+      "template_missing_final_im_end": []
+    },
+    "fim": {
+      "count": 15,
+      "control_tokens_present": true,
+      "pad_token_defined_and_unused_expected": true,
+      "missing_control_tokens": [],
+      "empty_suffix": [],
+      "empty_prefix": [],
+      "middle_token_ids": {
+        "prefix": 248060,
+        "suffix": 248062,
+        "middle": 248061,
+        "pad": 248063
+      }
+    },
+    "completion": {
+      "count": 473,
+      "empty_prompt": [],
+      "empty_response": [],
+      "zero_response_tokens": []
+    },
+    "all_masked_or_discarded": [],
+    "truncated_with_content_loss": [],
+    "supervised_ratio": {
+      "n": 500,
+      "min": 0.095,
+      "mean": 0.635,
+      "p50": 0.692,
+      "p90": 0.827,
+      "p95": 0.845,
+      "p99": 0.872,
+      "max": 0.896,
+      "sum": 317.514
+    }
+  },
+  "small_model_suitability": {
+    "too_long_over_1024": [],
+    "near_limit_769_1024": [
+      {
+        "id": "grnd-nist-nvd-nist-nvd-001f4beaa8f927d0-triage",
+        "kind": "completion",
+        "family": "vulnerability-classification",
+        "tokens": 819
+      }
+    ],
+    "long_prompt_over_700_tokens": [],
+    "long_response_over_300_tokens": [
+      {
+        "id": "syn-language-security-retention-gen-http-003-explain",
+        "family": "general-retention",
+        "tokens": 386,
+        "prompt_tokens": 46,
+        "response_tokens": 339
+      },
+      {
+        "id": "syn-language-security-retention-gen-bigo-001-explain",
+        "family": "general-retention",
+        "tokens": 348,
+        "prompt_tokens": 46,
+        "response_tokens": 301
+      },
+      {
+        "id": "syn-language-security-retention-gen-encoding-005-explain",
+        "family": "general-retention",
+        "tokens": 401,
+        "prompt_tokens": 51,
+        "response_tokens": 349
+      },
+      {
+        "id": "grnd-mitre-cwe-mitre-cwe-00c423fba47e9a8f-mitigation",
+        "family": "vulnerability-remediation",
+        "tokens": 413,
+        "prompt_tokens": 43,
+        "response_tokens": 369
+      },
+      {
+        "id": "syn-monitoring-detection-soc-log-auditd-records-009-explain",
+        "family": "instruction-response",
+        "tokens": 351,
+        "prompt_tokens": 45,
+        "response_tokens": 305
+      },
+      {
+        "id": "syn-fundamentals-linux-networking-win-security-events-compare-win-service-accounts",
+        "family": "comparison",
+        "tokens": 418,
+        "prompt_tokens": 64,
+        "response_tokens": 353
+      },
+      {
+        "id": "syn-incident-response-forensics-threat-intel-ir-ransom-008-incident-plan",
+        "family": "incident-investigation",
+        "tokens": 516,
+        "prompt_tokens": 169,
+        "response_tokens": 346
+      },
+      {
+        "id": "syn-web-api-secure-development-web-nosql-injection-001-codereview-1",
+        "family": "secure-code-review",
+        "tokens": 416,
+        "prompt_tokens": 108,
+        "response_tokens": 307
+      },
+      {
+        "id": "syn-language-security-retention-js-deser-004-codereview-1",
+        "family": "secure-code-review",
+        "tokens": 423,
+        "prompt_tokens": 89,
+        "response_tokens": 333
+      },
+      {
+        "id": "syn-language-security-retention-ps-cred-003-checklist",
+        "family": "structured-json",
+        "tokens": 468,
+        "prompt_tokens": 163,
+        "response_tokens": 304
+      },
+      {
+        "id": "syn-language-security-retention-c-offbyone-002-codefix-1",
+        "family": "code-remediation",
+        "tokens": 469,
+        "prompt_tokens": 147,
+        "response_tokens": 321
+      },
+      {
+        "id": "syn-incident-response-forensics-threat-intel-forensics-bash-031-compare-forensics-cloudlogs-034",
+        "family": "comparison",
+        "tokens": 438,
+        "prompt_tokens": 52,
+        "response_tokens": 385
+      },
+      {
+        "id": "syn-fundamentals-linux-networking-win-defender-asr-compare-win-powershell-logging",
+        "family": "comparison",
+        "tokens": 367,
+        "prompt_tokens": 54,
+        "response_tokens": 312
+      },
+      {
+        "id": "syn-incident-response-forensics-threat-intel-forensics-antiforensics-032-incident-plan",
+        "family": "incident-investigation",
+        "tokens": 549,
+        "prompt_tokens": 190,
+        "response_tokens": 358
+      },
+      {
+        "id": "syn-language-security-retention-go-path-002-codereview-1",
+        "family": "secure-code-review",
+        "tokens": 435,
+        "prompt_tokens": 84,
+        "response_tokens": 350
+      },
+      {
+        "id": "syn-incident-response-forensics-threat-intel-forensics-memory-022-compare-forensics-mft-025",
+        "family": "comparison",
+        "tokens": 400,
+        "prompt_tokens": 53,
+        "response_tokens": 346
+      },
+      {
+        "id": "syn-language-security-retention-js-proto-001-compare-js-ssr-006",
+        "family": "comparison",
+        "tokens": 363,
+        "prompt_tokens": 53,
+        "response_tokens": 309
+      }
+    ],
+    "dense_supervision_gt_280": [
+      {
+        "id": "syn-language-security-retention-gen-http-003-explain",
+        "family": "general-retention",
+        "supervised_tokens": 340,
+        "response_chars": 1430
+      },
+      {
+        "id": "syn-language-security-retention-gen-stacktrace-002-explain",
+        "family": "general-retention",
+        "supervised_tokens": 296,
+        "response_chars": 1420
+      },
+      {
+        "id": "syn-language-security-retention-gen-concurrency-006-explain",
+        "family": "general-retention",
+        "supervised_tokens": 293,
+        "response_chars": 1426
+      },
+      {
+        "id": "syn-language-security-retention-gen-bigo-001-explain",
+        "family": "general-retention",
+        "supervised_tokens": 302,
+        "response_chars": 1341
+      },
+      {
+        "id": "syn-language-security-retention-gen-encoding-005-explain",
+        "family": "general-retention",
+        "supervised_tokens": 350,
+        "response_chars": 1486
+      },
+      {
+        "id": "syn-language-security-retention-gen-regex-004-explain",
+        "family": "general-retention",
+        "supervised_tokens": 287,
+        "response_chars": 1383
+      },
+      {
+        "id": "grnd-mitre-cwe-mitre-cwe-00c423fba47e9a8f-mitigation",
+        "family": "vulnerability-remediation",
+        "supervised_tokens": 370,
+        "response_chars": 2019
+      },
+      {
+        "id": "syn-incident-response-forensics-threat-intel-mal-elf-037-checklist",
+        "family": "structured-json",
+        "supervised_tokens": 286,
+        "response_chars": 1211
+      },
+      {
+        "id": "syn-language-security-retention-py-tempfile-007-codereview-1",
+        "family": "secure-code-review",
+        "supervised_tokens": 288,
+        "response_chars": 1236
+      },
+      {
+        "id": "syn-monitoring-detection-soc-log-auditd-records-009-explain",
+        "family": "instruction-response",
+        "supervised_tokens": 306,
+        "response_chars": 1300
+      },
+      {
+        "id": "syn-fundamentals-linux-networking-win-security-events-compare-win-service-accounts",
+        "family": "comparison",
+        "supervised_tokens": 354,
+        "response_chars": 1551
+      },
+      {
+        "id": "syn-incident-response-forensics-threat-intel-ir-ransom-008-incident-plan",
+        "family": "incident-investigation",
+        "supervised_tokens": 347,
+        "response_chars": 1810
+      },
+      {
+        "id": "syn-web-api-secure-development-web-nosql-injection-001-codereview-1",
+        "family": "secure-code-review",
+        "supervised_tokens": 308,
+        "response_chars": 1408
+      },
+      {
+        "id": "syn-language-security-retention-js-deser-004-codereview-1",
+        "family": "secure-code-review",
+        "supervised_tokens": 334,
+        "response_chars": 1473
+      },
+      {
+        "id": "syn-language-security-retention-go-tls-005-explain",
+        "family": "instruction-response",
+        "supervised_tokens": 285,
+        "response_chars": 1341
+      },
+      {
+        "id": "syn-language-security-retention-rust-cmd-005-explain",
+        "family": "instruction-response",
+        "supervised_tokens": 299,
+        "response_chars": 1389
+      },
+      {
+        "id": "syn-language-security-retention-ps-cred-003-checklist",
+        "family": "structured-json",
+        "supervised_tokens": 305,
+        "response_chars": 1365
+      },
+      {
+        "id": "syn-language-security-retention-c-offbyone-002-codefix-1",
+        "family": "code-remediation",
+        "supervised_tokens": 322,
+        "response_chars": 1344
+      },
+      {
+        "id": "syn-incident-response-forensics-threat-intel-forensics-bash-031-compare-forensics-cloudlogs-034",
+        "family": "comparison",
+        "supervised_tokens": 386,
+        "response_chars": 1903
+      },
+      {
+        "id": "syn-fundamentals-linux-networking-win-defender-asr-compare-win-powershell-logging",
+        "family": "comparison",
+        "supervised_tokens": 313,
+        "response_chars": 1568
+      },
+      {
+        "id": "syn-incident-response-forensics-threat-intel-attack-initial-053-checklist",
+        "family": "structured-json",
+        "supervised_tokens": 294,
+        "response_chars": 1279
+      },
+      {
+        "id": "syn-incident-response-forensics-threat-intel-forensics-antiforensics-032-incident-plan",
+        "family": "incident-investigation",
+        "supervised_tokens": 359,
+        "response_chars": 1734
+      },
+      {
+        "id": "syn-language-security-retention-go-path-002-codereview-1",
+        "family": "secure-code-review",
+        "supervised_tokens": 351,
+        "response_chars": 1511
+      },
+      {
+        "id": "syn-web-api-secure-development-web-path-traversal-001-codereview-1",
+        "family": "secure-code-review",
+        "supervised_tokens": 283,
+        "response_chars": 1325
+      },
+      {
+        "id": "grnd-nist-nvd-nist-nvd-001f4beaa8f927d0-triage",
+        "family": "vulnerability-classification",
+        "supervised_tokens": 298,
+        "response_chars": 1209
+      },
+      {
+        "id": "syn-incident-response-forensics-threat-intel-forensics-memory-022-compare-forensics-mft-025",
+        "family": "comparison",
+        "supervised_tokens": 347,
+        "response_chars": 1652
+      },
+      {
+        "id": "syn-language-security-retention-gen-testing-007-explain",
+        "family": "general-retention",
+        "supervised_tokens": 287,
+        "response_chars": 1407
+      },
+      {
+        "id": "syn-language-security-retention-js-proto-001-compare-js-ssr-006",
+        "family": "comparison",
+        "supervised_tokens": 310,
+        "response_chars": 1586
+      }
+    ],
+    "multi_hop_flags": [
+      {
+        "id": "grnd-openssh-docs-openssh-docs-841d94ec4f1d6d22-requirement-1",
+        "family": "evidence-grounded-qa",
+        "flags": [
+          "evidence-synthesis"
+        ]
+      },
+      {
+        "id": "grnd-openssh-docs-openssh-docs-0eaaa2a47144f8ff-requirement-1",
+        "family": "evidence-grounded-qa",
+        "flags": [
+          "evidence-synthesis"
+        ]
+      },
+      {
+        "id": "grnd-ietf-rfcs-ietf-rfcs-0b055e6e1bb95a59-requirement-2",
+        "family": "evidence-grounded-qa",
+        "flags": [
+          "evidence-synthesis"
+        ]
+      },
+      {
+        "id": "grnd-openssh-docs-openssh-docs-9bd3205489aa8ce4-requirement-1",
+        "family": "evidence-grounded-qa",
+        "flags": [
+          "evidence-synthesis"
+        ]
+      },
+      {
+        "id": "grnd-mitre-attack-mitre-attack-041884b6dc3d3cf6-requirement-1",
+        "family": "evidence-grounded-qa",
+        "flags": [
+          "evidence-synthesis"
+        ]
+      },
+      {
+        "id": "grnd-mitre-cwe-mitre-cwe-27d47cc4a4a78cf4-requirement-1",
+        "family": "evidence-grounded-qa",
+        "flags": [
+          "evidence-synthesis"
+        ]
+      },
+      {
+        "id": "grnd-owasp-cheatsheets-owasp-cheatsheets-06a79bdd8d60ef17-requirement-1",
+        "family": "evidence-grounded-qa",
+        "flags": [
+          "evidence-synthesis"
+        ]
+      },
+      {
+        "id": "grnd-linux-man-pages-linux-man-pages-6ac50485c04094af-requirement-1",
+        "family": "evidence-grounded-qa",
+        "flags": [
+          "evidence-synthesis"
+        ]
+      },
+      {
+        "id": "grnd-ietf-rfcs-ietf-rfcs-38d55723e5cd0e19-requirement-1",
+        "family": "evidence-grounded-qa",
+        "flags": [
+          "evidence-synthesis"
+        ]
+      },
+      {
+        "id": "grnd-ietf-rfcs-ietf-rfcs-3a36e4c089bcdfd2-requirement-1",
+        "family": "evidence-grounded-qa",
+        "flags": [
+          "evidence-synthesis"
+        ]
+      },
+      {
+        "id": "syn-monitoring-detection-soc-log-clock-skew-017-triage-dialogue",
+        "family": "multi-turn-troubleshooting",
+        "flags": [
+          "family-multi-hop",
+          "multi-turn-chat"
+        ]
+      },
+      {
+        "id": "grnd-netfilter-nftables-netfilter-nftables-b4529fd9fc104be1-requirement-1",
+        "family": "evidence-grounded-qa",
+        "flags": [
+          "evidence-synthesis"
+        ]
+      },
+      {
+        "id": "syn-monitoring-detection-soc-log-http-access-011-triage-dialogue",
+        "family": "multi-turn-troubleshooting",
+        "flags": [
+          "family-multi-hop",
+          "multi-turn-chat"
+        ]
+      },
+      {
+        "id": "grnd-linux-man-pages-linux-man-pages-2c06185398202dec-requirement-1",
+        "family": "evidence-grounded-qa",
+        "flags": [
+          "evidence-synthesis"
+        ]
+      },
+      {
+        "id": "syn-incident-response-forensics-threat-intel-ir-ransom-008-incident-plan",
+        "family": "incident-investigation",
+        "flags": [
+          "family-multi-hop"
+        ]
+      },
+      {
+        "id": "syn-monitoring-detection-soc-hunt-evidence-collection-402-triage-dialogue",
+        "family": "multi-turn-troubleshooting",
+        "flags": [
+          "family-multi-hop",
+          "multi-turn-chat"
+        ]
+      },
+      {
+        "id": "grnd-mitre-attack-mitre-attack-6e7f1f4c54b6d20e-requirement-1",
+        "family": "evidence-grounded-qa",
+        "flags": [
+          "evidence-synthesis"
+        ]
+      },
+      {
+        "id": "grnd-linux-man-pages-linux-man-pages-5a66d55a27f4d1a6-requirement-1",
+        "family": "evidence-grounded-qa",
+        "flags": [
+          "evidence-synthesis"
+        ]
+      },
+      {
+        "id": "syn-monitoring-detection-soc-log-retention-integrity-018-triage-dialogue",
+        "family": "multi-turn-troubleshooting",
+        "flags": [
+          "family-multi-hop",
+          "multi-turn-chat"
+        ]
+      },
+      {
+        "id": "grnd-linux-man-pages-linux-man-pages-22410a97ce7c5569-requirement-1",
+        "family": "evidence-grounded-qa",
+        "flags": [
+          "evidence-synthesis"
+        ]
+      },
+      {
+        "id": "grnd-openssh-docs-openssh-docs-a6877c80483682c2-requirement-1",
+        "family": "evidence-grounded-qa",
+        "flags": [
+          "evidence-synthesis"
+        ]
+      },
+      {
+        "id": "grnd-linux-man-pages-linux-man-pages-e0bba56ed1c3aca3-requirement-1",
+        "family": "evidence-grounded-qa",
+        "flags": [
+          "evidence-synthesis"
+        ]
+      },
+      {
+        "id": "syn-monitoring-detection-soc-log-network-layers-012-triage-dialogue",
+        "family": "multi-turn-troubleshooting",
+        "flags": [
+          "family-multi-hop",
+          "multi-turn-chat"
+        ]
+      },
+      {
+        "id": "grnd-linux-man-pages-linux-man-pages-5d9c470e8acf6dbe-requirement-1",
+        "family": "evidence-grounded-qa",
+        "flags": [
+          "evidence-synthesis"
+        ]
+      },
+      {
+        "id": "syn-monitoring-detection-soc-log-cloudtrail-013-triage-dialogue",
+        "family": "multi-turn-troubleshooting",
+        "flags": [
+          "family-multi-hop",
+          "multi-turn-chat"
+        ]
+      },
+      {
+        "id": "grnd-ietf-rfcs-ietf-rfcs-0c1ea9429bda3753-requirement-1",
+        "family": "evidence-grounded-qa",
+        "flags": [
+          "evidence-synthesis"
+        ]
+      },
+      {
+        "id": "grnd-netfilter-nftables-netfilter-nftables-e3d956c1678e0c26-requirement-1",
+        "family": "evidence-grounded-qa",
+        "flags": [
+          "evidence-synthesis"
+        ]
+      },
+      {
+        "id": "grnd-mitre-cwe-mitre-cwe-36399d25cf7b5b90-requirement-1",
+        "family": "evidence-grounded-qa",
+        "flags": [
+          "evidence-synthesis"
+        ]
+      },
+      {
+        "id": "grnd-mitre-cwe-mitre-cwe-0224f8f94abee99e-requirement-1",
+        "family": "evidence-grounded-qa",
+        "flags": [
+          "evidence-synthesis"
+        ]
+      },
+      {
+        "id": "grnd-linux-man-pages-linux-man-pages-0c1f32be6ed95205-requirement-1",
+        "family": "evidence-grounded-qa",
+        "flags": [
+          "evidence-synthesis"
+        ]
+      },
+      {
+        "id": "grnd-mitre-attack-mitre-attack-5348ff65d38ea1d3-requirement-1",
+        "family": "evidence-grounded-qa",
+        "flags": [
+          "evidence-synthesis"
+        ]
+      },
+      {
+        "id": "grnd-mitre-attack-mitre-attack-64c7522c106e6c64-requirement-1",
+        "family": "evidence-grounded-qa",
+        "flags": [
+          "evidence-synthesis"
+        ]
+      },
+      {
+        "id": "syn-monitoring-detection-soc-det-data-quality-310-triage-dialogue",
+        "family": "multi-turn-troubleshooting",
+        "flags": [
+          "family-multi-hop",
+          "multi-turn-chat"
+        ]
+      },
+      {
+        "id": "grnd-mitre-attack-mitre-attack-81ec09d29f7eb8a0-requirement-1",
+        "family": "evidence-grounded-qa",
+        "flags": [
+          "evidence-synthesis"
+        ]
+      },
+      {
+        "id": "grnd-openssh-docs-openssh-docs-841d94ec4f1d6d22-requirement-2",
+        "family": "evidence-grounded-qa",
+        "flags": [
+          "evidence-synthesis"
+        ]
+      },
+      {
+        "id": "grnd-ietf-rfcs-ietf-rfcs-20af8ddae4f2f3f1-requirement-1",
+        "family": "evidence-grounded-qa",
+        "flags": [
+          "evidence-synthesis"
+        ]
+      },
+      {
+        "id": "grnd-mitre-cwe-mitre-cwe-0c40c6610b622300-requirement-1",
+        "family": "evidence-grounded-qa",
+        "flags": [
+          "evidence-synthesis"
+        ]
+      },
+      {
+        "id": "syn-incident-response-forensics-threat-intel-forensics-antiforensics-032-incident-plan",
+        "family": "incident-investigation",
+        "flags": [
+          "family-multi-hop"
+        ]
+      },
+      {
+        "id": "grnd-linux-man-pages-linux-man-pages-690287e3deac2d85-requirement-1",
+        "family": "evidence-grounded-qa",
+        "flags": [
+          "evidence-synthesis"
+        ]
+      },
+      {
+        "id": "grnd-ietf-rfcs-ietf-rfcs-3d080cd7f8692a62-requirement-1",
+        "family": "evidence-grounded-qa",
+        "flags": [
+          "evidence-synthesis"
+        ]
+      },
+      {
+        "id": "grnd-owasp-cheatsheets-owasp-cheatsheets-00df144ac4ae4742-requirement-1",
+        "family": "evidence-grounded-qa",
+        "flags": [
+          "evidence-synthesis"
+        ]
+      },
+      {
+        "id": "grnd-mitre-attack-mitre-attack-978d2fb9969195b8-requirement-1",
+        "family": "evidence-grounded-qa",
+        "flags": [
+          "evidence-synthesis"
+        ]
+      },
+      {
+        "id": "syn-monitoring-detection-soc-log-benign-corroboration-112-triage-dialogue",
+        "family": "multi-turn-troubleshooting",
+        "flags": [
+          "family-multi-hop",
+          "multi-turn-chat"
+        ]
+      },
+      {
+        "id": "grnd-mitre-attack-mitre-attack-b2e5c39b125c180f-requirement-1",
+        "family": "evidence-grounded-qa",
+        "flags": [
+          "evidence-synthesis"
+        ]
+      },
+      {
+        "id": "syn-monitoring-detection-soc-log-rfc3164-gap-004-triage-dialogue",
+        "family": "multi-turn-troubleshooting",
+        "flags": [
+          "family-multi-hop",
+          "multi-turn-chat"
+        ]
+      },
+      {
+        "id": "syn-monitoring-detection-soc-log-powershell-encoded-108-triage-dialogue",
+        "family": "multi-turn-troubleshooting",
+        "flags": [
+          "family-multi-hop",
+          "multi-turn-chat"
+        ]
+      },
+      {
+        "id": "syn-monitoring-detection-soc-log-cloud-storage-access-111-triage-dialogue",
+        "family": "multi-turn-troubleshooting",
+        "flags": [
+          "family-multi-hop",
+          "multi-turn-chat"
+        ]
+      },
+      {
+        "id": "grnd-owasp-cheatsheets-owasp-cheatsheets-020ed825636f4e29-requirement-1",
+        "family": "evidence-grounded-qa",
+        "flags": [
+          "evidence-synthesis"
+        ]
+      },
+      {
+        "id": "grnd-owasp-cheatsheets-owasp-cheatsheets-04b03d75cd106650-requirement-1",
+        "family": "evidence-grounded-qa",
+        "flags": [
+          "evidence-synthesis"
+        ]
+      },
+      {
+        "id": "grnd-mitre-attack-mitre-attack-0d7808ff12f397fe-requirement-1",
+        "family": "evidence-grounded-qa",
+        "flags": [
+          "evidence-synthesis"
+        ]
+      },
+      {
+        "id": "grnd-mitre-attack-mitre-attack-2192f603e07cbda4-requirement-1",
+        "family": "evidence-grounded-qa",
+        "flags": [
+          "evidence-synthesis"
+        ]
+      },
+      {
+        "id": "grnd-ietf-rfcs-ietf-rfcs-04baffe38ea43c4e-requirement-2",
+        "family": "evidence-grounded-qa",
+        "flags": [
+          "evidence-synthesis"
+        ]
+      },
+      {
+        "id": "syn-monitoring-detection-soc-log-syslog-pri-001-triage-dialogue",
+        "family": "multi-turn-troubleshooting",
+        "flags": [
+          "family-multi-hop",
+          "multi-turn-chat"
+        ]
+      },
+      {
+        "id": "grnd-ietf-rfcs-ietf-rfcs-26eb3f601b681b6b-requirement-1",
+        "family": "evidence-grounded-qa",
+        "flags": [
+          "evidence-synthesis"
+        ]
+      },
+      {
+        "id": "grnd-mitre-attack-mitre-attack-2a68e054c8aa8255-requirement-1",
+        "family": "evidence-grounded-qa",
+        "flags": [
+          "evidence-synthesis"
+        ]
+      }
+    ],
+    "multi_hop_flag_counts": {
+      "evidence-synthesis": 41,
+      "family-multi-hop": 14,
+      "multi-turn-chat": 12
+    },
+    "heavy_supervision_gt_300": [
+      {
+        "id": "syn-language-security-retention-gen-http-003-explain",
+        "family": "general-retention",
+        "supervised_tokens": 340
+      },
+      {
+        "id": "syn-language-security-retention-gen-bigo-001-explain",
+        "family": "general-retention",
+        "supervised_tokens": 302
+      },
+      {
+        "id": "syn-language-security-retention-gen-encoding-005-explain",
+        "family": "general-retention",
+        "supervised_tokens": 350
+      },
+      {
+        "id": "grnd-mitre-cwe-mitre-cwe-00c423fba47e9a8f-mitigation",
+        "family": "vulnerability-remediation",
+        "supervised_tokens": 370
+      },
+      {
+        "id": "syn-monitoring-detection-soc-log-auditd-records-009-explain",
+        "family": "instruction-response",
+        "supervised_tokens": 306
+      },
+      {
+        "id": "syn-fundamentals-linux-networking-win-security-events-compare-win-service-accounts",
+        "family": "comparison",
+        "supervised_tokens": 354
+      },
+      {
+        "id": "syn-incident-response-forensics-threat-intel-ir-ransom-008-incident-plan",
+        "family": "incident-investigation",
+        "supervised_tokens": 347
+      },
+      {
+        "id": "syn-web-api-secure-development-web-nosql-injection-001-codereview-1",
+        "family": "secure-code-review",
+        "supervised_tokens": 308
+      },
+      {
+        "id": "syn-language-security-retention-js-deser-004-codereview-1",
+        "family": "secure-code-review",
+        "supervised_tokens": 334
+      },
+      {
+        "id": "syn-language-security-retention-ps-cred-003-checklist",
+        "family": "structured-json",
+        "supervised_tokens": 305
+      },
+      {
+        "id": "syn-language-security-retention-c-offbyone-002-codefix-1",
+        "family": "code-remediation",
+        "supervised_tokens": 322
+      },
+      {
+        "id": "syn-incident-response-forensics-threat-intel-forensics-bash-031-compare-forensics-cloudlogs-034",
+        "family": "comparison",
+        "supervised_tokens": 386
+      },
+      {
+        "id": "syn-fundamentals-linux-networking-win-defender-asr-compare-win-powershell-logging",
+        "family": "comparison",
+        "supervised_tokens": 313
+      },
+      {
+        "id": "syn-incident-response-forensics-threat-intel-forensics-antiforensics-032-incident-plan",
+        "family": "incident-investigation",
+        "supervised_tokens": 359
+      },
+      {
+        "id": "syn-language-security-retention-go-path-002-codereview-1",
+        "family": "secure-code-review",
+        "supervised_tokens": 351
+      },
+      {
+        "id": "syn-incident-response-forensics-threat-intel-forensics-memory-022-compare-forensics-mft-025",
+        "family": "comparison",
+        "supervised_tokens": 347
+      },
+      {
+        "id": "syn-language-security-retention-js-proto-001-compare-js-ssr-006",
+        "family": "comparison",
+        "supervised_tokens": 310
+      }
+    ],
+    "underrepresented_families_lt_10": {
+      "incident-investigation": 2,
+      "vulnerability-remediation": 3,
+      "attack-technique-recognition": 4,
+      "detection-rule-interpretation": 4,
+      "general-retention": 8,
+      "uncertainty-handling": 9,
+      "vulnerability-classification": 9
+    },
+    "underrepresented_families_lt_2pct": {
+      "attack-technique-recognition": 0.008,
+      "detection-rule-interpretation": 0.008,
+      "general-retention": 0.016,
+      "incident-investigation": 0.004,
+      "uncertainty-handling": 0.018,
+      "vulnerability-classification": 0.018,
+      "vulnerability-remediation": 0.006
+    }
+  },
+  "mixture_policy_evaluation": {
+    "policy_name": "cyberlite-synthesis-mix-v1",
+    "policy_targets": {
+      "target_sequence_tokens": 1024,
+      "target_epochs": 3
+    },
+    "configs_epochs": {
+      "lora": 1,
+      "qlora": 1
+    },
+    "family_caps_record_weighted": {
+      "basis": "record",
+      "items": [
+        {
+          "key": "multiple-choice",
+          "cap": 0.14,
+          "actual": 0.13,
+          "status": "ok",
+          "headroom": 0.01
+        },
+        {
+          "key": "instruction-response",
+          "cap": 0.1,
+          "actual": 0.1,
+          "status": "ok",
+          "headroom": 0.0
+        },
+        {
+          "key": "evidence-grounded-qa",
+          "cap": 0.2,
+          "actual": 0.082,
+          "status": "ok",
+          "headroom": 0.118
+        },
+        {
+          "key": "structured-json",
+          "cap": 0.06,
+          "actual": 0.06,
+          "status": "ok",
+          "headroom": 0.0
+        },
+        {
+          "key": "configuration-analysis",
+          "cap": 0.06,
+          "actual": 0.06,
+          "status": "ok",
+          "headroom": 0.0
+        },
+        {
+          "key": "multiple-choice-multi-answer",
+          "cap": 0.05,
+          "actual": 0.05,
+          "status": "ok",
+          "headroom": 0.0
+        },
+        {
+          "key": "log-interpretation",
+          "cap": 0.07,
+          "actual": 0.05,
+          "status": "ok",
+          "headroom": 0.02
+        },
+        {
+          "key": "secure-code-review",
+          "cap": 0.08,
+          "actual": 0.042,
+          "status": "ok",
+          "headroom": 0.038
+        },
+        {
+          "key": "configuration-completion",
+          "cap": 0.04,
+          "actual": 0.04,
+          "status": "ok",
+          "headroom": 0.0
+        },
+        {
+          "key": "misconception-correction",
+          "cap": 0.04,
+          "actual": 0.04,
+          "status": "ok",
+          "headroom": 0.0
+        },
+        {
+          "key": "error-diagnosis",
+          "cap": 0.04,
+          "actual": 0.04,
+          "status": "ok",
+          "headroom": 0.0
+        },
+        {
+          "key": "code-remediation",
+          "cap": 0.07,
+          "actual": 0.034,
+          "status": "ok",
+          "headroom": 0.036
+        },
+        {
+          "key": "comparison",
+          "cap": 0.04,
+          "actual": 0.026,
+          "status": "ok",
+          "headroom": 0.014
+        },
+        {
+          "key": "uncertainty-handling",
+          "cap": 0.05,
+          "actual": 0.018,
+          "status": "ok",
+          "headroom": 0.032
+        },
+        {
+          "key": "vulnerability-classification",
+          "cap": 0.1,
+          "actual": 0.018,
+          "status": "ok",
+          "headroom": 0.082
+        },
+        {
+          "key": "general-retention",
+          "cap": 0.04,
+          "actual": 0.016,
+          "status": "ok",
+          "headroom": 0.024
+        },
+        {
+          "key": "detection-rule-interpretation",
+          "cap": 0.04,
+          "actual": 0.008,
+          "status": "ok",
+          "headroom": 0.032
+        },
+        {
+          "key": "attack-technique-recognition",
+          "cap": 0.06,
+          "actual": 0.008,
+          "status": "ok",
+          "headroom": 0.052
+        },
+        {
+          "key": "vulnerability-remediation",
+          "cap": 0.06,
+          "actual": 0.006,
+          "status": "ok",
+          "headroom": 0.054
+        },
+        {
+          "key": "incident-investigation",
+          "cap": 0.04,
+          "actual": 0.004,
+          "status": "ok",
+          "headroom": 0.036
+        },
+        {
+          "key": "secure-autocomplete",
+          "cap": 0.06,
+          "actual": 0.0,
+          "status": "ok",
+          "headroom": 0.06
+        },
+        {
+          "key": "preference-pair",
+          "cap": 0.03,
+          "actual": 0.0,
+          "status": "ok",
+          "headroom": 0.03
+        }
+      ]
+    },
+    "family_caps_token_weighted": {
+      "basis": "token",
+      "items": [
+        {
+          "key": "evidence-grounded-qa",
+          "cap": 0.2,
+          "actual": 0.0986,
+          "status": "ok",
+          "headroom": 0.1014
+        },
+        {
+          "key": "multiple-choice",
+          "cap": 0.14,
+          "actual": 0.0978,
+          "status": "ok",
+          "headroom": 0.0422
+        },
+        {
+          "key": "instruction-response",
+          "cap": 0.1,
+          "actual": 0.0835,
+          "status": "ok",
+          "headroom": 0.0165
+        },
+        {
+          "key": "structured-json",
+          "cap": 0.06,
+          "actual": 0.0824,
+          "status": "over",
+          "headroom": -0.0224
+        },
+        {
+          "key": "configuration-analysis",
+          "cap": 0.06,
+          "actual": 0.0667,
+          "status": "over",
+          "headroom": -0.0067
+        },
+        {
+          "key": "log-interpretation",
+          "cap": 0.07,
+          "actual": 0.0563,
+          "status": "ok",
+          "headroom": 0.0137
+        },
+        {
+          "key": "secure-code-review",
+          "cap": 0.08,
+          "actual": 0.0489,
+          "status": "ok",
+          "headroom": 0.0311
+        },
+        {
+          "key": "configuration-completion",
+          "cap": 0.04,
+          "actual": 0.0463,
+          "status": "over",
+          "headroom": -0.0063
+        },
+        {
+          "key": "multiple-choice-multi-answer",
+          "cap": 0.05,
+          "actual": 0.0437,
+          "status": "ok",
+          "headroom": 0.0063
+        },
+        {
+          "key": "code-remediation",
+          "cap": 0.07,
+          "actual": 0.0374,
+          "status": "ok",
+          "headroom": 0.0326
+        },
+        {
+          "key": "error-diagnosis",
+          "cap": 0.04,
+          "actual": 0.0338,
+          "status": "ok",
+          "headroom": 0.0062
+        },
+        {
+          "key": "comparison",
+          "cap": 0.04,
+          "actual": 0.0303,
+          "status": "ok",
+          "headroom": 0.0097
+        },
+        {
+          "key": "misconception-correction",
+          "cap": 0.04,
+          "actual": 0.0286,
+          "status": "ok",
+          "headroom": 0.0114
+        },
+        {
+          "key": "vulnerability-classification",
+          "cap": 0.1,
+          "actual": 0.024,
+          "status": "ok",
+          "headroom": 0.076
+        },
+        {
+          "key": "uncertainty-handling",
+          "cap": 0.05,
+          "actual": 0.0213,
+          "status": "ok",
+          "headroom": 0.0287
+        },
+        {
+          "key": "general-retention",
+          "cap": 0.04,
+          "actual": 0.019,
+          "status": "ok",
+          "headroom": 0.021
+        },
+        {
+          "key": "incident-investigation",
+          "cap": 0.04,
+          "actual": 0.0073,
+          "status": "ok",
+          "headroom": 0.0327
+        },
+        {
+          "key": "detection-rule-interpretation",
+          "cap": 0.04,
+          "actual": 0.0073,
+          "status": "ok",
+          "headroom": 0.0327
+        },
+        {
+          "key": "attack-technique-recognition",
+          "cap": 0.06,
+          "actual": 0.0065,
+          "status": "ok",
+          "headroom": 0.0535
+        },
+        {
+          "key": "vulnerability-remediation",
+          "cap": 0.06,
+          "actual": 0.0061,
+          "status": "ok",
+          "headroom": 0.0539
+        },
+        {
+          "key": "secure-autocomplete",
+          "cap": 0.06,
+          "actual": 0.0,
+          "status": "ok",
+          "headroom": 0.06
+        },
+        {
+          "key": "preference-pair",
+          "cap": 0.03,
+          "actual": 0.0,
+          "status": "ok",
+          "headroom": 0.03
+        }
+      ]
+    },
+    "domain_caps_record_weighted": {
+      "basis": "record",
+      "items": [
+        {
+          "key": "monitoring-detection-soc",
+          "cap": 0.16,
+          "actual": 0.12,
+          "status": "ok",
+          "headroom": 0.04
+        },
+        {
+          "key": "cloud-container-supply-chain",
+          "cap": 0.12,
+          "actual": 0.12,
+          "status": "ok",
+          "headroom": 0.0
+        },
+        {
+          "key": "language-security-retention",
+          "cap": 0.12,
+          "actual": 0.12,
+          "status": "ok",
+          "headroom": 0.0
+        },
+        {
+          "key": "web-api-secure-development",
+          "cap": 0.14,
+          "actual": 0.11,
+          "status": "ok",
+          "headroom": 0.03
+        },
+        {
+          "key": "fundamentals-linux-networking",
+          "cap": 0.12,
+          "actual": 0.106,
+          "status": "ok",
+          "headroom": 0.014
+        },
+        {
+          "key": "cryptography-identity-access",
+          "cap": 0.1,
+          "actual": 0.1,
+          "status": "ok",
+          "headroom": 0.0
+        },
+        {
+          "key": "vulnerability-classification-remediation",
+          "cap": 0.2,
+          "actual": 0.086,
+          "status": "ok",
+          "headroom": 0.114
+        },
+        {
+          "key": "incident-response-forensics-threat-intel",
+          "cap": 0.14,
+          "actual": 0.078,
+          "status": "ok",
+          "headroom": 0.062
+        }
+      ]
+    },
+    "domain_caps_token_weighted": {
+      "basis": "token",
+      "items": [
+        {
+          "key": "monitoring-detection-soc",
+          "cap": 0.16,
+          "actual": 0.1237,
+          "status": "ok",
+          "headroom": 0.0363
+        },
+        {
+          "key": "language-security-retention",
+          "cap": 0.12,
+          "actual": 0.1174,
+          "status": "ok",
+          "headroom": 0.0026
+        },
+        {
+          "key": "cloud-container-supply-chain",
+          "cap": 0.12,
+          "actual": 0.1153,
+          "status": "ok",
+          "headroom": 0.0047
+        },
+        {
+          "key": "web-api-secure-development",
+          "cap": 0.14,
+          "actual": 0.0997,
+          "status": "ok",
+          "headroom": 0.0403
+        },
+        {
+          "key": "fundamentals-linux-networking",
+          "cap": 0.12,
+          "actual": 0.0986,
+          "status": "ok",
+          "headroom": 0.0214
+        },
+        {
+          "key": "incident-response-forensics-threat-intel",
+          "cap": 0.14,
+          "actual": 0.0894,
+          "status": "ok",
+          "headroom": 0.0506
+        },
+        {
+          "key": "cryptography-identity-access",
+          "cap": 0.1,
+          "actual": 0.0876,
+          "status": "ok",
+          "headroom": 0.0124
+        },
+        {
+          "key": "vulnerability-classification-remediation",
+          "cap": 0.2,
+          "actual": 0.0726,
+          "status": "ok",
+          "headroom": 0.1274
+        }
+      ]
+    },
+    "min_share": [
+      {
+        "family": "uncertainty-handling",
+        "min": 0.02,
+        "actual": 0.018,
+        "status": "below"
+      },
+      {
+        "family": "false-positive-recognition",
+        "min": 0.02,
+        "actual": 0.02,
+        "status": "ok"
+      },
+      {
+        "family": "general-retention",
+        "min": 0.01,
+        "actual": 0.016,
+        "status": "ok"
+      },
+      {
+        "family": "evidence-grounded-qa",
+        "min": 0.005,
+        "actual": 0.082,
+        "status": "ok"
+      }
+    ],
+    "cap_sum_family": 1.47,
+    "cap_sum_domain": 1.1,
+    "families_in_data_not_in_policy": [
+      "command-explanation",
+      "fill-in-the-middle",
+      "multi-turn-troubleshooting"
+    ],
+    "families_in_policy_not_in_data": [
+      "preference-pair",
+      "secure-autocomplete"
+    ],
+    "family_cap_coverage_records": 0.832,
+    "family_cap_uncovered_records": 84,
+    "domain_cap_coverage_records": 0.84,
+    "records_with_unset_domain": {
+      "records": 80,
+      "record_share": 0.16,
+      "token_share": 0.1957,
+      "note": "source-derived records carry no metadata.domain; domain caps do not bind them"
+    },
+    "curriculum_phases": {
+      "phase_1": {
+        "name": "foundations-and-evidence",
+        "families": [
+          "instruction-response",
+          "evidence-grounded-qa",
+          "multiple-choice",
+          "log-interpretation"
+        ],
+        "records": 181,
+        "record_share": 0.362,
+        "tokens": 49322,
+        "token_share": 0.3363
+      },
+      "phase_2": {
+        "name": "applied-defence",
+        "families": [
+          "secure-code-review",
+          "code-remediation",
+          "configuration-analysis",
+          "vulnerability-classification",
+          "attack-technique-recognition",
+          "incident-investigation",
+          "detection-rule-interpretation"
+        ],
+        "records": 87,
+        "record_share": 0.174,
+        "tokens": 29067,
+        "token_share": 0.1982
+      }
+    },
+    "curriculum_covered_families": [
+      "attack-technique-recognition",
+      "code-remediation",
+      "configuration-analysis",
+      "detection-rule-interpretation",
+      "evidence-grounded-qa",
+      "incident-investigation",
+      "instruction-response",
+      "log-interpretation",
+      "multiple-choice",
+      "secure-code-review",
+      "vulnerability-classification"
+    ],
+    "curriculum_uncovered_families": [
+      "command-explanation",
+      "comparison",
+      "configuration-completion",
+      "error-diagnosis",
+      "false-positive-recognition",
+      "fill-in-the-middle",
+      "general-retention",
+      "misconception-correction",
+      "multi-turn-troubleshooting",
+      "multiple-choice-multi-answer",
+      "structured-json",
+      "uncertainty-handling",
+      "vulnerability-remediation"
+    ],
+    "curriculum_covered_record_share": 0.536,
+    "record_weighted_vs_token_weighted_delta": {
+      "attack-technique-recognition": -0.0015,
+      "code-remediation": 0.0034,
+      "command-explanation": -0.0137,
+      "comparison": 0.0043,
+      "configuration-analysis": 0.0067,
+      "configuration-completion": 0.0063,
+      "detection-rule-interpretation": -0.0007,
+      "error-diagnosis": -0.0062,
+      "evidence-grounded-qa": 0.0166,
+      "false-positive-recognition": 0.0071,
+      "fill-in-the-middle": -0.0222,
+      "general-retention": 0.003,
+      "incident-investigation": 0.0033,
+      "instruction-response": -0.0165,
+      "log-interpretation": 0.0063,
+      "misconception-correction": -0.0114,
+      "multi-turn-troubleshooting": 0.0148,
+      "multiple-choice": -0.0322,
+      "multiple-choice-multi-answer": -0.0063,
+      "secure-code-review": 0.0069,
+      "structured-json": 0.0224,
+      "uncertainty-handling": 0.0033,
+      "vulnerability-classification": 0.006,
+      "vulnerability-remediation": 0.0001
+    },
+    "family_table": [
+      {
+        "family": "multiple-choice",
+        "records": 65,
+        "record_share": 0.13,
+        "tokens": 14350,
+        "token_share": 0.0978,
+        "mean_tokens": 220.8,
+        "supervised_tokens": 9947,
+        "supervised_share": 0.1091
+      },
+      {
+        "family": "instruction-response",
+        "records": 50,
+        "record_share": 0.1,
+        "tokens": 12250,
+        "token_share": 0.0835,
+        "mean_tokens": 245.0,
+        "supervised_tokens": 10066,
+        "supervised_share": 0.1104
+      },
+      {
+        "family": "command-explanation",
+        "records": 47,
+        "record_share": 0.094,
+        "tokens": 11776,
+        "token_share": 0.0803,
+        "mean_tokens": 250.6,
+        "supervised_tokens": 8785,
+        "supervised_share": 0.0963
+      },
+      {
+        "family": "evidence-grounded-qa",
+        "records": 41,
+        "record_share": 0.082,
+        "tokens": 14459,
+        "token_share": 0.0986,
+        "mean_tokens": 352.7,
+        "supervised_tokens": 4705,
+        "supervised_share": 0.0516
+      },
+      {
+        "family": "structured-json",
+        "records": 30,
+        "record_share": 0.06,
+        "tokens": 12083,
+        "token_share": 0.0824,
+        "mean_tokens": 402.8,
+        "supervised_tokens": 6610,
+        "supervised_share": 0.0725
+      },
+      {
+        "family": "configuration-analysis",
+        "records": 30,
+        "record_share": 0.06,
+        "tokens": 9790,
+        "token_share": 0.0667,
+        "mean_tokens": 326.3,
+        "supervised_tokens": 6018,
+        "supervised_share": 0.066
+      },
+      {
+        "family": "multiple-choice-multi-answer",
+        "records": 25,
+        "record_share": 0.05,
+        "tokens": 6409,
+        "token_share": 0.0437,
+        "mean_tokens": 256.4,
+        "supervised_tokens": 3405,
+        "supervised_share": 0.0373
+      },
+      {
+        "family": "log-interpretation",
+        "records": 25,
+        "record_share": 0.05,
+        "tokens": 8263,
+        "token_share": 0.0563,
+        "mean_tokens": 330.5,
+        "supervised_tokens": 4816,
+        "supervised_share": 0.0528
+      },
+      {
+        "family": "secure-code-review",
+        "records": 21,
+        "record_share": 0.042,
+        "tokens": 7174,
+        "token_share": 0.0489,
+        "mean_tokens": 341.6,
+        "supervised_tokens": 5363,
+        "supervised_share": 0.0588
+      },
+      {
+        "family": "configuration-completion",
+        "records": 20,
+        "record_share": 0.04,
+        "tokens": 6790,
+        "token_share": 0.0463,
+        "mean_tokens": 339.5,
+        "supervised_tokens": 4269,
+        "supervised_share": 0.0468
+      },
+      {
+        "family": "misconception-correction",
+        "records": 20,
+        "record_share": 0.04,
+        "tokens": 4195,
+        "token_share": 0.0286,
+        "mean_tokens": 209.8,
+        "supervised_tokens": 3428,
+        "supervised_share": 0.0376
+      },
+      {
+        "family": "error-diagnosis",
+        "records": 20,
+        "record_share": 0.04,
+        "tokens": 4957,
+        "token_share": 0.0338,
+        "mean_tokens": 247.8,
+        "supervised_tokens": 4000,
+        "supervised_share": 0.0439
+      },
+      {
+        "family": "code-remediation",
+        "records": 17,
+        "record_share": 0.034,
+        "tokens": 5486,
+        "token_share": 0.0374,
+        "mean_tokens": 322.7,
+        "supervised_tokens": 4078,
+        "supervised_share": 0.0447
+      },
+      {
+        "family": "fill-in-the-middle",
+        "records": 15,
+        "record_share": 0.03,
+        "tokens": 1144,
+        "token_share": 0.0078,
+        "mean_tokens": 76.3,
+        "supervised_tokens": 230,
+        "supervised_share": 0.0025
+      },
+      {
+        "family": "comparison",
+        "records": 13,
+        "record_share": 0.026,
+        "tokens": 4444,
+        "token_share": 0.0303,
+        "mean_tokens": 341.8,
+        "supervised_tokens": 3719,
+        "supervised_share": 0.0408
+      },
+      {
+        "family": "multi-turn-troubleshooting",
+        "records": 12,
+        "record_share": 0.024,
+        "tokens": 5685,
+        "token_share": 0.0388,
+        "mean_tokens": 473.8,
+        "supervised_tokens": 2658,
+        "supervised_share": 0.0291
+      },
+      {
+        "family": "false-positive-recognition",
+        "records": 10,
+        "record_share": 0.02,
+        "tokens": 3980,
+        "token_share": 0.0271,
+        "mean_tokens": 398.0,
+        "supervised_tokens": 1520,
+        "supervised_share": 0.0167
+      },
+      {
+        "family": "uncertainty-handling",
+        "records": 9,
+        "record_share": 0.018,
+        "tokens": 3130,
+        "token_share": 0.0213,
+        "mean_tokens": 347.8,
+        "supervised_tokens": 1392,
+        "supervised_share": 0.0153
+      },
+      {
+        "family": "vulnerability-classification",
+        "records": 9,
+        "record_share": 0.018,
+        "tokens": 3525,
+        "token_share": 0.024,
+        "mean_tokens": 391.7,
+        "supervised_tokens": 1254,
+        "supervised_share": 0.0137
+      },
+      {
+        "family": "general-retention",
+        "records": 8,
+        "record_share": 0.016,
+        "tokens": 2794,
+        "token_share": 0.019,
+        "mean_tokens": 349.2,
+        "supervised_tokens": 2422,
+        "supervised_share": 0.0266
+      },
+      {
+        "family": "attack-technique-recognition",
+        "records": 4,
+        "record_share": 0.008,
+        "tokens": 958,
+        "token_share": 0.0065,
+        "mean_tokens": 239.5,
+        "supervised_tokens": 377,
+        "supervised_share": 0.0041
+      },
+      {
+        "family": "detection-rule-interpretation",
+        "records": 4,
+        "record_share": 0.008,
+        "tokens": 1069,
+        "token_share": 0.0073,
+        "mean_tokens": 267.2,
+        "supervised_tokens": 665,
+        "supervised_share": 0.0073
+      },
+      {
+        "family": "vulnerability-remediation",
+        "records": 3,
+        "record_share": 0.006,
+        "tokens": 898,
+        "token_share": 0.0061,
+        "mean_tokens": 299.3,
+        "supervised_tokens": 772,
+        "supervised_share": 0.0085
+      },
+      {
+        "family": "incident-investigation",
+        "records": 2,
+        "record_share": 0.004,
+        "tokens": 1065,
+        "token_share": 0.0073,
+        "mean_tokens": 532.5,
+        "supervised_tokens": 706,
+        "supervised_share": 0.0077
+      }
+    ],
+    "domain_table": [
+      {
+        "domain": "unset",
+        "records": 80,
+        "record_share": 0.16,
+        "token_share": 0.1957
+      },
+      {
+        "domain": "language-security-retention",
+        "records": 60,
+        "record_share": 0.12,
+        "token_share": 0.1174
+      },
+      {
+        "domain": "cloud-container-supply-chain",
+        "records": 60,
+        "record_share": 0.12,
+        "token_share": 0.1153
+      },
+      {
+        "domain": "monitoring-detection-soc",
+        "records": 60,
+        "record_share": 0.12,
+        "token_share": 0.1237
+      },
+      {
+        "domain": "web-api-secure-development",
+        "records": 55,
+        "record_share": 0.11,
+        "token_share": 0.0997
+      },
+      {
+        "domain": "fundamentals-linux-networking",
+        "records": 53,
+        "record_share": 0.106,
+        "token_share": 0.0986
+      },
+      {
+        "domain": "cryptography-identity-access",
+        "records": 50,
+        "record_share": 0.1,
+        "token_share": 0.0876
+      },
+      {
+        "domain": "vulnerability-classification-remediation",
+        "records": 43,
+        "record_share": 0.086,
+        "token_share": 0.0726
+      },
+      {
+        "domain": "incident-response-forensics-threat-intel",
+        "records": 39,
+        "record_share": 0.078,
+        "token_share": 0.0894
+      }
+    ]
+  },
+  "split_assessment": {
+    "counts": {
+      "train": 444,
+      "validation": 33,
+      "test": 23
+    },
+    "kind_by_split": {
+      "train": {
+        "completion": 418,
+        "fim": 15,
+        "chat": 11
+      },
+      "validation": {
+        "completion": 33
+      },
+      "test": {
+        "completion": 22,
+        "chat": 1
+      }
+    },
+    "family_present_train_absent_validation": [
+      "attack-technique-recognition",
+      "code-remediation",
+      "configuration-completion",
+      "fill-in-the-middle",
+      "incident-investigation",
+      "multi-turn-troubleshooting",
+      "secure-code-review",
+      "vulnerability-remediation"
+    ],
+    "family_present_train_absent_test": [
+      "attack-technique-recognition",
+      "code-remediation",
+      "comparison",
+      "detection-rule-interpretation",
+      "error-diagnosis",
+      "false-positive-recognition",
+      "fill-in-the-middle",
+      "general-retention",
+      "incident-investigation",
+      "misconception-correction",
+      "multiple-choice-multi-answer",
+      "uncertainty-handling",
+      "vulnerability-classification",
+      "vulnerability-remediation"
+    ],
+    "group_leakage_across_splits": {},
+    "ci_half_width_95_at_p0_7": {
+      "train": 0.043,
+      "validation": 0.156,
+      "test": 0.187
+    },
+    "families_with_lt_2_eval_examples": {
+      "attack-technique-recognition": {
+        "validation": 0,
+        "test": 0
+      },
+      "code-remediation": {
+        "validation": 0,
+        "test": 0
+      },
+      "detection-rule-interpretation": {
+        "validation": 1,
+        "test": 0
+      },
+      "false-positive-recognition": {
+        "validation": 1,
+        "test": 0
+      },
+      "fill-in-the-middle": {
+        "validation": 0,
+        "test": 0
+      },
+      "general-retention": {
+        "validation": 1,
+        "test": 0
+      },
+      "incident-investigation": {
+        "validation": 0,
+        "test": 0
+      },
+      "misconception-correction": {
+        "validation": 1,
+        "test": 0
+      },
+      "multi-turn-troubleshooting": {
+        "validation": 0,
+        "test": 1
+      },
+      "multiple-choice-multi-answer": {
+        "validation": 1,
+        "test": 0
+      },
+      "secure-code-review": {
+        "validation": 0,
+        "test": 1
+      },
+      "uncertainty-handling": {
+        "validation": 1,
+        "test": 0
+      },
+      "vulnerability-classification": {
+        "validation": 1,
+        "test": 0
+      },
+      "vulnerability-remediation": {
+        "validation": 0,
+        "test": 0
+      }
+    }
+  },
+  "recommended_mixture": {
+    "status": "recommended-not-measured",
+    "basis": "25,000 production records; proposed token shares solved against measured mean length per family to a ~7.28M-token epoch; 2 epochs.",
+    "estimated_tokens_per_epoch": 7276089,
+    "per_family_token_shares": {
+      "evidence-grounded-qa": 0.1181,
+      "multiple-choice": 0.0873,
+      "instruction-response": 0.0801,
+      "secure-code-review": 0.0719,
+      "code-remediation": 0.0616,
+      "vulnerability-classification": 0.0544,
+      "command-explanation": 0.0534,
+      "multiple-choice-multi-answer": 0.0441,
+      "vulnerability-remediation": 0.0441,
+      "configuration-analysis": 0.0441,
+      "log-interpretation": 0.0441,
+      "configuration-completion": 0.0359,
+      "structured-json": 0.0308,
+      "detection-rule-interpretation": 0.0267,
+      "incident-investigation": 0.0267,
+      "attack-technique-recognition": 0.0267,
+      "false-positive-recognition": 0.0267,
+      "uncertainty-handling": 0.0236,
+      "general-retention": 0.0236,
+      "misconception-correction": 0.0185,
+      "error-diagnosis": 0.0185,
+      "comparison": 0.0133,
+      "multi-turn-troubleshooting": 0.0133,
+      "fill-in-the-middle": 0.0123
+    },
+    "implied_records": {
+      "evidence-grounded-qa": {
+        "token_share": 0.1181,
+        "target_tokens_per_epoch": 859306,
+        "estimated_records": 2437,
+        "mean_tokens_measured": 352.7
+      },
+      "multiple-choice": {
+        "token_share": 0.0873,
+        "target_tokens_per_epoch": 635203,
+        "estimated_records": 2877,
+        "mean_tokens_measured": 220.8
+      },
+      "instruction-response": {
+        "token_share": 0.0801,
+        "target_tokens_per_epoch": 582815,
+        "estimated_records": 2379,
+        "mean_tokens_measured": 245.0
+      },
+      "secure-code-review": {
+        "token_share": 0.0719,
+        "target_tokens_per_epoch": 523151,
+        "estimated_records": 1531,
+        "mean_tokens_measured": 341.6
+      },
+      "code-remediation": {
+        "token_share": 0.0616,
+        "target_tokens_per_epoch": 448207,
+        "estimated_records": 1389,
+        "mean_tokens_measured": 322.7
+      },
+      "vulnerability-classification": {
+        "token_share": 0.0544,
+        "target_tokens_per_epoch": 395819,
+        "estimated_records": 1011,
+        "mean_tokens_measured": 391.7
+      },
+      "command-explanation": {
+        "token_share": 0.0534,
+        "target_tokens_per_epoch": 388543,
+        "estimated_records": 1551,
+        "mean_tokens_measured": 250.6
+      },
+      "multiple-choice-multi-answer": {
+        "token_share": 0.0441,
+        "target_tokens_per_epoch": 320876,
+        "estimated_records": 1252,
+        "mean_tokens_measured": 256.4
+      },
+      "vulnerability-remediation": {
+        "token_share": 0.0441,
+        "target_tokens_per_epoch": 320876,
+        "estimated_records": 1072,
+        "mean_tokens_measured": 299.3
+      },
+      "configuration-analysis": {
+        "token_share": 0.0441,
+        "target_tokens_per_epoch": 320876,
+        "estimated_records": 983,
+        "mean_tokens_measured": 326.3
+      },
+      "log-interpretation": {
+        "token_share": 0.0441,
+        "target_tokens_per_epoch": 320876,
+        "estimated_records": 971,
+        "mean_tokens_measured": 330.5
+      },
+      "configuration-completion": {
+        "token_share": 0.0359,
+        "target_tokens_per_epoch": 261212,
+        "estimated_records": 769,
+        "mean_tokens_measured": 339.5
+      },
+      "structured-json": {
+        "token_share": 0.0308,
+        "target_tokens_per_epoch": 224104,
+        "estimated_records": 556,
+        "mean_tokens_measured": 402.8
+      },
+      "detection-rule-interpretation": {
+        "token_share": 0.0267,
+        "target_tokens_per_epoch": 194272,
+        "estimated_records": 727,
+        "mean_tokens_measured": 267.2
+      },
+      "incident-investigation": {
+        "token_share": 0.0267,
+        "target_tokens_per_epoch": 194272,
+        "estimated_records": 365,
+        "mean_tokens_measured": 532.5
+      },
+      "attack-technique-recognition": {
+        "token_share": 0.0267,
+        "target_tokens_per_epoch": 194272,
+        "estimated_records": 811,
+        "mean_tokens_measured": 239.5
+      },
+      "false-positive-recognition": {
+        "token_share": 0.0267,
+        "target_tokens_per_epoch": 194272,
+        "estimated_records": 488,
+        "mean_tokens_measured": 398.0
+      },
+      "uncertainty-handling": {
+        "token_share": 0.0236,
+        "target_tokens_per_epoch": 171716,
+        "estimated_records": 494,
+        "mean_tokens_measured": 347.8
+      },
+      "general-retention": {
+        "token_share": 0.0236,
+        "target_tokens_per_epoch": 171716,
+        "estimated_records": 492,
+        "mean_tokens_measured": 349.2
+      },
+      "misconception-correction": {
+        "token_share": 0.0185,
+        "target_tokens_per_epoch": 134608,
+        "estimated_records": 642,
+        "mean_tokens_measured": 209.8
+      },
+      "error-diagnosis": {
+        "token_share": 0.0185,
+        "target_tokens_per_epoch": 134608,
+        "estimated_records": 543,
+        "mean_tokens_measured": 247.8
+      },
+      "comparison": {
+        "token_share": 0.0133,
+        "target_tokens_per_epoch": 96772,
+        "estimated_records": 283,
+        "mean_tokens_measured": 341.8
+      },
+      "multi-turn-troubleshooting": {
+        "token_share": 0.0133,
+        "target_tokens_per_epoch": 96772,
+        "estimated_records": 204,
+        "mean_tokens_measured": 473.8
+      },
+      "fill-in-the-middle": {
+        "token_share": 0.0123,
+        "target_tokens_per_epoch": 89496,
+        "estimated_records": 1173,
+        "mean_tokens_measured": 76.3
+      }
+    },
+    "caps": {
+      "token_share_caps": {
+        "any-single-family": 0.15,
+        "evidence-grounded-qa": 0.15,
+        "multiple-choice": 0.1,
+        "instruction-response": 0.1,
+        "secure-code-review": 0.08
+      },
+      "record_share_caps": {
+        "any-single-family": 0.15,
+        "fill-in-the-middle": 0.05,
+        "chat-format": 0.05,
+        "evidence-grounded-qa": 0.11,
+        "source-derived-grounded": 0.2
+      },
+      "any-single-domain": 0.18
+    },
+    "minimums": {
+      "record_floors": {
+        "uncertainty-handling": 500,
+        "false-positive-recognition": 500,
+        "general-retention": 500,
+        "incident-investigation": 350,
+        "detection-rule-interpretation": 400,
+        "attack-technique-recognition": 400,
+        "vulnerability-remediation": 500
+      },
+      "token_share_floors": {
+        "uncertainty-handling": 0.02,
+        "false-positive-recognition": 0.02,
+        "general-retention": 0.02,
+        "incident-investigation": 0.02,
+        "detection-rule-interpretation": 0.02,
+        "attack-technique-recognition": 0.02
+      }
+    },
+    "epochs": {
+      "recommended": 2,
+      "range": [
+        2,
+        3
+      ],
+      "early_stopping_patience_evals": 2,
+      "reason": "0.8B model, ~7.4M tokens/epoch; >3 epochs risks memorising 25k records; configs currently set 1 epoch and mix.yaml targets 3."
+    },
+    "sequence_policy": {
+      "max_seq_length": 1024,
+      "packing": "greedy length-bucketed packing to 1024 with block-diagonal attention and position reset; fall back to length-sorted batching if packing is unavailable",
+      "truncation": "drop records >1024 tokens; never truncate the assistant span mid-answer",
+      "drop_threshold": 1024,
+      "prompt_token_cap": 768,
+      "reserve_for_response_tokens": 128,
+      "min_supervised_tokens": 32,
+      "note": "min_supervised_tokens=1 currently admits a record that keeps only 7 of 201 answer tokens after truncation; raise it to at least 32 or switch to drop."
+    },
+    "evaluation_checkpoints": {
+      "fraction_of_steps": [
+        0.25,
+        0.5,
+        0.75,
+        1.0
+      ],
+      "absolute_steps_at_batch8_25k": [
+        1563,
+        3125,
+        4688,
+        6250
+      ],
+      "metrics": [
+        "validation loss",
+        "family-macro loss",
+        "exact-match/format validity",
+        "assistant-mask sanity"
+      ],
+      "selection": "best family-macro validation loss; report per-family so small families are not hidden"
+    },
+    "split_recommendation": "For calibration (500), use 5-fold grouped CV or 80/10/10 with per-family floors; for production (25k), use 90/5/5 -> 22.5k/1.25k/1.25k, stratified by family and kind, group-safe."
+  },
+  "limitations": [
+    "Token counts use the real Qwen3.5 tokenizer but do not model packing or per-batch padding.",
+    "Length is a signal, not a quality or difficulty measure; density and multi-hop flags are heuristics.",
+    "No model was trained; mixture recommendations are planning targets, not measured outcomes.",
+    "Calibration n=500 is small: family-level percentiles for families with <10 records are unstable.",
+    "Curriculum phase assignment is taken from mix.yaml; unlisted families are counted as uncovered.",
+    "Split adequacy analysis assumes evaluation accuracy is the comparison metric; other metrics have different power."
+  ]
+}

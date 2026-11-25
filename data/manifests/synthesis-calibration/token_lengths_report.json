@@ -1,0 +1,51 @@
+{
+  "limitations": "Token counts are a length signal, not a quality measure. Truncation risk assumes the configured maximum sequence length and does not model the training collator or packing.",
+  "max_sequence_tokens": 1024,
+  "records": 500,
+  "removed_over_limit": 0,
+  "tokenizer": "Qwen/Qwen3.5-0.8B",
+  "tokenizer_info": {
+    "estimated": false,
+    "kind": "transformers",
+    "local_only": true,
+    "name": "Qwen/Qwen3.5-0.8B",
+    "revision": ""
+  },
+  "tokens": {
+    "max": 819,
+    "mean": 292.43,
+    "min": 29,
+    "p50": 278,
+    "p90": 401,
+    "p95": 438,
+    "p99": 557
+  },
+  "truncation": {
+    "over_limit": 0,
+    "ratio": 0.0,
+    "removed_over_limit": 0,
+    "risk": "low"
+  },
+  "truncation_by_limit": {
+    "1024": {
+      "over_limit": 0,
+      "ratio": 0.0
+    },
+    "2048": {
+      "over_limit": 0,
+      "ratio": 0.0
+    },
+    "4096": {
+      "over_limit": 0,
+      "ratio": 0.0
+    },
+    "512": {
+      "over_limit": 10,
+      "ratio": 0.02
+    },
+    "8192": {
+      "over_limit": 0,
+      "ratio": 0.0
+    }
+  }
+}

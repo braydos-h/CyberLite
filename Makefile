@@ -1,4 +1,4 @@
-.PHONY: install install-dev test lint format typecheck validate progress progress-check budget preflight smoke data audit paper deploy-web preview-web clean
+.PHONY: install install-dev test lint format typecheck validate progress progress-check budget preflight smoke data audit synthesis-calibration synthesis-production synthesis-audit export paper deploy-web preview-web clean
 
 install:
 	python -m pip install -e .
@@ -47,6 +47,18 @@ audit:
 		--out data/manifests/pilot-v2/audit \
 		--review-out data/processed/pilot-v2/review_samples.jsonl \
 		--tokenizer Qwen/Qwen3.5-0.8B --max-seq-len 1024
+
+synthesis-calibration:
+	python scripts/synthesize_dataset.py --config configs/synthesis/calibration.yaml --force
+
+synthesis-production:
+	python scripts/synthesize_dataset.py --config configs/synthesis/production.yaml --force
+
+synthesis-audit:
+	python scripts/plan_mixture.py --splits-dir data/processed/synthesis-production --out data/manifests/synthesis-production/mix_plan.json
+
+export:
+	python scripts/export_dataset.py --splits-dir data/processed/synthesis-production --out data/processed/exports/production --force
 
 preflight:
 	python scripts/train.py --config configs/qlora.yaml --preflight

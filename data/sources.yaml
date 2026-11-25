@@ -301,6 +301,59 @@ sources:
       Only include exercises performed in environments where the author has explicit
       authorization. No live target data or credentials.
 
+  cyberlite_synthesis:
+    title: CyberLite curated and source-grounded synthesis corpus
+    kind: jsonl
+    license: Synthetic
+    homepage: https://github.com/braydos-h/CyberLite
+    url: ""
+    filename: ""
+    enabled: true
+    redistributable: true
+    revision: synthesis-v1
+    license_url: https://github.com/braydos-h/CyberLite/blob/main/LICENSE
+    terms_url: https://github.com/braydos-h/CyberLite/blob/main/LICENSE
+    attribution_required: false
+    commercial_use: true
+    allowed_uses: [training, research, redistribution]
+    redistribution_notes: >-
+      Records authored for this project are synthetic and redistributable under
+      the repository licence. Derived task views inherit their upstream source
+      licence and are not covered by this redistribution statement; check each
+      record's `license` and `origin` metadata before publishing.
+    unresolved:
+      - Derived task views of non-redistributable sources remain non-redistributable.
+      - No human review has been recorded; AI review is not human review.
+    citation: CyberLite contributors. Curated synthesis corpus.
+    notes: >-
+      Built by scripts/synthesize_dataset.py from committed knowledge packs and
+      the frozen pilot training split. Every record carries a group, source,
+      licence, task family, difficulty, review status, and content hash.
+
+  cyberlite_eval_holdout:
+    title: CyberLite held-out evaluation sets
+    kind: jsonl
+    license: Synthetic
+    homepage: https://github.com/braydos-h/CyberLite
+    url: ""
+    filename: ""
+    enabled: false
+    redistributable: true
+    revision: eval-v1
+    license_url: https://github.com/braydos-h/CyberLite/blob/main/LICENSE
+    terms_url: https://github.com/braydos-h/CyberLite/blob/main/LICENSE
+    attribution_required: false
+    commercial_use: false
+    allowed_uses: [evaluation]
+    redistribution_notes: >-
+      Evaluation-only. Never consume these files as training data or generation
+      seeds, even though the project-authored text may be redistributed.
+    unresolved: []
+    citation: CyberLite contributors. Held-out evaluation sets.
+    notes: >-
+      Frozen before model comparisons. Training builds screen against every local
+      evaluation JSONL with a 13-gram overlap check.
+
   cyberlite_smoke:
     title: CyberLite synthetic smoke dataset
     kind: jsonl

@@ -1,0 +1,208 @@
+{
+  "schema_version": 1,
+  "license": "Synthetic",
+  "author": "worker:orchestrator",
+  "rules": [
+    {
+      "id": "det-ssh-bruteforce",
+      "title": "Repeated SSH authentication failures from one source",
+      "purpose": "Detect password guessing against sshd that produces many failures from a single address in a short window.",
+      "logsource": "Linux auth log or journald (sshd)",
+      "level": "medium",
+      "yaml": "title: Repeated SSH authentication failures\ndetection:\n  selection:\n    program: sshd\n    message|contains: 'Failed password'\n  timeframe: 5m\n  condition: selection | count() by src_ip > 10\nlogsource:\n  product: linux\n  service: auth\nlevel: medium",
+      "falsepositives": [
+        "A misconfigured backup or monitoring client retrying an expired key.",
+        "A NAT gateway aggregating many users behind one address, which can inflate the count for a shared egress IP."
+      ],
+      "tuning": "Group by source address and add a username or asset scope. Raise the threshold only after measuring the normal failure distribution for the estate; do not suppress the rule globally.",
+      "tags": [
+        "attack.t1110.001",
+        "authentication"
+      ],
+      "references": [
+        "https://attack.mitre.org/techniques/T1110/001/"
+      ]
+    },
+    {
+      "id": "det-windows-failed-logon",
+      "title": "Windows failed logon burst",
+      "purpose": "Detect repeated failed interactive or network logons against Windows hosts.",
+      "logsource": "Windows Security event log, Event ID 4625",
+      "level": "medium",
+      "yaml": "title: Windows failed logon burst\ndetection:\n  selection:\n    EventID: 4625\n  timeframe: 10m\n  condition: selection | count() by TargetUserName, IpAddress > 15\nlogsource:\n  product: windows\n  service: security\nlevel: medium",
+      "falsepositives": [
+        "A stale service account password causing scheduled tasks to retry.",
+        "User typos during a password change window."
+      ],
+      "tuning": "Exclude known service accounts only after confirming the exclusion cannot mask interactive login failures. Keep a separate lower-threshold rule for privileged accounts.",
+      "tags": [
+        "attack.t1110",
+        "windows"
+      ],
+      "references": [
+        "https://learn.microsoft.com/en-us/windows/security/threat-protection/auditing/event-4625"
+      ]
+    },
+    {
+      "id": "det-powershell-encoded",
+      "title": "PowerShell encoded command",
+      "purpose": "Detect PowerShell launched with an encoded command, a common but non-specific obfuscation pattern.",
+      "logsource": "Windows process creation or PowerShell script block logging",
+      "level": "high",
+      "yaml": "title: PowerShell encoded command\ndetection:\n  selection_img:\n    Image|endswith: '\\\\powershell.exe'\n  selection_flag:\n    CommandLine|contains:\n      - ' -enc '\n      - ' -EncodedCommand '\n  condition: selection_img and selection_flag\nlogsource:\n  product: windows\n  category: process_creation\nlevel: high",
+      "falsepositives": [
+        "Management tooling that wraps scripts to avoid quoting problems.",
+        "Some installers and update agents use encoded commands legitimately."
+      ],
+      "tuning": "Decode the command in a safe, non-executing environment and baseline the parent process and signing status. Suppress by parent/child path pairs with a documented owner, not by command hash alone.",
+      "tags": [
+        "attack.t1059.001",
+        "attack.t1027"
+      ],
+      "references": [
+        "https://attack.mitre.org/techniques/T1059/001/"
+      ]
+    },
+    {
+      "id": "det-linux-setuid",
+      "title": "Unexpected setuid binary execution",
+      "purpose": "Detect execution of a setuid binary outside the known administrative baseline.",
+      "logsource": "Linux auditd execve records",
+      "level": "high",
+      "yaml": "title: Unexpected setuid execution\ndetection:\n  selection:\n    type: EXECVE\n  filter_baseline:\n    exe|startswith:\n      - '/usr/bin/sudo'\n      - '/usr/bin/passwd'\n      - '/usr/bin/su'\n  condition: selection and not filter_baseline\nlogsource:\n  product: linux\n  service: auditd\nlevel: high",
+      "falsepositives": [
+        "Legitimate administrative tools installed outside the baseline.",
+        "Container images with their own setuid helpers."
+      ],
+      "tuning": "Build the baseline from a known-good image inventory and alert on new file hashes, not only paths. Review any new setuid binary before adding it to the filter.",
+      "tags": [
+        "attack.t1548.001",
+        "linux"
+      ],
+      "references": [
+        "https://attack.mitre.org/techniques/T1548/001/"
+      ]
+    },
+    {
+      "id": "det-web-404-burst",
+      "title": "Web 404 burst from one client",
+      "purpose": "Detect shallow path enumeration that produces many not-found responses.",
+      "logsource": "Web server access log or WAF",
+      "level": "low",
+      "yaml": "title: Web 404 burst\ndetection:\n  selection:\n    status: 404\n  timeframe: 5m\n  condition: selection | count() by client_ip > 50\nlogsource:\n  category: webserver\nlevel: low",
+      "falsepositives": [
+        "Broken links after a deployment.",
+        "Legitimate crawlers or uptime monitors following stale sitemaps."
+      ],
+      "tuning": "Add path diversity and user-agent context. A scanner usually requests many distinct paths; a broken deployment concentrates on a few. Do not auto-block shared egress addresses without checking business impact.",
+      "tags": [
+        "attack.t1595",
+        "web"
+      ],
+      "references": [
+        "https://attack.mitre.org/techniques/T1595/"
+      ]
+    },
+    {
+      "id": "det-cloudtrail-root-no-mfa",
+      "title": "Root account activity without MFA",
+      "purpose": "Detect AWS root account API activity where MFA was not used.",
+      "logsource": "AWS CloudTrail",
+      "level": "high",
+      "yaml": "title: AWS root activity without MFA\ndetection:\n  selection:\n    userIdentity.type: Root\n    additionalEventData.MFAUsed: 'No'\n  condition: selection\nlogsource:\n  product: aws\n  service: cloudtrail\nlevel: high",
+      "falsepositives": [
+        "A break-glass procedure where MFA was unavailable and the exception was documented.",
+        "Account setup tasks performed before MFA enforcement was enabled."
+      ],
+      "tuning": "Confirm the event source and account. Root use should be rare and ticketed; alert on every event and review the ticket, not only the count.",
+      "tags": [
+        "attack.t1078.004",
+        "cloud"
+      ],
+      "references": [
+        "https://attack.mitre.org/techniques/T1078/004/"
+      ]
+    },
+    {
+      "id": "det-k8s-privileged-pod",
+      "title": "Pod with host PID namespace scheduled",
+      "purpose": "Detect pod creation that shares the host PID namespace, exposing host process information.",
+      "logsource": "Kubernetes API server audit log",
+      "level": "high",
+      "yaml": "title: Pod with host PID namespace\ndetection:\n  selection:\n    verb: create\n    objectRef.resource: pods\n  hostpid:\n    requestObject.spec.hostPID: true\n  condition: selection and hostpid\nlogsource:\n  product: kubernetes\n  service: audit\nlevel: high",
+      "falsepositives": [
+        "Node-level agents that legitimately inspect host processes.",
+        "Lab clusters where the namespace is explicitly excluded."
+      ],
+      "tuning": "Scope by namespace and service account, and pair with admission policy. A hostPID pod in a system namespace owned by a known daemonset is different from one created by a user in an application namespace.",
+      "tags": [
+        "attack.t1610",
+        "kubernetes"
+      ],
+      "references": [
+        "https://kubernetes.io/docs/tasks/configure-pod-container/security-context/"
+      ]
+    },
+    {
+      "id": "det-sudoers-change",
+      "title": "Sudoers configuration modified",
+      "purpose": "Detect writes to sudoers files or drop-in directories.",
+      "logsource": "Linux auditd file watches",
+      "level": "high",
+      "yaml": "title: Sudoers modification\ndetection:\n  selection:\n    type: SYSCALL\n    key: sudoers_change\n  condition: selection\nlogsource:\n  product: linux\n  service: auditd\nlevel: high",
+      "falsepositives": [
+        "Configuration management applying an approved sudoers policy.",
+        "Package upgrades that rewrite a vendor drop-in."
+      ],
+      "tuning": "Correlate the writing process with the configuration-management identity and change record. Review the diff; an approved tool writing an unexpected rule is still a finding.",
+      "tags": [
+        "attack.t1548.003",
+        "linux"
+      ],
+      "references": [
+        "https://attack.mitre.org/techniques/T1548/003/"
+      ]
+    },
+    {
+      "id": "det-dns-long-query",
+      "title": "Unusually long DNS query name",
+      "purpose": "Detect query names far longer than the organization's normal distribution, a weak signal for DNS tunneling or data encoding.",
+      "logsource": "DNS resolver or Zeek dns.log",
+      "level": "low",
+      "yaml": "title: Long DNS query name\ndetection:\n  selection:\n    query|re: '^.{80,}$'\n  condition: selection\nlogsource:\n  category: dns\nlevel: low",
+      "falsepositives": [
+        "Content delivery or antivirus lookups that encode long opaque identifiers.",
+        "Legitimate service discovery names with long labels."
+      ],
+      "tuning": "Measure the normal length distribution and entropy per parent domain. Alert on sustained volume or high-entropy subdomains, not a single long name. A single query is not evidence of tunneling.",
+      "tags": [
+        "attack.t1071.004",
+        "dns"
+      ],
+      "references": [
+        "https://attack.mitre.org/techniques/T1071/004/"
+      ]
+    },
+    {
+      "id": "det-iam-wildcard-policy",
+      "title": "IAM policy with wildcard action attached",
+      "purpose": "Detect attachment of a customer-managed policy granting wildcard actions.",
+      "logsource": "AWS CloudTrail",
+      "level": "medium",
+      "yaml": "title: IAM wildcard policy attached\ndetection:\n  selection:\n    eventName: AttachRolePolicy\n  condition: selection\nlogsource:\n  product: aws\n  service: cloudtrail\nlevel: medium",
+      "falsepositives": [
+        "Break-glass roles created under an approved emergency change.",
+        "Infrastructure-as-code bootstrap roles with a documented scope."
+      ],
+      "tuning": "This rule is a change signal, not proof of excess privilege: resolve the attached policy document and evaluate its actions and resources. Pair with a policy-analysis job that flags wildcard actions on sensitive resources.",
+      "tags": [
+        "attack.t1098",
+        "cloud",
+        "iam"
+      ],
+      "references": [
+        "https://attack.mitre.org/techniques/T1098/"
+      ]
+    }
+  ]
+}

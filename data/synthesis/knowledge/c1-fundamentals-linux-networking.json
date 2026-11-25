@@ -1,0 +1,3048 @@
+{
+  "schema_version": 1,
+  "domain": "fundamentals-linux-networking",
+  "display_name": "Security fundamentals, Linux and Windows hosts, TCP/IP and protocols",
+  "author": "worker:C1",
+  "facts": [
+    {
+      "id": "fund-risk-vocab",
+      "subtopic": "risk-terminology",
+      "difficulty": "foundational",
+      "title": "Threat, vulnerability, exposure, and risk answer different questions",
+      "fact": "A threat is a potential cause of an unwanted incident, such as an actor, malware, or a flood. A vulnerability is a weakness that a threat could act on. Exposure is the condition of being reachable or otherwise positioned to be affected. Risk combines likelihood and impact for a specific asset in a specific environment, so a critical vulnerability on a host that no adversary can reach is a low-risk finding, while a moderate flaw on an internet-facing login service may be urgent. NIST SP 800-30 derives risk from threat, vulnerability, and consequence, which makes severity scores inputs to the judgment rather than the conclusion.",
+      "details": [
+        "A threat source needs both intent and capability; a vulnerability needs a path that reaches it.",
+        "CVSS base metrics describe a flaw in the abstract, while environmental and threat metrics adjust it to a deployment."
+      ],
+      "pitfalls": [
+        "Reporting every CVSS 9.8 as 'critical risk' without checking reachability, data sensitivity, or existing mitigations."
+      ],
+      "commands": [
+        {
+          "language": "bash",
+          "code": "ss -ltnp",
+          "purpose": "List listening sockets to establish which services are actually exposed on a host."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "A CVSS 9.8 library flaw ships in a container image, but the vulnerable function is never called and the service has no route from untrusted networks. Which statement is most accurate?",
+          "options": [
+            "It is high severity and high risk because the CVSS score is 9.8",
+            "It is high severity but low risk in this deployment",
+            "It is not a vulnerability because the code never runs",
+            "It is low severity because CVSS ignores context"
+          ],
+          "answer": [
+            1
+          ],
+          "rationale": "Severity describes the weakness; risk adds reachability, exploitability in context, and business impact. The flaw is still real and should be patched, but its present risk is low."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "A high CVSS base score means the finding is high risk.",
+          "correction": "CVSS base metrics assume a generic deployment. Risk also depends on exposure, available mitigations, data sensitivity, and threat activity, which is why environmental scoring and asset context exist."
+        }
+      ],
+      "references": [
+        {
+          "title": "NIST Glossary: risk",
+          "publisher": "NIST Computer Security Resource Center",
+          "url": "https://csrc.nist.gov/glossary/term/risk",
+          "license": "Public-Domain"
+        },
+        {
+          "title": "SP 800-30 Rev. 1: Guide for Conducting Risk Assessments",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/30/r1/final",
+          "license": "Public-Domain"
+        }
+      ],
+      "tags": [
+        "risk",
+        "severity",
+        "triage"
+      ]
+    },
+    {
+      "id": "fund-cia-triad",
+      "subtopic": "security-objectives",
+      "difficulty": "foundational",
+      "title": "The CIA triad names properties, not products",
+      "fact": "Confidentiality limits information disclosure to authorized subjects. Integrity keeps data accurate and complete and detects unauthorized or improper modification. Availability keeps systems usable when they are needed. Security programs also track authenticity and accountability, proving an origin and tying actions to an identity, which NIST SP 800-53 covers in its identification and audit families. The properties trade off. Full-disk encryption supports confidentiality but not integrity; a signed hash manifest supports integrity but not confidentiality; aggressive rate limiting protects one service's availability while harming legitimate bursts. A useful control statement names the property it serves and the adversary it assumes.",
+      "details": [
+        "Integrity covers correct authorized change, not only blocked writes, so versioning and audit trails are integrity controls.",
+        "Availability controls fail differently from confidentiality controls: capacity and redundancy problems rarely produce a clean error."
+      ],
+      "mcqs": [
+        {
+          "question": "A site publishes SHA-256 digests of its release files but publishes no secret and keeps no copy of the files. Which property do the digests primarily provide?",
+          "options": [
+            "Confidentiality of the release files",
+            "Integrity and change detection",
+            "Availability of the release files",
+            "Non-repudiation of the publisher"
+          ],
+          "answer": [
+            1
+          ],
+          "rationale": "A digest lets a verifier detect content change when compared with a trusted value. It hides nothing and does not keep the file available."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "Encrypting a file protects it from undetected modification.",
+          "correction": "Encryption alone can be malleable. Without an authenticated mode (AEAD) or a separate MAC or signature, an attacker may alter ciphertext and the change is noticed only if decryption happens to fail."
+        }
+      ],
+      "references": [
+        {
+          "title": "SP 800-12 Rev. 2: An Introduction to Information Security",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/12/final",
+          "license": "Public-Domain"
+        },
+        {
+          "title": "SP 800-53 Rev. 5: Security and Privacy Controls",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/53/r5/final",
+          "license": "Public-Domain"
+        }
+      ],
+      "tags": [
+        "cia",
+        "integrity",
+        "availability"
+      ]
+    },
+    {
+      "id": "fund-authn-authz",
+      "subtopic": "identity",
+      "difficulty": "foundational",
+      "title": "Authentication and authorization fail independently",
+      "fact": "Authentication establishes that a subject is who it claims to be. Authorization decides which actions that subject may perform on which resources. They fail separately: a stolen session cookie authenticates an attacker perfectly and grants whatever the victim's roles allow, so authorization must be enforced server-side on every request and checked against the specific object. Identification is the claimed name and accounting records what was done. HTTP separates the two failures: 401 means credentials are missing or invalid and requires a WWW-Authenticate challenge, while 403 means the identity is known but the action is refused.",
+      "details": [
+        "A central policy decision point can serve many services, but each service still enforces the decision against the actual object and operation.",
+        "Accounting and session records are separate from both checks: a logon event proves authentication, not that a later action was authorized."
+      ],
+      "logs": [
+        {
+          "context": "Synthetic reverse-proxy access log",
+          "text": "203.0.113.45 - - [12 Mar 2026:09:14:02 +0000] \"GET /admin HTTP/1.1\" 401 0\n203.0.113.45 - - [12 Mar 2026:09:14:19 +0000] \"GET /admin HTTP/1.1\" 403 162",
+          "reading": "The first request carried no acceptable credentials, so the proxy challenged it. The second carried a valid identity that lacks the admin role, so access was refused. Treating both as 'login problems' hides an authorization event."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "An API returns 403 for a valid token requesting another tenant's record. What does the status tell you?",
+          "options": [
+            "The token is expired",
+            "The caller is authenticated but not permitted",
+            "The record does not exist",
+            "The server is overloaded"
+          ],
+          "answer": [
+            1
+          ],
+          "rationale": "401 indicates absent or rejected credentials; 403 indicates a known identity whose request is denied. Conflating them delays diagnosis and can leak object existence."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "If a user is authenticated, object-level authorization is unnecessary.",
+          "correction": "Authentication says nothing about ownership. A request for /invoices/8842 from a valid user must still verify that the caller owns invoice 8842; otherwise any authenticated user can read any record by changing the identifier."
+        }
+      ],
+      "references": [
+        {
+          "title": "NIST Glossary: authentication",
+          "publisher": "NIST Computer Security Resource Center",
+          "url": "https://csrc.nist.gov/glossary/term/authentication",
+          "license": "Public-Domain"
+        },
+        {
+          "title": "NIST Glossary: authorization",
+          "publisher": "NIST Computer Security Resource Center",
+          "url": "https://csrc.nist.gov/glossary/term/authorization",
+          "license": "Public-Domain"
+        },
+        {
+          "title": "RFC 9110: HTTP Semantics",
+          "publisher": "IETF",
+          "url": "https://www.rfc-editor.org/rfc/rfc9110.html",
+          "license": "IETF-Trust"
+        }
+      ],
+      "tags": [
+        "authentication",
+        "authorization",
+        "http-status"
+      ]
+    },
+    {
+      "id": "fund-hash-vs-encrypt",
+      "subtopic": "cryptography-basics",
+      "difficulty": "foundational",
+      "title": "Hashing is one-way; encryption is reversible with a key",
+      "fact": "A cryptographic hash maps arbitrary input to a fixed-length digest and is designed to be one-way and collision-resistant. It supports integrity checks, signatures, and password verification through a salted, deliberately slow key-derivation function. Encryption is reversible with a key and protects confidentiality. Hashing is therefore not 'encryption without a key': a plain SHA-256 of a password is cheap to brute-force, so password storage needs Argon2id, scrypt, bcrypt, or PBKDF2 with a unique salt per user. Encryption without authentication can be modified at rest or in transit, so prefer AEAD constructions such as AES-GCM or ChaCha20-Poly1305.",
+      "code": [
+        {
+          "language": "python",
+          "vulnerable": "import hashlib\n\ndef store(password: str) -> str:\n    return hashlib.sha256(password.encode()).hexdigest()",
+          "secure": "import hashlib, secrets\n\ndef store(password: str) -> str:\n    salt = secrets.token_bytes(16)\n    dk = hashlib.scrypt(password.encode(), salt=salt, n=2**14, r=8, p=1)\n    return salt.hex() + ':' + dk.hex()",
+          "issue": "A fast unsalted digest is trivially enumerable with GPUs and identical passwords collide across accounts. Salt plus a memory-hard KDF makes each guess expensive and unique."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Which construction is appropriate for storing user passwords?",
+          "options": [
+            "AES-256-CBC with a hard-coded key",
+            "Unsalted SHA-256",
+            "Argon2id with a random per-user salt",
+            "Base64 encoding"
+          ],
+          "answer": [
+            2
+          ],
+          "rationale": "Password storage needs a slow, salted, memory-hard function so offline guessing is expensive. Reversible encryption is not required and adds key-management risk."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "SHA-256 is a secure way to store passwords because it cannot be reversed.",
+          "correction": "Irreversibility is not enough. SHA-256 is fast, so attackers test billions of candidates per second, and without a salt identical passwords produce identical digests."
+        }
+      ],
+      "references": [
+        {
+          "title": "hashlib: Secure hashes and message digests",
+          "publisher": "Python Software Foundation",
+          "url": "https://docs.python.org/3/library/hashlib.html",
+          "license": "PSF-2.0"
+        },
+        {
+          "title": "SP 800-57 Part 1 Rev. 5: Key Management",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/57/pt1/r5/final",
+          "license": "Public-Domain"
+        }
+      ],
+      "tags": [
+        "hashing",
+        "encryption",
+        "passwords"
+      ]
+    },
+    {
+      "id": "fund-least-privilege",
+      "subtopic": "access-policy",
+      "difficulty": "foundational",
+      "title": "Least privilege applies to services and tokens, not just people",
+      "fact": "Least privilege grants each subject the minimum access, for the minimum time, needed to complete a task, and separates duties so no single identity can both cause and conceal a damaging action. It applies to people, services, and tokens alike: a web application should run as a dedicated unprivileged account, a deployment job should hold only the permissions its pipeline needs, and administrative access should be time-bound and attributable. Shared administrator accounts are the classic failure because they destroy attribution and make credential rotation impossible after one holder leaves.",
+      "commands": [
+        {
+          "language": "bash",
+          "code": "ps -eo user= | sort | uniq -c | sort -rn | head -n 15",
+          "purpose": "Show which accounts own the most processes, exposing services that run as shared or privileged users."
+        }
+      ],
+      "configs": [
+        {
+          "language": "systemd",
+          "snippet": "[Service]\nUser=appsvc\nGroup=appsvc\nNoNewPrivileges=yes",
+          "purpose": "Run a service under its own account and block setuid or capability gains."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "Running a service as root is acceptable if it is only reachable from the internal network.",
+          "correction": "Internal reachability is an assumption, not a control. A parser bug, SSRF, or lateral movement then yields full host compromise; a dedicated account bounds the damage."
+        }
+      ],
+      "references": [
+        {
+          "title": "SP 800-53 Rev. 5, AC-6: Least Privilege",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/53/r5/final",
+          "license": "Public-Domain"
+        },
+        {
+          "title": "SP 800-12 Rev. 2: An Introduction to Information Security",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/12/final",
+          "license": "Public-Domain"
+        }
+      ],
+      "tags": [
+        "least-privilege",
+        "service-accounts",
+        "systemd"
+      ]
+    },
+    {
+      "id": "fund-control-types",
+      "subtopic": "control-taxonomy",
+      "difficulty": "foundational",
+      "title": "Controls differ by intent and by nature, and layers need separate telemetry",
+      "fact": "Controls are classified by intent and by nature. Preventive controls stop an event, such as a packet filter or a file mode. Detective controls notice it, such as audit rules or an EDR alert. Corrective controls restore service, such as a restore from backup. Compensating controls substitute when the primary control cannot be applied. By nature, controls are technical, operational, or managerial. Defense in depth combines different types so one bypass is not fatal, and each layer needs its own observability: a preventive control with no detection leaves an operator blind at the moment it fails.",
+      "details": [
+        "Compensating controls reduce risk but do not remove the underlying requirement, so they belong in a risk register with an owner.",
+        "Deterrent controls influence behavior and are hard to measure; do not count them as preventive in a control assessment."
+      ],
+      "mcqs": [
+        {
+          "question": "A team cannot enforce MFA on a legacy appliance, so it restricts the appliance to a management VLAN and monitors its logins. What kind of control is the VLAN restriction?",
+          "options": [
+            "Corrective",
+            "Compensating",
+            "Detective only",
+            "Deterrent"
+          ],
+          "answer": [
+            1
+          ],
+          "rationale": "It substitutes for a control that cannot be applied, reducing exposure while the original requirement remains open. Monitoring adds a detective layer but does not make the restriction detective."
+        }
+      ],
+      "references": [
+        {
+          "title": "SP 800-53 Rev. 5: Security and Privacy Controls",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/53/r5/final",
+          "license": "Public-Domain"
+        },
+        {
+          "title": "SP 800-12 Rev. 2: An Introduction to Information Security",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/12/final",
+          "license": "Public-Domain"
+        }
+      ],
+      "tags": [
+        "controls",
+        "defense-in-depth",
+        "risk"
+      ]
+    },
+    {
+      "id": "fund-detection-errors",
+      "subtopic": "detection-metrics",
+      "difficulty": "intermediate",
+      "title": "Precision depends on prevalence, not just on detector accuracy",
+      "fact": "A false positive is an alert on benign activity; a false negative is malicious activity that raised no alert. Recall, or sensitivity, is true positives divided by all malicious events. Precision is true positives divided by all alerts. Tightening a rule usually trades precision for recall. Alert quality also depends on base rate: if one event in 10,000 is malicious and a detector is 99 percent sensitive and 99 percent specific, then 10,000 events produce about 1 true alert and 100 false ones, so roughly 1 percent of alerts are real. Tune on a sample with realistic prevalence, not a balanced lab set.",
+      "commands": [
+        {
+          "language": "bash",
+          "code": "python3 -c \"tp=0.99*1; fp=0.01*9999; print(round(tp/(tp+fp), 3))\"",
+          "purpose": "Compute positive predictive value for a 1-in-10,000 prevalence with 99 percent sensitivity and specificity."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "A rule with 99 percent sensitivity and 99 percent specificity runs on a stream where 1 event in 10,000 is malicious. Roughly what share of its alerts are true positives?",
+          "options": [
+            "99 percent",
+            "50 percent",
+            "About 1 percent",
+            "About 0.01 percent"
+          ],
+          "answer": [
+            2
+          ],
+          "rationale": "Of 10,000 events about one is malicious and detected, while about 100 benign events raise an alert, so roughly 1 in 100 alerts is real."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "A detector that is 99 percent accurate means 99 percent of its alerts are real.",
+          "correction": "Accuracy mixes both error types and ignores prevalence. When the malicious class is rare, even a highly specific detector emits mostly false positives."
+        }
+      ],
+      "references": [
+        {
+          "title": "SP 800-94: Guide to Intrusion Detection and Prevention Systems",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/94/final",
+          "license": "Public-Domain"
+        },
+        {
+          "title": "SP 800-137: Information Security Continuous Monitoring",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/137/final",
+          "license": "Public-Domain"
+        }
+      ],
+      "tags": [
+        "detection",
+        "metrics",
+        "false-positive"
+      ]
+    },
+    {
+      "id": "fund-trust-boundary",
+      "subtopic": "architecture",
+      "difficulty": "intermediate",
+      "title": "Every trust boundary must re-establish identity and validate input",
+      "fact": "A trust boundary is any place where data or control passes between components that operate at different privilege or trust levels: browser to server, edge proxy to application, application to database, pod to node, user process to kernel. Each crossing must validate the data and re-establish identity, because the receiving side cannot assume the sender enforced anything. Confused-deputy failures occur when a privileged component acts for a caller without checking the caller's authority, for example an internal API that trusts a username header set by the front end. Segmentation makes boundaries explicit; a flat network erases them.",
+      "configs": [
+        {
+          "language": "nftables",
+          "snippet": "table inet zones {\n  chain forward {\n    type filter hook forward priority filter; policy drop;\n    ct state established,related accept\n    iifname \"eth0\" oifname \"eth1\" ip daddr 10.20.30.10 tcp dport 443 accept\n  }\n}",
+          "purpose": "Default-drop forwarding between two zones with replies allowed and one explicit service exception."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "An internal API trusts an X-User header that the front end sets. What is the core weakness?",
+          "options": [
+            "The header name is not standardized",
+            "The API accepts caller-asserted identity instead of verifying it, so anything that can reach the API can impersonate users",
+            "The header is too short to carry a user ID",
+            "TLS is not used"
+          ],
+          "answer": [
+            1
+          ],
+          "rationale": "The boundary between proxy and API is crossed without re-authentication. Any client that can reach the API directly, including a compromised workload, can choose its own identity."
+        }
+      ],
+      "references": [
+        {
+          "title": "SP 800-53 Rev. 5, SC-7: Boundary Protection",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/53/r5/final",
+          "license": "Public-Domain"
+        },
+        {
+          "title": "SP 800-12 Rev. 2: An Introduction to Information Security",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/12/final",
+          "license": "Public-Domain"
+        }
+      ],
+      "tags": [
+        "trust-boundary",
+        "segmentation",
+        "nftables"
+      ]
+    },
+    {
+      "id": "lnx-perm-model",
+      "subtopic": "file-permissions",
+      "difficulty": "foundational",
+      "title": "Directory permissions decide deletion, not the file's own mode",
+      "fact": "Linux modes encode read (4), write (2), and execute (1) for owner, group, and other, in that order. On a regular file, execute permits execution. On a directory, read lists names, execute traverses entries, and write allows creating, renaming, and deleting entries. Deleting a file therefore depends on write and execute permission on its parent directory, not on the file's own mode. Root bypasses discretionary checks for read and write but still needs at least one execute bit on a file to run it. Symbolic-link modes are ignored; the target's permissions apply.",
+      "commands": [
+        {
+          "language": "bash",
+          "code": "namei -l /srv/app/conf/app.yml",
+          "purpose": "Show permissions on every directory component of a path, not just the final file."
+        },
+        {
+          "language": "bash",
+          "code": "stat -c '%A %a %U:%G %n' /srv/app /srv/app/conf/app.yml",
+          "purpose": "Print symbolic and octal modes with ownership for comparison."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "A user has no write permission on a file but has write and execute permission on the file's directory. What can the user do?",
+          "options": [
+            "Nothing, because the file is read-only",
+            "Delete or rename the file",
+            "Modify the file's contents in place",
+            "Change the file's owner"
+          ],
+          "answer": [
+            1
+          ],
+          "rationale": "Unlinking and renaming change directory entries, so directory write plus traverse is sufficient. Changing contents still requires write on the file itself."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "A read-only file cannot be deleted by its owner.",
+          "correction": "The directory entry controls deletion. With write and execute on the directory, a user can unlink the file regardless of its own mode, unless the sticky bit restricts removal."
+        }
+      ],
+      "references": [
+        {
+          "title": "chmod(2)",
+          "publisher": "Linux man-pages project",
+          "url": "https://man7.org/linux/man-pages/man2/chmod.2.html",
+          "license": "Linux-man-pages-copyleft"
+        },
+        {
+          "title": "path_resolution(7)",
+          "publisher": "Linux man-pages project",
+          "url": "https://man7.org/linux/man-pages/man7/path_resolution.7.html",
+          "license": "Linux-man-pages-copyleft"
+        }
+      ],
+      "tags": [
+        "permissions",
+        "directories",
+        "posix"
+      ]
+    },
+    {
+      "id": "lnx-umask",
+      "subtopic": "file-permissions",
+      "difficulty": "foundational",
+      "title": "umask clears bits from the mode a program requests",
+      "fact": "umask is a per-process mask that clears permission bits when a file is created. Programs conventionally request 0666 for regular files and 0777 for directories, and the kernel removes every bit set in the mask from the requested mode. A umask of 022 yields 0644 files and 0755 directories; 027 yields 0640 and 0750; 077 yields 0600 and 0700. The value is inherited by child processes, so a shell setting does not affect services started by systemd, which need UMask= in the unit. umask is not an access-control boundary because the creator can simply chmod afterwards.",
+      "commands": [
+        {
+          "language": "bash",
+          "code": "umask 027 && touch /srv/app/probe && stat -c '%a %n' /srv/app/probe",
+          "purpose": "Demonstrate the resulting file mode under a restrictive umask."
+        }
+      ],
+      "configs": [
+        {
+          "language": "systemd",
+          "snippet": "[Service]\nUMask=0027",
+          "purpose": "Apply a restrictive creation mask to files written by a service."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "With umask 027, what mode does a newly created regular file receive?",
+          "options": [
+            "0660",
+            "0640",
+            "0600",
+            "0750"
+          ],
+          "answer": [
+            1
+          ],
+          "rationale": "0666 AND NOT 0027 equals 0640. Directories start from 0777, so the same mask yields 0750."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "Setting umask 077 in a root shell hardens every service on the host.",
+          "correction": "umask is inherited only by descendants of that shell. Services launched by PID 1 get the mask configured in their unit or in the service manager's environment, not the interactive shell's value."
+        }
+      ],
+      "references": [
+        {
+          "title": "umask(2)",
+          "publisher": "Linux man-pages project",
+          "url": "https://man7.org/linux/man-pages/man2/umask.2.html",
+          "license": "Linux-man-pages-copyleft"
+        },
+        {
+          "title": "systemd.exec(5)",
+          "publisher": "systemd project",
+          "url": "https://man7.org/linux/man-pages/man5/systemd.exec.5.html",
+          "license": "LGPL-2.1-or-later"
+        }
+      ],
+      "tags": [
+        "umask",
+        "permissions",
+        "systemd"
+      ]
+    },
+    {
+      "id": "lnx-special-bits",
+      "subtopic": "file-permissions",
+      "difficulty": "intermediate",
+      "title": "setuid, setgid, and sticky bits change who the kernel trusts",
+      "fact": "The setuid bit makes an executable run with the file owner's effective UID; setgid does the same for the group. On a directory, setgid makes new entries inherit the directory's group and makes new subdirectories keep setgid. The sticky bit on a directory lets only the file owner, the directory owner, or root delete or rename entries, which is why /tmp uses mode 1777. Audit hosts for unexpected setuid and setgid binaries, and mount untrusted filesystems nosuid,nodev,noexec. A setuid-root binary is a complete privilege boundary, so its input handling matters more than its feature set.",
+      "commands": [
+        {
+          "language": "bash",
+          "code": "find / -xdev \\( -perm -4000 -o -perm -2000 \\) -type f -printf '%M %u:%g %p\\n' 2>/dev/null",
+          "purpose": "Enumerate setuid and setgid files on the root filesystem with ownership."
+        }
+      ],
+      "configs": [
+        {
+          "language": "fstab",
+          "snippet": "tmpfs /tmp tmpfs rw,nosuid,nodev,noexec,size=1G 0 0",
+          "purpose": "Mount a world-writable directory without honoring setuid bits or device nodes."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "What does the sticky bit on /tmp accomplish?",
+          "options": [
+            "It prevents reading other users' files",
+            "It restricts deletion and renaming to the file owner, the directory owner, or root",
+            "It encrypts temporary files",
+            "It makes every file executable"
+          ],
+          "answer": [
+            1
+          ],
+          "rationale": "Sticky does not affect read or write access. It restricts removal and renaming inside a shared writable directory so users cannot delete each other's files."
+        }
+      ],
+      "references": [
+        {
+          "title": "chmod(2)",
+          "publisher": "Linux man-pages project",
+          "url": "https://man7.org/linux/man-pages/man2/chmod.2.html",
+          "license": "Linux-man-pages-copyleft"
+        },
+        {
+          "title": "mount(8)",
+          "publisher": "util-linux project",
+          "url": "https://man7.org/linux/man-pages/man8/mount.8.html",
+          "license": "GPL-2.0-or-later"
+        }
+      ],
+      "tags": [
+        "setuid",
+        "sticky-bit",
+        "hardening"
+      ]
+    },
+    {
+      "id": "lnx-posix-acl",
+      "subtopic": "file-permissions",
+      "difficulty": "intermediate",
+      "title": "The POSIX ACL mask silently caps named entries",
+      "fact": "POSIX ACLs extend the owner, group, and other model with named user and group entries plus a mask. The mask caps the effective rights of named user entries, named group entries, and the owning group, and tools recalculate it as their union unless it is set explicitly, so a chmod on the group bits can rewrite the mask and reduce access without touching a named entry. getfacl shows entries and #effective comments, and ls -l marks a file with a trailing plus. Default ACLs set on a directory are inherited by newly created entries. Use setfacl -m u:deploy:rX for read and traverse, and setfacl -b to remove the extended ACL.",
+      "commands": [
+        {
+          "language": "bash",
+          "code": "setfacl -R -m u:deploy:rX /srv/app && getfacl -p /srv/app",
+          "purpose": "Grant a named user read and directory traversal, then display the resulting entries and mask."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "A file has the ACL entry user:deploy:rw- and mask::r--. What can deploy actually do?",
+          "options": [
+            "Read and write",
+            "Read only",
+            "Nothing",
+            "Write only"
+          ],
+          "answer": [
+            1
+          ],
+          "rationale": "Effective rights are the entry permissions intersected with the mask. Write is present in the entry but removed by the mask, and getfacl reports the reduced value."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "A named ACL entry grants exactly the permissions written in it.",
+          "correction": "The mask intersects every named user entry and the owning group entry. This is why getfacl prints #effective lines and why chmod on group bits can change named users' access."
+        }
+      ],
+      "references": [
+        {
+          "title": "acl(5)",
+          "publisher": "acl project",
+          "url": "https://man7.org/linux/man-pages/man5/acl.5.html",
+          "license": "GPL-2.0-or-later"
+        },
+        {
+          "title": "getfacl(1)",
+          "publisher": "acl project",
+          "url": "https://man7.org/linux/man-pages/man1/getfacl.1.html",
+          "license": "GPL-2.0-or-later"
+        }
+      ],
+      "tags": [
+        "acl",
+        "permissions",
+        "mask"
+      ]
+    },
+    {
+      "id": "lnx-capabilities",
+      "subtopic": "privilege-model",
+      "difficulty": "expert",
+      "title": "Capability sets interact, and file capabilities do not apply to scripts",
+      "fact": "Linux capabilities split root's power into units. Each process carries permitted, effective, inheritable, bounding, and ambient sets; a thread may only use a capability that is in its effective set, drawn from permitted. File capabilities stored in the security.capability extended attribute are applied at exec, limited by the bounding set and blocked entirely when no_new_privs is set. File capabilities are ignored on interpreted scripts. A service needing one privilege should run as a normal user with AmbientCapabilities= and a narrowed CapabilityBoundingSet= instead of as setuid root.",
+      "commands": [
+        {
+          "language": "bash",
+          "code": "getcap -r /usr 2>/dev/null; capsh --print | head -n 12",
+          "purpose": "Inventory file capabilities and display the current process capability sets."
+        }
+      ],
+      "configs": [
+        {
+          "language": "systemd",
+          "snippet": "[Service]\nAmbientCapabilities=CAP_NET_BIND_SERVICE\nCapabilityBoundingSet=CAP_NET_BIND_SERVICE\nNoNewPrivileges=yes",
+          "purpose": "Allow binding a low port while removing every other capability and blocking new privilege gains."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "A unit sets CapabilityBoundingSet=CAP_NET_BIND_SERVICE and AmbientCapabilities=CAP_NET_BIND_SERVICE. What is the effect?",
+          "options": [
+            "The service runs as root",
+            "The service can bind a low port but cannot acquire other capabilities",
+            "All capabilities are removed from the host",
+            "The service can load kernel modules"
+          ],
+          "answer": [
+            1
+          ],
+          "rationale": "The ambient set passes the one capability across exec and the bounding set prevents regaining anything outside it, so the process is not fully privileged."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "setcap on a shell script gives the script the same privilege as a setuid binary.",
+          "correction": "The kernel does not apply file capabilities to scripts because execution passes to the interpreter. Put the privileged operation in a compiled helper or grant the capability to the service unit."
+        }
+      ],
+      "references": [
+        {
+          "title": "capabilities(7)",
+          "publisher": "Linux man-pages project",
+          "url": "https://man7.org/linux/man-pages/man7/capabilities.7.html",
+          "license": "Linux-man-pages-copyleft"
+        },
+        {
+          "title": "systemd.exec(5)",
+          "publisher": "systemd project",
+          "url": "https://man7.org/linux/man-pages/man5/systemd.exec.5.html",
+          "license": "LGPL-2.1-or-later"
+        }
+      ],
+      "tags": [
+        "capabilities",
+        "privilege",
+        "systemd"
+      ]
+    },
+    {
+      "id": "lnx-sudoers-order",
+      "subtopic": "privilege-escalation-controls",
+      "difficulty": "intermediate",
+      "title": "sudo uses the last matching rule, so deny rules must come last",
+      "fact": "sudo applies the last matching rule, not the first and not the most specific, so a deny such as deploy ALL=(root) !/usr/bin/systemctl must appear after the allow it restricts. A rule has the form user host=(runas) command, and tags such as NOPASSWD and NOEXEC change behavior per rule. NOPASSWD and !authenticate weaken accountability because the action is no longer tied to a fresh proof of identity. Keep local rules in /etc/sudoers.d, edit with visudo, and verify with visudo -c and sudo -l -U deploy before relying on them.",
+      "configs": [
+        {
+          "language": "sudoers",
+          "snippet": "Cmnd_Alias APPCTL = /usr/bin/systemctl restart app.service, /usr/bin/systemctl status app.service\ndeploy ALL=(root) APPCTL\ndeploy ALL=(root) !/usr/bin/su, !/usr/bin/bash, !/usr/bin/sh",
+          "purpose": "Allow two service operations, then deny interactive shells by placing the deny last."
+        }
+      ],
+      "commands": [
+        {
+          "language": "bash",
+          "code": "visudo -c && sudo -l -U deploy",
+          "purpose": "Validate syntax and show the rules that actually apply to a user."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Two sudoers lines match: an allow for /usr/bin/systemctl followed by a deny for the same command. What happens?",
+          "options": [
+            "The allow wins because it appears first",
+            "The deny wins because the last match applies",
+            "sudo refuses to parse the file",
+            "The most specific rule wins"
+          ],
+          "answer": [
+            1
+          ],
+          "rationale": "sudo documents last-match semantics. Ordering is therefore a security property, and a deny placed before an allow has no effect."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "A narrowed command list in sudoers prevents a user from getting a shell.",
+          "correction": "Many allowed commands can spawn a shell or write files, for example editors, pagers, and systemctl with certain verbs. Deny known escapes and prefer purpose-built wrappers over broad binaries."
+        }
+      ],
+      "references": [
+        {
+          "title": "sudoers(5)",
+          "publisher": "sudo project",
+          "url": "https://man7.org/linux/man-pages/man5/sudoers.5.html",
+          "license": "ISC"
+        },
+        {
+          "title": "sudo(8)",
+          "publisher": "sudo project",
+          "url": "https://man7.org/linux/man-pages/man8/sudo.8.html",
+          "license": "ISC"
+        }
+      ],
+      "tags": [
+        "sudo",
+        "sudoers",
+        "least-privilege"
+      ]
+    },
+    {
+      "id": "lnx-pam-stack",
+      "subtopic": "authentication",
+      "difficulty": "advanced",
+      "title": "PAM control flags decide whether the stack continues or short-circuits",
+      "fact": "PAM composes authentication from stacked modules grouped by type: auth, account, password, and session. Control flags decide flow. A required failure is recorded but the stack continues, which obscures which module failed. A requisite failure returns immediately. A sufficient success returns success at once if no earlier required module has failed. Optional modules matter only when nothing else decides. The bracketed form maps individual return codes, for example [success=1 default=ignore]. Stack order therefore changes behavior more than the module list does, and a sufficient module placed before a required one can bypass it.",
+      "configs": [
+        {
+          "language": "pam.d",
+          "snippet": "auth        required      pam_faillock.so preauth silent\nauth        sufficient    pam_unix.so nullok try_first_pass\nauth        [default=die] pam_faillock.so authfail\nauth        sufficient    pam_faillock.so authsucc\naccount     required      pam_unix.so\npassword    requisite     pam_pwquality.so retry=3\nsession     required      pam_unix.so",
+          "purpose": "Count failed attempts before and after password verification and enforce password quality."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "A stack contains auth sufficient pam_unix.so followed by auth required pam_deny.so. Valid credentials are supplied. What is the result?",
+          "options": [
+            "Authentication fails because pam_deny is required",
+            "Authentication succeeds because sufficient short-circuits the remaining stack",
+            "Both modules run and the last one decides",
+            "The result depends on the account stack"
+          ],
+          "answer": [
+            1
+          ],
+          "rationale": "A successful sufficient module returns success immediately when no earlier required module has failed, so later modules never run. Placing it before a policy module silently bypasses that policy."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "required and requisite behave identically apart from logging.",
+          "correction": "requisite aborts the stack on failure, while required continues and fails the overall result at the end. The difference changes timing, which modules still execute, and what an attacker can infer."
+        }
+      ],
+      "references": [
+        {
+          "title": "pam.conf(5)",
+          "publisher": "Linux-PAM project",
+          "url": "https://man7.org/linux/man-pages/man5/pam.conf.5.html",
+          "license": "BSD-3-Clause"
+        },
+        {
+          "title": "pam_faillock(8)",
+          "publisher": "Linux-PAM project",
+          "url": "https://man7.org/linux/man-pages/man8/pam_faillock.8.html",
+          "license": "BSD-3-Clause"
+        },
+        {
+          "title": "pam.d(5)",
+          "publisher": "Linux-PAM project",
+          "url": "https://man7.org/linux/man-pages/man5/pam.d.5.html",
+          "license": "BSD-3-Clause"
+        }
+      ],
+      "tags": [
+        "pam",
+        "authentication",
+        "lockout"
+      ]
+    },
+    {
+      "id": "lnx-systemd-sandbox",
+      "subtopic": "service-hardening",
+      "difficulty": "expert",
+      "title": "systemd sandboxing removes views of the host, not just permissions",
+      "fact": "systemd can sandbox a service without a container runtime. NoNewPrivileges=yes blocks setuid and file capability gains. ProtectSystem=strict mounts the hierarchy read-only except /dev, /proc, and /sys, and ReadWritePaths= reopens specific paths. ProtectHome=yes hides home directories. PrivateTmp=, PrivateDevices=, and ProtectKernelTunables/Modules/ControlGroups= remove views of shared state. SystemCallFilter=@system-service with SystemCallErrorNumber=EPERM narrows the syscall surface, and CapabilityBoundingSet= drops privileges. DynamicUser=yes allocates a transient UID. systemd-analyze security scores the result and names the remaining exposure.",
+      "configs": [
+        {
+          "language": "systemd",
+          "snippet": "[Service]\nDynamicUser=yes\nStateDirectory=app\nProtectSystem=strict\nProtectHome=yes\nPrivateTmp=yes\nPrivateDevices=yes\nNoNewPrivileges=yes\nRestrictAddressFamilies=AF_UNIX AF_INET AF_INET6\nSystemCallFilter=@system-service\nSystemCallErrorNumber=EPERM\nCapabilityBoundingSet=\nUMask=0027",
+          "purpose": "A hardened unit profile that keeps only one writable state directory and no capabilities."
+        }
+      ],
+      "commands": [
+        {
+          "language": "bash",
+          "code": "systemd-analyze security app.service",
+          "purpose": "Score the unit's exposure and list directives that would reduce it."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "ProtectSystem=strict is set and the service must write to /var/lib/app. What is required?",
+          "options": [
+            "Nothing, strict still allows writes there",
+            "Add ReadWritePaths=/var/lib/app or StateDirectory=app",
+            "Set ProtectHome=no",
+            "Run the service as root"
+          ],
+          "answer": [
+            1
+          ],
+          "rationale": "strict makes the whole hierarchy read-only apart from a small set of API filesystems. Writable locations must be reopened explicitly, and StateDirectory also handles ownership."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "PrivateTmp=yes gives every process in the unit its own private /tmp.",
+          "correction": "The unit receives one private /tmp that its own processes share. Isolation is between the unit and the rest of the system, not between processes inside the unit."
+        }
+      ],
+      "references": [
+        {
+          "title": "systemd.exec(5)",
+          "publisher": "systemd project",
+          "url": "https://man7.org/linux/man-pages/man5/systemd.exec.5.html",
+          "license": "LGPL-2.1-or-later"
+        },
+        {
+          "title": "systemd.directives(7)",
+          "publisher": "systemd project",
+          "url": "https://man7.org/linux/man-pages/man7/systemd.directives.7.html",
+          "license": "LGPL-2.1-or-later"
+        }
+      ],
+      "tags": [
+        "systemd",
+        "sandboxing",
+        "hardening"
+      ]
+    },
+    {
+      "id": "lnx-auditd-rules",
+      "subtopic": "auditing",
+      "difficulty": "intermediate",
+      "title": "Audit watch rules record writes and attribute changes under a searchable key",
+      "fact": "The Linux audit subsystem records security-relevant events in the kernel and writes them through auditd. Watch rules use -w PATH -p wa -k KEY, where -w names the object, a covers attribute changes, w covers writes, and the key labels related records. Syscall rules use -S with filters such as -F arch=b64 -F path=/etc/shadow. Rules live in /etc/audit/rules.d and are compiled by augenrules on distributions that use it. auditctl -l lists the active set, ausearch -k KEY -i resolves fields, and aureport summarizes. Audit only protects the record stream if it is shipped off-host, because root can stop the daemon.",
+      "commands": [
+        {
+          "language": "bash",
+          "code": "auditctl -w /etc/sudoers -p wa -k sudoers_change",
+          "purpose": "Watch the sudoers file for writes and attribute changes and tag matching events."
+        },
+        {
+          "language": "bash",
+          "code": "ausearch -k sudoers_change -i -ts recent",
+          "purpose": "Read recent records carrying the tag with numeric fields resolved to names."
+        }
+      ],
+      "configs": [
+        {
+          "language": "audit.rules",
+          "snippet": "-w /etc/passwd -p wa -k identity\n-w /etc/shadow -p wa -k identity\n-a always,exit -F arch=b64 -S execve -F auid>=1000 -F auid!=-1 -k exec",
+          "purpose": "Baseline identity-file changes and interactive command execution."
+        }
+      ],
+      "logs": [
+        {
+          "context": "auditd SYSCALL record, synthetic host",
+          "text": "type=SYSCALL msg=audit(1773302400.412:88): arch=c000003e syscall=257 success=yes exit=3 a0=ffffff9c a1=7ffd2a1c a2=241 a3=1b6 items=2 ppid=1201 pid=4412 auid=1001 uid=0 comm=\"vim\" exe=\"/usr/bin/vim\" key=\"sudoers_change\"",
+          "reading": "The record shows a root process with login UID 1001 opening the watched path for write, tagged with the rule key. auid preserves the original login identity even after sudo, which is why it matters in triage."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "In an audit watch rule, what does -p wa record?",
+          "options": [
+            "Process start and exit",
+            "Writes and attribute changes",
+            "Reads and writes",
+            "Permission denials only"
+          ],
+          "answer": [
+            1
+          ],
+          "rationale": "The permission filter letters are r, w, x, and a. w is write and a is attribute change, so wa covers both without logging every read."
+        }
+      ],
+      "references": [
+        {
+          "title": "auditctl(8)",
+          "publisher": "Linux audit project",
+          "url": "https://man7.org/linux/man-pages/man8/auditctl.8.html",
+          "license": "GPL-2.0-or-later"
+        },
+        {
+          "title": "audit.rules(7)",
+          "publisher": "Linux audit project",
+          "url": "https://man7.org/linux/man-pages/man7/audit.rules.7.html",
+          "license": "GPL-2.0-or-later"
+        },
+        {
+          "title": "ausearch(8)",
+          "publisher": "Linux audit project",
+          "url": "https://man7.org/linux/man-pages/man8/ausearch.8.html",
+          "license": "GPL-2.0-or-later"
+        }
+      ],
+      "tags": [
+        "auditd",
+        "detection",
+        "logging"
+      ]
+    },
+    {
+      "id": "lnx-lsm-modes",
+      "subtopic": "mandatory-access-control",
+      "difficulty": "advanced",
+      "title": "SELinux labels types; AppArmor constrains paths",
+      "fact": "SELinux enforces type-based mandatory access control using labels such as system_u:object_r:httpd_sys_content_t:s0, and a process domain may only access types its policy allows. Modes are enforcing, permissive, and disabled, set by SELINUX= in /etc/selinux/config at boot. getenforce reads the current mode and setenforce 0 changes it only until reboot, while semanage permissive -a httpd_t relaxes one domain. AppArmor instead attaches path-based profiles from /etc/apparmor.d and runs in enforce or complain mode, reported by aa-status. In permissive or complain mode violations are logged but allowed, which makes a denial look absent while still filling logs.",
+      "commands": [
+        {
+          "language": "bash",
+          "code": "getenforce; sestatus -v | head -n 12",
+          "purpose": "Show the current SELinux mode and policy version."
+        },
+        {
+          "language": "bash",
+          "code": "restorecon -Rv /var/www/html",
+          "purpose": "Relabel files that were moved into a web root and kept the wrong SELinux type."
+        }
+      ],
+      "logs": [
+        {
+          "context": "SELinux AVC denial in the kernel audit stream",
+          "text": "type=AVC msg=audit(1773302510.118:141): avc:  denied  { read } for  pid=2210 comm=\"httpd\" name=\"index.html\" dev=\"dm-0\" ino=131842 scontext=system_u:system_r:httpd_t:s0 tcontext=unconfined_u:object_r:user_home_t:s0 tclass=file permissive=0",
+          "reading": "Observed: the httpd_t domain was denied read access to an inode labelled user_home_t with permissive=0. Inference: the file has a label outside the web-content policy, which is consistent with a file moved or copied in without relabelling; the log does not show how the label was assigned. Not established from this line: the exact copy command or source. Next check: ls -Z, matchpathcon, and ausearch -m AVC; then restorecon -Rv on the web root and re-test."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Files moved into /var/www/html keep their old SELinux type, and httpd is denied while traditional permissions look correct. What is the appropriate fix?",
+          "options": [
+            "chmod 777 on the files",
+            "Set the whole host to permissive mode",
+            "restorecon -Rv /var/www/html",
+            "Disable the firewall"
+          ],
+          "answer": [
+            2
+          ],
+          "rationale": "The denial is label-based, so the file needs the policy-defined type for web content. restorecon applies the expected context without weakening enforcement."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "setenforce 0 disables SELinux persistently.",
+          "correction": "It changes only the running mode. The boot value comes from /etc/selinux/config or the kernel command line, so a reboot returns to enforcing unless that configuration is also changed."
+        }
+      ],
+      "references": [
+        {
+          "title": "SELinux",
+          "publisher": "Linux kernel documentation",
+          "url": "https://www.kernel.org/doc/html/latest/admin-guide/LSM/SELinux.html",
+          "license": "GPL-2.0-only"
+        },
+        {
+          "title": "AppArmor",
+          "publisher": "Linux kernel documentation",
+          "url": "https://www.kernel.org/doc/html/latest/admin-guide/LSM/apparmor.html",
+          "license": "GPL-2.0-only"
+        }
+      ],
+      "tags": [
+        "selinux",
+        "apparmor",
+        "mac"
+      ]
+    },
+    {
+      "id": "lnx-sshd-config",
+      "subtopic": "remote-access",
+      "difficulty": "intermediate",
+      "title": "sshd -T is the only reliable view of the effective SSH configuration",
+      "fact": "OpenSSH hardening starts by disabling what is not needed: PermitRootLogin no, PasswordAuthentication no, KbdInteractiveAuthentication no, X11Forwarding no, AllowTcpForwarding no where unused, and an explicit AllowUsers or AllowGroups list. AuthenticationMethods publickey binds the acceptable methods, while MaxAuthTries and LoginGraceTime shrink brute-force windows. sshd -t validates syntax and sshd -T prints the effective configuration after includes, which is the only reliable way to confirm that a Match block did not override a global setting.",
+      "configs": [
+        {
+          "language": "sshd_config",
+          "snippet": "PermitRootLogin no\nPasswordAuthentication no\nKbdInteractiveAuthentication no\nPubkeyAuthentication yes\nAuthenticationMethods publickey\nMaxAuthTries 3\nLoginGraceTime 30\nX11Forwarding no\nAllowGroups ssh-users",
+          "purpose": "Restrict SSH to key-based access for a named group with short authentication windows."
+        }
+      ],
+      "commands": [
+        {
+          "language": "bash",
+          "code": "sshd -t && sshd -T | grep -E '^(permitrootlogin|passwordauthentication|allowgroups|maxauthtries)'",
+          "purpose": "Validate syntax, then print the settings the daemon will actually apply."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "You edited sshd_config and reloaded, but password logins still work. Which check is most direct?",
+          "options": [
+            "Reboot the host",
+            "sshd -T to print the effective configuration",
+            "netstat -an",
+            "Inspect /etc/hosts"
+          ],
+          "answer": [
+            1
+          ],
+          "rationale": "sshd -T shows the merged result of the main file, Include directives, and Match blocks, which is what the running daemon uses."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "PermitRootLogin no prevents an administrator from obtaining root.",
+          "correction": "It blocks only direct SSH login as root. An administrator still logs in as themselves and elevates with sudo, which is the auditable path the directive is meant to force."
+        }
+      ],
+      "references": [
+        {
+          "title": "sshd_config(5)",
+          "publisher": "OpenSSH project",
+          "url": "https://man7.org/linux/man-pages/man5/sshd_config.5.html",
+          "license": "OpenSSH"
+        },
+        {
+          "title": "SP 800-123: Guide to General Server Security",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/123/final",
+          "license": "Public-Domain"
+        }
+      ],
+      "tags": [
+        "ssh",
+        "sshd",
+        "hardening"
+      ]
+    },
+    {
+      "id": "lnx-aide-baseline",
+      "subtopic": "file-integrity",
+      "difficulty": "intermediate",
+      "title": "An integrity baseline is only as trustworthy as its storage",
+      "fact": "File integrity monitoring records a baseline of content hashes and metadata, then reports differences. AIDE expresses what to record per tree with selectors: p permissions, i inode, n link count, u and g ownership, s size, m mtime, and hash choices such as sha256. aide --init builds the database and aide --check compares against it, exiting non-zero when entries changed. A baseline helps only if it is trustworthy, so keep the database, its configuration, and the checker off-host or on read-only media, and re-baseline only after confirming that a change was legitimate.",
+      "configs": [
+        {
+          "language": "aide.conf",
+          "snippet": "@@define DBDIR /var/lib/aide\ndatabase_in=file:@@{DBDIR}/aide.db.gz\ndatabase_out=file:@@{DBDIR}/aide.db.new.gz\n/srv/app p+i+n+u+g+s+m+sha256\n!/srv/app/cache",
+          "purpose": "Hash application content and metadata while excluding a volatile cache directory."
+        }
+      ],
+      "commands": [
+        {
+          "language": "bash",
+          "code": "aide --init && mv /var/lib/aide/aide.db.new.gz /var/lib/aide/aide.db.gz && aide --check",
+          "purpose": "Create the baseline, promote it, and immediately verify a clean comparison."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "An attacker with root edits a monitored file and then updates the integrity database. What limitation does this illustrate?",
+          "options": [
+            "AIDE cannot hash large files",
+            "The baseline and checker must be protected out of band",
+            "SHA-256 is broken",
+            "AIDE monitors only permissions"
+          ],
+          "answer": [
+            1
+          ],
+          "rationale": "Whoever controls both the monitored host and the baseline can make the comparison agree. Off-host storage and alerting break that control."
+        }
+      ],
+      "references": [
+        {
+          "title": "AIDE documentation",
+          "publisher": "AIDE project",
+          "url": "https://aide.github.io/doc/",
+          "license": "GPL-2.0-or-later"
+        },
+        {
+          "title": "SP 800-53 Rev. 5, SI-7: Software, Firmware, and Information Integrity",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/53/r5/final",
+          "license": "Public-Domain"
+        }
+      ],
+      "tags": [
+        "integrity",
+        "aide",
+        "baseline"
+      ]
+    },
+    {
+      "id": "lnx-pkg-trust",
+      "subtopic": "software-supply-chain",
+      "difficulty": "advanced",
+      "title": "Package verification is a chain from repository metadata to installed files",
+      "fact": "Package trust is a chain: the distribution signs repository metadata, the client verifies that signature against a key it already trusts, and the metadata carries hashes of each package. dnf exposes this as gpgcheck=1 for packages and repo_gpgcheck=1 for metadata in dnf.conf or a repository file. Disabling either to silence an error removes the guarantee for everything installed afterwards. Adding a third-party repository adds its key as trust for that repository's whole namespace, so scope and review keys. Installing from a curl pipe bypasses verification and inventory entirely.",
+      "configs": [
+        {
+          "language": "ini",
+          "snippet": "[app-extra]\nname=Internal application packages\nbaseurl=https://repo.example.internal/app-extra/\nenabled=1\ngpgcheck=1\nrepo_gpgcheck=1\ngpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-example",
+          "purpose": "Require signatures for both metadata and packages from an internal repository."
+        }
+      ],
+      "commands": [
+        {
+          "language": "bash",
+          "code": "rpm -Va",
+          "purpose": "Verify that installed files still match the digests recorded in the package database."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "A repository file sets gpgcheck=0 to clear a signature error. What is the consequence?",
+          "options": [
+            "Only metadata becomes unsigned",
+            "Packages from that repository install without signature verification",
+            "The repository becomes read-only",
+            "Nothing changes because dnf still checks hashes"
+          ],
+          "answer": [
+            1
+          ],
+          "rationale": "gpgcheck controls package signature verification. Without it, a compromised mirror or network path can deliver a modified package that still matches the metadata hash."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "A package from an HTTPS repository is verified because the transport was encrypted.",
+          "correction": "TLS protects the connection to one server. Package signatures bind the artifact to the distribution's key, which still matters for a compromised mirror or a hostile repository."
+        }
+      ],
+      "references": [
+        {
+          "title": "dnf.conf(5)",
+          "publisher": "dnf project",
+          "url": "https://man7.org/linux/man-pages/man5/dnf.conf.5.html",
+          "license": "GPL-2.0-or-later"
+        },
+        {
+          "title": "dnf(8)",
+          "publisher": "dnf project",
+          "url": "https://man7.org/linux/man-pages/man8/dnf.8.html",
+          "license": "GPL-2.0-or-later"
+        },
+        {
+          "title": "SP 800-53 Rev. 5, SI-7: Software, Firmware, and Information Integrity",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/53/r5/final",
+          "license": "Public-Domain"
+        }
+      ],
+      "tags": [
+        "packages",
+        "supply-chain",
+        "gpg"
+      ]
+    },
+    {
+      "id": "win-acl-precedence",
+      "subtopic": "access-control",
+      "difficulty": "foundational",
+      "title": "A canonical DACL orders deny before allow, and inheritance flags decide reach",
+      "fact": "Every securable Windows object has a security descriptor with an owner, a DACL that grants or denies access, and a SACL that controls auditing. A DACL is an ordered list of access control entries. Canonical order places explicit deny entries before explicit allow entries and inherited entries after explicit ones, so a deny for a right removes that right even when a group allow also matches. Inheritance flags OI, CI, IO, and NP decide whether an entry flows to files, subfolders, both, or only children. Effective access is the accumulated rights from all group SIDs, minus denies, filtered by the object's integrity level.",
+      "commands": [
+        {
+          "language": "powershell",
+          "code": "icacls C:\\srv\\app /inheritance:r /grant:r \"APP_Users:(OI)(CI)(RX)\"",
+          "purpose": "Remove inherited entries and grant a group read and execute that flows to files and subfolders."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "A user belongs to a group allowed Modify on a folder, and the user account itself has an explicit Deny for Write. What is the effective result?",
+          "options": [
+            "Modify, because group allows are additive",
+            "Write is denied while other Modify rights may remain",
+            "All access is denied",
+            "The Deny is ignored for the object owner"
+          ],
+          "answer": [
+            1
+          ],
+          "rationale": "Deny entries are ordered first and remove the matching right from the accumulated access. Rights not named in the deny, such as Read or Execute, can still be granted."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "NTFS permissions are purely additive, so a deny cannot override a group allow.",
+          "correction": "Explicit denies are evaluated before allows in a canonical DACL and remove the corresponding right. This is how a single account-level deny can defeat group membership."
+        }
+      ],
+      "references": [
+        {
+          "title": "Access control lists",
+          "publisher": "Microsoft Learn",
+          "url": "https://learn.microsoft.com/en-us/windows/win32/secauthz/access-control-lists",
+          "license": "CC-BY-4.0"
+        },
+        {
+          "title": "DACLs and ACEs",
+          "publisher": "Microsoft Learn",
+          "url": "https://learn.microsoft.com/en-us/windows/win32/secauthz/dacls-and-aces",
+          "license": "CC-BY-4.0"
+        }
+      ],
+      "tags": [
+        "windows",
+        "acl",
+        "ntfs"
+      ]
+    },
+    {
+      "id": "win-sid-rid",
+      "subtopic": "identity",
+      "difficulty": "intermediate",
+      "title": "ACLs store SIDs, so renaming an account preserves access but recreating it does not",
+      "fact": "A Windows SID has the form S-1-authority-subauthority and local or domain account SIDs end in a relative identifier. Well-known examples are S-1-5-18 LocalSystem, S-1-5-19 LocalService, S-1-5-20 NetworkService, S-1-5-32-544 Administrators, and S-1-5-32-555 Remote Desktop Users. Domain built-ins use fixed RIDs such as 500 for the built-in Administrator, 502 for krbtgt, and 512 for Domain Admins. A SID, not a name, is stored in ACLs and tokens. Renaming an account keeps its SID, while deleting and recreating the same name produces a new SID and leaves orphaned ACEs.",
+      "commands": [
+        {
+          "language": "powershell",
+          "code": "whoami /user",
+          "purpose": "Show the current user's name and full SID."
+        },
+        {
+          "language": "powershell",
+          "code": "Get-LocalUser | Select-Object Name, SID, Enabled",
+          "purpose": "List local accounts with their SIDs to spot recreated names."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "An account is deleted and recreated with the same username. What happens to its existing file permissions?",
+          "options": [
+            "They still apply because the name matches",
+            "They no longer apply because the new account has a different SID",
+            "They are inherited from the parent folder",
+            "They are converted into deny entries"
+          ],
+          "answer": [
+            1
+          ],
+          "rationale": "ACLs reference SIDs. The new account receives a new RID and therefore a new SID, so the old ACE points at a deleted identity and grants nothing."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "Renaming an account breaks its permissions.",
+          "correction": "Renaming changes only the name attribute. The SID survives, so ACLs, group memberships, and profile paths keep working, which is also why renaming is not a remediation for a compromised account."
+        }
+      ],
+      "references": [
+        {
+          "title": "Security identifiers",
+          "publisher": "Microsoft Learn",
+          "url": "https://learn.microsoft.com/en-us/windows/win32/secauthz/security-identifiers",
+          "license": "CC-BY-4.0"
+        },
+        {
+          "title": "Well-known SIDs",
+          "publisher": "Microsoft Learn",
+          "url": "https://learn.microsoft.com/en-us/windows/win32/secauthz/well-known-sids",
+          "license": "CC-BY-4.0"
+        }
+      ],
+      "tags": [
+        "windows",
+        "sid",
+        "acl"
+      ]
+    },
+    {
+      "id": "win-uac-token",
+      "subtopic": "privilege-model",
+      "difficulty": "intermediate",
+      "title": "UAC issues a filtered token, and Microsoft does not treat it as a security boundary",
+      "fact": "User Account Control gives an administrator two tokens at logon: a filtered standard token used by default and a full administrator token created after consent. The filtered token marks administrator group SIDs as deny-only, so most administrative access fails until elevation. Admin Approval Mode prompts on the secure desktop. A requireAdministrator manifest forces elevation, while autoElevate applies only to selected Windows binaries. Microsoft documents UAC as defense in depth rather than a security boundary, so it limits accidental change and some malware but not a determined attacker running in the user's context.",
+      "commands": [
+        {
+          "language": "powershell",
+          "code": "whoami /groups | Select-String -Pattern 'Mandatory Label|S-1-16-'; [Security.Principal.WindowsPrincipal]::new([Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole('Administrators')",
+          "purpose": "Show the integrity level of the current process and whether the full administrator role is active."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "A process started from an administrator's normal desktop without elevation has which property?",
+          "options": [
+            "It holds the full administrator token",
+            "It runs with a filtered token in which administrator SIDs are deny-only",
+            "It runs as LocalSystem",
+            "It cannot read any files"
+          ],
+          "answer": [
+            1
+          ],
+          "rationale": "The filtered token carries the same user identity but marks administrative group membership deny-only, so administrative operations fail until an elevated token is created."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "UAC is a security boundary that stops malware from gaining administrator rights.",
+          "correction": "Microsoft describes UAC as defense in depth. Code already running as the user can wait for or induce an elevation prompt, so boundary enforcement needs separate accounts, application control, and credential protection."
+        }
+      ],
+      "references": [
+        {
+          "title": "How User Account Control works",
+          "publisher": "Microsoft Learn",
+          "url": "https://learn.microsoft.com/en-us/windows/security/identity-protection/user-account-control/how-user-account-control-works",
+          "license": "CC-BY-4.0"
+        },
+        {
+          "title": "Mandatory integrity control",
+          "publisher": "Microsoft Learn",
+          "url": "https://learn.microsoft.com/en-us/windows/win32/secauthz/mandatory-integrity-control",
+          "license": "CC-BY-4.0"
+        }
+      ],
+      "tags": [
+        "windows",
+        "uac",
+        "integrity-level"
+      ]
+    },
+    {
+      "id": "win-defender-asr",
+      "subtopic": "endpoint-protection",
+      "difficulty": "intermediate",
+      "title": "ASR rules support audit before block, and both leave distinct events",
+      "fact": "Attack surface reduction rules are Defender controls that block behaviors such as Office applications spawning child processes, script content executing downloaded payloads, and credential theft from lsass. Each rule has a GUID and a state: off, audit, block, or warn. Audit mode records what would have been blocked so the impact can be sized before enforcement. Rules are configured through Intune, Group Policy, or Add-MpPreference with AttackSurfaceReductionRules_Ids and AttackSurfaceReductionRules_Actions. Blocks appear in the Defender operational log as event 1121 and audit hits as 1122.",
+      "commands": [
+        {
+          "language": "powershell",
+          "code": "Get-MpPreference | Select-Object AttackSurfaceReductionRules_Ids, AttackSurfaceReductionRules_Actions",
+          "purpose": "List configured ASR rule GUIDs together with their current modes."
+        }
+      ],
+      "logs": [
+        {
+          "context": "Microsoft-Windows-Windows Defender/Operational, synthetic",
+          "text": "EventID=1121  ASR rule 9E6C4E1F-...  Action=Blocked  Path=C:\\Users\\synthetic\\AppData\\Local\\Temp\\invoice.js  Process=winword.exe",
+          "reading": "The rule blocked a script launched by a document process. Event 1121 is enforcement; the same activity in audit mode would be logged as 1122 with no block, which is how a pilot is measured."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "You deploy an ASR rule in audit mode. What should you expect?",
+          "options": [
+            "The behavior is blocked and logged",
+            "The behavior is allowed and a would-block event is logged",
+            "Nothing is logged",
+            "The rule is silently disabled"
+          ],
+          "answer": [
+            1
+          ],
+          "rationale": "Audit evaluates the rule and records the match without enforcing it, which lets an operator find business impact before switching to block."
+        }
+      ],
+      "references": [
+        {
+          "title": "Attack surface reduction rules reference",
+          "publisher": "Microsoft Learn",
+          "url": "https://learn.microsoft.com/en-us/defender-endpoint/attack-surface-reduction-rules-reference",
+          "license": "CC-BY-4.0"
+        },
+        {
+          "title": "Enable attack surface reduction rules",
+          "publisher": "Microsoft Learn",
+          "url": "https://learn.microsoft.com/en-us/defender-endpoint/enable-attack-surface-reduction",
+          "license": "CC-BY-4.0"
+        },
+        {
+          "title": "Troubleshoot attack surface reduction rules",
+          "publisher": "Microsoft Learn",
+          "url": "https://learn.microsoft.com/en-us/defender-endpoint/troubleshoot-asr",
+          "license": "CC-BY-4.0"
+        }
+      ],
+      "tags": [
+        "windows",
+        "defender",
+        "asr"
+      ]
+    },
+    {
+      "id": "win-powershell-logging",
+      "subtopic": "logging",
+      "difficulty": "intermediate",
+      "title": "Script block logging records decoded PowerShell, module logging records pipelines",
+      "fact": "PowerShell has several independent logging channels. Script Block Logging writes event 4104 with the text of each executed block after deobfuscation, so base64-encoded commands appear in readable form. Module Logging writes 4103 with pipeline details per module. Transcription writes session text to files. Script Block Logging is enabled by the EnableScriptBlockLogging value under HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\PowerShell\\ScriptBlockLogging. These events do not cover native binaries, so pair them with 4688 command-line auditing or endpoint telemetry.",
+      "configs": [
+        {
+          "language": "reg",
+          "snippet": "Windows Registry Editor Version 5.00\n\n[HKEY_LOCAL_MACHINE\\SOFTWARE\\Policies\\Microsoft\\Windows\\PowerShell\\ScriptBlockLogging]\n\"EnableScriptBlockLogging\"=dword:00000001",
+          "purpose": "Enable script block logging by machine policy so the setting applies to all users."
+        }
+      ],
+      "logs": [
+        {
+          "context": "PowerShell operational log, event 4104, synthetic",
+          "text": "Creating Scriptblock text (1 of 1):\n$c = 'SQBFAFgA'; iex ([Text.Encoding]::Unicode.GetString([Convert]::FromBase64String($c)))\nScriptBlock ID: 6f1c2a44-...",
+          "reading": "The log preserves the decoded invocation rather than only the encoded string, which is the main detection value. The block identifier lets related fragments be joined."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Which event contains the decoded text of a base64-encoded PowerShell command?",
+          "options": [
+            "4103",
+            "4104",
+            "4688",
+            "7045"
+          ],
+          "answer": [
+            1
+          ],
+          "rationale": "4104 carries script block text after PowerShell has processed it, including decoded encoded-command payloads. 4103 is per-module pipeline logging."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "Script Block Logging records only commands typed interactively.",
+          "correction": "It records script blocks as they are compiled and executed, including those from scripts, modules, and decoded encoded-command invocations. Interactive input is only one source."
+        }
+      ],
+      "references": [
+        {
+          "title": "about_Logging_Windows",
+          "publisher": "Microsoft Learn",
+          "url": "https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_logging_windows",
+          "license": "CC-BY-4.0"
+        },
+        {
+          "title": "about_Logging",
+          "publisher": "Microsoft Learn",
+          "url": "https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_logging",
+          "license": "CC-BY-4.0"
+        }
+      ],
+      "tags": [
+        "windows",
+        "powershell",
+        "logging"
+      ]
+    },
+    {
+      "id": "win-service-accounts",
+      "subtopic": "service-identity",
+      "difficulty": "advanced",
+      "title": "gMSAs rotate a domain-managed password that no administrator knows",
+      "fact": "Windows service identities range from LocalSystem, SID S-1-5-18 with full local power, through LocalService and NetworkService, to domain accounts, virtual accounts named NT SERVICE\\<name>, and group Managed Service Accounts. A gMSA has a long random password rotated automatically by the domain, supports service principal names, and cannot be used for interactive logon. The password is read from the msDS-ManagedPassword attribute by principals granted that right. Standalone MSAs are bound to one computer. Reusing one domain user across many services defeats rotation, least privilege, and attribution.",
+      "commands": [
+        {
+          "language": "powershell",
+          "code": "Test-ADServiceAccount -Identity gmsa-app$; sc.exe qc AppSvc",
+          "purpose": "Check that a host can use a gMSA and show the account configured for a service."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Why is a gMSA preferred over a shared domain user for a service?",
+          "options": [
+            "It never expires",
+            "Its long random password is rotated automatically without an administrator knowing it",
+            "It grants Domain Admin rights",
+            "It disables auditing"
+          ],
+          "answer": [
+            1
+          ],
+          "rationale": "Automatic rotation removes the shared secret that administrators would otherwise know and reuse, and each service can have its own identity for attribution."
+        }
+      ],
+      "references": [
+        {
+          "title": "Group Managed Service Accounts overview",
+          "publisher": "Microsoft Learn",
+          "url": "https://learn.microsoft.com/en-us/windows-server/security/group-managed-service-accounts/group-managed-service-accounts-overview",
+          "license": "CC-BY-4.0"
+        },
+        {
+          "title": "Service accounts",
+          "publisher": "Microsoft Learn",
+          "url": "https://learn.microsoft.com/en-us/windows/security/identity-protection/access-control/service-accounts",
+          "license": "CC-BY-4.0"
+        }
+      ],
+      "tags": [
+        "windows",
+        "service-accounts",
+        "gmsa"
+      ]
+    },
+    {
+      "id": "win-autoruns",
+      "subtopic": "persistence-inventory",
+      "difficulty": "advanced",
+      "title": "Autorun review must cover WMI subscriptions and IFEO, not just Run keys",
+      "fact": "Windows persistence hides in many documented locations: Run and RunOnce keys under HKLM and HKCU, services, scheduled tasks, startup folders, WMI permanent event subscriptions under root\\subscription, Image File Execution Options debuggers, AppInit_DLLs, and Winlogon Shell or Userinit values. Autoruns enumerates these with signer and hash information and can diff against a saved baseline, which is more reliable than reviewing a single key. HKLM entries need administrator rights to create, while HKCU entries run in the user's context and are a common unprivileged foothold. A service installation is recorded as event 7045 in the System log, which makes service creation a high-signal persistence event.",
+      "commands": [
+        {
+          "language": "powershell",
+          "code": "Get-ItemProperty 'HKLM:\\Software\\Microsoft\\Windows\\CurrentVersion\\Run'",
+          "purpose": "List machine-wide Run values that launch at user logon."
+        },
+        {
+          "language": "powershell",
+          "code": "Get-CimInstance -Namespace root/subscription -ClassName __EventFilter",
+          "purpose": "Enumerate WMI event filters used by permanent subscription persistence."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Which location is a WMI-based persistence mechanism?",
+          "options": [
+            "HKLM\\Software\\Microsoft\\Windows\\CurrentVersion\\Run",
+            "A permanent event subscription in root\\subscription",
+            "The per-user Startup folder",
+            "A scheduled task"
+          ],
+          "answer": [
+            1
+          ],
+          "rationale": "WMI persistence uses __EventFilter, __EventConsumer, and __FilterToConsumerBinding classes under root\\subscription, so it survives without a Run key or service."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "Checking the Run keys covers the common persistence locations.",
+          "correction": "Run keys are one of more than a dozen documented autostart mechanisms. Services, tasks, WMI subscriptions, IFEO debuggers, and Winlogon values are all used in practice and need the same review."
+        }
+      ],
+      "references": [
+        {
+          "title": "Run and RunOnce registry keys",
+          "publisher": "Microsoft Learn",
+          "url": "https://learn.microsoft.com/en-us/windows/win32/setupapi/run-and-runonce-registry-keys",
+          "license": "CC-BY-4.0"
+        },
+        {
+          "title": "Autoruns for Windows",
+          "publisher": "Microsoft Sysinternals",
+          "url": "https://learn.microsoft.com/en-us/sysinternals/downloads/autoruns",
+          "license": "CC-BY-4.0"
+        },
+        {
+          "title": "Configure Windows event auditing",
+          "publisher": "Microsoft Learn",
+          "url": "https://learn.microsoft.com/en-us/defender-for-identity/deploy/configure-windows-event-collection",
+          "license": "CC-BY-4.0"
+        }
+      ],
+      "tags": [
+        "windows",
+        "persistence",
+        "autoruns"
+      ]
+    },
+    {
+      "id": "win-security-events",
+      "subtopic": "event-analysis",
+      "difficulty": "intermediate",
+      "title": "Logon type and substatus turn 4624 and 4625 into usable evidence",
+      "fact": "Three Windows events carry most host logon and execution triage. 4624 records a successful logon with LogonType, where 2 is interactive, 3 network, 5 service, and 10 RemoteInteractive, plus the authentication package. 4625 records failure with Status and SubStatus, for example 0xC000006A for a bad password and 0xC0000064 for a nonexistent account. 4688 records process creation, but CommandLine is populated only when the Include command line policy is enabled. A burst of 4625 followed by 4624 type 3 is the signature of a successful password spray.",
+      "commands": [
+        {
+          "language": "powershell",
+          "code": "Get-WinEvent -FilterHashtable @{LogName='Security'; Id=4625; StartTime=(Get-Date).AddHours(-1)} -MaxEvents 20",
+          "purpose": "Pull recent failed logons for source, account, and substatus review."
+        }
+      ],
+      "logs": [
+        {
+          "context": "Windows Security log, synthetic host-01",
+          "text": "4625  LogonType=3  TargetUserName=svc-backup  IpAddress=203.0.113.77  SubStatus=0xC000006A\n4624  LogonType=3  TargetUserName=svc-backup  IpAddress=203.0.113.77  AuthPackage=NTLM",
+          "reading": "A network logon failed once with a correct username and wrong password, then succeeded from the same address. One failure is noise; a high rate across many accounts from one source, ending in a success, indicates spraying."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Which logon type indicates access to a share over SMB rather than a console logon?",
+          "options": [
+            "2",
+            "3",
+            "5",
+            "10"
+          ],
+          "answer": [
+            1
+          ],
+          "rationale": "Type 3 is a network logon, used for SMB and other remote access. Type 2 is console, 5 is a service start, and 10 is Remote Desktop."
+        }
+      ],
+      "references": [
+        {
+          "title": "Event 4624: An account was successfully logged on",
+          "publisher": "Microsoft Learn",
+          "url": "https://learn.microsoft.com/en-us/windows/security/threat-protection/auditing/event-4624",
+          "license": "CC-BY-4.0"
+        },
+        {
+          "title": "Event 4625: An account failed to log on",
+          "publisher": "Microsoft Learn",
+          "url": "https://learn.microsoft.com/en-us/windows/security/threat-protection/auditing/event-4625",
+          "license": "CC-BY-4.0"
+        },
+        {
+          "title": "Event 4688: A new process has been created",
+          "publisher": "Microsoft Learn",
+          "url": "https://learn.microsoft.com/en-us/windows/security/threat-protection/auditing/event-4688",
+          "license": "CC-BY-4.0"
+        }
+      ],
+      "tags": [
+        "windows",
+        "event-log",
+        "logon"
+      ]
+    },
+    {
+      "id": "win-applocker-wdac",
+      "subtopic": "application-control",
+      "difficulty": "advanced",
+      "title": "AppLocker is user-mode policy; WDAC is kernel-enforced code integrity",
+      "fact": "AppLocker and Windows Defender Application Control both restrict which code runs, at different layers. AppLocker builds allow and deny rules from publisher, path, or file hash, applies them per user or group, and is managed through Group Policy. It is enforced in user mode and an administrator can bypass it. WDAC is a signed code integrity policy enforced by the kernel for the whole device, supports hypervisor-protected code integrity, and takes precedence when both are enforced. Plan WDAC with audit events 3076 and enforced blocks 3077; blocked AppLocker executions appear as 8004.",
+      "commands": [
+        {
+          "language": "powershell",
+          "code": "Get-AppLockerPolicy -Effective -Xml; Get-CimInstance -ClassName Win32_DeviceGuard -Namespace root\\Microsoft\\Windows\\DeviceGuard",
+          "purpose": "Show the effective AppLocker policy and the device's code integrity and hypervisor status."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Which statement distinguishes WDAC from AppLocker?",
+          "options": [
+            "WDAC is per-user and AppLocker is per-device",
+            "WDAC is kernel-enforced device-wide code integrity, while AppLocker is user-mode policy",
+            "AppLocker can block kernel drivers",
+            "WDAC supports only hash rules"
+          ],
+          "answer": [
+            1
+          ],
+          "rationale": "WDAC runs in the kernel, covers the whole device including drivers, and uses signed policies. AppLocker is a user-mode convenience layer that an administrator can bypass."
+        }
+      ],
+      "references": [
+        {
+          "title": "Windows Defender Application Control design guide",
+          "publisher": "Microsoft Learn",
+          "url": "https://learn.microsoft.com/en-us/windows/security/threat-protection/windows-defender-application-control/windows-defender-application-control-design-guide",
+          "license": "CC-BY-4.0"
+        },
+        {
+          "title": "AppLocker overview",
+          "publisher": "Microsoft Learn",
+          "url": "https://learn.microsoft.com/en-us/windows/security/threat-protection/windows-defender-application-control/applocker/applocker-overview",
+          "license": "CC-BY-4.0"
+        },
+        {
+          "title": "Application control event ID explanations",
+          "publisher": "Microsoft Learn",
+          "url": "https://learn.microsoft.com/en-us/windows/security/application-security/application-control/app-control-for-business/operations/event-id-explanations",
+          "license": "CC-BY-4.0"
+        }
+      ],
+      "tags": [
+        "windows",
+        "applocker",
+        "wdac"
+      ]
+    },
+    {
+      "id": "win-bitlocker",
+      "subtopic": "data-protection",
+      "difficulty": "intermediate",
+      "title": "BitLocker protects data at rest, not a live administrator session",
+      "fact": "BitLocker encrypts volumes so offline access to the disk yields ciphertext. Key protectors include TPM-only, which unlocks when boot measurements match; TPM plus PIN; a 48-digit recovery password; a startup key on removable media; and network unlock for domain-joined servers. TPM-only protects against disk theft but not against an attacker already running code as an administrator, because the volume key is in memory. Recovery keys belong in Active Directory or Entra ID escrow, not in a spreadsheet. manage-bde -status shows protection state and protectors; suspend protection before firmware changes and resume afterwards.",
+      "commands": [
+        {
+          "language": "powershell",
+          "code": "Get-BitLockerVolume | Select-Object MountPoint, VolumeStatus, ProtectionStatus, KeyProtector",
+          "purpose": "Report encryption and protection state with configured key protectors."
+        },
+        {
+          "language": "powershell",
+          "code": "manage-bde -protectors -get C:",
+          "purpose": "List protector identifiers and types for a volume."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Which BitLocker configuration best resists an attacker who steals a powered-off laptop?",
+          "options": [
+            "TPM-only",
+            "TPM plus PIN",
+            "No protectors configured",
+            "A startup key stored in the laptop bag"
+          ],
+          "answer": [
+            1
+          ],
+          "rationale": "The PIN is an additional secret the thief does not have, while TPM-only unlocks automatically on the same hardware. A startup key kept with the device provides no protection."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "BitLocker protects data from a user who is already logged in as administrator.",
+          "correction": "Once the volume is unlocked the key is in memory and files are readable. BitLocker addresses offline attacks, so it complements ACLs and credential protection rather than replacing them."
+        }
+      ],
+      "references": [
+        {
+          "title": "BitLocker overview",
+          "publisher": "Microsoft Learn",
+          "url": "https://learn.microsoft.com/en-us/windows/security/operating-system-security/data-protection/bitlocker/",
+          "license": "CC-BY-4.0"
+        },
+        {
+          "title": "Configure BitLocker",
+          "publisher": "Microsoft Learn",
+          "url": "https://learn.microsoft.com/en-us/windows/security/operating-system-security/data-protection/bitlocker/configure",
+          "license": "CC-BY-4.0"
+        }
+      ],
+      "tags": [
+        "windows",
+        "bitlocker",
+        "encryption"
+      ]
+    },
+    {
+      "id": "net-iproute-basics",
+      "subtopic": "host-networking",
+      "difficulty": "foundational",
+      "title": "iproute2 exposes link, address, route, and neighbor state separately",
+      "fact": "iproute2 is the current Linux network configuration toolkit; ifconfig, route, and arp come from net-tools and are deprecated. ip link shows interface state and MTU, ip addr shows addresses, ip route shows the routing table, and ip neigh shows the ARP and NDP cache. Interface flags matter: UP means administratively enabled, LOWER_UP means carrier is present, and NO-CARRIER points at cabling or the peer. ip -s link adds error and drop counters, which separate physical problems from policy problems, and ip -br shortens the output for inventories.",
+      "commands": [
+        {
+          "language": "bash",
+          "code": "ip -br addr; ip route; ip -s link show dev eth0",
+          "purpose": "Summarize addresses and routes, then inspect error and drop counters on one interface."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "ip link shows an interface as UP but without LOWER_UP. What does that suggest?",
+          "options": [
+            "The IP address is wrong",
+            "The link has no carrier, so check cabling or the switch port",
+            "The default gateway is missing",
+            "DNS is misconfigured"
+          ],
+          "answer": [
+            1
+          ],
+          "rationale": "UP is an administrative flag while LOWER_UP reflects physical or peer carrier. Missing carrier is a layer 1 or layer 2 problem, before addressing matters."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "A running interface with an IP address is necessarily able to reach its gateway.",
+          "correction": "Addressing, carrier, and forwarding are independent. The interface can be UP with an address while the switch port blocks the VLAN or the gateway is unreachable."
+        }
+      ],
+      "references": [
+        {
+          "title": "ip(8)",
+          "publisher": "iproute2 project",
+          "url": "https://man7.org/linux/man-pages/man8/ip.8.html",
+          "license": "GPL-2.0-only"
+        },
+        {
+          "title": "ip-link(8)",
+          "publisher": "iproute2 project",
+          "url": "https://man7.org/linux/man-pages/man8/ip-link.8.html",
+          "license": "GPL-2.0-only"
+        },
+        {
+          "title": "ip-address(8)",
+          "publisher": "iproute2 project",
+          "url": "https://man7.org/linux/man-pages/man8/ip-address.8.html",
+          "license": "GPL-2.0-only"
+        }
+      ],
+      "tags": [
+        "iproute2",
+        "interfaces",
+        "troubleshooting"
+      ]
+    },
+    {
+      "id": "net-longest-prefix",
+      "subtopic": "routing",
+      "difficulty": "foundational",
+      "title": "The longest matching prefix wins before any metric is considered",
+      "fact": "Routers choose the longest matching prefix, not the lowest metric. A /32 host route beats a /24 connected route, which beats 0.0.0.0/0, even when the default route has a better metric. Metrics break ties only among routes to the same prefix. Policy routing runs before the main table lookup: ip rule selects a table, and ip route show table all reveals entries that plain ip route hides. ip route get 198.51.100.10 prints the exact route and preferred source address the kernel would use, which settles most arguments about path selection.",
+      "commands": [
+        {
+          "language": "bash",
+          "code": "ip route get 198.51.100.10 from 10.20.30.15",
+          "purpose": "Show the chosen route, output interface, and source address for a specific flow."
+        },
+        {
+          "language": "bash",
+          "code": "ip rule show; ip route show table all",
+          "purpose": "Reveal policy routing rules and routes in non-default tables."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "A host has a default route and a /24 route to 198.51.100.0/24 through a different gateway with a worse metric. Which path is used for 198.51.100.25?",
+          "options": [
+            "The default route, because it is listed first",
+            "The /24 route, because the longest prefix wins",
+            "Neither, the packet is dropped",
+            "Whichever route has the lower metric regardless of prefix length"
+          ],
+          "answer": [
+            1
+          ],
+          "rationale": "Prefix length is compared before metric. The more specific /24 matches, so its gateway is used even though the default route is cheaper by metric."
+        }
+      ],
+      "references": [
+        {
+          "title": "ip-route(8)",
+          "publisher": "iproute2 project",
+          "url": "https://man7.org/linux/man-pages/man8/ip-route.8.html",
+          "license": "GPL-2.0-only"
+        },
+        {
+          "title": "ip(8)",
+          "publisher": "iproute2 project",
+          "url": "https://man7.org/linux/man-pages/man8/ip.8.html",
+          "license": "GPL-2.0-only"
+        }
+      ],
+      "tags": [
+        "routing",
+        "prefix",
+        "policy-routing"
+      ]
+    },
+    {
+      "id": "net-dns-client-path",
+      "subtopic": "name-resolution",
+      "difficulty": "intermediate",
+      "title": "Applications resolve through NSS, which may never send a DNS query",
+      "fact": "On Linux the answer an application sees may not come from DNS. nsswitch.conf controls the order for the hosts database, typically files then dns, so /etc/hosts wins before a query is sent. resolv.conf supplies nameservers, search domains, and options such as timeout and attempts, and glibc uses at most three nameservers. With systemd-resolved the stub listens on 127.0.0.53, resolvectl status lists each link's DNS servers and search domains, and resolvectl query reports whether an answer came from cache. getent hosts follows the NSS path like most applications, while dig queries DNS directly, which explains failures that reproduce with curl but not with dig.",
+      "commands": [
+        {
+          "language": "bash",
+          "code": "getent hosts app.example.internal",
+          "purpose": "Resolve a name through the same NSS path most applications use."
+        },
+        {
+          "language": "bash",
+          "code": "resolvectl query app.example.internal; resolvectl status | head -n 20",
+          "purpose": "Query the local resolver and show per-link DNS servers and search domains."
+        }
+      ],
+      "configs": [
+        {
+          "language": "nsswitch.conf",
+          "snippet": "hosts: files mdns4_minimal [NOTFOUND=return] dns",
+          "purpose": "Consult local files first, then multicast DNS, then unicast DNS."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "An application cannot resolve a name, but dig returns an answer immediately. What should you check first?",
+          "options": [
+            "The authoritative server's zone file",
+            "/etc/hosts and the nsswitch hosts order",
+            "The TLS certificate",
+            "The default route"
+          ],
+          "answer": [
+            1
+          ],
+          "rationale": "dig bypasses NSS, so a working dig only proves that some DNS server answered. The application may be reading a stale hosts entry or using a different resolver path."
+        }
+      ],
+      "references": [
+        {
+          "title": "nsswitch.conf(5)",
+          "publisher": "Linux man-pages project",
+          "url": "https://man7.org/linux/man-pages/man5/nsswitch.conf.5.html",
+          "license": "Linux-man-pages-copyleft"
+        },
+        {
+          "title": "resolv.conf(5)",
+          "publisher": "Linux man-pages project",
+          "url": "https://man7.org/linux/man-pages/man5/resolv.conf.5.html",
+          "license": "Linux-man-pages-copyleft"
+        },
+        {
+          "title": "resolvectl(1)",
+          "publisher": "systemd project",
+          "url": "https://man7.org/linux/man-pages/man1/resolvectl.1.html",
+          "license": "LGPL-2.1-or-later"
+        }
+      ],
+      "tags": [
+        "dns",
+        "nsswitch",
+        "resolution"
+      ]
+    },
+    {
+      "id": "net-mtu-pmtud",
+      "subtopic": "mtu",
+      "difficulty": "advanced",
+      "title": "An ICMP black hole stalls large transfers while small requests succeed",
+      "fact": "Path MTU discovery depends on ICMP. With the IPv4 DF bit set, a router that cannot forward a full-size packet must return ICMP type 3 code 4 with the next-hop MTU. If a firewall drops that message, the sender keeps retrying and large transfers stall while small requests succeed. IPv6 routers never fragment, so PMTUD is mandatory there. Test with ping -M do -s 1472 on a 1500-byte path, which is 1472 payload plus 20 IP and 8 ICMP bytes, and read the reported MTU from tracepath. Fixes are to permit those ICMP messages, clamp TCP MSS on tunnels, or lower the tunnel interface MTU.",
+      "commands": [
+        {
+          "language": "bash",
+          "code": "ping -M do -s 1472 -c 2 198.51.100.10; tracepath 198.51.100.10",
+          "purpose": "Probe the largest unfragmented payload and let tracepath report the path MTU."
+        },
+        {
+          "language": "bash",
+          "code": "iptables -t mangle -A FORWARD -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --clamp-mss-to-pmtu",
+          "purpose": "Rewrite the advertised MSS on forwarded SYN packets to fit the egress MTU."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Small HTTP requests work but large downloads hang after the handshake completes. Which cause fits best?",
+          "options": [
+            "DNS TTL is too low",
+            "An ICMP black hole prevents path MTU discovery",
+            "The default gateway is missing",
+            "The TLS certificate expired"
+          ],
+          "answer": [
+            1
+          ],
+          "rationale": "The handshake and small responses fit in one segment. Full-size segments need PMTUD, and blocked ICMP type 3 code 4 leaves the sender retransmitting into a black hole."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "Blocking all ICMP at the firewall is a safe hardening baseline.",
+          "correction": "IPv4 PMTUD requires ICMP type 3 code 4, and IPv6 depends on ICMPv6 packet-too-big and neighbor discovery. Blanket blocking breaks connectivity in ways that look like application hangs."
+        }
+      ],
+      "references": [
+        {
+          "title": "RFC 1191: Path MTU Discovery",
+          "publisher": "IETF",
+          "url": "https://www.rfc-editor.org/rfc/rfc1191.html",
+          "license": "IETF-Trust"
+        },
+        {
+          "title": "RFC 8899: Packetization Layer Path MTU Discovery for Datagram Transports",
+          "publisher": "IETF",
+          "url": "https://www.rfc-editor.org/rfc/rfc8899.html",
+          "license": "IETF-Trust"
+        },
+        {
+          "title": "RFC 8200: Internet Protocol, Version 6",
+          "publisher": "IETF",
+          "url": "https://www.rfc-editor.org/rfc/rfc8200.html",
+          "license": "IETF-Trust"
+        }
+      ],
+      "tags": [
+        "mtu",
+        "pmtud",
+        "icmp"
+      ]
+    },
+    {
+      "id": "net-nat-conntrack",
+      "subtopic": "nat",
+      "difficulty": "advanced",
+      "title": "NAT is stateful translation, and conntrack exhaustion breaks only new flows",
+      "fact": "NAT rewrites addresses and ports and relies on connection tracking to reverse the translation. Source NAT or masquerade changes the source of outbound packets so replies return to the translator, while destination NAT changes the destination of inbound packets to publish an internal service. Conntrack keeps an entry per flow, so asymmetric routing through different firewalls breaks it. When the table fills, the kernel logs nf_conntrack: table full, dropping packet, and new connections fail while established ones continue. NAT is not a security control; it obscures topology, but DNAT deliberately exposes a service.",
+      "commands": [
+        {
+          "language": "bash",
+          "code": "cat /proc/sys/net/netfilter/nf_conntrack_count; sysctl net.netfilter.nf_conntrack_max",
+          "purpose": "Compare current tracked flows with the configured table limit."
+        }
+      ],
+      "configs": [
+        {
+          "language": "nftables",
+          "snippet": "table ip nat {\n  chain postrouting {\n    type nat hook postrouting priority srcnat; policy accept;\n    oifname \"eth0\" masquerade\n  }\n}",
+          "purpose": "Masquerade outbound traffic on the external interface."
+        }
+      ],
+      "logs": [
+        {
+          "context": "Kernel log during a connection-tracking surge",
+          "text": "nf_conntrack: table full, dropping packet\nnf_conntrack: table full, dropping packet",
+          "reading": "The table reached nf_conntrack_max, so the kernel discarded packets for flows that had no entry yet. Sessions already tracked keep working, which is why the symptom looks selective."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "New outbound connections fail while existing sessions keep working, and the kernel log shows nf_conntrack table full. What is the direct cause?",
+          "options": [
+            "DNS resolution failure",
+            "The connection tracking table reached its limit",
+            "The default route was removed",
+            "TLS certificates expired"
+          ],
+          "answer": [
+            1
+          ],
+          "rationale": "Without a free table slot the kernel cannot create state for a new flow and drops its packets. Existing entries are unaffected until they expire."
+        }
+      ],
+      "references": [
+        {
+          "title": "RFC 3022: Traditional IP Network Address Translator",
+          "publisher": "IETF",
+          "url": "https://www.rfc-editor.org/rfc/rfc3022.html",
+          "license": "IETF-Trust"
+        },
+        {
+          "title": "Netfilter conntrack sysctls",
+          "publisher": "Linux kernel documentation",
+          "url": "https://www.kernel.org/doc/html/latest/networking/nf_conntrack-sysctl.html",
+          "license": "GPL-2.0-only"
+        },
+        {
+          "title": "iptables-extensions(8)",
+          "publisher": "Netfilter project",
+          "url": "https://man7.org/linux/man-pages/man8/iptables-extensions.8.html",
+          "license": "GPL-2.0-only"
+        }
+      ],
+      "tags": [
+        "nat",
+        "conntrack",
+        "netfilter"
+      ]
+    },
+    {
+      "id": "net-vlan-tagging",
+      "subtopic": "layer-2",
+      "difficulty": "intermediate",
+      "title": "A native VLAN mismatch mixes segments while the trunk still passes traffic",
+      "fact": "An 802.1Q tag adds four bytes to the Ethernet frame and carries a 12-bit VLAN ID. ID 0 is used for priority tagging and 4095 is reserved, leaving 1 through 4094 usable. An access port carries one untagged VLAN for an endpoint, while a trunk carries multiple tagged VLANs and one untagged native VLAN. A native VLAN mismatch between switches leaks frames between segments and is a common misconfiguration. On Linux, ip link add link eth0 name eth0.20 type vlan id 20 creates a tagged sub-interface. VLANs segment layer 2 but do not replace inter-subnet filtering.",
+      "commands": [
+        {
+          "language": "bash",
+          "code": "ip link add link eth0 name eth0.20 type vlan id 20; ip -d link show eth0.20",
+          "purpose": "Create a tagged VLAN sub-interface and display its VLAN parameters."
+        },
+        {
+          "language": "bash",
+          "code": "bridge vlan show",
+          "purpose": "Show which VLANs each bridge port carries tagged or untagged."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Two trunk ports disagree on the native VLAN. What is the likely effect?",
+          "options": [
+            "The trunk stops passing any traffic",
+            "Untagged frames land in different VLANs on each side, mixing segments",
+            "VLAN IDs above 1006 are blocked",
+            "Spanning tree is disabled"
+          ],
+          "answer": [
+            1
+          ],
+          "rationale": "The native VLAN is the untagged VLAN. If the two ends disagree, untagged frames from one segment are delivered into the other, which can bridge traffic that should be isolated."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "Placing hosts in different VLANs provides security without any filtering.",
+          "correction": "VLANs are layer-2 segments. Any router or layer-3 switch that forwards between them applies whatever policy is configured, so isolation requires explicit ACLs or firewall rules."
+        }
+      ],
+      "references": [
+        {
+          "title": "bridge(8)",
+          "publisher": "iproute2 project",
+          "url": "https://man7.org/linux/man-pages/man8/bridge.8.html",
+          "license": "GPL-2.0-only"
+        },
+        {
+          "title": "ip-link(8)",
+          "publisher": "iproute2 project",
+          "url": "https://man7.org/linux/man-pages/man8/ip-link.8.html",
+          "license": "GPL-2.0-only"
+        }
+      ],
+      "tags": [
+        "vlan",
+        "802.1q",
+        "switching"
+      ]
+    },
+    {
+      "id": "net-tcpdump-filters",
+      "subtopic": "packet-capture",
+      "difficulty": "intermediate",
+      "title": "Capture filters run in the kernel and change what you can analyze later",
+      "fact": "tcpdump compiles a BPF expression and attaches it in the kernel, so a capture filter such as tcp port 443 and host 203.0.113.10 discards packets before they reach user space. That differs from Wireshark display filters, which run after capture. -i any captures on all interfaces with a Linux cooked header, so link-layer offsets differ from Ethernet captures. -nn disables name and port resolution, -s 0 captures full packets, -c stops after a count, and -w writes a pcap for offline analysis. Kernel drop counts mean the ring buffer is too small for the packet rate, not that the filter matched too little.",
+      "commands": [
+        {
+          "language": "bash",
+          "code": "tcpdump -i any -nn -s 0 -c 200 'tcp port 443 and host 203.0.113.10'",
+          "purpose": "Capture a bounded sample of one TLS flow on all interfaces without name resolution."
+        },
+        {
+          "language": "bash",
+          "code": "tcpdump -r capture.pcap -nn 'tcp[tcpflags] & tcp-syn != 0'",
+          "purpose": "Read the saved capture and select packets with the SYN flag."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Why might a tcpdump capture miss packets on a busy interface?",
+          "options": [
+            "BPF filters cannot match port numbers",
+            "The kernel ring buffer overflowed and reported drops",
+            "tcpdump cannot capture TLS",
+            "The pcap file format is lossy"
+          ],
+          "answer": [
+            1
+          ],
+          "rationale": "Packets are copied into a ring buffer. If user space drains it too slowly, the kernel increments a drop counter and those packets are lost before analysis."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "A capture filter and a Wireshark display filter are interchangeable.",
+          "correction": "Capture filters decide what is stored and use BPF syntax; display filters only hide rows afterwards. Filtering too tightly at capture time destroys evidence you cannot recover."
+        }
+      ],
+      "references": [
+        {
+          "title": "tcpdump(8)",
+          "publisher": "tcpdump project",
+          "url": "https://man7.org/linux/man-pages/man8/tcpdump.8.html",
+          "license": "BSD-3-Clause"
+        },
+        {
+          "title": "Networking filter (BPF)",
+          "publisher": "Linux kernel documentation",
+          "url": "https://www.kernel.org/doc/html/latest/networking/filter.html",
+          "license": "GPL-2.0-only"
+        }
+      ],
+      "tags": [
+        "tcpdump",
+        "pcap",
+        "bpf"
+      ]
+    },
+    {
+      "id": "net-ss-socket-states",
+      "subtopic": "tcp-diagnostics",
+      "difficulty": "advanced",
+      "title": "Recv-Q means different things on a listener and on an established socket",
+      "fact": "ss reads socket state from the kernel. On a modern listening socket, Recv-Q reports connections that have completed and are waiting for accept(), while Send-Q reports the backlog limit; older manuals describe the same columns as the SYN backlog, so confirm against your kernel. A persistently full accept queue means the application accepts too slowly. On an established socket, Recv-Q is unread data in the receive buffer, so a growing value alongside a zero window means the application is not reading. ss -tanp shows states, -s summarizes, and -i exposes cwnd, rtt, and retransmits. Many sockets left in CLOSE-WAIT point to an application that never closes its side.",
+      "commands": [
+        {
+          "language": "bash",
+          "code": "ss -ltn; ss -tanp state established | head -n 20; ss -s",
+          "purpose": "Inspect listeners, established sockets with owning processes, and a state summary."
+        },
+        {
+          "language": "bash",
+          "code": "ss -tin state established",
+          "purpose": "Show internal TCP metrics such as congestion window, RTT, and retransmissions."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Many established sockets sit in CLOSE-WAIT. What does that indicate?",
+          "options": [
+            "The peer is unreachable",
+            "The local application has not closed its socket after the peer sent FIN",
+            "The listen backlog is full",
+            "The ephemeral port range is exhausted"
+          ],
+          "answer": [
+            1
+          ],
+          "rationale": "CLOSE-WAIT means the remote end has sent FIN and the local stack acknowledged it, but the application still holds the descriptor open. The leak is in the application, not the network."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "A large number of TIME_WAIT sockets is a fault that should be eliminated.",
+          "correction": "TIME_WAIT is the normal state of the side that closes actively, lasting twice the maximum segment lifetime. It prevents delayed duplicates from being accepted into a new connection, so aggressive reuse settings can cause real errors."
+        }
+      ],
+      "references": [
+        {
+          "title": "ss(8)",
+          "publisher": "iproute2 project",
+          "url": "https://man7.org/linux/man-pages/man8/ss.8.html",
+          "license": "GPL-2.0-only"
+        },
+        {
+          "title": "tcp(7)",
+          "publisher": "Linux man-pages project",
+          "url": "https://man7.org/linux/man-pages/man7/tcp.7.html",
+          "license": "Linux-man-pages-copyleft"
+        }
+      ],
+      "tags": [
+        "ss",
+        "tcp-state",
+        "diagnostics"
+      ]
+    },
+    {
+      "id": "net-diag-layers",
+      "subtopic": "troubleshooting-method",
+      "difficulty": "foundational",
+      "title": "Diagnose in layer order and change one variable at a time",
+      "fact": "Work outward from the host and change one variable per test. Confirm link state and error counters, then addresses and the selected route, then name resolution, then transport reachability with a timed connect, and finally application behavior from its logs. Testing the same request by IP separates DNS from connectivity, because a hostname failure and an address failure exercise different code paths. Comparing a failing host with a working one on the same segment separates host configuration from network policy, and checking both directions catches asymmetric ACLs. Record a baseline before changes so a rollback is provable.",
+      "commands": [
+        {
+          "language": "bash",
+          "code": "ip -s link show dev eth0; ip route get 198.51.100.10; getent hosts app.example.internal; curl -sS -v --connect-timeout 3 -o /dev/null https://198.51.100.10/health",
+          "purpose": "Run a layered check from link counters through name resolution to a timed TLS connection."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "A request to a hostname fails, but the same request to the resolved IP address succeeds. Which layer is most likely at fault?",
+          "options": [
+            "Link layer",
+            "Name resolution",
+            "TCP handshake",
+            "TLS record layer"
+          ],
+          "answer": [
+            1
+          ],
+          "rationale": "The IP path, handshake, and TLS all work when the address is used directly. Only the name-to-address step differs, so the fault is in resolution or name-based policy."
+        }
+      ],
+      "references": [
+        {
+          "title": "ip(8)",
+          "publisher": "iproute2 project",
+          "url": "https://man7.org/linux/man-pages/man8/ip.8.html",
+          "license": "GPL-2.0-only"
+        },
+        {
+          "title": "tcp(7)",
+          "publisher": "Linux man-pages project",
+          "url": "https://man7.org/linux/man-pages/man7/tcp.7.html",
+          "license": "Linux-man-pages-copyleft"
+        },
+        {
+          "title": "RFC 1122: Requirements for Internet Hosts, Communication Layers",
+          "publisher": "IETF",
+          "url": "https://www.rfc-editor.org/rfc/rfc1122.html",
+          "license": "IETF-Trust"
+        }
+      ],
+      "tags": [
+        "troubleshooting",
+        "method",
+        "layers"
+      ]
+    },
+    {
+      "id": "proto-tcp-handshake",
+      "subtopic": "tcp",
+      "difficulty": "foundational",
+      "title": "The SYN consumes a sequence number, which is why the acknowledgment is x plus one",
+      "fact": "A TCP connection opens with SYN carrying the client's initial sequence number and options, SYN-ACK carrying the server's initial sequence number and acknowledgment, and ACK completing the handshake. The SYN occupies one sequence number, so the first data byte is x plus one. Initial sequence numbers are randomized to make off-path injection and spoofing harder. A half-open connection is a received SYN with no final ACK, and a flood of them fills the SYN or accept backlog. Closing takes one FIN and ACK per direction, and the side that closes actively waits in TIME_WAIT for twice the maximum segment lifetime.",
+      "logs": [
+        {
+          "context": "tcpdump output of a synthetic TLS connection",
+          "text": "09:12:01.114 IP 10.20.30.15.51422 > 198.51.100.10.443: Flags [S], seq 3214876, win 64240, options [mss 1460,sackOK,TS,nop,wscale 8]\n09:12:01.132 IP 198.51.100.10.443 > 10.20.30.15.51422: Flags [S.], seq 998211, ack 3214877, win 65160, options [mss 1460,sackOK,TS,nop,wscale 7]\n09:12:01.134 IP 10.20.30.15.51422 > 198.51.100.10.443: Flags [.], ack 998212, win 502, options [nop,nop,TS]",
+          "reading": "The third packet acknowledges 998212, which is the server's initial sequence number plus one for its SYN. The window scale options differ per direction, so each side scales the other's advertised window independently."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Why does the SYN-ACK acknowledge x plus one rather than x?",
+          "options": [
+            "The SYN consumed one sequence number",
+            "The client already sent one byte of data",
+            "Acknowledgment numbers are randomized",
+            "Window scaling shifts the value"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "SYN and FIN each occupy a sequence number in the sequence space. The acknowledgment therefore points at the next byte the sender expects, which is the initial sequence number plus one."
+        }
+      ],
+      "references": [
+        {
+          "title": "RFC 9293: Transmission Control Protocol",
+          "publisher": "IETF",
+          "url": "https://www.rfc-editor.org/rfc/rfc9293.html",
+          "license": "IETF-Trust"
+        },
+        {
+          "title": "RFC 6528: Defending against Sequence Number Attacks",
+          "publisher": "IETF",
+          "url": "https://www.rfc-editor.org/rfc/rfc6528.html",
+          "license": "IETF-Trust"
+        }
+      ],
+      "tags": [
+        "tcp",
+        "handshake",
+        "sequence-numbers"
+      ]
+    },
+    {
+      "id": "proto-tcp-header-fields",
+      "subtopic": "tcp",
+      "difficulty": "intermediate",
+      "title": "TCP options are negotiated once, and NAT must repair the checksum",
+      "fact": "The TCP header begins with 16-bit source and destination ports, then 32-bit sequence and acknowledgment numbers, a 4-bit data offset counted in 32-bit words with a minimum of 5, reserved and flag bits, a 16-bit window, a checksum, and a 16-bit urgent pointer, followed by options and padding. Flags are CWR, ECE, URG, ACK, PSH, RST, SYN, and FIN. Maximum segment size, window scale, SACK-permitted, and timestamps live in options negotiated during the handshake. The checksum covers a pseudo-header containing the addresses and protocol, so any NAT that rewrites an address must recompute it.",
+      "commands": [
+        {
+          "language": "bash",
+          "code": "tcpdump -i eth0 -nn -vvv -c 1 'tcp port 443 and tcp[tcpflags] & tcp-syn != 0'",
+          "purpose": "Print one SYN with header details and negotiated options."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "What is the minimum TCP header length, and why?",
+          "options": [
+            "8 bytes, because options are optional",
+            "20 bytes, because the data offset minimum is 5 words",
+            "24 bytes, because timestamps are mandatory",
+            "40 bytes, because of the IPv6 pseudo-header"
+          ],
+          "answer": [
+            1
+          ],
+          "rationale": "The data offset counts 32-bit words and must be at least 5, giving 20 bytes before any options. Options extend the header in 4-byte units."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "Window scaling can be enabled at any time during a connection.",
+          "correction": "The scale factor is exchanged in the SYN and SYN-ACK and applies for the life of the connection. A middlebox that strips the option leaves both sides using unscaled 16-bit windows, which caps throughput on long paths."
+        }
+      ],
+      "references": [
+        {
+          "title": "RFC 9293: Transmission Control Protocol",
+          "publisher": "IETF",
+          "url": "https://www.rfc-editor.org/rfc/rfc9293.html",
+          "license": "IETF-Trust"
+        },
+        {
+          "title": "RFC 7323: TCP Extensions for High Performance",
+          "publisher": "IETF",
+          "url": "https://www.rfc-editor.org/rfc/rfc7323.html",
+          "license": "IETF-Trust"
+        }
+      ],
+      "tags": [
+        "tcp",
+        "header",
+        "options"
+      ]
+    },
+    {
+      "id": "proto-dns-record-types",
+      "subtopic": "dns",
+      "difficulty": "foundational",
+      "title": "CNAME cannot coexist with the SOA and NS records a zone apex requires",
+      "fact": "DNS record types describe different data at a name. A and AAAA map to IPv4 and IPv6 addresses. CNAME aliases one name to another and must be the only record at that name, so it cannot sit at a zone apex that also needs SOA and NS. MX names a mail exchanger with a preference, NS delegates a zone, and SOA holds the primary server, serial, refresh, retry, expire, and negative-caching TTL. TXT carries text such as SPF or verification tokens, PTR supports reverse lookup, SRV adds priority, weight, port, and target, and CAA restricts which certificate authorities may issue.",
+      "configs": [
+        {
+          "language": "zone",
+          "snippet": "$ORIGIN example.internal.\n@        3600 IN SOA ns1 hostmaster 2026031201 3600 600 604800 300\n@        3600 IN NS  ns1\napp        300 IN A   198.51.100.20\nwww        300 IN CNAME app\n@        3600 IN MX  10 mail\n_dmarc   3600 IN TXT  \"v=DMARC1; p=none\"",
+          "purpose": "A small zone showing an apex with SOA, NS, and MX while the alias lives on a non-apex name."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Which record cannot be placed at a zone apex alongside SOA and NS?",
+          "options": [
+            "A",
+            "AAAA",
+            "CNAME",
+            "TXT"
+          ],
+          "answer": [
+            2
+          ],
+          "rationale": "CNAME must be the only data at its name, while the apex must carry SOA and NS. Alias-like behavior at the apex needs provider-specific flattening or another mechanism."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "TTL controls how long a change takes to reach every resolver.",
+          "correction": "TTL is a cache lifetime hint. Resolvers may cache longer in practice, and clients with their own caches add delay, so lower TTLs well before a planned change rather than expecting instant propagation."
+        }
+      ],
+      "references": [
+        {
+          "title": "RFC 1035: Domain Names, Implementation and Specification",
+          "publisher": "IETF",
+          "url": "https://www.rfc-editor.org/rfc/rfc1035.html",
+          "license": "IETF-Trust"
+        },
+        {
+          "title": "RFC 2181: Clarifications to the DNS Specification",
+          "publisher": "IETF",
+          "url": "https://www.rfc-editor.org/rfc/rfc2181.html",
+          "license": "IETF-Trust"
+        },
+        {
+          "title": "RFC 8499: DNS Terminology",
+          "publisher": "IETF",
+          "url": "https://www.rfc-editor.org/rfc/rfc8499.html",
+          "license": "IETF-Trust"
+        }
+      ],
+      "tags": [
+        "dns",
+        "records",
+        "zone-file"
+      ]
+    },
+    {
+      "id": "proto-dns-resolution-order",
+      "subtopic": "dns",
+      "difficulty": "intermediate",
+      "title": "Iterative referrals end at the authoritative server; NXDOMAIN and SERVFAIL mean different things",
+      "fact": "A stub resolver sends a recursive query to its configured resolver. On a cache miss that resolver asks a root server, receives a referral to the relevant top-level domain, asks the TLD servers, receives a referral to the authoritative servers, and finally asks the authoritative server, which returns the answer. Delegations use NS records plus glue addresses for in-bailiwick name servers. An authoritative NXDOMAIN is negatively cached for the SOA minimum TTL, while SERVFAIL means resolution or validation failed and must not be read as proof that a name is absent.",
+      "commands": [
+        {
+          "language": "bash",
+          "code": "resolvectl query app.example.internal",
+          "purpose": "Ask the local resolver and see whether the answer came from cache or the network."
+        },
+        {
+          "language": "bash",
+          "code": "dig +trace app.example.internal",
+          "purpose": "Walk root, TLD, and authoritative referrals to locate where delegation breaks."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "A resolver returns SERVFAIL. What is the correct interpretation?",
+          "options": [
+            "The name definitively does not exist",
+            "Resolution failed and the name's existence is unknown",
+            "The record exists but has no TTL",
+            "The zone is definitely unsigned"
+          ],
+          "answer": [
+            1
+          ],
+          "rationale": "SERVFAIL reports a failure to obtain or validate an answer, such as a timeout or a DNSSEC bogus result. It carries no assertion about whether the name exists."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "A caching resolver contacting the authoritative server directly is doing recursion.",
+          "correction": "The resolver's queries are iterative: each server is asked for the best answer it has and returns a referral. Recursion describes the stub-to-resolver relationship, where the resolver takes responsibility for completing the lookup."
+        }
+      ],
+      "references": [
+        {
+          "title": "RFC 1034: Domain Names, Concepts and Facilities",
+          "publisher": "IETF",
+          "url": "https://www.rfc-editor.org/rfc/rfc1034.html",
+          "license": "IETF-Trust"
+        },
+        {
+          "title": "RFC 2308: Negative Caching of DNS Queries",
+          "publisher": "IETF",
+          "url": "https://www.rfc-editor.org/rfc/rfc2308.html",
+          "license": "IETF-Trust"
+        },
+        {
+          "title": "RFC 8499: DNS Terminology",
+          "publisher": "IETF",
+          "url": "https://www.rfc-editor.org/rfc/rfc8499.html",
+          "license": "IETF-Trust"
+        }
+      ],
+      "tags": [
+        "dns",
+        "recursion",
+        "negative-caching"
+      ]
+    },
+    {
+      "id": "proto-dnssec-validation",
+      "subtopic": "dns",
+      "difficulty": "advanced",
+      "title": "DNSSEC classifies answers as secure, insecure, bogus, or indeterminate",
+      "fact": "DNSSEC authenticates origin and integrity, not confidentiality. A validator starts from a configured trust anchor, usually the root KSK, follows DS records from parent to child, and verifies RRSIG signatures over each RRset with the child's DNSKEY. NSEC or NSEC3 records prove that a name or type does not exist. Results are secure, insecure for an unsigned delegation, bogus when validation fails and the resolver answers SERVFAIL, or indeterminate when no trust anchor applies. Common breakage includes expired signatures, a missing DS after a key rollover, and clock skew. Validating resolvers set the AD bit, and the CD bit asks them to skip validation.",
+      "logs": [
+        {
+          "context": "dig +dnssec response flags from a validating resolver",
+          "text": ";; flags: qr rd ra ad; QUERY: 1, ANSWER: 2, AUTHORITY: 0, ADDITIONAL: 1\n;; OPT PSEUDOSECTION:\n; EDNS: version: 0, flags: do; udp: 1232",
+          "reading": "The ad flag says the resolver validated the answer against a trust anchor, and the do flag in the request asked for DNSSEC records. ad absent with do set can mean an insecure delegation or a non-validating resolver."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "A validating resolver returns SERVFAIL for one signed zone while other zones resolve. Which classification fits best?",
+          "options": [
+            "Insecure",
+            "Bogus",
+            "Secure",
+            "Indeterminate"
+          ],
+          "answer": [
+            1
+          ],
+          "rationale": "A signed zone whose signatures or DS chain cannot be validated is bogus, and a validating resolver withholds the answer rather than serving unverified data."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "DNSSEC encrypts DNS queries and answers.",
+          "correction": "DNSSEC adds signatures for authenticity and integrity; the records remain readable. Query privacy needs DNS over TLS or DNS over HTTPS, which are separate mechanisms."
+        }
+      ],
+      "references": [
+        {
+          "title": "RFC 4033: DNS Security Introduction and Requirements",
+          "publisher": "IETF",
+          "url": "https://www.rfc-editor.org/rfc/rfc4033.html",
+          "license": "IETF-Trust"
+        },
+        {
+          "title": "RFC 4035: Protocol Modifications for DNSSEC",
+          "publisher": "IETF",
+          "url": "https://www.rfc-editor.org/rfc/rfc4035.html",
+          "license": "IETF-Trust"
+        },
+        {
+          "title": "RFC 6840: Clarifications and Implementation Notes for DNSSEC",
+          "publisher": "IETF",
+          "url": "https://www.rfc-editor.org/rfc/rfc6840.html",
+          "license": "IETF-Trust"
+        }
+      ],
+      "tags": [
+        "dnssec",
+        "validation",
+        "trust-anchor"
+      ]
+    },
+    {
+      "id": "proto-http-status-classes",
+      "subtopic": "http",
+      "difficulty": "foundational",
+      "title": "401 is about missing credentials; 403 is about a refused identity",
+      "fact": "HTTP status codes group by class: 1xx interim, 2xx success, 3xx redirection, 4xx client-side failure, and 5xx server-side failure. 301 is permanent and 302 temporary, while 307 and 308 preserve the method and body, which matters for POST. 401 means the request lacks valid credentials and must carry a WWW-Authenticate challenge; 403 means the identity is known but the action is refused. 405 should include Allow, and 429 may include Retry-After. 502 means a gateway received an invalid response from upstream, and 504 means it timed out waiting, so neither indicates a client error.",
+      "logs": [
+        {
+          "context": "Synthetic gateway access log",
+          "text": "10.20.30.44 - - \"GET /api/report HTTP/1.1\" 502 0.031 upstream=app-02\n10.20.30.44 - - \"GET /api/report HTTP/1.1\" 504 30.004 upstream=app-02\n10.20.30.44 - - \"POST /api/report HTTP/1.1\" 405 0.002 allow=GET,HEAD",
+          "reading": "The 502 shows a fast invalid response from the upstream, the 504 a timeout against the same upstream, and the 405 a method the route does not implement. None of these is a client authentication problem."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "A valid, authenticated request receives 403. What does it mean?",
+          "options": [
+            "The credentials are missing",
+            "The identity is known but not permitted to perform the action",
+            "The resource does not exist",
+            "The upstream server is down"
+          ],
+          "answer": [
+            1
+          ],
+          "rationale": "403 is an authorization failure for a recognized identity. A missing or rejected credential produces 401 with a challenge instead."
+        }
+      ],
+      "references": [
+        {
+          "title": "RFC 9110: HTTP Semantics",
+          "publisher": "IETF",
+          "url": "https://www.rfc-editor.org/rfc/rfc9110.html",
+          "license": "IETF-Trust"
+        }
+      ],
+      "tags": [
+        "http",
+        "status-codes",
+        "troubleshooting"
+      ]
+    },
+    {
+      "id": "proto-http-message-framing",
+      "subtopic": "http",
+      "difficulty": "expert",
+      "title": "Ambiguous request framing between proxy and origin desynchronizes the connection",
+      "fact": "HTTP/1.1 determines message length from Transfer-Encoding or Content-Length. When both appear, the specification requires Transfer-Encoding to take precedence, and a sender must not generate both. A front end and back end that disagree about precedence, or about duplicate or obfuscated Content-Length values, can desynchronize, leaving bytes that one side parses as the start of the next request. Defensive handling rejects requests carrying both headers, rejects duplicate or non-identical Content-Length values, normalizes whitespace, and uses HTTP/2 end to end where frame lengths remove the ambiguity. Downgrading HTTP/2 to HTTP/1.1 at the edge reintroduces the problem.",
+      "configs": [
+        {
+          "language": "http",
+          "snippet": "POST /search HTTP/1.1\nHost: app.example.internal\nContent-Length: 6\nTransfer-Encoding: chunked\n\n0\n\n",
+          "purpose": "Ambiguous framing that a proxy should reject and log rather than forward."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Which HTTP/1.1 request should a front end reject as ambiguous?",
+          "options": [
+            "One with only Content-Length",
+            "One with both Transfer-Encoding and Content-Length",
+            "One with no body and no length headers",
+            "One with Connection: close"
+          ],
+          "answer": [
+            1
+          ],
+          "rationale": "Two conflicting length mechanisms let each hop choose a different boundary. Rejecting the request removes the ambiguity instead of guessing which header the origin will honor."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "Using HTTP/2 between the client and the proxy removes request smuggling risk.",
+          "correction": "The proxy often still speaks HTTP/1.1 to the origin, and the downgrade is where framing disagreements appear. Framing hygiene is required on every hop, not just the client-facing one."
+        }
+      ],
+      "references": [
+        {
+          "title": "RFC 9112: HTTP/1.1",
+          "publisher": "IETF",
+          "url": "https://www.rfc-editor.org/rfc/rfc9112.html",
+          "license": "IETF-Trust"
+        },
+        {
+          "title": "RFC 9113: HTTP/2",
+          "publisher": "IETF",
+          "url": "https://www.rfc-editor.org/rfc/rfc9113.html",
+          "license": "IETF-Trust"
+        }
+      ],
+      "tags": [
+        "http",
+        "request-smuggling",
+        "framing"
+      ]
+    },
+    {
+      "id": "proto-tls-12-vs-13",
+      "subtopic": "tls",
+      "difficulty": "advanced",
+      "title": "TLS 1.3 removes RSA key transport and encrypts the certificate",
+      "fact": "TLS 1.2 completes a full handshake in two round trips: ClientHello, ServerHello with Certificate and ServerKeyExchange, then client key exchange and Finished, with the server's Finished following. RSA key transport is optional there, so forward secrecy depends on choosing ECDHE. TLS 1.3 always uses ephemeral key exchange, finishes in one round trip, encrypts the certificate and most handshake messages, and supports pre-shared-key resumption with optional 0-RTT data that is replayable. TLS 1.3 removed RSA key exchange, CBC-mode ciphersuites, RC4, compression, and renegotiation, leaving AEAD ciphers such as AES-GCM and ChaCha20-Poly1305.",
+      "commands": [
+        {
+          "language": "bash",
+          "code": "openssl s_client -connect app.example.internal:443 -tls1_3 -brief </dev/null",
+          "purpose": "Complete a TLS 1.3 handshake and print the negotiated protocol, cipher, and verification result."
+        }
+      ],
+      "configs": [
+        {
+          "language": "nginx",
+          "snippet": "ssl_protocols TLSv1.2 TLSv1.3;\nssl_prefer_server_ciphers off;\nssl_session_tickets off;",
+          "purpose": "Allow only modern TLS versions while letting clients choose the cipher in TLS 1.3."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Which property is new in TLS 1.3 compared with a typical TLS 1.2 ECDHE handshake?",
+          "options": [
+            "Forward secrecy",
+            "Encrypted certificates and a one-round-trip full handshake",
+            "Server authentication",
+            "Symmetric encryption of application data"
+          ],
+          "answer": [
+            1
+          ],
+          "rationale": "TLS 1.2 with ECDHE already provides forward secrecy, authentication, and symmetric records. TLS 1.3 shortens the handshake and encrypts the certificate and handshake metadata."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "TLS 1.3 0-RTT data is as safe as data sent after the handshake.",
+          "correction": "0-RTT data can be replayed by anyone who captures it, so it must be limited to idempotent operations. Servers should reject early data for state-changing requests."
+        }
+      ],
+      "references": [
+        {
+          "title": "RFC 8446: The Transport Layer Security (TLS) Protocol Version 1.3",
+          "publisher": "IETF",
+          "url": "https://www.rfc-editor.org/rfc/rfc8446.html",
+          "license": "IETF-Trust"
+        },
+        {
+          "title": "RFC 5246: The Transport Layer Security (TLS) Protocol Version 1.2",
+          "publisher": "IETF",
+          "url": "https://www.rfc-editor.org/rfc/rfc5246.html",
+          "license": "IETF-Trust"
+        },
+        {
+          "title": "SP 800-52 Rev. 2: Guidelines for TLS Implementations",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/52/r2/final",
+          "license": "Public-Domain"
+        }
+      ],
+      "tags": [
+        "tls",
+        "handshake",
+        "forward-secrecy"
+      ]
+    },
+    {
+      "id": "proto-tls-cert-chain",
+      "subtopic": "pki",
+      "difficulty": "advanced",
+      "title": "A missing intermediate breaks clients that do not chase the AIA extension",
+      "fact": "A client validates a server certificate by building a path from the leaf through intermediates to a trusted root, checking each signature, validity period, basicConstraints CA flag and path length, keyUsage keyCertSign on CAs, extendedKeyUsage serverAuth, name constraints, and revocation. It then matches the requested hostname against subjectAltName, and commonName is ignored when SAN is present. A server that omits the intermediate works only for clients willing to fetch it through the Authority Information Access extension, which many do not. Wildcards match a single label, so *.example.internal does not cover a.b.example.internal.",
+      "commands": [
+        {
+          "language": "bash",
+          "code": "openssl s_client -connect app.example.internal:443 -showcerts -verify_hostname app.example.internal </dev/null",
+          "purpose": "Fetch the presented chain and verify the hostname against the leaf's subjectAltName."
+        }
+      ],
+      "logs": [
+        {
+          "context": "openssl s_client verification output for a server sending only its leaf",
+          "text": "verify error:num=21:unable to verify the first certificate\nVerify return code: 21 (unable to verify the first certificate)",
+          "reading": "Error 21 means the client could not build a path to a trusted root, usually because the intermediate is missing from the server's chain. Compare with another client that caches intermediates to confirm."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "A client rejects a certificate whose subjectAltName lists a different name, even though the commonName matches. Why?",
+          "options": [
+            "commonName is ignored for hostname matching when subjectAltName is present",
+            "The certificate has expired",
+            "The public key is too short",
+            "The issuing CA is untrusted"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "Modern rules take identity only from subjectAltName. A matching commonName cannot rescue a certificate whose SAN names something else."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "Any certificate signed by a trusted CA will validate for any hostname.",
+          "correction": "The chain must also satisfy name constraints, extended key usage, path length, and the requested hostname. A valid chain for one name says nothing about another."
+        }
+      ],
+      "references": [
+        {
+          "title": "RFC 5280: Internet X.509 Public Key Infrastructure Certificate and CRL Profile",
+          "publisher": "IETF",
+          "url": "https://www.rfc-editor.org/rfc/rfc5280.html",
+          "license": "IETF-Trust"
+        },
+        {
+          "title": "RFC 9525: Service Identity in TLS",
+          "publisher": "IETF",
+          "url": "https://www.rfc-editor.org/rfc/rfc9525.html",
+          "license": "IETF-Trust"
+        },
+        {
+          "title": "SP 800-52 Rev. 2: Guidelines for TLS Implementations",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/52/r2/final",
+          "license": "Public-Domain"
+        }
+      ],
+      "tags": [
+        "tls",
+        "certificates",
+        "pki"
+      ]
+    },
+    {
+      "id": "proto-ssh-kex-hostkey",
+      "subtopic": "ssh",
+      "difficulty": "intermediate",
+      "title": "The SSH host key authenticates the server, not the user",
+      "fact": "SSH begins with a cleartext version exchange, then both sides send KEXINIT lists and negotiate key exchange, host key, cipher, MAC, and compression algorithms. The key exchange produces a shared secret, the server signs the exchange hash with its host key, and both sides send NEWKEYS, after which all traffic is encrypted and integrity-protected. The host key authenticates the server to the client, not the user to the server. Clients record host keys in known_hosts on first use, so a changed key produces a loud warning that should be investigated rather than deleted.",
+      "commands": [
+        {
+          "language": "bash",
+          "code": "ssh-keygen -F app.example.internal",
+          "purpose": "Look up the recorded host key for a name in known_hosts."
+        },
+        {
+          "language": "bash",
+          "code": "ssh -o StrictHostKeyChecking=yes app.example.internal",
+          "purpose": "Refuse to connect when no matching host key is already trusted."
+        }
+      ],
+      "logs": [
+        {
+          "context": "OpenSSH client warning after a host key change",
+          "text": "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n@    WARNING: REMOTE HOST IDENTIFICATION HAS CHANGED!     @\n@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\nIT IS POSSIBLE THAT SOMEONE IS DOING SOMETHING NASTY!\nOffending key in /home/synthetic/.ssh/known_hosts:14",
+          "reading": "The client saw a key different from the pinned one. Either the server was rebuilt or an interception is in progress. Confirm the new fingerprint through an out-of-band channel before removing the old entry."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "What does the SSH host key prove during the transport handshake?",
+          "options": [
+            "The user's identity",
+            "That the server holds the private key for the host key the client expects",
+            "That the session is forward secret",
+            "That the user's authorized_keys file is valid"
+          ],
+          "answer": [
+            1
+          ],
+          "rationale": "The host key signature binds the exchange hash to the server's long-term identity. User authentication is a separate phase that happens after the encrypted channel is established."
+        }
+      ],
+      "references": [
+        {
+          "title": "RFC 4253: The Secure Shell (SSH) Transport Layer Protocol",
+          "publisher": "IETF",
+          "url": "https://www.rfc-editor.org/rfc/rfc4253.html",
+          "license": "IETF-Trust"
+        },
+        {
+          "title": "ssh-keygen(1)",
+          "publisher": "OpenSSH project",
+          "url": "https://man7.org/linux/man-pages/man1/ssh-keygen.1.html",
+          "license": "OpenSSH"
+        },
+        {
+          "title": "sshd_config(5)",
+          "publisher": "OpenSSH project",
+          "url": "https://man7.org/linux/man-pages/man5/sshd_config.5.html",
+          "license": "OpenSSH"
+        }
+      ],
+      "tags": [
+        "ssh",
+        "host-key",
+        "known-hosts"
+      ]
+    },
+    {
+      "id": "proto-ssh-user-auth",
+      "subtopic": "ssh",
+      "difficulty": "intermediate",
+      "title": "authorized_keys options turn a key into a constrained capability",
+      "fact": "After the transport is secured, SSH authenticates the user with methods negotiated from the server's list: publickey, password, keyboard-interactive, hostbased, or GSSAPI. In publickey authentication the client signs data bound to the session identifier with the private key, and the server checks the corresponding key in authorized_keys or through an authorized keys command. Options in authorized_keys restrict a key: from= pins source addresses, command= forces a command, restrict disables forwarding, PTY, and agent use, and expiry-time limits validity. Agent forwarding exposes the agent socket to the remote host, so ProxyJump is usually safer.",
+      "configs": [
+        {
+          "language": "authorized_keys",
+          "snippet": "restrict,from=\"203.0.113.0/24\",command=\"/usr/local/bin/backup.sh\" ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAI...synthetic... backup@host-01",
+          "purpose": "Bind a backup key to one source range and one forced command with all forwarding disabled."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "What does restrict in an authorized_keys entry do?",
+          "options": [
+            "Requires a password as well as the key",
+            "Disables PTY allocation, port forwarding, agent forwarding, and X11 for that key",
+            "Limits the key to root logins",
+            "Expires the key after one login"
+          ],
+          "answer": [
+            1
+          ],
+          "rationale": "restrict enables the full set of no-* restrictions at once. It narrows what the key can do but does not itself add authentication factors or a time limit."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "Agent forwarding is harmless because the private key never leaves the local machine.",
+          "correction": "The key stays local, but the agent socket is forwarded. Anyone with root on the remote host can use that socket while the session lasts to authenticate to other systems as the user."
+        }
+      ],
+      "references": [
+        {
+          "title": "RFC 4252: The Secure Shell (SSH) Authentication Protocol",
+          "publisher": "IETF",
+          "url": "https://www.rfc-editor.org/rfc/rfc4252.html",
+          "license": "IETF-Trust"
+        },
+        {
+          "title": "sshd_config(5)",
+          "publisher": "OpenSSH project",
+          "url": "https://man7.org/linux/man-pages/man5/sshd_config.5.html",
+          "license": "OpenSSH"
+        },
+        {
+          "title": "ssh_config(5)",
+          "publisher": "OpenSSH project",
+          "url": "https://man7.org/linux/man-pages/man5/ssh_config.5.html",
+          "license": "OpenSSH"
+        }
+      ],
+      "tags": [
+        "ssh",
+        "publickey",
+        "authorized-keys"
+      ]
+    },
+    {
+      "id": "proto-kerberos-flow",
+      "subtopic": "authentication-protocols",
+      "difficulty": "advanced",
+      "title": "Each Kerberos ticket is encrypted with a different long-term key",
+      "fact": "Kerberos issues tickets in three steps. An AS-REQ authenticates the user, usually with an encrypted timestamp for pre-authentication, and the AS-REP returns a ticket-granting ticket encrypted with the krbtgt key plus a session key encrypted with the user's key. A TGS-REQ presents that ticket and requests a service ticket, which the TGS-REP encrypts with the target service account's key. The client then sends an AP-REQ to the service. Accounts configured without pre-authentication allow offline password guessing from an AS-REP, and duplicate service principal names break ticket issuance. Domain controllers enforce a default five-minute clock skew.",
+      "logs": [
+        {
+          "context": "Domain controller security log, synthetic",
+          "text": "4768  A Kerberos authentication ticket (TGT) was requested  TargetUserName=svc-report  Status=0x0\n4771  Kerberos pre-authentication failed  TargetUserName=svc-report  Status=0x18  ClientAddress=::ffff:203.0.113.77",
+          "reading": "0x18 is a pre-authentication failure, typically a wrong password, while a 4768 with status zero from the same account shortly after indicates success. Repeated 4771 events against one account with many source addresses fit password guessing."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Which key encrypts the service ticket returned in a TGS-REP?",
+          "options": [
+            "The user's password-derived key",
+            "The krbtgt key",
+            "The target service account's key",
+            "The client's session key alone"
+          ],
+          "answer": [
+            2
+          ],
+          "rationale": "The service ticket's encrypted part is sealed with the service's long-term key so only that service can read it. The krbtgt key protects the TGT, and the user's key protects the session key in the AS-REP."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "Kerberos pre-authentication is optional hardening with little practical effect.",
+          "correction": "Without it, anyone can request an AS-REP for the account and attack its encrypted part offline. Pre-authentication forces a live exchange that rate limits guessing."
+        }
+      ],
+      "references": [
+        {
+          "title": "RFC 4120: The Kerberos Network Authentication Service (V5)",
+          "publisher": "IETF",
+          "url": "https://www.rfc-editor.org/rfc/rfc4120.html",
+          "license": "IETF-Trust"
+        },
+        {
+          "title": "RFC 4121: The Kerberos Version 5 GSS-API Mechanism",
+          "publisher": "IETF",
+          "url": "https://www.rfc-editor.org/rfc/rfc4121.html",
+          "license": "IETF-Trust"
+        },
+        {
+          "title": "Appendix L: Events to monitor",
+          "publisher": "Microsoft Learn",
+          "url": "https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/plan/appendix-l--events-to-monitor",
+          "license": "CC-BY-4.0"
+        }
+      ],
+      "tags": [
+        "kerberos",
+        "authentication",
+        "active-directory"
+      ]
+    }
+  ]
+}

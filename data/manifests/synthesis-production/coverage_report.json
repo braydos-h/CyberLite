@@ -1,0 +1,51 @@
+{
+  "difficulty": {
+    "advanced": 1679,
+    "expert": 93,
+    "foundational": 2267,
+    "intermediate": 11564
+  },
+  "domain": {
+    "cloud-container-supply-chain": 233,
+    "cryptography-identity-access": 241,
+    "fundamentals-linux-networking": 393,
+    "ietf_rfcs": 327,
+    "incident-response-forensics-threat-intel": 842,
+    "language-security-retention": 232,
+    "linux_man_pages": 216,
+    "mitre_attack": 952,
+    "mitre_cwe": 850,
+    "monitoring-detection-soc": 264,
+    "netfilter_nftables": 39,
+    "nist_nvd": 2610,
+    "openssh_docs": 8,
+    "owasp_cheatsheets": 1924,
+    "project_examples": 35,
+    "vulnerability-classification-remediation": 6233,
+    "web-api-secure-development": 204
+  },
+  "task_family": {
+    "attack-technique-recognition": 1343,
+    "code-remediation": 68,
+    "command-explanation": 215,
+    "configuration-analysis": 106,
+    "defensive-control": 243,
+    "detection-rule-interpretation": 26,
+    "evidence-grounded-qa": 168,
+    "false-positive-recognition": 569,
+    "fill-in-the-middle": 29,
+    "general-retention": 8,
+    "incident-investigation": 6,
+    "instruction-response": 2483,
+    "log-interpretation": 102,
+    "misconception-correction": 183,
+    "multi-turn-troubleshooting": 46,
+    "multiple-choice": 402,
+    "multiple-choice-multi-answer": 5,
+    "secure-code-review": 562,
+    "structured-json": 1252,
+    "uncertainty-handling": 605,
+    "vulnerability-classification": 6656,
+    "vulnerability-remediation": 526
+  }
+}

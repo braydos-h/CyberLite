@@ -1,0 +1,25 @@
+{
+  "assessed": 2000,
+  "limitations": "Heuristic gates; not a substitute for technical review.",
+  "rejection_counts": {
+    "duplicate:near": 34,
+    "near_duplicate:minhash": 5,
+    "quality:record_too_short": 1
+  },
+  "summary": {
+    "accepted": 1999,
+    "assessed": 2000,
+    "rejected": 1,
+    "rejection_reasons": {
+      "record_too_short": 1
+    },
+    "warning_counts": {
+      "pii_detected": 2,
+      "unsupported_absolute_claim": 394
+    }
+  },
+  "thresholds": {
+    "max_sequence_tokens": 1024,
+    "min_response_chars": 60
+  }
+}

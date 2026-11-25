@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CyberLite held-out evaluation item (JSONL, one object per line)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "suite", "domain", "task_family", "difficulty", "question", "answer", "references"],
+  "properties": {
+    "id": {"type": "string", "pattern": "^eval-[a-z0-9-]{3,64}$"},
+    "suite": {"enum": ["factual", "knowledge", "vulnerability", "secure-code", "logs", "grounded-qa", "incident-response", "false-positive", "configuration", "uncertainty", "retention"]},
+    "domain": {"type": "string", "minLength": 2},
+    "task_family": {"type": "string", "minLength": 2},
+    "difficulty": {"enum": ["foundational", "intermediate", "advanced", "expert"]},
+    "question": {"type": "string", "minLength": 15},
+    "choices": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 6,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "text"],
+        "properties": {
+          "id": {"enum": ["A", "B", "C", "D", "E", "F"]},
+          "text": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "answer": {"type": "string", "minLength": 1},
+    "answer_choices": {"type": "array", "minItems": 1, "maxItems": 3, "items": {"enum": ["A", "B", "C", "D", "E", "F"]}},
+    "rationale": {"type": "string", "minLength": 40},
+    "evidence": {"type": "string", "minLength": 20},
+    "code": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "language": {"type": "string"},
+        "prefix": {"type": "string"},
+        "suffix": {"type": "string"},
+        "vulnerable": {"type": "string"},
+        "expected_properties": {"type": "array", "items": {"type": "string"}},
+        "forbidden_properties": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "logs": {"type": "string"},
+    "references": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["title", "url"],
+        "properties": {
+          "title": {"type": "string"},
+          "url": {"type": "string", "pattern": "^https?://"},
+          "publisher": {"type": "string"},
+          "license": {"type": "string"}
+        }
+      }
+    },
+    "tags": {"type": "array", "items": {"type": "string"}},
+    "frozen": {"type": "boolean"}
+  }
+}

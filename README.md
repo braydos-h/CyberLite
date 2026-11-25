@@ -17,7 +17,7 @@
 [![CI](https://github.com/braydos-h/CyberLite/actions/workflows/ci.yml/badge.svg)](https://github.com/braydos-h/CyberLite/actions/workflows/ci.yml)
 [![Paper](https://github.com/braydos-h/CyberLite/actions/workflows/paper.yml/badge.svg)](https://github.com/braydos-h/CyberLite/actions/workflows/paper.yml)
 [![Model: Qwen3.5-0.8B](https://img.shields.io/badge/base-Qwen3.5--0.8B-purple.svg)](https://huggingface.co/Qwen/Qwen3.5-0.8B)
-[![Progress](https://img.shields.io/badge/progress-49%25-yellow.svg)](#goals-and-live-progress) <!-- progress-badge -->
+[![Progress](https://img.shields.io/badge/progress-51%25-yellow.svg)](#goals-and-live-progress) <!-- progress-badge -->
 
 > **Research preview.** CyberLite is an active research project, not a released
 > security product. There are **no trained checkpoints**. The only verified
@@ -69,18 +69,18 @@ changing a checkbox; CI runs `make progress-check` and fails on a stale block.
 
 | Goal | Progress | Milestones |
 |---|---|---:|
-| [G1 — Licensed, reproducible data foundation](GOALS.md#g1--licensed-reproducible-data-foundation) | `█████████░` 90% | 9/10 |
+| [G1 — Licensed, reproducible data foundation](GOALS.md#g1--licensed-reproducible-data-foundation) | `████████░░` 85% | 11/13 |
 | [G2 — Post-training on consumer hardware](GOALS.md#g2--post-training-on-consumer-hardware) | `█████░░░░░` 50% | 4/8 |
-| [G3 — Honest, reproducible evaluation](GOALS.md#g3--honest-reproducible-evaluation) | `███░░░░░░░` 33% | 2/6 |
+| [G3 — Honest, reproducible evaluation](GOALS.md#g3--honest-reproducible-evaluation) | `████░░░░░░` 43% | 3/7 |
 | [G4 — Practical local deployment](GOALS.md#g4--practical-local-deployment) | `█████░░░░░` 50% | 4/8 |
 | [G5 — Distillation and retrieval](GOALS.md#g5--distillation-and-retrieval) | `██░░░░░░░░` 20% | 1/5 |
 | [G6 — Publication and release](GOALS.md#g6--publication-and-release) | `██░░░░░░░░` 17% | 1/6 |
-| **Overall** | `█████░░░░░` 49% | 21/43 |
+| **Overall** | `█████░░░░░` 51% | 24/47 |
 
 | Roadmap phase | Progress | Items |
 |---|---|---:|
 | Phase 0 — Reproducible foundation | `██████████` 100% | 11/11 |
-| Phase 1 — Dataset pilot | `████████░░` 83% | 5/6 |
+| Phase 1 — Dataset pilot | `█████████░` 88% | 7/8 |
 | Phase 2 — Core post-training comparison | `░░░░░░░░░░` 0% | 0/5 |
 | Phase 3 — Autocomplete | `░░░░░░░░░░` 0% | 0/4 |
 | Phase 4 — Distillation and retrieval | `░░░░░░░░░░` 0% | 0/4 |
@@ -426,7 +426,7 @@ See [docs/evaluation.md](docs/evaluation.md).
 |---|---|
 | Repository, package, tests, CI | Implemented |
 | Qwen3.5 architecture compatibility | Verified by local load and LoRA backward pass |
-| Data preparation, provenance, contamination screen | Implemented and executed: pilot-v2 has 7,188 accepted records from nine sources, with committed manifest, quality, contamination, license, and audit reports; manual review is pending |
+| Data preparation, provenance, contamination screen | Implemented and executed: pilot-v2 has 7,188 accepted records from nine sources; the synthesis expansion adds 15,590 gated records (8,287 in a mixture-capped training view), with committed manifests, quality, contamination, license, and audit reports. Independent review is sampled (5 accepted records) and the expansion is **not approved for training**; manual review is pending |
 | Training integrity and license gate | Implemented; manifest version/hash/count, schema, provenance, duplicate-ID, cross-split leakage, evaluation-only, and license checks fail closed before model allocation |
 | LoRA/QLoRA training pipeline | Implemented; smoke-tested on CPU; research configs pinned to the E0 revision and pilot-v2, but research-ready is blocked pending licensing, manual review, and pre-registration |
 | Local inference and OpenAI-compatible API | Implemented; unit-tested |

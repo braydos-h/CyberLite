@@ -1,0 +1,3259 @@
+{
+  "schema_version": 1,
+  "domain": "web-api-secure-development",
+  "display_name": "Web and API secure development",
+  "author": "worker:C2",
+  "facts": [
+    {
+      "id": "web-sqli-001",
+      "subtopic": "injection",
+      "difficulty": "foundational",
+      "title": "Parameterised SQL keeps data out of the query's syntax",
+      "fact": "SQL injection occurs when an application concatenates or interpolates data into SQL text, so the database parses attacker-controlled characters as part of the statement. Parameterised queries keep the statement structure and the values on separate channels: the driver sends the template first and the values afterwards, so a value cannot alter the parse tree. Parameterisation protects values only. Table names, column names, sort directions and other identifiers still need a server-side allowlist because drivers cannot bind them.",
+      "details": [
+        "Use the driver's placeholder style consistently: ? for sqlite3 and MySQL, %s for psycopg, :name for Oracle; pass a tuple or mapping, never an f-string.",
+        "For ORDER BY or dynamic columns, map the user's choice to a constant SQL fragment instead of concatenating it.",
+        "Stored procedures that build dynamic SQL internally must parameterise too; moving the string into the database does not remove the flaw."
+      ],
+      "pitfalls": [
+        "Calling addslashes() or manual quote-doubling safe: multibyte encodings, numeric contexts and second-order storage defeat it.",
+        "Assuming an ORM removes injection: raw(), extra(), RawSQL and .raw() still pass text through."
+      ],
+      "code": [
+        {
+          "language": "python",
+          "vulnerable": "# VULNERABLE (illustrative only): user input becomes SQL syntax\ndef find_user(conn, email):\n    sql = \"SELECT id, email FROM users WHERE email = '\" + email + \"'\"\n    return conn.execute(sql).fetchall()",
+          "secure": "# SECURE: the value is bound, so it cannot change the statement\ndef find_user(conn, email):\n    sql = \"SELECT id, email FROM users WHERE email = ?\"\n    return conn.execute(sql, (email,)).fetchall()",
+          "issue": "Concatenation lets a crafted email close the quote and append SQL; binding keeps the query structure fixed and treats the value as data. Identifiers such as column names still require an allowlist."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Which change removes SQL injection in a value position?",
+          "options": [
+            "Binding the value with a driver placeholder",
+            "Escaping single quotes in the value",
+            "Limiting the value to 64 characters",
+            "Returning a generic error message on failure"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "Placeholders separate statement structure from data, so the value cannot be parsed as SQL. Escaping is fragile across charsets and numeric contexts, length limits do not remove metacharacters, and error handling affects disclosure only."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "Prepared statements exist mainly to speed up repeated queries.",
+          "correction": "Caching is secondary. The security property is that the statement is parsed before the values arrive, so values are never syntax. Use parameterised queries even for one-shot statements."
+        }
+      ],
+      "references": [
+        {
+          "title": "SQL Injection Prevention Cheat Sheet",
+          "publisher": "OWASP Cheat Sheet Series",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.html",
+          "license": "CC-BY-SA-4.0"
+        },
+        {
+          "title": "Query Parameterization Cheat Sheet",
+          "publisher": "OWASP Cheat Sheet Series",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/Query_Parameterization_Cheat_Sheet.html",
+          "license": "CC-BY-SA-4.0"
+        },
+        {
+          "title": "CWE-89: Improper Neutralization of Special Elements used in an SQL Command",
+          "publisher": "MITRE",
+          "url": "https://cwe.mitre.org/data/definitions/89.html",
+          "license": "MITRE CWE Terms of Use"
+        }
+      ],
+      "tags": [
+        "sqli",
+        "parameterization",
+        "database"
+      ]
+    },
+    {
+      "id": "web-xss-types-001",
+      "subtopic": "xss",
+      "difficulty": "foundational",
+      "title": "Reflected, stored and DOM XSS differ by delivery, not root cause",
+      "fact": "Reflected XSS places request data in the response that immediately follows the request; stored XSS persists the data and serves it to later visitors; DOM-based XSS is produced by client-side JavaScript that writes attacker-influenced data into a dangerous sink such as innerHTML. The three differ in delivery and persistence, not in the root cause: unencoded data reaching an HTML, attribute, URL, script or CSS context. Choosing the right defence starts with identifying the context the data enters, because HTML-entity encoding is wrong for a JavaScript string and useless inside a URL.",
+      "details": [
+        "Reflected bugs commonly appear in search pages, error messages and redirect parameters; stored bugs in profiles, comments, tickets and file names.",
+        "DOM XSS may never reach the server, so server logs, WAF rules and server-side templating cannot see it.",
+        "Mutation XSS can appear after a sanitiser or the browser re-parses markup, so sanitise with a maintained library and test the final DOM."
+      ],
+      "mcqs": [
+        {
+          "question": "A page reads location.hash in JavaScript and assigns it to innerHTML. Which category is this?",
+          "options": [
+            "DOM-based XSS",
+            "Stored XSS",
+            "Reflected XSS",
+            "CSRF"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "The source is browser-side (location.hash) and the sink is browser-side (innerHTML), so the vulnerability lives in the DOM and may never involve a server response. Stored and reflected XSS require the payload to pass through the server."
+        }
+      ],
+      "references": [
+        {
+          "title": "Types of attacks: Cross-site scripting",
+          "publisher": "MDN Web Docs",
+          "url": "https://developer.mozilla.org/en-US/docs/Web/Security/Types_of_attacks",
+          "license": "CC-BY-SA-2.5"
+        },
+        {
+          "title": "Cross Site Scripting Prevention Cheat Sheet",
+          "publisher": "OWASP Cheat Sheet Series",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/Cross_Site_Scripting_Prevention_Cheat_Sheet.html",
+          "license": "CC-BY-SA-4.0"
+        },
+        {
+          "title": "CWE-79: Improper Neutralization of Input During Web Page Generation",
+          "publisher": "MITRE",
+          "url": "https://cwe.mitre.org/data/definitions/79.html",
+          "license": "MITRE CWE Terms of Use"
+        }
+      ],
+      "tags": [
+        "xss",
+        "dom",
+        "output-encoding"
+      ]
+    },
+    {
+      "id": "web-output-encoding-001",
+      "subtopic": "xss",
+      "difficulty": "foundational",
+      "title": "Encode at the sink, for the exact context, not at the input",
+      "fact": "Output encoding converts data into a representation that is inert in the destination context, and it must happen at the sink where that context is known. HTML text needs entity encoding, attribute values need quoting plus entity encoding, JavaScript string literals need JavaScript escaping, URLs need percent-encoding, and CSS needs CSS escaping; one encoder cannot serve all five. Input validation reduces the range of data but cannot replace encoding, because the same valid string can be dangerous in a different context.",
+      "details": [
+        "React escapes text children and most attribute values, but dangerouslySetInnerHTML bypasses escaping; use a maintained HTML sanitiser when rich text is a requirement.",
+        "URL-valued attributes need a scheme allowlist as well as encoding: encoding does not stop javascript: or data: schemes.",
+        "A strict Content-Security-Policy limits script execution after a bug but does not repair the output path; treat it as mitigation."
+      ],
+      "pitfalls": [
+        "Sanitising on input and storing the result: the stored value is then trusted by every future context, including ones the sanitiser did not model.",
+        "Using a generic HTML encoder for JavaScript or URL contexts, where its output is not valid escaping."
+      ],
+      "code": [
+        {
+          "language": "javascript",
+          "vulnerable": "// VULNERABLE (illustrative): raw HTML from an untrusted field\nfunction Bio({ html }) {\n  return <div dangerouslySetInnerHTML={{ __html: html }} />;\n}",
+          "secure": "// SECURE: render as text; sanitise only if rich HTML is required\nfunction Bio({ text }) {\n  return <div>{text}</div>;\n}",
+          "issue": "React escapes children, so text cannot become markup; dangerouslySetInnerHTML opts out and makes the caller responsible for sanitisation. Attribute contexts such as href still need scheme validation."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Where should output encoding be applied?",
+          "options": [
+            "Immediately before data is written into its destination context",
+            "Once, when data enters the application",
+            "Only when data is stored in the database",
+            "Only for data that failed input validation"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "Encoding depends on the destination (HTML, attribute, JS, URL, CSS), which is known at the sink. Encoding on input loses that context and may be undone by later processing."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "Validating input against an allowlist removes the need for output encoding.",
+          "correction": "Validation narrows the accepted values but does not know where they will be rendered. A perfectly valid name can still break out of an HTML attribute or a JavaScript string, so encoding at the sink remains necessary."
+        }
+      ],
+      "references": [
+        {
+          "title": "Cross Site Scripting Prevention Cheat Sheet",
+          "publisher": "OWASP Cheat Sheet Series",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/Cross_Site_Scripting_Prevention_Cheat_Sheet.html",
+          "license": "CC-BY-SA-4.0"
+        },
+        {
+          "title": "DOM based XSS Prevention Cheat Sheet",
+          "publisher": "OWASP Cheat Sheet Series",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/DOM_based_XSS_Prevention_Cheat_Sheet.html",
+          "license": "CC-BY-SA-4.0"
+        },
+        {
+          "title": "React DOM common components: dangerouslySetInnerHTML",
+          "publisher": "React",
+          "url": "https://react.dev/reference/react-dom/components/common",
+          "license": "MIT"
+        }
+      ],
+      "tags": [
+        "xss",
+        "encoding",
+        "react"
+      ]
+    },
+    {
+      "id": "web-cookie-attrs-001",
+      "subtopic": "cookies",
+      "difficulty": "foundational",
+      "title": "Cookie attributes bound the damage of a stolen or forged cookie",
+      "fact": "Cookie attributes limit how a cookie travels and who can read it. Secure keeps it off plain HTTP, HttpOnly removes it from document.cookie and reduces the impact of XSS, SameSite controls cross-site sending, and the __Host- name prefix requires Secure, Path=/ and no Domain attribute so a sibling subdomain cannot overwrite it. For a session cookie, set Secure, HttpOnly and an explicit SameSite value rather than relying on browser defaults.",
+      "details": [
+        "SameSite=None is only valid together with Secure and is needed for legitimate cross-site embedding.",
+        "Path is not an authorization boundary; scripts on the same origin can still read non-HttpOnly cookies belonging to other paths.",
+        "Max-Age and Expires control persistence; a session cookie that survives browser restart expands the theft window."
+      ],
+      "configs": [
+        {
+          "language": "http",
+          "snippet": "Set-Cookie: __Host-sid=REDACTED; Path=/; Secure; HttpOnly; SameSite=Lax; Max-Age=28800",
+          "purpose": "Issue a host-bound session cookie that is HTTPS-only, script-inaccessible and not sent on cross-site POSTs."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Which attribute prevents JavaScript from reading a cookie?",
+          "options": [
+            "HttpOnly",
+            "Secure",
+            "SameSite=Strict",
+            "Max-Age"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "HttpOnly removes the cookie from document.cookie, so script injection cannot exfiltrate it directly. Secure limits transport, SameSite limits cross-site sending, and Max-Age controls lifetime; none of those hides the value from same-origin script."
+        }
+      ],
+      "references": [
+        {
+          "title": "Set-Cookie header",
+          "publisher": "MDN Web Docs",
+          "url": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Set-Cookie",
+          "license": "CC-BY-SA-2.5"
+        },
+        {
+          "title": "RFC 6265: HTTP State Management Mechanism",
+          "publisher": "IETF",
+          "url": "https://www.rfc-editor.org/rfc/rfc6265.html",
+          "license": "IETF Trust Legal Provisions"
+        },
+        {
+          "title": "Session Management Cheat Sheet",
+          "publisher": "OWASP Cheat Sheet Series",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html",
+          "license": "CC-BY-SA-4.0"
+        }
+      ],
+      "tags": [
+        "cookies",
+        "httponly",
+        "secure",
+        "samesite"
+      ]
+    },
+    {
+      "id": "web-security-headers-001",
+      "subtopic": "security-headers",
+      "difficulty": "foundational",
+      "title": "Security headers reduce impact; they do not fix the underlying bug",
+      "fact": "Security response headers change browser behaviour around content the application already serves, so they reduce impact rather than remove vulnerabilities. Content-Security-Policy restricts script, style and frame sources; Strict-Transport-Security forces HTTPS for future requests; X-Content-Type-Options: nosniff stops MIME sniffing; Referrer-Policy limits URL leakage; frame-ancestors controls embedding. HSTS is ignored when delivered over plain HTTP, and a CSP containing 'unsafe-inline' or a broad script-src host list provides little protection.",
+      "details": [
+        "Send headers on error and API responses too; frameworks often add them only on successful HTML responses.",
+        "Start CSP in report-only mode, collect violations, then enforce; a policy that breaks the app tends to be removed entirely.",
+        "Headers do not replace authorization, parameterisation or output encoding."
+      ],
+      "configs": [
+        {
+          "language": "nginx",
+          "snippet": "add_header Strict-Transport-Security \"max-age=31536000; includeSubDomains\" always;\nadd_header X-Content-Type-Options \"nosniff\" always;\nadd_header Referrer-Policy \"strict-origin-when-cross-origin\" always;\nadd_header Content-Security-Policy \"default-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'\" always;",
+          "purpose": "Apply a baseline header set to every response, including errors, with a CSP that blocks inline and plugin content."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Under which condition does a browser honour Strict-Transport-Security?",
+          "options": [
+            "Only when the header arrives over an HTTPS connection",
+            "Whenever the header appears in any HTTP response",
+            "Only for requests that already use HTTP/2",
+            "Only when the cookie is marked Secure"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "The HSTS header is ignored on plain HTTP, which is why the first request must already be protected or redirected at the network edge. The other options do not gate HSTS processing."
+        }
+      ],
+      "references": [
+        {
+          "title": "OWASP Secure Headers Project",
+          "publisher": "OWASP",
+          "url": "https://owasp.org/www-project-secure-headers/",
+          "license": "CC-BY-SA-4.0"
+        },
+        {
+          "title": "Content-Security-Policy header",
+          "publisher": "MDN Web Docs",
+          "url": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy",
+          "license": "CC-BY-SA-2.5"
+        },
+        {
+          "title": "Strict-Transport-Security header",
+          "publisher": "MDN Web Docs",
+          "url": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Strict-Transport-Security",
+          "license": "CC-BY-SA-2.5"
+        }
+      ],
+      "tags": [
+        "headers",
+        "csp",
+        "hsts",
+        "nosniff"
+      ]
+    },
+    {
+      "id": "web-password-hashing-001",
+      "subtopic": "authentication",
+      "difficulty": "foundational",
+      "title": "Password storage needs a slow, salted, memory-hard KDF",
+      "fact": "Password storage requires a deliberately slow, salted key-derivation function so that a stolen database cannot be cracked cheaply. Argon2id is the first choice, with bcrypt, scrypt or PBKDF2 as acceptable alternatives when the platform lacks it; each password gets a unique random salt, and the cost is tuned so one verification takes a noticeable fraction of a second. General-purpose digests such as SHA-256, SHA-1 and MD5 are built for speed and are unsuitable even with a salt, because GPUs test billions of candidates per second.",
+      "details": [
+        "OWASP's published baseline at the time of writing: Argon2id with m=19456 KiB, t=2, p=1; bcrypt with cost 10 or more; PBKDF2-HMAC-SHA256 with 600000 iterations. Recheck the current guidance before fixing parameters in code.",
+        "bcrypt truncates at 72 bytes; reject or carefully pre-hash longer secrets and never truncate silently.",
+        "Store the algorithm and parameters alongside the hash so cost can be raised and old hashes rehashed on the next successful login."
+      ],
+      "code": [
+        {
+          "language": "python",
+          "vulnerable": "# VULNERABLE (illustrative): fast, unsalted digest\nimport hashlib\n\ndef store_password(pw: str) -> str:\n    return hashlib.sha256(pw.encode()).hexdigest()",
+          "secure": "# SECURE: Argon2id with a per-password salt and tuned cost\nfrom argon2 import PasswordHasher\n\nPH = PasswordHasher(time_cost=2, memory_cost=19456, parallelism=1)\n\ndef store_password(pw: str) -> str:\n    return PH.hash(pw)",
+          "issue": "SHA-256 is designed for speed, so offline guessing is cheap and identical passwords collide. Argon2id salts each hash and makes each guess memory-hard; verify with the library's constant-time check and rehash when parameters change."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Why is a salted SHA-256 hash still a poor choice for passwords?",
+          "options": [
+            "The digest is fast, so an attacker can test a very large number of candidates",
+            "A salt makes identical passwords produce identical hashes",
+            "SHA-256 cannot represent long passwords",
+            "The salt must be stored in the cookie"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "Salt defeats precomputed tables and hides duplicate passwords, but it does not slow each guess. Password KDFs deliberately consume CPU and memory to make guessing expensive."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "Adding a salt makes any password hash safe.",
+          "correction": "A salt prevents rainbow tables and stops two users with the same password from sharing a hash, but a fast digest still allows billions of guesses per second. The work factor, not the salt alone, is what makes cracking expensive."
+        }
+      ],
+      "references": [
+        {
+          "title": "Password Storage Cheat Sheet",
+          "publisher": "OWASP Cheat Sheet Series",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html",
+          "license": "CC-BY-SA-4.0"
+        },
+        {
+          "title": "NIST SP 800-63B: Digital Identity Guidelines, Authentication",
+          "publisher": "NIST",
+          "url": "https://pages.nist.gov/800-63-4/sp800-63b.html",
+          "license": "Public domain (US Government)"
+        },
+        {
+          "title": "CWE-916: Use of Password Hash With Insufficient Computational Effort",
+          "publisher": "MITRE",
+          "url": "https://cwe.mitre.org/data/definitions/916.html",
+          "license": "MITRE CWE Terms of Use"
+        }
+      ],
+      "tags": [
+        "passwords",
+        "argon2",
+        "bcrypt",
+        "kdf"
+      ]
+    },
+    {
+      "id": "api-authn-authz-001",
+      "subtopic": "authorization",
+      "difficulty": "foundational",
+      "title": "Authentication answers who; authorization answers what, per request",
+      "fact": "Authentication establishes the identity behind a request; authorization decides whether that identity may perform this action on this resource. A valid token proves only the first, so every endpoint must evaluate permission for the specific object and operation on the server. Return 401 when credentials are missing or invalid and 403 when the identity is known but not permitted; for object lookups, 404 can avoid confirming that a resource exists.",
+      "details": [
+        "Client-side route guards and hidden buttons are usability features; an attacker calls the API directly.",
+        "Check function-level authorization (may this role call this endpoint?) and object-level authorization (may this subject use this row?).",
+        "Deny by default: an endpoint with no explicit policy should fail closed rather than inherit allow."
+      ],
+      "mcqs": [
+        {
+          "question": "A request carries a valid session token for a normal user who asks for another user's invoice. Which control should reject it?",
+          "options": [
+            "Object-level authorization in the invoice handler",
+            "Authentication middleware, because the token is invalid",
+            "The browser's CORS policy",
+            "TLS client certificate verification"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "The token is valid, so authentication succeeds; the missing control is whether this subject may access this object. CORS limits browser reads, not server-side access, and TLS proves the channel rather than the user's rights."
+        }
+      ],
+      "references": [
+        {
+          "title": "Authorization Cheat Sheet",
+          "publisher": "OWASP Cheat Sheet Series",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/Authorization_Cheat_Sheet.html",
+          "license": "CC-BY-SA-4.0"
+        },
+        {
+          "title": "API1:2023 Broken Object Level Authorization",
+          "publisher": "OWASP API Security Top 10",
+          "url": "https://owasp.org/API-Security/editions/2023/en/0xa1-broken-object-level-authorization/",
+          "license": "CC-BY-SA-4.0"
+        },
+        {
+          "title": "CWE-862: Missing Authorization",
+          "publisher": "MITRE",
+          "url": "https://cwe.mitre.org/data/definitions/862.html",
+          "license": "MITRE CWE Terms of Use"
+        }
+      ],
+      "tags": [
+        "authentication",
+        "authorization",
+        "http-status"
+      ]
+    },
+    {
+      "id": "api-bola-001",
+      "subtopic": "authorization",
+      "difficulty": "foundational",
+      "title": "BOLA/IDOR: scope every object lookup to the caller",
+      "fact": "Broken object level authorization (BOLA, also called IDOR) appears when an endpoint accepts an object identifier and returns or modifies the object without checking that the caller owns or may access it. Authentication is not enough: the request is valid, the user is real, and the identifier is simply changed. The fix is to make the subject part of the query, for example filtering by owner id, and to return 404 rather than 403 when the row is not visible so the endpoint does not confirm existence.",
+      "details": [
+        "Apply the same rule to nested routes such as /users/{uid}/orders/{oid}; checking the outer id is not enough.",
+        "Unguessable identifiers raise the cost of enumeration but are not an authorization control.",
+        "Use one server-side policy function for read, update and delete so the checks cannot drift apart."
+      ],
+      "code": [
+        {
+          "language": "javascript",
+          "vulnerable": "// VULNERABLE (illustrative): the path id is trusted as the lookup key\napp.get('/api/invoices/:id', requireAuth, async (req, res) => {\n  const invoice = await db.invoice.findUnique({ where: { id: req.params.id } });\n  res.json(invoice);\n});",
+          "secure": "// SECURE: scope the lookup to the authenticated subject\napp.get('/api/invoices/:id', requireAuth, async (req, res) => {\n  const invoice = await db.invoice.findFirst({\n    where: { id: req.params.id, ownerId: req.user.id },\n  });\n  if (!invoice) return res.sendStatus(404);\n  res.json(invoice);\n});",
+          "issue": "Authentication proves who is calling but not that they own the row; the secure query makes ownership part of the lookup. Returning 404 avoids telling an attacker whether the identifier exists."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Which change most directly fixes an IDOR in GET /orders/{id}?",
+          "options": [
+            "Add the authenticated customer id to the database filter",
+            "Switch the identifier from an integer to a UUID",
+            "Require HTTPS for the endpoint",
+            "Return 403 for every failed lookup"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "The missing control is an ownership predicate in the query. UUIDs only slow enumeration, TLS protects transport, and 403 can still confirm existence without fixing access."
+        }
+      ],
+      "references": [
+        {
+          "title": "API1:2023 Broken Object Level Authorization",
+          "publisher": "OWASP API Security Top 10",
+          "url": "https://owasp.org/API-Security/editions/2023/en/0xa1-broken-object-level-authorization/",
+          "license": "CC-BY-SA-4.0"
+        },
+        {
+          "title": "Insecure Direct Object Reference Prevention Cheat Sheet",
+          "publisher": "OWASP Cheat Sheet Series",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/Insecure_Direct_Object_Reference_Prevention_Cheat_Sheet.html",
+          "license": "CC-BY-SA-4.0"
+        },
+        {
+          "title": "CWE-639: Authorization Bypass Through User-Controlled Key",
+          "publisher": "MITRE",
+          "url": "https://cwe.mitre.org/data/definitions/639.html",
+          "license": "MITRE CWE Terms of Use"
+        }
+      ],
+      "tags": [
+        "bola",
+        "idor",
+        "authorization"
+      ]
+    },
+    {
+      "id": "web-input-validation-001",
+      "subtopic": "input-validation",
+      "difficulty": "foundational",
+      "title": "Validate with a closed schema before business logic runs",
+      "fact": "Input validation constrains data to the shape the business logic expects: type, length, range, format, character set and required fields. Prefer an allowlist expressed as a schema, reject unknown fields, and decode or canonicalise once before validating so encoded variants cannot slip past. Validation reduces attack surface and catches mistakes, but it is not a substitute for output encoding or parameterisation, because a value that is valid for the business can still be dangerous in a different interpreter.",
+      "details": [
+        "Validate on the server even when the client validates; the client is under attacker control.",
+        "Use structured parsers for JSON, XML and multipart bodies rather than regular expressions over the whole document.",
+        "Bound collection sizes and nesting depth to avoid resource exhaustion."
+      ],
+      "code": [
+        {
+          "language": "python",
+          "vulnerable": "# VULNERABLE (illustrative): arbitrary keys reach the model\nclass Profile(BaseModel):\n    display_name: str\n\n    class Config:\n        extra = \"allow\"",
+          "secure": "# SECURE: bounded types and unknown fields rejected\nclass Profile(BaseModel):\n    display_name: str = Field(min_length=1, max_length=80, pattern=r\"^[\\w .-]+$\")\n    model_config = ConfigDict(extra=\"forbid\")",
+          "issue": "Allowing extra keys lets a client smuggle fields into later binding steps, and an unbounded string gives no length guarantee. A closed model with a bounded pattern fails early and predictably."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "What is the main reason to reject unknown JSON fields in a request schema?",
+          "options": [
+            "It prevents unintended fields from reaching binding or persistence layers",
+            "It makes the response smaller",
+            "It removes the need for authorization checks",
+            "It guarantees the data is safe to render as HTML"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "Closed schemas stop parameter smuggling and mass assignment. They do not replace authorization or output encoding, and response size is unrelated."
+        }
+      ],
+      "references": [
+        {
+          "title": "Input Validation Cheat Sheet",
+          "publisher": "OWASP Cheat Sheet Series",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/Input_Validation_Cheat_Sheet.html",
+          "license": "CC-BY-SA-4.0"
+        },
+        {
+          "title": "CWE-20: Improper Input Validation",
+          "publisher": "MITRE",
+          "url": "https://cwe.mitre.org/data/definitions/20.html",
+          "license": "MITRE CWE Terms of Use"
+        },
+        {
+          "title": "OWASP Proactive Controls: C5 Validate All Inputs",
+          "publisher": "OWASP",
+          "url": "https://owasp.org/www-project-proactive-controls/",
+          "license": "CC-BY-SA-4.0"
+        }
+      ],
+      "tags": [
+        "validation",
+        "schema",
+        "pydantic"
+      ]
+    },
+    {
+      "id": "sdlc-secure-defaults-001",
+      "subtopic": "secure-defaults",
+      "difficulty": "foundational",
+      "title": "Secure defaults fail closed and are safe without extra configuration",
+      "fact": "A secure default is the behaviour a developer gets without opting in: deny by default, TLS required, debug output off, no built-in accounts, cookies marked Secure and HttpOnly, and least-privilege service identities. Defaults matter because most deployments never revisit them. Framework templates can undermine this: django-admin startproject writes DEBUG = True into settings, and with DEBUG = False an empty ALLOWED_HOSTS rejects every request, so production configuration must be explicit rather than assumed.",
+      "details": [
+        "Flask leaves debug off unless app.run(debug=True) or FLASK_DEBUG=1 is set; never enable it in a deployed process.",
+        "Express includes stack traces in its default error handler unless NODE_ENV is production, and a custom handler can reintroduce leakage.",
+        "Add a startup check that refuses to boot with debug on, a default secret, or wildcard CORS in production."
+      ],
+      "configs": [
+        {
+          "language": "python",
+          "snippet": "DEBUG = False\nALLOWED_HOSTS = [\"app.example.internal\"]\nSECRET_KEY = os.environ[\"DJANGO_SECRET_KEY\"]\nSESSION_COOKIE_SECURE = True\nCSRF_COOKIE_SECURE = True\nSECURE_SSL_REDIRECT = True",
+          "purpose": "Replace development defaults with an explicit production posture: no debug, named hosts, injected key and HTTPS-only cookies."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "A Django project generated by startproject is deployed unchanged with DEBUG still True. What is the main risk?",
+          "options": [
+            "Detailed exception pages and settings can be exposed to users",
+            "The database driver stops accepting parameters",
+            "CSRF protection is disabled for all views",
+            "Session cookies stop being signed"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "DEBUG=True enables verbose error pages that can reveal source, settings and SQL. It does not disable parameterisation, CSRF middleware or cookie signing."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "Framework defaults are production-safe because the framework is mature.",
+          "correction": "Defaults favour development convenience. Django's generated settings enable DEBUG and leave ALLOWED_HOSTS empty, Flask can be started with debug on, and many stacks default to permissive CORS or bind to all interfaces. Production posture has to be chosen and tested."
+        }
+      ],
+      "references": [
+        {
+          "title": "Django security overview",
+          "publisher": "Django Software Foundation",
+          "url": "https://docs.djangoproject.com/en/stable/topics/security/",
+          "license": "BSD-3-Clause"
+        },
+        {
+          "title": "Flask web security considerations",
+          "publisher": "Pallets",
+          "url": "https://flask.palletsprojects.com/en/stable/web-security/",
+          "license": "BSD-3-Clause"
+        },
+        {
+          "title": "OWASP ASVS: Configuration",
+          "publisher": "OWASP",
+          "url": "https://owasp.org/www-project-application-security-verification-standard/",
+          "license": "CC-BY-SA-4.0"
+        }
+      ],
+      "tags": [
+        "secure-defaults",
+        "django",
+        "flask",
+        "configuration"
+      ]
+    },
+    {
+      "id": "web-csrf-001",
+      "subtopic": "csrf",
+      "difficulty": "foundational",
+      "title": "CSRF exploits ambient credentials; tokens bind the request to the session",
+      "fact": "Cross-site request forgery works because browsers attach a site's cookies to requests initiated by another site, so an attacker's page can trigger a state change as the victim. Defences bind the request to something the attacker cannot read or guess: a per-session synchronizer token, a signed double-submit cookie, or an Origin/Sec-Fetch-Site check. State-changing operations must not be reachable by GET, and the token must be verified on the server before the action rather than merely rendered in the form.",
+      "details": [
+        "Login and logout are state-changing too; login CSRF can bind a victim to an attacker's account.",
+        "For JSON APIs, require a custom header or a token in a header, because simple cross-origin form posts cannot set arbitrary headers.",
+        "The Express csurf package was deprecated in 2022; choose a maintained alternative or implement the pattern explicitly."
+      ],
+      "code": [
+        {
+          "language": "python",
+          "vulnerable": "# VULNERABLE (illustrative): state change with no CSRF check\n@app.post('/account/email')\ndef change_email():\n    current_user.email = request.form['email']\n    db.session.commit()\n    return 'ok'\n",
+          "secure": "# SECURE: Flask-WTF checks a per-session token on state-changing requests\nfrom flask_wtf.csrf import CSRFProtect\n\ncsrf = CSRFProtect(app)\n\n@app.post('/account/email')\ndef change_email():\n    current_user.email = request.form['email']\n    db.session.commit()\n    return 'ok'\n",
+          "issue": "Without a token, any site can submit the form with the victim's cookies. CSRFProtect rejects unsafe methods that lack a valid token; the form template must render csrf_token() so the legitimate request carries it."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Why does a synchronizer token stop CSRF?",
+          "options": [
+            "The attacker's site cannot read the victim's token to include it in the forged request",
+            "The token encrypts the request body",
+            "The token replaces the session cookie",
+            "The token makes the request idempotent"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "Same-origin policy prevents the attacker from reading the token, so a cross-site request can carry cookies but not a matching token. The token does not encrypt data or replace the session."
+        }
+      ],
+      "references": [
+        {
+          "title": "Cross-Site Request Forgery Prevention Cheat Sheet",
+          "publisher": "OWASP Cheat Sheet Series",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html",
+          "license": "CC-BY-SA-4.0"
+        },
+        {
+          "title": "CWE-352: Cross-Site Request Forgery",
+          "publisher": "MITRE",
+          "url": "https://cwe.mitre.org/data/definitions/352.html",
+          "license": "MITRE CWE Terms of Use"
+        }
+      ],
+      "tags": [
+        "csrf",
+        "tokens",
+        "flask"
+      ]
+    },
+    {
+      "id": "web-samesite-001",
+      "subtopic": "cookies",
+      "difficulty": "foundational",
+      "title": "SameSite is a browser default, not a complete CSRF control",
+      "fact": "SameSite tells the browser when to attach a cookie to a cross-site request. Lax, the default in Chromium since version 80, sends the cookie on top-level safe navigations such as link clicks but not on cross-site POSTs; Strict withholds it on inbound navigation, which can make links appear logged out; None sends it everywhere and requires Secure. None of these settings is a complete CSRF defence, because Lax still permits top-level GET requests and older or non-browser clients may ignore the attribute.",
+      "details": [
+        "Chromium applies a short 'Lax plus POST' exception to cookies set within the last two minutes, so a freshly issued cookie can still accompany a cross-site POST.",
+        "Same-site is broader than same-origin: sibling subdomains count as the same site, so a compromised subdomain can still send cookies.",
+        "Pair SameSite with token or Origin validation on state-changing endpoints."
+      ],
+      "configs": [
+        {
+          "language": "http",
+          "snippet": "Set-Cookie: sid=REDACTED; Path=/; Secure; HttpOnly; SameSite=Lax\nSet-Cookie: __Host-csrf=REDACTED; Path=/; Secure; SameSite=Strict",
+          "purpose": "Send the session cookie on top-level navigation but keep the CSRF cookie strict, and scope the CSRF cookie to the exact host."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Which request still carries a SameSite=Lax cookie cross-site in current browsers?",
+          "options": [
+            "A top-level navigation caused by clicking a link",
+            "A cross-site form POST",
+            "A cross-site fetch from JavaScript",
+            "A cross-site iframe load"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "Lax allows top-level safe navigations such as link clicks. Cross-site POSTs, subresource fetches and iframes are excluded, which is why Lax alone does not stop every CSRF vector."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "Setting SameSite=Strict makes CSRF impossible and removes the need for tokens.",
+          "correction": "Strict stops the cookie on cross-site requests, but it also breaks legitimate inbound links, so teams often relax it. Browser exceptions, same-site subdomains and non-browser clients mean server-side token or Origin checks are still needed for state changes."
+        }
+      ],
+      "references": [
+        {
+          "title": "Using HTTP cookies: SameSite attribute",
+          "publisher": "MDN Web Docs",
+          "url": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/Cookies",
+          "license": "CC-BY-SA-2.5"
+        },
+        {
+          "title": "RFC 6265: HTTP State Management Mechanism",
+          "publisher": "IETF",
+          "url": "https://www.rfc-editor.org/rfc/rfc6265.html",
+          "license": "IETF Trust Legal Provisions"
+        },
+        {
+          "title": "Cross-Site Request Forgery Prevention Cheat Sheet",
+          "publisher": "OWASP Cheat Sheet Series",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html",
+          "license": "CC-BY-SA-4.0"
+        }
+      ],
+      "tags": [
+        "samesite",
+        "cookies",
+        "csrf"
+      ]
+    },
+    {
+      "id": "web-path-traversal-001",
+      "subtopic": "file-access",
+      "difficulty": "foundational",
+      "title": "Resolve and confine file paths; never trust a client-supplied name",
+      "fact": "Path traversal arises when a client-supplied name is joined to a base directory without confinement, so ../ sequences, an absolute path, encoded separators or a symlink escape the intended tree. os.path.join('/srv/reports', '/etc/passwd') returns '/etc/passwd' because an absolute second argument discards the base. The robust fix is to avoid client filenames entirely, mapping opaque identifiers to stored names, or to resolve the final path and verify it is inside the resolved base before opening it.",
+      "details": [
+        "Decode URL and filesystem encodings before the containment check; do not check the raw string and then decode it for use.",
+        "Path.resolve() follows symlinks, so containment of the resolved target also covers symlink escapes, though the check and open still need race protection.",
+        "Reject NUL bytes and empty names, and normalise case on case-insensitive filesystems."
+      ],
+      "code": [
+        {
+          "language": "python",
+          "vulnerable": "# VULNERABLE (illustrative): join lets absolute input escape the base\nimport os\n\ndef read_report(name: str) -> bytes:\n    path = os.path.join('/srv/reports', name)\n    with open(path, 'rb') as fh:\n        return fh.read()",
+          "secure": "# SECURE: resolve, then require containment in the base directory\nfrom pathlib import Path\n\ndef read_report(name: str) -> bytes:\n    base = Path('/srv/reports').resolve()\n    path = (base / name).resolve()\n    if not path.is_relative_to(base) or not path.is_file():\n        raise ValueError('invalid report name')\n    with open(path, 'rb') as fh:\n        return fh.read()",
+          "issue": "The vulnerable version accepts ../../ and absolute paths. Resolving first and comparing against the resolved base rejects both, and covers symlink targets; an identifier-to-filename map avoids the problem altogether."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Which input defeats os.path.join('/srv/reports', name)?",
+          "options": [
+            "A value starting with a path separator",
+            "A value longer than 255 bytes",
+            "A value containing a space",
+            "A value with a Unicode letter"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "On POSIX, an absolute second argument discards the earlier components, so the result points wherever the input names. Length, spaces and Unicode do not by themselves escape the base."
+        }
+      ],
+      "references": [
+        {
+          "title": "CWE-22: Improper Limitation of a Pathname to a Restricted Directory",
+          "publisher": "MITRE",
+          "url": "https://cwe.mitre.org/data/definitions/22.html",
+          "license": "MITRE CWE Terms of Use"
+        },
+        {
+          "title": "pathlib: PurePath.is_relative_to",
+          "publisher": "Python Software Foundation",
+          "url": "https://docs.python.org/3/library/pathlib.html",
+          "license": "PSF-2.0"
+        }
+      ],
+      "tags": [
+        "path-traversal",
+        "files",
+        "python"
+      ]
+    },
+    {
+      "id": "sdlc-secrets-001",
+      "subtopic": "secrets-management",
+      "difficulty": "foundational",
+      "title": "A secret in source control is compromised, even after deletion",
+      "fact": "A secret committed to source control should be treated as compromised, because history, forks, caches and CI logs retain it after the line is deleted. Environment variables are an improvement over literals but are still readable by the process, child processes, crash dumps and anyone with host access. Use a secret manager or workload identity to issue short-lived credentials, keep secrets out of build arguments and image layers, and run secret scanning in pre-commit and CI with rotation as the response to a finding.",
+      "details": [
+        "Add .env and key material to .gitignore before the first commit; ignoring later does not remove history.",
+        "Docker ARG values are visible in image history; use BuildKit secret mounts instead.",
+        "Scope secrets per environment and per service, and log access to the secret store."
+      ],
+      "configs": [
+        {
+          "language": "yaml",
+          "snippet": "permissions:\n  id-token: write\n  contents: read\nsteps:\n  - uses: aws-actions/configure-aws-credentials@v4\n    with:\n      role-to-assume: arn:aws:iam::000000000000:role/deploy\n      aws-region: eu-west-1",
+          "purpose": "Exchange a short-lived OpenID Connect identity for cloud credentials instead of storing a long-lived access key in CI."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "A live API key was committed and then deleted in a later commit. What is the correct first response?",
+          "options": [
+            "Revoke and rotate the key, then purge it from history where feasible",
+            "Delete the branch and assume the key is gone",
+            "Add the file to .gitignore",
+            "Rewrite the commit message to remove the key name"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "The key remains in history, clones and caches, so revocation is the only reliable containment. Ignoring the file or rewriting messages does not remove the exposed value."
+        }
+      ],
+      "references": [
+        {
+          "title": "Secrets Management Cheat Sheet",
+          "publisher": "OWASP Cheat Sheet Series",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/Secrets_Management_Cheat_Sheet.html",
+          "license": "CC-BY-SA-4.0"
+        },
+        {
+          "title": "CWE-798: Use of Hard-coded Credentials",
+          "publisher": "MITRE",
+          "url": "https://cwe.mitre.org/data/definitions/798.html",
+          "license": "MITRE CWE Terms of Use"
+        },
+        {
+          "title": "CWE-522: Insufficiently Protected Credentials",
+          "publisher": "MITRE",
+          "url": "https://cwe.mitre.org/data/definitions/522.html",
+          "license": "MITRE CWE Terms of Use"
+        }
+      ],
+      "tags": [
+        "secrets",
+        "ci",
+        "rotation",
+        "oidc"
+      ]
+    },
+    {
+      "id": "api-apikey-001",
+      "subtopic": "authentication",
+      "difficulty": "foundational",
+      "title": "API keys identify a client application, not a person",
+      "fact": "An API key is a long-lived shared secret that identifies a client application, not a human user, and it usually carries no fine-grained subject context. If the key is embedded in a browser bundle or mobile binary it is extractable, so it cannot protect user-specific data on its own. Treat keys as bearer credentials: scope them narrowly, hash them at rest, allow rotation with overlap, send them in an Authorization or dedicated header, and never in a query string where logs, proxies and Referer headers capture them.",
+      "details": [
+        "Use separate keys per environment and per integration; a leaked test key should not open production.",
+        "Detect leaked keys in public repositories and rotate automatically rather than relying on revocation after abuse.",
+        "For user-delegated access, use OAuth scopes and short-lived tokens instead of a shared key."
+      ],
+      "configs": [
+        {
+          "language": "http",
+          "snippet": "GET /v1/reports HTTP/1.1\nHost: api.example.internal\nAuthorization: Bearer REDACTED_API_KEY",
+          "purpose": "Carry the key in a request header so it stays out of URLs, access logs and browser Referer values."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "A single-page application needs to call an API on behalf of a signed-in user. Why is a static API key embedded in the bundle the wrong design?",
+          "options": [
+            "Any visitor can extract the key, and it does not represent the user's own permissions",
+            "API keys cannot be sent over TLS",
+            "API keys are always longer than JWTs",
+            "Browsers block the Authorization header on same-origin requests"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "The bundle is public, so the key is public; and a client-level secret cannot express per-user authorization. Use a user-delegated flow with short-lived tokens instead."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "An API key authenticates the end user.",
+          "correction": "An API key authenticates the calling application and often only proves that some client was issued a key. It carries no user identity, so per-user authorization still requires a user authentication and consent flow."
+        }
+      ],
+      "references": [
+        {
+          "title": "REST Security Cheat Sheet",
+          "publisher": "OWASP Cheat Sheet Series",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/REST_Security_Cheat_Sheet.html",
+          "license": "CC-BY-SA-4.0"
+        },
+        {
+          "title": "API2:2023 Broken Authentication",
+          "publisher": "OWASP API Security Top 10",
+          "url": "https://owasp.org/API-Security/editions/2023/en/0xa2-broken-authentication/",
+          "license": "CC-BY-SA-4.0"
+        },
+        {
+          "title": "CWE-798: Use of Hard-coded Credentials",
+          "publisher": "MITRE",
+          "url": "https://cwe.mitre.org/data/definitions/798.html",
+          "license": "MITRE CWE Terms of Use"
+        }
+      ],
+      "tags": [
+        "api-keys",
+        "authentication",
+        "tokens"
+      ]
+    },
+    {
+      "id": "web-clickjacking-001",
+      "subtopic": "clickjacking",
+      "difficulty": "foundational",
+      "title": "Framing control belongs in a response header, not JavaScript",
+      "fact": "Clickjacking loads a sensitive page in a transparent or disguised frame and tricks the user into clicking controls they cannot see. The reliable control is a response header: Content-Security-Policy frame-ancestors 'none' (or an explicit list) is checked by modern browsers, while X-Frame-Options: DENY or SAMEORIGIN remains as a legacy fallback. JavaScript frame-busting is not dependable because it can be blocked or bypassed, and it fails when scripting is disabled.",
+      "details": [
+        "frame-ancestors supersedes X-Frame-Options in browsers that support CSP; sending both is harmless and covers older clients.",
+        "Apply the policy to every sensitive response, including error pages and JSON that could be framed.",
+        "Where embedding is a product requirement, list exact ancestors rather than allowing all origins."
+      ],
+      "configs": [
+        {
+          "language": "nginx",
+          "snippet": "add_header Content-Security-Policy \"frame-ancestors 'none'\" always;\nadd_header X-Frame-Options \"DENY\" always;",
+          "purpose": "Stop the browser from rendering the application inside any frame, with a legacy header for older clients."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Which control reliably prevents a page from being framed by another origin?",
+          "options": [
+            "Content-Security-Policy: frame-ancestors 'none'",
+            "A JavaScript window.top check",
+            "X-Content-Type-Options: nosniff",
+            "SameSite=Strict on the session cookie"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "frame-ancestors is enforced by the browser's frame loading logic. Script checks can be bypassed or disabled, nosniff affects MIME handling, and SameSite affects cookie sending rather than framing."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "A framebusting script is equivalent to a frame-ancestors policy.",
+          "correction": "Framebusting runs after the document loads, can be neutralised by sandboxing or scripting restrictions, and fails closed only if implemented very carefully. A header is enforced before rendering."
+        }
+      ],
+      "references": [
+        {
+          "title": "Clickjacking Defense Cheat Sheet",
+          "publisher": "OWASP Cheat Sheet Series",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/Clickjacking_Defense_Cheat_Sheet.html",
+          "license": "CC-BY-SA-4.0"
+        },
+        {
+          "title": "CSP: frame-ancestors",
+          "publisher": "MDN Web Docs",
+          "url": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/frame-ancestors",
+          "license": "CC-BY-SA-2.5"
+        },
+        {
+          "title": "CWE-1021: Improper Restriction of Rendered UI Layers or Frames",
+          "publisher": "MITRE",
+          "url": "https://cwe.mitre.org/data/definitions/1021.html",
+          "license": "MITRE CWE Terms of Use"
+        }
+      ],
+      "tags": [
+        "clickjacking",
+        "csp",
+        "headers"
+      ]
+    },
+    {
+      "id": "web-nosql-injection-001",
+      "subtopic": "injection",
+      "difficulty": "intermediate",
+      "title": "NoSQL injection often arrives as a JSON object, not a string",
+      "fact": "Document databases accept structured filters, so injection can happen without a quote or a comment: a request body such as an object where a string was expected can introduce operators like $ne, $gt, $regex or $where. If the application passes parsed JSON straight into a query, the attacker controls the shape of the predicate and can match records they should not see. The fix is to extract scalar values, assert their types, build the filter explicitly, and reject keys beginning with $ or containing dots.",
+      "details": [
+        "Type confusion matters: an array where a string is expected may match any of several values.",
+        "$where executes JavaScript on the server and should be disabled or never reachable from user input.",
+        "Schema validation at the edge is useful, but the query builder should still refuse operator objects."
+      ],
+      "code": [
+        {
+          "language": "javascript",
+          "vulnerable": "// VULNERABLE (illustrative): parsed JSON becomes the query filter\napp.post('/login', async (req, res) => {\n  const user = await users.findOne(req.body);   // body may contain $ne, $gt, $where\n  res.json({ ok: Boolean(user) });\n});",
+          "secure": "// SECURE: extract scalars, reject non-strings, build the filter explicitly\napp.post('/login', async (req, res) => {\n  const { email, password } = req.body ?? {};\n  if (typeof email !== 'string' || typeof password !== 'string') {\n    return res.status(400).end();\n  }\n  const user = await users.findOne({ email });\n  const ok = Boolean(user) && await verifyPassword(password, user.passwordHash);\n  res.json({ ok });\n});",
+          "issue": "Passing the body directly lets an object replace the equality test with an operator. Casting to string and constructing an explicit filter removes operator injection; the password check then uses a real verifier rather than a database match."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Why is passing req.body directly to a MongoDB findOne dangerous?",
+          "options": [
+            "Object keys can be interpreted as query operators",
+            "MongoDB cannot store strings longer than 255 bytes",
+            "JSON bodies are always parsed as JavaScript",
+            "findOne disables TLS for the query"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "MongoDB treats keys such as $ne and $gt as operators, so an object-shaped value changes the predicate. The other statements are false: BSON supports long strings, JSON is data, and TLS is unrelated to query shape."
+        }
+      ],
+      "references": [
+        {
+          "title": "CWE-943: Improper Neutralization of Special Elements in Data Query Logic",
+          "publisher": "MITRE",
+          "url": "https://cwe.mitre.org/data/definitions/943.html",
+          "license": "MITRE CWE Terms of Use"
+        },
+        {
+          "title": "Injection Prevention Cheat Sheet",
+          "publisher": "OWASP Cheat Sheet Series",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/Injection_Prevention_Cheat_Sheet.html",
+          "license": "CC-BY-SA-4.0"
+        },
+        {
+          "title": "Input Validation Cheat Sheet",
+          "publisher": "OWASP Cheat Sheet Series",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/Input_Validation_Cheat_Sheet.html",
+          "license": "CC-BY-SA-4.0"
+        }
+      ],
+      "tags": [
+        "nosql",
+        "mongodb",
+        "injection"
+      ]
+    },
+    {
+      "id": "web-command-injection-001",
+      "subtopic": "injection",
+      "difficulty": "intermediate",
+      "title": "Pass argument vectors, not shell strings, to child processes",
+      "fact": "Command injection occurs when untrusted data reaches a shell interpreter, so characters that mean something to the shell become part of the command. In Python, subprocess.run(..., shell=True) and os.system parse a string; in Node.js, child_process.exec does the same, while execFile and spawn with an argument array do not. The structural fix is to invoke the program directly with separate arguments and no shell, then validate the argument values against a narrow allowlist and drop unnecessary privileges.",
+      "details": [
+        "shlex.quote() helps in a few POSIX shells but is easy to misuse across platforms; removing the shell is more reliable.",
+        "Never build a command from a request field when a library call can do the job.",
+        "Run the child with a minimal environment, a timeout and a working directory that the service can write only when necessary."
+      ],
+      "code": [
+        {
+          "language": "python",
+          "vulnerable": "# VULNERABLE (illustrative): input is parsed by a shell\nimport subprocess\n\ndef ping(host: str) -> str:\n    return subprocess.run(f\"ping -c 1 {host}\", shell=True,\n                          capture_output=True, text=True).stdout",
+          "secure": "# SECURE: argv list, no shell, and a validated address\nimport ipaddress\nimport subprocess\n\ndef ping(host: str) -> str:\n    ipaddress.ip_address(host)          # reject anything that is not an address\n    return subprocess.run([\"ping\", \"-c\", \"1\", host], shell=False,\n                          capture_output=True, text=True, timeout=5).stdout",
+          "issue": "With shell=True the host value can introduce additional commands; with an argv list the value is a single argument. Validation narrows input, but removing the shell is what eliminates the second parser."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Which Node.js call avoids shell interpretation by default?",
+          "options": [
+            "child_process.execFile",
+            "child_process.exec",
+            "child_process.execSync with a string",
+            "eval"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "execFile runs the named program with an argument array and does not use a shell unless shell:true is set. exec and execSync with a string go through a shell, and eval is unrelated to process execution but equally unsafe for untrusted input."
+        }
+      ],
+      "references": [
+        {
+          "title": "OS Command Injection Defense Cheat Sheet",
+          "publisher": "OWASP Cheat Sheet Series",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/OS_Command_Injection_Defense_Cheat_Sheet.html",
+          "license": "CC-BY-SA-4.0"
+        },
+        {
+          "title": "subprocess: Security considerations",
+          "publisher": "Python Software Foundation",
+          "url": "https://docs.python.org/3/library/subprocess.html",
+          "license": "PSF-2.0"
+        },
+        {
+          "title": "CWE-78: Improper Neutralization of Special Elements used in an OS Command",
+          "publisher": "MITRE",
+          "url": "https://cwe.mitre.org/data/definitions/78.html",
+          "license": "MITRE CWE Terms of Use"
+        }
+      ],
+      "tags": [
+        "command-injection",
+        "subprocess",
+        "nodejs"
+      ]
+    },
+    {
+      "id": "web-ssti-001",
+      "subtopic": "injection",
+      "difficulty": "intermediate",
+      "title": "User input must be template data, never template source",
+      "fact": "Server-side template injection happens when an application compiles user input as a template instead of passing it as a variable. Template engines evaluate expressions with access to the context object, so ordinary autoescaping does not help: escaping protects the output of a template, not the template program itself. Use a fixed template file and pass request values as context, and if user-authored templates are a genuine product requirement, use a logic-less engine, a restricted context and a sandbox as defence in depth rather than as the only boundary.",
+      "details": [
+        "render_template_string in Flask and Template(...).render in other engines compile their argument; prefer render_template with a fixed name.",
+        "The context is part of the attack surface: exposing settings, database objects or framework globals supplies the primitives an escape needs.",
+        "Error messages that echo the compiled expression can confirm template evaluation during review."
+      ],
+      "code": [
+        {
+          "language": "python",
+          "vulnerable": "# VULNERABLE (illustrative): the request value is compiled as a template\n@app.get('/greet')\ndef greet():\n    return render_template_string('Hello ' + request.args.get('name', 'guest'))",
+          "secure": "# SECURE: the template is fixed and the value is only data\n@app.get('/greet')\ndef greet():\n    return render_template('greet.html', name=request.args.get('name', 'guest'))",
+          "issue": "render_template_string compiles its argument, so template syntax in name is evaluated with the application's context. Passing the value as a context variable keeps it outside the template program."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Why does Jinja2 autoescaping not prevent SSTI?",
+          "options": [
+            "Autoescaping applies to rendered output, while the injected string is compiled as template code",
+            "Jinja2 disables autoescaping for all templates",
+            "Autoescaping only escapes numbers",
+            "The template engine evaluates output before escaping it"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "The dangerous transition is compiling attacker text into template code; escaping happens later when that code produces output. The other statements misdescribe how autoescaping works."
+        }
+      ],
+      "references": [
+        {
+          "title": "CWE-1336: Improper Neutralization of Special Elements Used in a Template Engine",
+          "publisher": "MITRE",
+          "url": "https://cwe.mitre.org/data/definitions/1336.html",
+          "license": "MITRE CWE Terms of Use"
+        },
+        {
+          "title": "Jinja2 sandbox documentation",
+          "publisher": "Pallets",
+          "url": "https://jinja.palletsprojects.com/en/stable/sandbox/",
+          "license": "BSD-3-Clause"
+        },
+        {
+          "title": "Flask web security considerations",
+          "publisher": "Pallets",
+          "url": "https://flask.palletsprojects.com/en/stable/web-security/",
+          "license": "BSD-3-Clause"
+        }
+      ],
+      "tags": [
+        "ssti",
+        "jinja2",
+        "templates"
+      ]
+    },
+    {
+      "id": "web-ssrf-001",
+      "subtopic": "ssrf",
+      "difficulty": "intermediate",
+      "title": "SSRF: validate the destination after resolution, not just the string",
+      "fact": "Server-side request forgery occurs when an application fetches a URL supplied by a user, letting the attacker use the server's network position to reach internal services, cloud metadata endpoints or loopback-only administration interfaces. A blocklist of hostname strings is weak: decimal, octal and IPv6 forms, redirects and DNS rebinding all change where the request lands after the check. Restrict the scheme and port, resolve the host and reject non-global addresses, pin the resolved address for the connection, and disable redirects so the validated destination is the one actually contacted.",
+      "details": [
+        "ipaddress.ip_address(...).is_global is a useful predicate, but handle IPv4-mapped IPv6 and parse the literal exactly as the HTTP client will.",
+        "Metadata services commonly live on link-local addresses; block them at the network layer as well as in code.",
+        "A URL allowlist of exact hosts is stronger than a denylist, but still needs redirect and DNS handling."
+      ],
+      "code": [
+        {
+          "language": "python",
+          "vulnerable": "# VULNERABLE (illustrative): the server fetches any URL the client names\n@app.post('/fetch')\ndef fetch():\n    url = request.json['url']\n    return requests.get(url, timeout=5).content",
+          "secure": "# SECURE: scheme allowlist, resolved-IP checks, no redirects\nimport ipaddress\nimport socket\nfrom urllib.parse import urlsplit\n\ndef safe_get(url: str) -> bytes:\n    parts = urlsplit(url)\n    if parts.scheme != 'https' or not parts.hostname:\n        raise ValueError('https only')\n    infos = socket.getaddrinfo(parts.hostname, 443, proto=socket.IPPROTO_TCP)\n    for info in infos:\n        if not ipaddress.ip_address(info[4][0]).is_global:\n            raise ValueError('destination not allowed')\n    return requests.get(url, timeout=5, allow_redirects=False).content",
+          "issue": "The check must happen on the resolved address and redirects must not silently re-target the request. Even then, a second DNS answer at connect time can differ, so egress policy remains the stronger control."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Why is a hostname denylist insufficient for SSRF protection?",
+          "options": [
+            "The hostname can resolve differently at check time and connect time, and redirects can change the destination",
+            "DNS cannot return private addresses",
+            "HTTPS forbids requests to internal hosts",
+            "URL parsers reject non-ASCII hostnames"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "DNS rebinding and redirects defeat a one-time string check; the request may land somewhere the check never saw. DNS can return private addresses, HTTPS does not restrict destinations, and parser behaviour varies rather than protecting you."
+        }
+      ],
+      "references": [
+        {
+          "title": "Server Side Request Forgery Prevention Cheat Sheet",
+          "publisher": "OWASP Cheat Sheet Series",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/Server_Side_Request_Forgery_Prevention_Cheat_Sheet.html",
+          "license": "CC-BY-SA-4.0"
+        },
+        {
+          "title": "CWE-918: Server-Side Request Forgery",
+          "publisher": "MITRE",
+          "url": "https://cwe.mitre.org/data/definitions/918.html",
+          "license": "MITRE CWE Terms of Use"
+        },
+        {
+          "title": "API7:2023 Server Side Request Forgery",
+          "publisher": "OWASP API Security Top 10",
+          "url": "https://owasp.org/API-Security/editions/2023/en/0xa7-server-side-request-forgery/",
+          "license": "CC-BY-SA-4.0"
+        }
+      ],
+      "tags": [
+        "ssrf",
+        "egress",
+        "dns"
+      ]
+    },
+    {
+      "id": "web-file-upload-001",
+      "subtopic": "file-upload",
+      "difficulty": "intermediate",
+      "title": "Uploads: trust the content you decode, not the filename or MIME type",
+      "fact": "Every part of an upload is attacker-controlled: the filename, the declared Content-Type, the extension and the bytes themselves. Storing the original name under a served directory enables path traversal, overwrites and content-type confusion, while trusting the declared type lets an executable or HTML document through. Use server-generated names, an extension allowlist, content inspection or re-encoding, a size limit, storage outside the web root or in object storage, and a download response that forces attachment with nosniff.",
+      "details": [
+        "Image decoders are themselves attack surface; re-encode to a simple format and strip metadata rather than serving the original.",
+        "Polyglot files can be valid in two formats, so extension checks alone are insufficient without content handling.",
+        "Store uploads on a separate hostname or bucket so a stored HTML file cannot run in the application origin."
+      ],
+      "code": [
+        {
+          "language": "python",
+          "vulnerable": "# VULNERABLE (illustrative): client filename and type decide the stored path\n@app.post('/avatar')\ndef upload():\n    f = request.files['file']\n    f.save(os.path.join('/srv/uploads', f.filename))\n    return 'stored'\n",
+          "secure": "# SECURE: server-generated name, size cap, decoded image, non-executable store\nimport os\nimport uuid\nfrom PIL import Image\n\n@app.post('/avatar')\ndef upload():\n    f = request.files['file']\n    if request.content_length > 2 * 1024 * 1024:\n        abort(413)\n    img = Image.open(f.stream)\n    img.verify()\n    f.stream.seek(0)\n    img = Image.open(f.stream)\n    img.thumbnail((512, 512))\n    name = f\"{uuid.uuid4().hex}.png\"\n    img.save(os.path.join('/srv/media', name))\n    return {'name': name}",
+          "issue": "The vulnerable path accepts traversal in the filename and executes whatever type is stored. A generated name, a decoded image and a non-served directory remove both the path and the execution primitives; the declared Content-Type is never trusted."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Which control best stops an uploaded .php file from executing?",
+          "options": [
+            "Store uploads outside the web root and serve them through a handler that forces download",
+            "Check that the Content-Type header says image/png",
+            "Rename the file but keep the extension",
+            "Limit the upload to 1 MB"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "Execution depends on where and how the file is served; removing it from the executable document root is structural. The Content-Type header is client-controlled, renaming alone does not change handling, and size limits do not affect type."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "Validating the Content-Type header is enough to make uploads safe.",
+          "correction": "The client sets that header and can claim image/png for any bytes. Inspect or re-encode the content, constrain the stored name and location, and control how the file is served."
+        }
+      ],
+      "references": [
+        {
+          "title": "File Upload Cheat Sheet",
+          "publisher": "OWASP Cheat Sheet Series",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/File_Upload_Cheat_Sheet.html",
+          "license": "CC-BY-SA-4.0"
+        },
+        {
+          "title": "CWE-434: Unrestricted Upload of File with Dangerous Type",
+          "publisher": "MITRE",
+          "url": "https://cwe.mitre.org/data/definitions/434.html",
+          "license": "MITRE CWE Terms of Use"
+        },
+        {
+          "title": "MIME types (IANA media types)",
+          "publisher": "MDN Web Docs",
+          "url": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/MIME_types",
+          "license": "CC-BY-SA-2.5"
+        }
+      ],
+      "tags": [
+        "file-upload",
+        "content-type",
+        "storage"
+      ]
+    },
+    {
+      "id": "web-deserialization-001",
+      "subtopic": "deserialization",
+      "difficulty": "intermediate",
+      "title": "Deserialising untrusted bytes can execute code",
+      "fact": "Many serialisation formats can reconstruct objects, not just data, and object reconstruction runs attacker-influenced constructors or callbacks. Python's pickle can call arbitrary callables during load, YAML has unsafe loaders, PHP unserialize can instantiate classes and trigger magic methods, and Java ObjectInputStream is the root of many gadget chains. Accept JSON or another data-only format with a strict schema, use yaml.safe_load for YAML, and never deserialise a blob from a client even if it is signed by a party you think you trust.",
+      "details": [
+        "A signature proves who sent the bytes, not that the bytes are safe to deserialise; a compromised or over-privileged sender still yields code execution.",
+        "In Python, prefer JSON plus pydantic or dataclasses; for YAML, safe_load returns only basic types.",
+        "If a binary format is unavoidable, isolate the parser in a low-privilege process and validate the resulting object graph."
+      ],
+      "code": [
+        {
+          "language": "python",
+          "vulnerable": "# VULNERABLE (illustrative): pickle executes constructors while loading\nimport pickle\n\ndef load_prefs(raw: bytes) -> dict:\n    return pickle.loads(raw)          # raw comes from a request cookie",
+          "secure": "# SECURE: parse data, not objects, with a closed schema\nimport json\nfrom pydantic import BaseModel, ConfigDict\n\nclass Prefs(BaseModel):\n    model_config = ConfigDict(extra=\"forbid\")\n    theme: str\n    language: str\n\ndef load_prefs(raw: bytes) -> Prefs:\n    return Prefs.model_validate(json.loads(raw))",
+          "issue": "pickle reconstructs arbitrary classes and can invoke attacker-chosen callables; JSON plus a closed schema only ever produces plain data. Signing the pickle would not make loading it safe."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Which statement about signed pickle payloads is correct?",
+          "options": [
+            "A valid signature does not make deserialisation safe",
+            "Signing removes the need for input validation",
+            "pickle refuses to load untrusted classes automatically",
+            "HMAC turns pickle into a data-only format"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "Verification answers who produced the bytes; loading them still executes object reconstruction. HMAC adds integrity, not a safe object model."
+        }
+      ],
+      "references": [
+        {
+          "title": "Deserialization Cheat Sheet",
+          "publisher": "OWASP Cheat Sheet Series",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/Deserialization_Cheat_Sheet.html",
+          "license": "CC-BY-SA-4.0"
+        },
+        {
+          "title": "CWE-502: Deserialization of Untrusted Data",
+          "publisher": "MITRE",
+          "url": "https://cwe.mitre.org/data/definitions/502.html",
+          "license": "MITRE CWE Terms of Use"
+        },
+        {
+          "title": "pickle: Warning",
+          "publisher": "Python Software Foundation",
+          "url": "https://docs.python.org/3/library/pickle.html",
+          "license": "PSF-2.0"
+        }
+      ],
+      "tags": [
+        "deserialization",
+        "pickle",
+        "yaml"
+      ]
+    },
+    {
+      "id": "web-open-redirect-001",
+      "subtopic": "redirects",
+      "difficulty": "intermediate",
+      "title": "Open redirects turn your domain into a phishing and OAuth bypass tool",
+      "fact": "An open redirect takes a destination from the request and sends the browser there without constraining it, so attackers can present a trusted link that lands on a phishing page. The same primitive can defeat OAuth redirect URI checks when an identity provider has registered a redirector. Allow only relative paths on the current host, or compare the resolved destination against an exact host allowlist, and reject scheme-relative forms, backslashes, userinfo and encoded variants.",
+      "details": [
+        "Parse with a real URL library and compare the final scheme and host; do not rely on startswith or a substring check.",
+        "Browsers normalise some backslash and whitespace forms, so validate the same way the browser will interpret the value.",
+        "Django's url_has_allowed_host_and_scheme implements the common same-host check; use a maintained helper rather than rolling your own."
+      ],
+      "code": [
+        {
+          "language": "python",
+          "vulnerable": "# VULNERABLE (illustrative): any target is accepted\n@app.get('/login')\ndef login():\n    return redirect(request.args.get('next', '/'))",
+          "secure": "# SECURE: resolve against this host and reject any other destination\nfrom urllib.parse import urljoin, urlsplit\n\nBASE = 'https://app.example.internal/'\n\n@app.get('/login')\ndef login():\n    target = request.args.get('next', '/')\n    resolved = urljoin(BASE, target)\n    parts = urlsplit(resolved)\n    if parts.scheme != 'https' or parts.netloc != 'app.example.internal' or '\\\\' in target:\n        resolved = BASE\n    return redirect(resolved)",
+          "issue": "The vulnerable handler forwards to whatever the parameter names. Resolving against a fixed base and comparing scheme and host constrains the destination; backslash rejection covers browser normalisation quirks."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Which validation is appropriate for a post-login redirect target?",
+          "options": [
+            "Resolve it and require the same scheme and host as the application",
+            "Require that it starts with a slash",
+            "Require that it does not contain the word http",
+            "URL-encode the target before redirecting"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "A leading slash does not exclude protocol-relative //host values, and string filters miss encodings. Comparing the resolved scheme and host is the reliable check."
+        }
+      ],
+      "references": [
+        {
+          "title": "Unvalidated Redirects and Forwards Cheat Sheet",
+          "publisher": "OWASP Cheat Sheet Series",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/Unvalidated_Redirects_and_Forwards_Cheat_Sheet.html",
+          "license": "CC-BY-SA-4.0"
+        },
+        {
+          "title": "CWE-601: URL Redirection to Untrusted Site",
+          "publisher": "MITRE",
+          "url": "https://cwe.mitre.org/data/definitions/601.html",
+          "license": "MITRE CWE Terms of Use"
+        },
+        {
+          "title": "django.utils.http.url_has_allowed_host_and_scheme",
+          "publisher": "Django Software Foundation",
+          "url": "https://docs.djangoproject.com/en/stable/ref/utils/",
+          "license": "BSD-3-Clause"
+        }
+      ],
+      "tags": [
+        "open-redirect",
+        "oauth",
+        "url-parsing"
+      ]
+    },
+    {
+      "id": "web-cors-001",
+      "subtopic": "cors",
+      "difficulty": "intermediate",
+      "title": "Reflecting arbitrary origins with credentials exposes authenticated APIs",
+      "fact": "CORS is a browser-side rule that decides whether a cross-origin script may read a response; it is not server-side authorization. Access-Control-Allow-Origin: * combined with credentials is rejected by browsers, but reflecting the request's Origin and setting Access-Control-Allow-Credentials: true lets any site read authenticated responses. Configure an exact origin allowlist, send Vary: Origin so shared caches do not mix responses, and remember that non-browser clients ignore CORS entirely.",
+      "details": [
+        "Preflight requests only gate non-simple methods and headers; a simple cross-origin POST is sent even if the response cannot be read.",
+        "Subdomain wildcards trust every subdomain, including ones that host user content or have been taken over.",
+        "Credentials include cookies and TLS client certificates; omit them unless the flow genuinely needs cross-origin authenticated reads."
+      ],
+      "code": [
+        {
+          "language": "javascript",
+          "vulnerable": "// VULNERABLE (illustrative): any origin is reflected with credentials\napp.use(cors({ origin: true, credentials: true }));",
+          "secure": "// SECURE: explicit allowlist, credentials only where required\nconst allowed = new Set(['https://app.example.internal']);\n\napp.use(cors({\n  origin: (origin, cb) => cb(null, allowed.has(origin)),\n  credentials: true,\n  maxAge: 600,\n}));",
+          "issue": "origin: true reflects whatever the caller sends, so every site can read credentialed responses. The allowlist limits the header to known front ends; the cors middleware also emits Vary: Origin for cache correctness."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "What does Access-Control-Allow-Origin actually control?",
+          "options": [
+            "Whether browser JavaScript from another origin may read the response",
+            "Whether the server accepts the request at all",
+            "Whether cookies are signed",
+            "Whether TLS is required"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "The browser sends many cross-origin requests regardless and uses CORS to decide whether to expose the response to script. CORS is not authentication, cookie integrity or transport security."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "A restrictive CORS policy protects the API from unauthorized callers.",
+          "correction": "CORS only constrains browser-based reads. curl, server-side scripts and native apps ignore it, and simple requests still reach the server. Authorization must be enforced on every request regardless of origin."
+        }
+      ],
+      "references": [
+        {
+          "title": "Cross-Origin Resource Sharing (CORS)",
+          "publisher": "MDN Web Docs",
+          "url": "https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS",
+          "license": "CC-BY-SA-2.5"
+        },
+        {
+          "title": "Fetch Standard: CORS protocol",
+          "publisher": "WHATWG",
+          "url": "https://fetch.spec.whatwg.org/",
+          "license": "CC-BY-4.0"
+        },
+        {
+          "title": "Access-Control-Allow-Credentials",
+          "publisher": "MDN Web Docs",
+          "url": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Credentials",
+          "license": "CC-BY-SA-2.5"
+        }
+      ],
+      "tags": [
+        "cors",
+        "browser",
+        "credentials"
+      ]
+    },
+    {
+      "id": "web-session-fixation-001",
+      "subtopic": "session-management",
+      "difficulty": "intermediate",
+      "title": "Rotate the session identifier when privilege changes",
+      "fact": "If a session identifier issued before authentication remains valid after login, an attacker who planted or observed that identifier shares the authenticated session. This is session fixation, and it survives password changes and role upgrades unless the server explicitly rotates the identifier and invalidates the old one. Rotate on login, logout, privilege change and password reset, keep sessions server-side with idle and absolute timeouts, and never accept a session identifier from a URL parameter.",
+      "details": [
+        "Flask's default session is a signed client-side cookie; session.clear() before setting the user id prevents an old cookie from carrying the new identity.",
+        "Server-side stores should delete the old record rather than merely stop referencing it, so a stolen copy cannot be replayed.",
+        "Bind sessions to a coarse client context where appropriate, but avoid breaking mobile users who change networks."
+      ],
+      "code": [
+        {
+          "language": "python",
+          "vulnerable": "# VULNERABLE (illustrative): the pre-login session survives login\n@app.post('/login')\ndef login():\n    user = check_credentials(request.form['email'], request.form['password'])\n    if user:\n        session['uid'] = user.id          # same session cookie, same id\n    return redirect('/')",
+          "secure": "# SECURE: clear and re-issue the session on privilege change\n@app.post('/login')\ndef login():\n    user = check_credentials(request.form['email'], request.form['password'])\n    if not user:\n        abort(401)\n    session.clear()\n    session['uid'] = user.id\n    session.permanent = True\n    return redirect('/')",
+          "issue": "The vulnerable handler upgrades an existing session in place, so a pre-planted identifier becomes authenticated. Clearing the session before storing the identity forces a new identifier and invalidates the old state."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "When must a session identifier be rotated?",
+          "options": [
+            "On login, logout, privilege change and password reset",
+            "Only when the user changes browser",
+            "Only on the first request of a day",
+            "Never, because rotation breaks CSRF tokens"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "Those events change the security context, so a pre-existing identifier must not carry the new privileges. Rotating at other arbitrary times is optional; CSRF tokens can be reissued with the session."
+        }
+      ],
+      "references": [
+        {
+          "title": "Session Management Cheat Sheet",
+          "publisher": "OWASP Cheat Sheet Series",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html",
+          "license": "CC-BY-SA-4.0"
+        },
+        {
+          "title": "CWE-384: Session Fixation",
+          "publisher": "MITRE",
+          "url": "https://cwe.mitre.org/data/definitions/384.html",
+          "license": "MITRE CWE Terms of Use"
+        },
+        {
+          "title": "CWE-613: Insufficient Session Expiration",
+          "publisher": "MITRE",
+          "url": "https://cwe.mitre.org/data/definitions/613.html",
+          "license": "MITRE CWE Terms of Use"
+        }
+      ],
+      "tags": [
+        "sessions",
+        "fixation",
+        "cookies"
+      ]
+    },
+    {
+      "id": "web-rate-limiting-001",
+      "subtopic": "rate-limiting",
+      "difficulty": "intermediate",
+      "title": "Rate limit by identity and action, and share the counter across instances",
+      "fact": "Rate limiting bounds how often a client can attempt an action, which reduces password guessing, OTP brute force, scraping and resource exhaustion. Limiting only by source IP fails behind carrier NAT and is easily distributed across botnets, so combine account, token, IP and endpoint dimensions, and use a shared store such as Redis so every instance sees the same counter. Return 429 with Retry-After, prefer short delays over permanent account lockout, and trust forwarded IP headers only from known proxies.",
+      "details": [
+        "Login, OTP verification, password reset, invitation acceptance and data export deserve separate, tighter budgets.",
+        "A token bucket allows short bursts while enforcing a sustained rate; a fixed window at the boundary can double the effective rate.",
+        "Rate limiting complements, but does not replace, strong password storage, MFA and anomaly detection."
+      ],
+      "configs": [
+        {
+          "language": "nginx",
+          "snippet": "limit_req_zone $binary_remote_addr zone=login:10m rate=5r/m;\nserver {\n  location = /login {\n    limit_req zone=login burst=3 nodelay;\n    limit_req_status 429;\n    add_header Retry-After 60 always;\n  }\n}",
+          "purpose": "Apply a coarse per-IP ceiling at the edge; the application should also count per account and per endpoint in a shared store."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Why is per-IP rate limiting alone weak for login protection?",
+          "options": [
+            "Attackers can distribute attempts across many addresses, and NAT hides many users behind one address",
+            "IP addresses change too rarely to matter",
+            "Rate limiting only works for GET requests",
+            "Browsers ignore 429 responses"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "Distributed guessing spreads attempts across sources, while NAT causes collateral lockout. Add per-account and per-token budgets, and keep a global ceiling."
+        }
+      ],
+      "references": [
+        {
+          "title": "Authentication Cheat Sheet: protecting against brute force",
+          "publisher": "OWASP Cheat Sheet Series",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html",
+          "license": "CC-BY-SA-4.0"
+        },
+        {
+          "title": "CWE-307: Improper Restriction of Excessive Authentication Attempts",
+          "publisher": "MITRE",
+          "url": "https://cwe.mitre.org/data/definitions/307.html",
+          "license": "MITRE CWE Terms of Use"
+        },
+        {
+          "title": "429 Too Many Requests",
+          "publisher": "MDN Web Docs",
+          "url": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
+          "license": "CC-BY-SA-2.5"
+        }
+      ],
+      "tags": [
+        "rate-limiting",
+        "brute-force",
+        "nginx"
+      ]
+    },
+    {
+      "id": "web-toctou-001",
+      "subtopic": "race-conditions",
+      "difficulty": "intermediate",
+      "title": "Check-then-use races on the filesystem need one atomic operation",
+      "fact": "A time-of-check to time-of-use race occurs when a program verifies a condition and later acts on it, with a window in which an attacker changes the object. Classic examples are os.path.exists() followed by open(), os.access() followed by open(), and writing to a path that can be replaced by a symlink. Perform the check and the use in one operation: create with O_CREAT|O_EXCL, refuse symlinks with O_NOFOLLOW, operate on the returned file descriptor, and verify ownership with fstat rather than by path.",
+      "details": [
+        "Opening a directory with O_DIRECTORY and using openat-style relative operations narrows the window further.",
+        "Temp files should come from tempfile with secure defaults rather than a predictable name in a shared directory.",
+        "Race conditions also affect databases and business logic; the same principle applies: make the decision and the write atomic."
+      ],
+      "code": [
+        {
+          "language": "python",
+          "vulnerable": "# VULNERABLE (illustrative): a symlink can appear between check and open\nimport os\n\ndef write_upload(path: str, data: bytes) -> None:\n    if os.path.exists(path):\n        raise FileExistsError(path)\n    with open(path, 'wb') as fh:\n        fh.write(data)",
+          "secure": "# SECURE: exclusive create, no symlink following, single atomic open\nimport os\n\ndef write_upload(path: str, data: bytes) -> None:\n    flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, 'O_NOFOLLOW', 0)\n    fd = os.open(path, flags, 0o600)\n    try:\n        with os.fdopen(fd, 'wb') as fh:\n            fh.write(data)\n    except BaseException:\n        os.unlink(path)\n        raise",
+          "issue": "The exists/open pair is two syscalls, so another process can insert a symlink in between. O_EXCL and O_NOFOLLOW make creation itself the check; containment within the intended directory still has to be enforced separately."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Which primitive removes the check-then-open race for a new file?",
+          "options": [
+            "os.open with O_CREAT | O_EXCL | O_NOFOLLOW",
+            "os.path.exists followed by open",
+            "os.access followed by open",
+            "A random filename generated by the client"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "O_EXCL makes creation fail if the name exists, and O_NOFOLLOW refuses a symlink at the final component, in the same syscall. Separate checks leave a window, and client-chosen names are attacker-controlled."
+        }
+      ],
+      "references": [
+        {
+          "title": "CWE-367: Time-of-check Time-of-use (TOCTOU) Race Condition",
+          "publisher": "MITRE",
+          "url": "https://cwe.mitre.org/data/definitions/367.html",
+          "license": "MITRE CWE Terms of Use"
+        },
+        {
+          "title": "CWE-362: Concurrent Execution using Shared Resource with Improper Synchronization",
+          "publisher": "MITRE",
+          "url": "https://cwe.mitre.org/data/definitions/362.html",
+          "license": "MITRE CWE Terms of Use"
+        }
+      ],
+      "tags": [
+        "toctou",
+        "race-condition",
+        "filesystem"
+      ]
+    },
+    {
+      "id": "api-mass-assignment-001",
+      "subtopic": "api-design",
+      "difficulty": "intermediate",
+      "title": "Bind only the fields a client is allowed to set",
+      "fact": "Mass assignment occurs when an API maps request fields onto a model or object without restricting which fields are writable. A client can then set attributes the UI never showed, such as role, is_admin, owner_id, balance or verified. Fix it with an explicit input model that lists client-writable fields, rejects unknown keys, and marks server-owned fields read-only; derive privileged values from the authenticated principal rather than from the request body.",
+      "details": [
+        "An allowlist is safer than a blocklist because new sensitive columns are protected by default.",
+        "Django REST Framework serializers and pydantic models both support explicit field sets and read-only fields.",
+        "Audit nested objects and bulk endpoints too: a permitted parent field can hide an unrestricted child mapping."
+      ],
+      "code": [
+        {
+          "language": "python",
+          "vulnerable": "# VULNERABLE (illustrative): every field in the body is applied to the row\n@app.patch('/users/{uid}')\ndef update_user(uid: int, patch: dict, user=Depends(current_user)):\n    for key, value in patch.items():\n        setattr(user, key, value)       # includes role, is_admin\n    db.commit()",
+          "secure": "# SECURE: a closed DTO exposes only client-writable fields\nclass UserPatch(BaseModel):\n    model_config = ConfigDict(extra='forbid')\n    display_name: str | None = None\n    locale: str | None = None\n\n@app.patch('/users/{uid}')\ndef update_user(uid: int, patch: UserPatch, user=Depends(current_user)):\n    for key, value in patch.model_dump(exclude_unset=True).items():\n        setattr(user, key, value)\n    db.commit()",
+          "issue": "Generic binding lets a client write server-owned columns; the closed model makes privilege fields unrepresentable. The handler must also verify that uid belongs to the caller."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "A profile update endpoint accepts a JSON body and copies every key onto the user object. What is the direct risk?",
+          "options": [
+            "A client can set fields such as role or is_admin",
+            "The response will be cached incorrectly",
+            "CSRF tokens stop working",
+            "TLS session resumption fails"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "Unrestricted binding turns every column into a client-writable field, enabling privilege escalation or data forgery. Caching, CSRF and TLS are unrelated to the binding step."
+        }
+      ],
+      "references": [
+        {
+          "title": "Mass Assignment Cheat Sheet",
+          "publisher": "OWASP Cheat Sheet Series",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/Mass_Assignment_Cheat_Sheet.html",
+          "license": "CC-BY-SA-4.0"
+        },
+        {
+          "title": "CWE-915: Improperly Controlled Modification of Dynamically-Determined Object Attributes",
+          "publisher": "MITRE",
+          "url": "https://cwe.mitre.org/data/definitions/915.html",
+          "license": "MITRE CWE Terms of Use"
+        },
+        {
+          "title": "API3:2023 Broken Object Property Level Authorization",
+          "publisher": "OWASP API Security Top 10",
+          "url": "https://owasp.org/API-Security/editions/2023/en/0xa3-broken-object-property-level-authorization/",
+          "license": "CC-BY-SA-4.0"
+        }
+      ],
+      "tags": [
+        "mass-assignment",
+        "api",
+        "pydantic"
+      ]
+    },
+    {
+      "id": "api-excessive-data-001",
+      "subtopic": "api-design",
+      "difficulty": "intermediate",
+      "title": "Scope the lookup to the caller and project explicit response fields",
+      "fact": "Excessive data exposure happens when an endpoint returns more of an object than the caller needs, often because it serialises an ORM row or a generic dictionary. It usually compounds with broken object-level authorization: a lookup keyed only on the path id lets any authenticated caller name someone else's record, and an over-broad serializer then hands over that record's password hash, internal identifiers, feature flags or moderation notes. Scope the query to the subject (owner or tenant) and return an explicit response model with a separate projection for each audience, and apply the same discipline to error messages and nested relations.",
+      "details": [
+        "Framework defaults differ: many serialisers include every column unless fields or exclude are set.",
+        "Put the subject in the query: filter on owner_id or tenant_id so another user's row does not match, instead of fetching by id and checking afterwards.",
+        "Answer 404 for rows outside the caller's scope so the endpoint does not confirm that another user's object exists.",
+        "GraphQL resolvers need field-level authorization, because the client chooses which fields to request.",
+        "Truncate or redact identifiers that are not needed; internal ids can enable enumeration or cross-tenant references."
+      ],
+      "code": [
+        {
+          "language": "python",
+          "vulnerable": "# VULNERABLE: the path id alone selects the row and the whole row is echoed\n@app.get('/api/accounts/<int:acct_id>')\n@login_required\ndef get_account(acct_id: int):\n    acct = Account.query.get_or_404(acct_id)  # no owner or tenant predicate\n    return jsonify({\n        'id': acct.id, 'owner_id': acct.owner_id, 'label': acct.label,\n        'balance_cents': acct.balance_cents, 'routing_number': acct.routing_number,\n        'internal_risk_flags': acct.internal_risk_flags,\n    })",
+          "secure": "# SECURE: the caller is part of the lookup, then an explicit field projection\n@app.get('/api/accounts/<int:acct_id>')\n@login_required\ndef get_account(acct_id: int):\n    acct = Account.query.filter_by(\n        id=acct_id, owner_id=current_user.id,\n    ).first_or_404()\n    return jsonify({\n        'id': acct.public_id, 'label': acct.label,\n        'balance_cents': acct.balance_cents,\n    })",
+          "issue": "The lookup is keyed only on the caller-supplied id, so any authenticated user can read any account (BOLA/IDOR); echoing every column adds excessive data exposure, sending owner ids, routing numbers and internal risk flags to the wrong person. Scoping the query to the subject and returning an explicit projection fix different flaws, and neither substitutes for the other."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Which practice most directly prevents accidental exposure of new database columns?",
+          "options": [
+            "Returning an explicit response model with named fields",
+            "Returning the ORM object and relying on the client to ignore extra fields",
+            "Renaming the columns to obscure names",
+            "Compressing the JSON response"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "An allowlist projection fails closed when a column is added, whereas whole-object serialisation automatically exposes it. Obscure names and compression provide no access control."
+        }
+      ],
+      "references": [
+        {
+          "title": "API1:2023 Broken Object Level Authorization",
+          "publisher": "OWASP API Security Top 10",
+          "url": "https://owasp.org/API-Security/editions/2023/en/0xa1-broken-object-level-authorization/",
+          "license": "CC-BY-SA-4.0"
+        },
+        {
+          "title": "API3:2023 Broken Object Property Level Authorization",
+          "publisher": "OWASP API Security Top 10",
+          "url": "https://owasp.org/API-Security/editions/2023/en/0xa3-broken-object-property-level-authorization/",
+          "license": "CC-BY-SA-4.0"
+        },
+        {
+          "title": "CWE-200: Exposure of Sensitive Information to an Unauthorized Actor",
+          "publisher": "MITRE",
+          "url": "https://cwe.mitre.org/data/definitions/200.html",
+          "license": "MITRE CWE Terms of Use"
+        },
+        {
+          "title": "REST Security Cheat Sheet",
+          "publisher": "OWASP Cheat Sheet Series",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/REST_Security_Cheat_Sheet.html",
+          "license": "CC-BY-SA-4.0"
+        }
+      ],
+      "tags": [
+        "data-exposure",
+        "serialization",
+        "api",
+        "authorization"
+      ]
+    },
+    {
+      "id": "api-jwt-alg-001",
+      "subtopic": "jwt",
+      "difficulty": "intermediate",
+      "title": "Never let the token choose its own verification algorithm",
+      "fact": "A JWT header carries an alg field, and verification is only safe if the verifier decides which algorithms and keys it accepts. Trusting the header enables the none algorithm and algorithm-confusion attacks, where a token signed with HMAC is checked using an RSA public key as the HMAC secret. Pin the algorithm set, select the key by trusted issuer and key id rather than by header-supplied material, and reject none outright; PyJWT 2.x refuses to decode without an explicit algorithms argument, but older releases did not.",
+      "details": [
+        "Use separate verification paths when an issuer genuinely supports more than one algorithm, rather than one generic decoder.",
+        "Check that the key type matches the algorithm; an RSA key must never be used as an HMAC secret.",
+        "Keep the libraries patched: algorithm-confusion handling has changed across major versions."
+      ],
+      "code": [
+        {
+          "language": "python",
+          "vulnerable": "# VULNERABLE (illustrative): the token header chooses the algorithm\nimport jwt\n\ndef identify(token: str, key: str):\n    alg = jwt.get_unverified_header(token)['alg']\n    return jwt.decode(token, key, algorithms=[alg])",
+          "secure": "# SECURE: pin the algorithm and the key for this issuer\nimport jwt\n\ndef identify(token: str, public_key: str):\n    return jwt.decode(\n        token, public_key, algorithms=['RS256'],\n        audience='api.example.internal',\n        issuer='https://idp.example.internal',\n        options={'require': ['exp', 'iat', 'aud', 'iss']},\n    )",
+          "issue": "Reading alg from the unverified header lets an attacker request none or HMAC verification with a public key. Pinning RS256 and the matching key blocks both, and require closes missing-claim gaps."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "In an algorithm-confusion attack on RS256, what does the attacker exploit?",
+          "options": [
+            "The verifier accepts HS256 and uses the RSA public key as the HMAC secret",
+            "RSA private keys are mathematically predictable",
+            "The JWT payload is not base64url encoded",
+            "TLS strips the signature before the application sees it"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "A public key is public, so if the verifier treats it as an HMAC secret the attacker can compute a valid MAC. Pinning the algorithm and key type prevents the substitution."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "A JWT library verifies signatures safely by default, whatever algorithm the token names.",
+          "correction": "Many historical libraries honoured the header or accepted none; modern releases often require an explicit algorithm list. Safe verification is a configuration decision, not something to assume from the library name."
+        }
+      ],
+      "references": [
+        {
+          "title": "JSON Web Token Cheat Sheet",
+          "publisher": "OWASP Cheat Sheet Series",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/JSON_Web_Token_Cheat_Sheet.html",
+          "license": "CC-BY-SA-4.0"
+        },
+        {
+          "title": "RFC 7519: JSON Web Token (JWT)",
+          "publisher": "IETF",
+          "url": "https://www.rfc-editor.org/rfc/rfc7519.html",
+          "license": "IETF Trust Legal Provisions"
+        },
+        {
+          "title": "CWE-347: Improper Verification of Cryptographic Signature",
+          "publisher": "MITRE",
+          "url": "https://cwe.mitre.org/data/definitions/347.html",
+          "license": "MITRE CWE Terms of Use"
+        }
+      ],
+      "tags": [
+        "jwt",
+        "algorithm-confusion",
+        "signatures"
+      ]
+    },
+    {
+      "id": "api-jwt-claims-001",
+      "subtopic": "jwt",
+      "difficulty": "intermediate",
+      "title": "A valid signature does not make the claims valid for you",
+      "fact": "Signature verification proves that a token was issued by someone holding the key; it does not prove that the token is current or intended for this service. Validate exp and nbf, require an expiry rather than treating a missing one as infinite, and check aud and iss against exact expected values. PyJWT validates exp and nbf when present and checks aud and iss only when you pass audience and issuer, so an explicit require list is needed to reject tokens that omit them.",
+      "details": [
+        "Allow only a small clock skew, such as 30 seconds, and keep server clocks synchronised.",
+        "Reject tokens whose aud does not include this service; a token minted for another internal API should not be accepted.",
+        "For revocation-sensitive operations, combine short lifetimes with a server-side session or token version check."
+      ],
+      "code": [
+        {
+          "language": "python",
+          "vulnerable": "# VULNERABLE (illustrative): signature checked, claims not\nimport jwt\n\ndef principal(token, key):\n    return jwt.decode(token, key, algorithms=['RS256'])",
+          "secure": "# SECURE: require and validate time, audience and issuer\nimport jwt\n\ndef principal(token, key):\n    return jwt.decode(\n        token, key, algorithms=['RS256'],\n        audience='api.example.internal',\n        issuer='https://idp.example.internal',\n        leeway=30,\n        options={'require': ['exp', 'nbf', 'iat', 'aud', 'iss', 'sub']},\n    )",
+          "issue": "Without audience and issuer parameters, a token minted for a different service can pass, and a token with no exp is accepted. options.require rejects missing claims, and leeway tolerates small clock differences."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Which claim check prevents a token issued for service A from being accepted by service B?",
+          "options": [
+            "audience",
+            "nbf",
+            "iat",
+            "jti"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "aud names the intended recipient, so B must reject a token whose aud does not include B. nbf and iat constrain time, and jti identifies a token but does not express audience."
+        }
+      ],
+      "references": [
+        {
+          "title": "JSON Web Token Cheat Sheet",
+          "publisher": "OWASP Cheat Sheet Series",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/JSON_Web_Token_Cheat_Sheet.html",
+          "license": "CC-BY-SA-4.0"
+        },
+        {
+          "title": "RFC 7519: JSON Web Token (JWT), sections 4.1 and 7.2",
+          "publisher": "IETF",
+          "url": "https://www.rfc-editor.org/rfc/rfc7519.html",
+          "license": "IETF Trust Legal Provisions"
+        },
+        {
+          "title": "PyJWT usage: reading and validating claims",
+          "publisher": "PyJWT",
+          "url": "https://pyjwt.readthedocs.io/en/stable/",
+          "license": "MIT"
+        }
+      ],
+      "tags": [
+        "jwt",
+        "claims",
+        "audience"
+      ]
+    },
+    {
+      "id": "api-jwt-kid-001",
+      "subtopic": "jwt",
+      "difficulty": "intermediate",
+      "title": "The kid header is a lookup hint, not a path or a query fragment",
+      "fact": "The kid header tells the verifier which key to use, but the token is still unverified when that value is read. If an application interpolates kid into a file path or SQL query, or fetches whatever key kid names, the header becomes an injection primitive or lets the attacker select a key they control. Treat kid as an index into a fixed, trusted key set, reject unknown values, and validate that the selected key's type, use and algorithm match the expected verification path.",
+      "details": [
+        "Key rotation needs old and new keys to coexist for a bounded overlap, but only keys from the trusted set are eligible.",
+        "Bound the number of cached keys so a stream of unknown kid values cannot exhaust memory.",
+        "Log unknown kid values as a signal of forged or misrouted tokens, not as a reason to fetch a new key."
+      ],
+      "code": [
+        {
+          "language": "python",
+          "vulnerable": "# VULNERABLE (illustrative): kid selects a key file by path\nimport jwt\n\ndef key_for(token: str) -> bytes:\n    kid = jwt.get_unverified_header(token).get('kid', 'default')\n    with open(f'/srv/keys/{kid}.pem', 'rb') as fh:   # traversal or arbitrary key\n        return fh.read()",
+          "secure": "# SECURE: kid is an index into a fixed, trusted key set\nimport jwt\n\nKEYS = {'2026-01': load_key('/srv/keys/2026-01.pem')}\n\ndef key_for(token: str) -> bytes:\n    kid = jwt.get_unverified_header(token).get('kid')\n    if kid not in KEYS:\n        raise jwt.InvalidTokenError('unknown kid')\n    return KEYS[kid]",
+          "issue": "A kid used in a path turns a header into traversal, and an attacker-chosen kid can name a key they hold. A fixed mapping limits selection to keys the verifier already trusts."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "What is the safe way to use the JWT kid header?",
+          "options": [
+            "Look it up in a server-side map of trusted keys and reject unknown values",
+            "Use it to fetch the key from the URL it contains",
+            "Concatenate it into the key file path",
+            "Use it as the HMAC secret"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "kid is attacker-controlled until the signature is verified, so it can only select from a set the server already trusts. Fetching URLs, path concatenation and using it as key material all hand control to the attacker."
+        }
+      ],
+      "references": [
+        {
+          "title": "JSON Web Token Cheat Sheet",
+          "publisher": "OWASP Cheat Sheet Series",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/JSON_Web_Token_Cheat_Sheet.html",
+          "license": "CC-BY-SA-4.0"
+        },
+        {
+          "title": "RFC 7515: JSON Web Signature (JWS), section 4.1.4",
+          "publisher": "IETF",
+          "url": "https://www.rfc-editor.org/rfc/rfc7515.html",
+          "license": "IETF Trust Legal Provisions"
+        },
+        {
+          "title": "CWE-347: Improper Verification of Cryptographic Signature",
+          "publisher": "MITRE",
+          "url": "https://cwe.mitre.org/data/definitions/347.html",
+          "license": "MITRE CWE Terms of Use"
+        }
+      ],
+      "tags": [
+        "jwt",
+        "kid",
+        "key-management"
+      ]
+    },
+    {
+      "id": "api-oauth-pkce-001",
+      "subtopic": "oauth",
+      "difficulty": "intermediate",
+      "title": "Public clients need authorization code plus PKCE",
+      "fact": "Single-page applications and native apps cannot keep a client secret, so the authorization code flow must be strengthened with Proof Key for Code Exchange. The client generates a high-entropy code verifier, sends its SHA-256 hash as code_challenge with method S256, and presents the verifier when redeeming the code, which binds the code to the client that started the flow. Avoid the implicit flow, which exposes tokens in URLs and browser history, and avoid plain challenges where S256 is available.",
+      "details": [
+        "RFC 9700 (the OAuth 2.0 Security Best Current Practice) recommends PKCE for confidential clients as well, because it also mitigates code injection.",
+        "The authorization code must be single-use, short-lived and bound to the client and redirect URI.",
+        "Keep the verifier in memory for the flow; do not put it in a place where a script injected later can read it."
+      ],
+      "configs": [
+        {
+          "language": "http",
+          "snippet": "GET /authorize?response_type=code&client_id=spa-client-01&redirect_uri=https%3A%2F%2Fapp.example.internal%2Fcb&scope=openid%20profile&state=REDACTED&code_challenge=REDACTED_BASE64URL_SHA256&code_challenge_method=S256 HTTP/1.1\nHost: idp.example.internal",
+          "purpose": "Start an authorization code flow with a hashed PKCE challenge and an unguessable state value."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "What does PKCE add to the authorization code flow?",
+          "options": [
+            "It binds the code redemption to the client that created the verifier",
+            "It encrypts the access token for the resource server",
+            "It replaces the need for TLS",
+            "It removes the need for a redirect URI"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "The verifier is never sent in the authorization request, so an intercepted code cannot be redeemed without it. PKCE does not encrypt tokens, replace TLS, or relax redirect URI registration."
+        }
+      ],
+      "references": [
+        {
+          "title": "RFC 7636: Proof Key for Code Exchange by OAuth Public Clients",
+          "publisher": "IETF",
+          "url": "https://www.rfc-editor.org/rfc/rfc7636.html",
+          "license": "IETF Trust Legal Provisions"
+        },
+        {
+          "title": "RFC 9700: Best Current Practice for OAuth 2.0 Security",
+          "publisher": "IETF",
+          "url": "https://www.rfc-editor.org/rfc/rfc9700.html",
+          "license": "IETF Trust Legal Provisions"
+        },
+        {
+          "title": "OAuth 2.0 Protocol Cheat Sheet",
+          "publisher": "OWASP Cheat Sheet Series",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/OAuth2_Cheat_Sheet.html",
+          "license": "CC-BY-SA-4.0"
+        }
+      ],
+      "tags": [
+        "oauth",
+        "pkce",
+        "public-clients"
+      ]
+    },
+    {
+      "id": "api-oauth-redirect-001",
+      "subtopic": "oauth",
+      "difficulty": "intermediate",
+      "title": "Redirect URI matching must be exact and pre-registered",
+      "fact": "The redirect URI is where the authorization server sends the user after consent, so an attacker who can change it can receive the authorization code or token. Prefix matching, wildcard subdomains and path-suffix matching all create gaps: a registered https://app.example.internal/cb can be extended with a traversal or a lookalike host. Compare the full URI exactly, including scheme, host, port and path, reject fragments and userinfo, and bind the callback to the initiating browser with the state parameter.",
+      "details": [
+        "Loopback redirects are appropriate for native apps but should not be registered for a production web client.",
+        "When multiple identity providers are supported, bind the response to the expected issuer to prevent mix-up attacks.",
+        "An open redirect on the client application effectively turns into an OAuth redirect weakness if its URL is registered."
+      ],
+      "code": [
+        {
+          "language": "python",
+          "vulnerable": "# VULNERABLE (illustrative): prefix matching accepts lookalike redirect URIs\ndef is_registered(uri: str) -> bool:\n    return any(uri.startswith(r) for r in REGISTERED)",
+          "secure": "# SECURE: compare the full URI exactly, after normalisation\nfrom urllib.parse import urlsplit\n\ndef is_registered(uri: str) -> bool:\n    parts = urlsplit(uri)\n    if parts.fragment or parts.username or parts.password:\n        return False\n    normalised = f\"{parts.scheme}://{parts.netloc}{parts.path}\"\n    return normalised in REGISTERED",
+          "issue": "Prefix matching lets an attacker extend a registered path or host; exact comparison of scheme, host, port and path blocks it. State must still bind the callback to the browser session that started the flow."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Why is startswith() a poor redirect URI check?",
+          "options": [
+            "An attacker can append a path or craft a host that begins with the registered prefix",
+            "It is slower than equality comparison",
+            "It rejects Unicode hostnames",
+            "It automatically adds a fragment"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "String prefixes do not respect URL component boundaries, so extra path segments or host tricks can pass. Parse the URI and compare the exact registered components."
+        }
+      ],
+      "references": [
+        {
+          "title": "RFC 9700: Best Current Practice for OAuth 2.0 Security",
+          "publisher": "IETF",
+          "url": "https://www.rfc-editor.org/rfc/rfc9700.html",
+          "license": "IETF Trust Legal Provisions"
+        },
+        {
+          "title": "RFC 6749: The OAuth 2.0 Authorization Framework, section 3.1.2",
+          "publisher": "IETF",
+          "url": "https://www.rfc-editor.org/rfc/rfc6749.html",
+          "license": "IETF Trust Legal Provisions"
+        },
+        {
+          "title": "OAuth 2.0 Protocol Cheat Sheet",
+          "publisher": "OWASP Cheat Sheet Series",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/OAuth2_Cheat_Sheet.html",
+          "license": "CC-BY-SA-4.0"
+        }
+      ],
+      "tags": [
+        "oauth",
+        "redirect-uri",
+        "state"
+      ]
+    },
+    {
+      "id": "api-webhook-001",
+      "subtopic": "webhooks",
+      "difficulty": "intermediate",
+      "title": "Verify webhook HMACs over the raw body before parsing",
+      "fact": "A webhook endpoint accepts unauthenticated requests from the network, so the sender must prove knowledge of a shared secret over the exact bytes delivered. Compute an HMAC over a timestamp and the raw request body, compare it in constant time, and reject timestamps outside a small window to bound replay. Parsing JSON first and re-serialising it changes the bytes, so verification must happen before parsing and must use the same secret per endpoint, with rotation supported by an overlap period.",
+      "details": [
+        "A static header such as X-Webhook-Token is a bearer secret; it can be replayed and does not bind the payload.",
+        "Source IP allowlists are brittle behind CDNs and do not authenticate the payload on their own.",
+        "Acknowledge quickly and process asynchronously with idempotent handlers, because senders retry on timeouts."
+      ],
+      "code": [
+        {
+          "language": "python",
+          "vulnerable": "# VULNERABLE (illustrative): signature checked after parsing, with ==\n@app.post('/hooks/payments')\ndef hook():\n    payload = request.get_json()          # raw bytes already discarded\n    body = json.dumps(payload, separators=(',', ':')).encode()\n    expected = hmac.new(SECRET, body, hashlib.sha256).hexdigest()\n    if request.headers['X-Signature'] == expected:\n        process(payload)",
+          "secure": "# SECURE: HMAC over raw body and timestamp, constant-time compare\n@app.post('/hooks/payments')\ndef hook():\n    raw = request.get_data()\n    ts = request.headers.get('X-Timestamp', '')\n    try:\n        if abs(time.time() - int(ts)) > 300:\n            abort(401)\n    except ValueError:\n        abort(401)\n    mac = hmac.new(SECRET, ts.encode() + b'.' + raw, hashlib.sha256).hexdigest()\n    if not hmac.compare_digest(mac, request.headers.get('X-Signature', '')):\n        abort(401)\n    process(json.loads(raw))",
+          "issue": "Re-serialising JSON changes whitespace and key order, so the MAC no longer covers what was sent; == is also not constant time. Signing the timestamp with the raw body bounds replay and keeps the verified bytes and parsed data consistent."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Why must a webhook signature be checked before json.loads()?",
+          "options": [
+            "Parsing and re-serialising can change the bytes, so the MAC would not cover the delivered payload",
+            "json.loads() removes HMAC headers",
+            "The signature is stored inside the JSON body",
+            "Parsing disables constant-time comparison"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "HMAC operates on exact bytes; JSON round-tripping alters them. Verify the raw body, then parse only after authentication succeeds."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "Checking the signature after parsing is equivalent because the parsed fields are the same.",
+          "correction": "The MAC covers bytes, not semantic fields: whitespace, key order and number formatting can differ after parsing. Verify the raw body before parsing so the authenticated bytes are exactly the bytes you process."
+        }
+      ],
+      "references": [
+        {
+          "title": "CWE-347: Improper Verification of Cryptographic Signature",
+          "publisher": "MITRE",
+          "url": "https://cwe.mitre.org/data/definitions/347.html",
+          "license": "MITRE CWE Terms of Use"
+        },
+        {
+          "title": "RFC 2104: HMAC: Keyed-Hashing for Message Authentication",
+          "publisher": "IETF",
+          "url": "https://www.rfc-editor.org/rfc/rfc2104.html",
+          "license": "IETF Trust Legal Provisions"
+        },
+        {
+          "title": "hmac: compare_digest",
+          "publisher": "Python Software Foundation",
+          "url": "https://docs.python.org/3/library/hmac.html",
+          "license": "PSF-2.0"
+        }
+      ],
+      "tags": [
+        "webhooks",
+        "hmac",
+        "replay"
+      ]
+    },
+    {
+      "id": "sdlc-stride-001",
+      "subtopic": "threat-modeling",
+      "difficulty": "intermediate",
+      "title": "STRIDE turns a data-flow diagram into concrete threats",
+      "fact": "STRIDE groups threats into Spoofing, Tampering, Repudiation, Information disclosure, Denial of service and Elevation of privilege, each tied to a security property the system must preserve. Apply the categories to every element of a data-flow diagram and to every trust boundary the data crosses, rather than to the system as a vague whole. The output should be concrete scenarios and testable requirements, for example 'a user cannot read another tenant's invoice', not a list of category names.",
+      "details": [
+        "Spoofing maps to authentication, Tampering to integrity, Repudiation to audit, Information disclosure to confidentiality, Denial of service to availability, and Elevation of privilege to authorization.",
+        "Threats cluster at trust boundaries: browser to API, API to database, service to third party, and build system to production.",
+        "Pair the model with abuse cases and attack trees so design-time threats become backlog items with owners."
+      ],
+      "mcqs": [
+        {
+          "question": "Which STRIDE category covers a user reading another tenant's records?",
+          "options": [
+            "Information disclosure",
+            "Repudiation",
+            "Denial of service",
+            "Spoofing"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "Confidentiality is violated when data is exposed to an unauthorized party. Repudiation concerns denying an action, denial of service concerns availability, and spoofing concerns identity."
+        }
+      ],
+      "references": [
+        {
+          "title": "Threat Modeling Cheat Sheet",
+          "publisher": "OWASP Cheat Sheet Series",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/Threat_Modeling_Cheat_Sheet.html",
+          "license": "CC-BY-SA-4.0"
+        },
+        {
+          "title": "OWASP Application Security Verification Standard",
+          "publisher": "OWASP",
+          "url": "https://owasp.org/www-project-application-security-verification-standard/",
+          "license": "CC-BY-SA-4.0"
+        }
+      ],
+      "tags": [
+        "stride",
+        "threat-modeling",
+        "design"
+      ]
+    },
+    {
+      "id": "sdlc-requirements-001",
+      "subtopic": "security-requirements",
+      "difficulty": "intermediate",
+      "title": "Security requirements must be testable acceptance criteria",
+      "fact": "A requirement such as 'the service must be secure' cannot be implemented or verified, so it produces no engineering work. Write requirements as observable conditions with a verification method, for example 'password reset tokens are single-use, expire within 15 minutes and are invalidated after use' checked by an automated test. Derive them from abuse cases, data classification, the chosen ASVS level and regulatory obligations, and keep them in the same backlog as functional work.",
+      "details": [
+        "Attach a verification method to each requirement: unit test, integration test, configuration check, review or penetration test.",
+        "Include negative requirements, such as what must never appear in logs or API responses.",
+        "Review requirements when the data flow or trust boundary changes, not only at project start."
+      ],
+      "mcqs": [
+        {
+          "question": "Which is a usable security requirement?",
+          "options": [
+            "Session cookies are HttpOnly, Secure and SameSite=Lax, verified by an automated header test",
+            "The application must be secure",
+            "Developers should follow best practices",
+            "Use encryption everywhere"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "Only the first names an observable property and how to verify it. The others are aspirations that cannot pass or fail a test."
+        }
+      ],
+      "references": [
+        {
+          "title": "OWASP Application Security Verification Standard",
+          "publisher": "OWASP",
+          "url": "https://owasp.org/www-project-application-security-verification-standard/",
+          "license": "CC-BY-SA-4.0"
+        },
+        {
+          "title": "NIST SP 800-218: Secure Software Development Framework",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/218/final",
+          "license": "Public domain (US Government)"
+        },
+        {
+          "title": "OWASP Proactive Controls",
+          "publisher": "OWASP",
+          "url": "https://owasp.org/www-project-proactive-controls/",
+          "license": "CC-BY-SA-4.0"
+        }
+      ],
+      "tags": [
+        "requirements",
+        "asvs",
+        "acceptance-criteria"
+      ]
+    },
+    {
+      "id": "sdlc-review-checklist-001",
+      "subtopic": "code-review",
+      "difficulty": "intermediate",
+      "title": "A code review checklist works when it is diff-scoped and specific",
+      "fact": "Security review checklists help because reviewers under time pressure notice what they are prompted to look for, but long generic lists get skimmed. Scope each item to the change under review: does every new route declare an authorization policy, is every query parameterised, is every output encoded for its context, did any secret or debug flag enter the diff, and is each new dependency justified and pinned. Keep the list short, attach examples of the secure pattern used in the codebase, and treat it as a floor rather than a replacement for threat modelling.",
+      "details": [
+        "Review the tests as well: a security fix without a regression test tends to regress.",
+        "Diff-scoped review misses design flaws that span files; escalate changes to trust boundaries or authentication flows.",
+        "Record accepted risks explicitly so a later reviewer knows the omission was deliberate."
+      ],
+      "mcqs": [
+        {
+          "question": "What makes a security review checklist effective?",
+          "options": [
+            "Short, specific items tied to the changed code and the project's own secure patterns",
+            "Covering every known vulnerability class in one long list",
+            "Requiring a security team member on every pull request",
+            "Running it only before a release"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "Specific prompts fit the reviewer's actual context and are more likely to be applied. Exhaustive lists invite skimming, staffing every review is usually impractical, and release-time review is too late."
+        }
+      ],
+      "references": [
+        {
+          "title": "OWASP Code Review Guide",
+          "publisher": "OWASP",
+          "url": "https://owasp.org/www-project-code-review-guide/",
+          "license": "CC-BY-SA-4.0"
+        },
+        {
+          "title": "OWASP Proactive Controls",
+          "publisher": "OWASP",
+          "url": "https://owasp.org/www-project-proactive-controls/",
+          "license": "CC-BY-SA-4.0"
+        }
+      ],
+      "tags": [
+        "code-review",
+        "checklist",
+        "sdlc"
+      ]
+    },
+    {
+      "id": "web-race-db-001",
+      "subtopic": "race-conditions",
+      "difficulty": "advanced",
+      "title": "Read-modify-write balances need an atomic predicate, not an application check",
+      "fact": "A double-spend race occurs when two requests read the same balance, both pass an application-level check, and both write a new value, so one update is lost or the balance goes negative. Under READ COMMITTED, each statement sees a fresh snapshot but concurrent updates can still overwrite each other unless the predicate is re-evaluated under a lock. Make the check and the write one statement, such as UPDATE ... WHERE balance >= :amount, and require exactly one affected row; alternatively lock the row with SELECT FOR UPDATE or use SERIALIZABLE with retry.",
+      "details": [
+        "Check the affected row count, not just the absence of an exception; zero rows means the predicate failed.",
+        "Unique constraints enforce one-per-user invariants such as a single redemption or a single idempotency key.",
+        "Serializable isolation can abort transactions with a serialization failure, so the application must retry deliberately."
+      ],
+      "code": [
+        {
+          "language": "sql",
+          "vulnerable": "-- VULNERABLE (illustrative): read, check in application, then write\nSELECT balance FROM accounts WHERE id = 42;\n-- application checks balance >= 100, then:\nUPDATE accounts SET balance = balance - 100 WHERE id = 42;",
+          "secure": "-- SECURE: the check and the write are one atomic statement\nUPDATE accounts\n   SET balance = balance - 100\n WHERE id = 42\n   AND balance >= 100;\n-- application requires rowcount = 1, otherwise returns 409",
+          "issue": "Two concurrent transactions can both read the old balance and both decrement, producing a negative balance. The conditional UPDATE re-evaluates the predicate while holding the row lock; isolation level and retry policy still matter."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Which application pattern prevents a concurrent double spend?",
+          "options": [
+            "A single conditional UPDATE that requires balance >= amount and checks the affected row count",
+            "Reading the balance twice before updating",
+            "Wrapping the read and write in a try/except block",
+            "Caching the balance in the application"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "Only the atomic predicate makes the decision and the write indivisible. Re-reading, exception handling and caching all leave a window or serve stale data."
+        }
+      ],
+      "references": [
+        {
+          "title": "PostgreSQL: Transaction Isolation",
+          "publisher": "PostgreSQL Global Development Group",
+          "url": "https://www.postgresql.org/docs/current/transaction-iso.html",
+          "license": "PostgreSQL License"
+        },
+        {
+          "title": "PostgreSQL: Explicit Locking",
+          "publisher": "PostgreSQL Global Development Group",
+          "url": "https://www.postgresql.org/docs/current/explicit-locking.html",
+          "license": "PostgreSQL License"
+        },
+        {
+          "title": "CWE-362: Concurrent Execution using Shared Resource with Improper Synchronization",
+          "publisher": "MITRE",
+          "url": "https://cwe.mitre.org/data/definitions/362.html",
+          "license": "MITRE CWE Terms of Use"
+        }
+      ],
+      "tags": [
+        "race-condition",
+        "double-spend",
+        "transactions"
+      ]
+    },
+    {
+      "id": "api-jwt-jku-001",
+      "subtopic": "jwt",
+      "difficulty": "advanced",
+      "title": "jku, x5u and embedded jwk let the attacker supply the key",
+      "fact": "JWS headers can carry key discovery hints: jku points to a JSON Web Key Set, x5u points to a certificate chain, and jwk embeds a key directly. These values are attacker-controlled until the signature is verified, so a verifier that fetches or trusts them will accept a token signed by a key the attacker chose. Ignore these headers for trust decisions, load keys only from a pinned issuer JWKS, and validate that the selected key belongs to the expected issuer, algorithm and use. Fetching a token-supplied URL also creates an SSRF path.",
+      "details": [
+        "If multiple issuers are supported, map issuer to JWKS URL server-side and never derive the URL from the token.",
+        "Reject redirects and non-HTTPS URLs in any key-fetch client, and cache the trusted key set.",
+        "A trusted JWKS can still be poisoned if the identity provider is compromised; monitor key changes and pin certificate roots where appropriate."
+      ],
+      "code": [
+        {
+          "language": "python",
+          "vulnerable": "# VULNERABLE (illustrative): the token points at its own key set\nimport jwt\nimport requests\n\ndef verify(token: str):\n    header = jwt.get_unverified_header(token)\n    jwks = requests.get(header['jku'], timeout=5).json()   # attacker URL\n    key = jwks['keys'][0]\n    return jwt.decode(token, jwt.algorithms.RSAAlgorithm.from_jwk(key),\n                      algorithms=['RS256'])",
+          "secure": "# SECURE: ignore token-supplied key URLs; use the issuer's pinned JWKS\nimport jwt\n\nTRUSTED_JWKS = load_jwks('https://idp.example.internal/.well-known/jwks.json')\n\ndef verify(token: str):\n    header = jwt.get_unverified_header(token)\n    key = select_key(TRUSTED_JWKS, header.get('kid'))\n    return jwt.decode(token, key, algorithms=['RS256'],\n                      issuer=ISSUER, audience=AUD)",
+          "issue": "jku, x5u and embedded jwk let the attacker supply both the signature and the key that checks it. Only a key set fetched from a pinned issuer URL belongs in the trust decision."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "A verifier reads the jku header and fetches the key set from that URL. What is the consequence?",
+          "options": [
+            "The attacker can sign a token with their own key and point the verifier at it",
+            "The token becomes encrypted",
+            "The signature algorithm is automatically upgraded",
+            "The token expiry is extended"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "The key source is part of the trust decision; letting the token choose it makes any attacker-generated key valid. jku does not encrypt, upgrade the algorithm or affect expiry."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "Any URL in a JWT header is safe to fetch because the token will be verified afterwards.",
+          "correction": "The header is read before verification, so an attacker controls jku, x5u and embedded jwk. Fetching it can reach internal services and can supply the very key that validates the forged token."
+        }
+      ],
+      "references": [
+        {
+          "title": "RFC 7515: JSON Web Signature (JWS), section 4.1",
+          "publisher": "IETF",
+          "url": "https://www.rfc-editor.org/rfc/rfc7515.html",
+          "license": "IETF Trust Legal Provisions"
+        },
+        {
+          "title": "JSON Web Token Cheat Sheet",
+          "publisher": "OWASP Cheat Sheet Series",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/JSON_Web_Token_Cheat_Sheet.html",
+          "license": "CC-BY-SA-4.0"
+        },
+        {
+          "title": "CWE-347: Improper Verification of Cryptographic Signature",
+          "publisher": "MITRE",
+          "url": "https://cwe.mitre.org/data/definitions/347.html",
+          "license": "MITRE CWE Terms of Use"
+        }
+      ],
+      "tags": [
+        "jwt",
+        "jku",
+        "jwks",
+        "key-confusion"
+      ]
+    },
+    {
+      "id": "api-oauth-audience-001",
+      "subtopic": "oauth",
+      "difficulty": "advanced",
+      "title": "Resource servers must check that the token was minted for them",
+      "fact": "An OAuth access token is scoped to a resource audience, and a resource server that accepts any valid token from the issuer ignores that restriction. Token passthrough, where service A forwards a user's token to service B, compounds the problem: B may authorize the call as if the user had addressed it directly, and the token's audience no longer reflects the actual recipient. Validate audience, issuer, expiry and scopes locally on every service, reject ID tokens as access tokens, and use a separate token or an on-behalf-of exchange for downstream calls.",
+      "details": [
+        "ID tokens are evidence for the client about authentication; they are not credentials for calling APIs.",
+        "Scope checks are necessary but not sufficient: a token with the right scope for the wrong audience must still fail.",
+        "In multi-tenant systems, bind tenant identity to the issuer and audience rather than trusting a claim in isolation."
+      ],
+      "mcqs": [
+        {
+          "question": "Service A forwards a user's access token to service B. What is the core problem?",
+          "options": [
+            "The token's audience was A, so B cannot assume the user authorized B",
+            "Access tokens cannot be sent over HTTP",
+            "B will be unable to verify the signature",
+            "The token automatically expires during forwarding"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "Audience expresses the intended recipient; forwarding breaks that binding and can turn one service's authorization into another's. Signatures remain verifiable and TLS is independent."
+        }
+      ],
+      "references": [
+        {
+          "title": "RFC 9700: Best Current Practice for OAuth 2.0 Security, token audience and passthrough",
+          "publisher": "IETF",
+          "url": "https://www.rfc-editor.org/rfc/rfc9700.html",
+          "license": "IETF Trust Legal Provisions"
+        },
+        {
+          "title": "RFC 7519: JSON Web Token (JWT), section 4.1.3",
+          "publisher": "IETF",
+          "url": "https://www.rfc-editor.org/rfc/rfc7519.html",
+          "license": "IETF Trust Legal Provisions"
+        },
+        {
+          "title": "OAuth 2.0 Protocol Cheat Sheet",
+          "publisher": "OWASP Cheat Sheet Series",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/OAuth2_Cheat_Sheet.html",
+          "license": "CC-BY-SA-4.0"
+        }
+      ],
+      "tags": [
+        "oauth",
+        "audience",
+        "token-passthrough"
+      ]
+    },
+    {
+      "id": "api-graphql-001",
+      "subtopic": "graphql",
+      "difficulty": "advanced",
+      "title": "GraphQL needs depth, cost and field-level authorization limits",
+      "fact": "GraphQL exposes one endpoint that accepts a client-authored document, so a single request can nest deeply, alias the same expensive field many times, or batch several operations. Depth and cost limits, pagination caps, timeouts and query allowlisting bound resource consumption, while authorization must be enforced per field or resolver rather than only at the route. Introspection and the interactive explorer are development aids; disabling them reduces information exposure but is not an authorization control.",
+      "details": [
+        "Batching and aliasing can bypass a naive per-request rate limit; count operations or cost, not just HTTP requests.",
+        "Persisted or allowlisted queries work well for first-party clients and eliminate arbitrary document shapes.",
+        "Errors should not reveal internal field names or resolver traces in production."
+      ],
+      "code": [
+        {
+          "language": "javascript",
+          "vulnerable": "// VULNERABLE (illustrative): unlimited document shape, explorer in production\napp.use('/graphql', requireAuth, graphqlHTTP({\n  schema,\n  graphiql: true,\n}));",
+          "secure": "// SECURE: bound depth and cost, disable the explorer, authorise in resolvers\nconst depthLimit = require('graphql-depth-limit');\nconst { createComplexityLimitRule } = require('graphql-validation-complexity');\n\nconst rules = [depthLimit(8), createComplexityLimitRule(1000)];\n\napp.use('/graphql', requireAuth, graphqlHTTP({\n  schema,\n  graphiql: false,\n  validationRules: rules,\n}));",
+          "issue": "A single deeply nested or heavily aliased document can multiply resolver work, and route-level authentication does not decide field access. Validation rules bound the document before execution, and each resolver still checks the caller's rights."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Why does route-level authentication not secure a GraphQL API?",
+          "options": [
+            "The client chooses which fields and objects to request, so authorization must be enforced per resolver",
+            "GraphQL cannot read HTTP headers",
+            "GraphQL always bypasses TLS",
+            "Introspection disables authentication"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "Authentication at the endpoint identifies the caller, but the document selects the data and operations. Each field or object needs its own authorization decision."
+        }
+      ],
+      "references": [
+        {
+          "title": "GraphQL Cheat Sheet",
+          "publisher": "OWASP Cheat Sheet Series",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/GraphQL_Cheat_Sheet.html",
+          "license": "CC-BY-SA-4.0"
+        },
+        {
+          "title": "API4:2023 Unrestricted Resource Consumption",
+          "publisher": "OWASP API Security Top 10",
+          "url": "https://owasp.org/API-Security/editions/2023/en/0xa4-unrestricted-resource-consumption/",
+          "license": "CC-BY-SA-4.0"
+        },
+        {
+          "title": "CWE-770: Allocation of Resources Without Limits or Throttling",
+          "publisher": "MITRE",
+          "url": "https://cwe.mitre.org/data/definitions/770.html",
+          "license": "MITRE CWE Terms of Use"
+        }
+      ],
+      "tags": [
+        "graphql",
+        "authorization",
+        "resource-limits"
+      ]
+    },
+    {
+      "id": "api-mtls-001",
+      "subtopic": "mtls",
+      "difficulty": "advanced",
+      "title": "mTLS authenticates the client workload only if the chain is verified",
+      "fact": "Mutual TLS asks the client for a certificate during the handshake, so it authenticates a workload or device rather than an end user. The server must request the certificate, verify it against a private trust anchor, check that it is valid for client authentication, and map its subject or SAN to a known client; merely seeing a certificate proves nothing. Terminate at a trusted proxy, strip any inbound client-certificate headers, handle revocation and rotate certificates before expiry.",
+      "details": [
+        "Check the extended key usage for clientAuth; a server certificate should not authenticate a client.",
+        "Do not trust an X-Client-Cert or X-Forwarded-Client-Cert header unless the proxy is the only path to the service and overwrites it.",
+        "mTLS does not replace user authentication or per-object authorization."
+      ],
+      "configs": [
+        {
+          "language": "nginx",
+          "snippet": "server {\n  listen 443 ssl;\n  ssl_client_certificate /etc/nginx/trust/client-ca.pem;\n  ssl_verify_client on;\n  ssl_verify_depth 3;\n  location /internal/ {\n    if ($ssl_client_verify != SUCCESS) { return 403; }\n    proxy_set_header X-Client-Subject $ssl_client_s_dn;\n    proxy_pass http://orders.internal;\n  }\n}",
+          "purpose": "Require a client certificate signed by the internal CA and forward the verified subject to the backend."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "What does a verified client certificate prove?",
+          "options": [
+            "The client workload holds a private key for a certificate trusted by the server",
+            "The end user has passed multi-factor authentication",
+            "The request body has not been modified",
+            "The client is authorized for every API operation"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "mTLS authenticates the workload at the transport layer. It says nothing about the user, message integrity after TLS termination, or authorization scope."
+        }
+      ],
+      "references": [
+        {
+          "title": "Transport Layer Security Cheat Sheet",
+          "publisher": "OWASP Cheat Sheet Series",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/Transport_Layer_Security_Cheat_Sheet.html",
+          "license": "CC-BY-SA-4.0"
+        },
+        {
+          "title": "RFC 8446: The Transport Layer Security (TLS) Protocol Version 1.3",
+          "publisher": "IETF",
+          "url": "https://www.rfc-editor.org/rfc/rfc8446.html",
+          "license": "IETF Trust Legal Provisions"
+        }
+      ],
+      "tags": [
+        "mtls",
+        "tls",
+        "workload-identity"
+      ]
+    },
+    {
+      "id": "api-versioning-001",
+      "subtopic": "api-lifecycle",
+      "difficulty": "advanced",
+      "title": "Old API versions are an attack surface that outlives the documentation",
+      "fact": "Every supported API version is a separate contract with its own parsers, authorization checks and bug fixes, so a version left running after migration keeps old weaknesses reachable. Version the schema explicitly, apply security fixes to every supported version or retire it, and announce deprecation with the Deprecation and Sunset response headers while monitoring who still calls the old surface. Never let an older version skip an authorization or validation rule that was added to the current one.",
+      "details": [
+        "Inventory versions, hosts and undocumented endpoints; shadow APIs are a common cause of forgotten exposure.",
+        "Prefer additive changes within a version and reserve breaking changes for a new major version.",
+        "Set a removal date and verify that monitoring shows no legitimate traffic before shutting a version down."
+      ],
+      "configs": [
+        {
+          "language": "http",
+          "snippet": "GET /v1/orders HTTP/1.1\nHost: api.example.internal\nAccept: application/json\n\nHTTP/1.1 200 OK\nDeprecation: @1767225600\nSunset: Wed, 01 Jul 2026 00:00:00 GMT\nLink: <https://api.example.internal/v2/orders>; rel=\"successor-version\"",
+          "purpose": "Signal deprecation and a removal date in standard headers while pointing clients at the successor version."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Why is a forgotten /v1 endpoint a security problem?",
+          "options": [
+            "It can retain old validation or authorization weaknesses after the current version is fixed",
+            "It automatically weakens TLS for the whole host",
+            "It prevents the current version from using JSON",
+            "It disables logging for all requests"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "Security fixes are code changes per version; an unmaintained route keeps the old behaviour reachable. It does not change TLS, media types or global logging by itself."
+        }
+      ],
+      "references": [
+        {
+          "title": "RFC 8594: The Sunset HTTP Header Field",
+          "publisher": "IETF",
+          "url": "https://www.rfc-editor.org/rfc/rfc8594.html",
+          "license": "IETF Trust Legal Provisions"
+        },
+        {
+          "title": "RFC 9745: The Deprecation HTTP Response Header Field",
+          "publisher": "IETF",
+          "url": "https://www.rfc-editor.org/rfc/rfc9745.html",
+          "license": "IETF Trust Legal Provisions"
+        },
+        {
+          "title": "API9:2023 Improper Inventory Management",
+          "publisher": "OWASP API Security Top 10",
+          "url": "https://owasp.org/API-Security/editions/2023/en/0xa9-improper-inventory-management/",
+          "license": "CC-BY-SA-4.0"
+        }
+      ],
+      "tags": [
+        "versioning",
+        "deprecation",
+        "api-inventory"
+      ]
+    },
+    {
+      "id": "sdlc-dependency-pinning-001",
+      "subtopic": "supply-chain",
+      "difficulty": "advanced",
+      "title": "Pin with lockfiles and hashes, then patch deliberately",
+      "fact": "A range such as >=1.2 or ^4.0 lets a fresh install resolve to a different artifact than the one that was tested, and a registry compromise can substitute bytes even for an unchanged version. Commit a lockfile, install with npm ci or pip --require-hashes, and record artifact hashes so the build fails on a mismatch. Pinning is not the whole control: it freezes a malicious release just as effectively as a good one, so add review of new transitive dependencies, private-registry scoping and an SBOM.",
+      "details": [
+        "Dependency confusion exploits unscoped private package names resolved from a public registry; scope the name and pin the registry.",
+        "Automated update bots are useful only with tests and a review step for major or install-script changes.",
+        "Record provenance where the ecosystem supports it, and verify signatures or attestations at build time."
+      ],
+      "configs": [
+        {
+          "language": "requirements.txt",
+          "snippet": "# Placeholder digests: generate real values with pip-compile --generate-hashes\nflask==3.1.0 \\\n    --hash=sha256:0000000000000000000000000000000000000000000000000000000000000000\nrequests==2.32.3 \\\n    --hash=sha256:0000000000000000000000000000000000000000000000000000000000000000",
+          "purpose": "Pin exact versions and require a matching artifact hash so a substituted or re-tagged release is rejected."
+        }
+      ],
+      "commands": [
+        {
+          "language": "bash",
+          "code": "pip install --require-hashes -r requirements.txt",
+          "purpose": "Refuse to install any artifact whose digest does not match the lock file."
+        },
+        {
+          "language": "bash",
+          "code": "npm ci",
+          "purpose": "Install exactly the dependency tree recorded in package-lock.json instead of resolving fresh ranges."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "What does a hash-pinned requirements file protect against that a version pin alone does not?",
+          "options": [
+            "A registry serving different bytes for the same version",
+            "A vulnerability in the pinned package's own code",
+            "A developer importing the wrong module",
+            "A missing TLS certificate on the API"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "A version string identifies a label, not content; hashes bind the install to exact bytes. They cannot fix a flaw inside the chosen release, which is why patching and review remain necessary."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "Pinning every dependency to an exact version makes the supply chain secure.",
+          "correction": "Pinning makes builds reproducible and blocks silent substitution, but it also freezes a compromised or vulnerable release. You still need vulnerability monitoring, review of new transitive code, registry scoping and timely upgrades."
+        }
+      ],
+      "references": [
+        {
+          "title": "Vulnerable Dependency Management Cheat Sheet",
+          "publisher": "OWASP Cheat Sheet Series",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/Vulnerable_Dependency_Management_Cheat_Sheet.html",
+          "license": "CC-BY-SA-4.0"
+        },
+        {
+          "title": "Software Supply Chain Security Cheat Sheet",
+          "publisher": "OWASP Cheat Sheet Series",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/Software_Supply_Chain_Security_Cheat_Sheet.html",
+          "license": "CC-BY-SA-4.0"
+        },
+        {
+          "title": "CWE-1104: Use of Unmaintained Third Party Components",
+          "publisher": "MITRE",
+          "url": "https://cwe.mitre.org/data/definitions/1104.html",
+          "license": "MITRE CWE Terms of Use"
+        }
+      ],
+      "tags": [
+        "dependencies",
+        "lockfile",
+        "supply-chain"
+      ]
+    },
+    {
+      "id": "sdlc-sast-dast-sca-001",
+      "subtopic": "tooling",
+      "difficulty": "advanced",
+      "title": "SAST, DAST and SCA each see a different slice of the truth",
+      "fact": "Static analysis reads source and data flow without running the system, so it can find dangerous patterns early but cannot see production configuration and produces many false positives. Dynamic analysis tests a running instance, so it sees real behaviour but only on reachable paths and without source context. Software composition analysis maps dependencies to known vulnerabilities but cannot tell whether the vulnerable function is called or whether custom code has the same flaw. Use all three as inputs to triage, threat modelling and manual review, not as a security score.",
+      "details": [
+        "Tune rules to the codebase and record accepted false positives, otherwise alerts are ignored.",
+        "Correlate SCA findings with reachability and exploitability before assigning severity.",
+        "Scanner coverage is not evidence of absence: business-logic and authorization flaws rarely appear in any of the three."
+      ],
+      "mcqs": [
+        {
+          "question": "Which class of flaw is most likely to be missed by all of SAST, DAST and SCA?",
+          "options": [
+            "A missing object-level authorization check that is logically consistent in the code",
+            "A dependency with a published CVE",
+            "A reflected cross-site scripting sink in a template",
+            "A hard-coded password literal"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "BOLA is a design and logic flaw: the code may look correct and the endpoint may behave as written. Dependency CVEs, reflected XSS and hard-coded secrets are the kinds of patterns the tools target."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "A clean scanner report means the application is secure.",
+          "correction": "Scanners cover known patterns and reachable paths; they do not understand business rules, trust boundaries or whether a finding is exploitable in context. A clean report is one input, not a conclusion."
+        }
+      ],
+      "references": [
+        {
+          "title": "Vulnerable Dependency Management Cheat Sheet",
+          "publisher": "OWASP Cheat Sheet Series",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/Vulnerable_Dependency_Management_Cheat_Sheet.html",
+          "license": "CC-BY-SA-4.0"
+        },
+        {
+          "title": "OWASP Web Security Testing Guide",
+          "publisher": "OWASP",
+          "url": "https://owasp.org/www-project-web-security-testing-guide/",
+          "license": "CC-BY-SA-4.0"
+        },
+        {
+          "title": "OWASP Code Review Guide",
+          "publisher": "OWASP",
+          "url": "https://owasp.org/www-project-code-review-guide/",
+          "license": "CC-BY-SA-4.0"
+        }
+      ],
+      "tags": [
+        "sast",
+        "dast",
+        "sca",
+        "tooling"
+      ]
+    },
+    {
+      "id": "sdlc-threat-boundaries-001",
+      "subtopic": "threat-modeling",
+      "difficulty": "advanced",
+      "title": "Every trust boundary is where verification must change hands",
+      "fact": "A trust boundary is any line across which data or control passes between parties with different privileges: browser to API, API to database, service to third party, build system to production, or one tenant to another. At each boundary, ask who authenticates the caller, what is validated on arrival, which credentials are used onward, and what is logged; threats cluster there because assumptions change. Draw the boundaries explicitly, mark where data is untrusted, and do not let a claim or header cross a boundary without local verification.",
+      "details": [
+        "A gateway that authenticates does not remove the need for the service behind it to authorize the request.",
+        "Headers such as X-User-Id are trustworthy only if the edge strips client-supplied copies and the service is unreachable otherwise.",
+        "Tenant boundaries deserve the same treatment as network boundaries, especially in shared databases and caches."
+      ],
+      "mcqs": [
+        {
+          "question": "An API gateway authenticates users and forwards X-User-Id to backend services. What else is required?",
+          "options": [
+            "The edge must strip client-supplied X-User-Id and services must authorize the request locally",
+            "Nothing; authentication at the gateway is sufficient",
+            "Backends should trust any X-User-Id because it is an internal header",
+            "The header should be moved into the URL query string"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "Headers are just data unless the path is controlled; clients can send their own copies if the edge does not overwrite them. Authentication also does not decide authorization for each object."
+        }
+      ],
+      "references": [
+        {
+          "title": "Threat Modeling Cheat Sheet",
+          "publisher": "OWASP Cheat Sheet Series",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/Threat_Modeling_Cheat_Sheet.html",
+          "license": "CC-BY-SA-4.0"
+        },
+        {
+          "title": "OWASP ASVS: Architecture, Design and Threat Modelling",
+          "publisher": "OWASP",
+          "url": "https://owasp.org/www-project-application-security-verification-standard/",
+          "license": "CC-BY-SA-4.0"
+        },
+        {
+          "title": "NIST SP 800-218: Secure Software Development Framework",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/218/final",
+          "license": "Public domain (US Government)"
+        }
+      ],
+      "tags": [
+        "trust-boundary",
+        "threat-modeling",
+        "architecture"
+      ]
+    },
+    {
+      "id": "rev-python-001",
+      "subtopic": "code-review",
+      "difficulty": "advanced",
+      "title": "Review: Django raw SQL and mark_safe are the usual Python doors",
+      "fact": "In a Python review, trace every value from request to interpreter: f-strings or % formatting passed to cursor.execute, RawSQL and extra(where=...) reach SQL as syntax, while mark_safe, the safe filter and format_html misuse reach HTML unescaped. Django templates autoescape by default, so an XSS finding almost always involves an explicit bypass or a JavaScript context the template engine does not escape. Replace interpolation with bound parameters, replace mark_safe with format_html or normal escaping, and pass structured data to scripts with json_script.",
+      "details": [
+        "format_html escapes its arguments but not the literal format string, so the format string must be developer-controlled.",
+        "A stored value that was 'sanitised' on input can still be dangerous when later rendered into a different context.",
+        "Check custom template tags: a tag that returns SafeString re-opens the same class of bug."
+      ],
+      "code": [
+        {
+          "language": "python",
+          "vulnerable": "# VULNERABLE (illustrative): f-string SQL and an unescaped response\nfrom django.http import HttpResponse\nfrom django.utils.safestring import mark_safe\n\ndef search(request):\n    term = request.GET['q']\n    rows = cursor.execute(\n        f\"SELECT id, title FROM docs WHERE title LIKE '%{term}%'\"\n    ).fetchall()\n    return HttpResponse(mark_safe('<br>'.join(r[1] for r in rows)))",
+          "secure": "# SECURE: bound parameter and escaped HTML fragments\nfrom django.http import HttpResponse\nfrom django.utils.html import format_html_join\n\ndef search(request):\n    term = request.GET['q']\n    rows = cursor.execute(\n        \"SELECT id, title FROM docs WHERE title LIKE %s\", [f'%{term}%']\n    ).fetchall()\n    return HttpResponse(\n        format_html_join('', '<br>{}', ((r[1],) for r in rows))\n    )",
+          "issue": "The f-string lets q change the SQL, and mark_safe disables escaping for every stored title. A bound parameter fixes the query, and format_html_join escapes each title while keeping the developer-written markup."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Which Django pattern re-enables XSS after a template was otherwise safe?",
+          "options": [
+            "Returning mark_safe(user_controlled_text)",
+            "Using {{ value }} in an HTML body",
+            "Using format_html with a constant format string",
+            "Passing data through json_script"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "mark_safe tells the template engine the string is trusted, so escaping is skipped. The other options either escape automatically or serialise data safely."
+        }
+      ],
+      "references": [
+        {
+          "title": "Django security overview",
+          "publisher": "Django Software Foundation",
+          "url": "https://docs.djangoproject.com/en/stable/topics/security/",
+          "license": "BSD-3-Clause"
+        },
+        {
+          "title": "SQL Injection Prevention Cheat Sheet",
+          "publisher": "OWASP Cheat Sheet Series",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.html",
+          "license": "CC-BY-SA-4.0"
+        },
+        {
+          "title": "CWE-89: Improper Neutralization of Special Elements used in an SQL Command",
+          "publisher": "MITRE",
+          "url": "https://cwe.mitre.org/data/definitions/89.html",
+          "license": "MITRE CWE Terms of Use"
+        }
+      ],
+      "tags": [
+        "code-review",
+        "django",
+        "sqli",
+        "xss"
+      ]
+    },
+    {
+      "id": "rev-node-001",
+      "subtopic": "code-review",
+      "difficulty": "advanced",
+      "title": "Review: Express handlers that concatenate request data into HTML",
+      "fact": "Express does not escape strings passed to res.send, and a string body defaults to text/html, so a handler that concatenates req.query or req.params into markup is a reflected XSS sink. The same risk appears in template engines when a developer uses the unescaped form, such as <%- %> in EJS, or builds HTML fragments on the client with innerHTML. Render through an auto-escaping template, keep the escaped form for data, validate URL-valued attributes, and add a restrictive CSP as defence in depth.",
+      "details": [
+        "res.json is appropriate for JSON, but setting a text/html content type on JSON-like data can still be interpreted by a browser.",
+        "Helmet sets useful headers but does not encode output; it cannot fix a concatenation sink.",
+        "Review error handlers and redirect pages too, since they often echo the requested path."
+      ],
+      "code": [
+        {
+          "language": "javascript",
+          "vulnerable": "// VULNERABLE (illustrative): request data concatenated into HTML\napp.get('/search', (req, res) => {\n  res.send('<h1>Results for ' + req.query.q + '</h1>');\n});",
+          "secure": "// SECURE: render through an auto-escaping template\napp.get('/search', (req, res) => {\n  res.render('search', { q: String(req.query.q ?? '') });\n});\n// views/search.ejs: <h1>Results for <%= q %></h1>",
+          "issue": "The vulnerable response parses markup supplied in q. EJS escapes with <%= %> and leaves <%- %> raw, so the choice of tag is security-relevant; a CSP limits damage if another sink is missed."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "In EJS, which tag writes an unescaped value into HTML?",
+          "options": [
+            "<%- value %>",
+            "<%= value %>",
+            "<%# value %>",
+            "<% value %>"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "<%- %> inserts raw output, while <%= %> escapes. <%# %> is a comment and <% %> executes control flow without emitting a value."
+        }
+      ],
+      "references": [
+        {
+          "title": "Express security best practices",
+          "publisher": "Express",
+          "url": "https://expressjs.com/en/advanced/best-practice-security.html",
+          "license": "MIT"
+        },
+        {
+          "title": "Cross Site Scripting Prevention Cheat Sheet",
+          "publisher": "OWASP Cheat Sheet Series",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/Cross_Site_Scripting_Prevention_Cheat_Sheet.html",
+          "license": "CC-BY-SA-4.0"
+        },
+        {
+          "title": "CWE-79: Improper Neutralization of Input During Web Page Generation",
+          "publisher": "MITRE",
+          "url": "https://cwe.mitre.org/data/definitions/79.html",
+          "license": "MITRE CWE Terms of Use"
+        }
+      ],
+      "tags": [
+        "code-review",
+        "express",
+        "xss",
+        "templates"
+      ]
+    },
+    {
+      "id": "rev-sql-001",
+      "subtopic": "code-review",
+      "difficulty": "advanced",
+      "title": "Review: ORDER BY and column names cannot be bound, so map them",
+      "fact": "A review that only looks for string concatenation in WHERE clauses misses the common reporting pattern where a sort key or column name from the query string is interpolated into ORDER BY. Placeholders represent values, not identifiers, so the developer often concludes that concatenation is unavoidable. Map each allowed user choice to a constant SQL fragment and fall back to a fixed default, and apply the same mapping to dynamic SELECT lists, table names and report builders.",
+      "details": [
+        "Second-order injection is easy to miss: a value stored safely can be concatenated into a later query by a different code path.",
+        "A CASE expression can implement data-driven ordering without inserting the user's text into the statement.",
+        "Review generated SQL in logs during tests to see whether values or syntax were interpolated."
+      ],
+      "code": [
+        {
+          "language": "python",
+          "vulnerable": "# VULNERABLE (illustrative): sort and direction reach the SQL text\nsort = request.args.get('sort', 'created_at')\ndirection = request.args.get('dir', 'desc')\nsql = f\"SELECT id, total FROM invoices ORDER BY {sort} {direction}\"\nrows = db.execute(sql).fetchall()",
+          "secure": "# SECURE: map user choices to fixed SQL fragments\nSORT = {'created': 'created_at', 'total': 'total'}\nDIR = {'asc': 'ASC', 'desc': 'DESC'}\n\ncol = SORT.get(request.args.get('sort'), 'created_at')\ndirn = DIR.get(request.args.get('dir'), 'DESC')\nsql = f\"SELECT id, total FROM invoices ORDER BY {col} {dirn}\"\nrows = db.execute(sql).fetchall()",
+          "issue": "The vulnerable version accepts arbitrary identifiers and keywords, which placeholders cannot bind. The allowlist keeps the SQL grammar fixed even though an f-string is still used for the constant fragments."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Why can't ORDER BY be fixed with a normal bind parameter?",
+          "options": [
+            "Parameters represent values, while ORDER BY expects an identifier the parser must resolve",
+            "ORDER BY is not supported by prepared statements at all",
+            "Bind parameters only work in INSERT statements",
+            "ORDER BY values are always numeric"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "The database must know the column or expression at parse time, so it cannot be supplied as a data value. Map the user's choice to a constant fragment instead."
+        }
+      ],
+      "references": [
+        {
+          "title": "Query Parameterization Cheat Sheet",
+          "publisher": "OWASP Cheat Sheet Series",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/Query_Parameterization_Cheat_Sheet.html",
+          "license": "CC-BY-SA-4.0"
+        },
+        {
+          "title": "CWE-89: Improper Neutralization of Special Elements used in an SQL Command",
+          "publisher": "MITRE",
+          "url": "https://cwe.mitre.org/data/definitions/89.html",
+          "license": "MITRE CWE Terms of Use"
+        }
+      ],
+      "tags": [
+        "code-review",
+        "sql",
+        "order-by"
+      ]
+    },
+    {
+      "id": "rev-php-001",
+      "subtopic": "code-review",
+      "difficulty": "advanced",
+      "title": "Review: PHP loose comparison and legacy hashes in auth paths",
+      "fact": "PHP's == performs type juggling, so two different hash strings that both look numeric can compare equal, and in_array without the strict flag has the same problem. Code that compares a digest with == or relies on md5/sha1 for password storage is therefore both bypassable and cheap to crack. Use password_hash and password_verify for storage and verification, hash_equals for comparing MACs or tokens, and === with strict array searches everywhere else.",
+      "details": [
+        "PHP 8 changed several comparison rules, but numeric strings still compare numerically, so magic-hash style collisions remain relevant for ==.",
+        "password_verify returns false for legacy md5 hashes; migrate by rehashing on the next successful login through a controlled path.",
+        "Call session_regenerate_id(true) after a successful login so a fixed identifier cannot become authenticated."
+      ],
+      "code": [
+        {
+          "language": "php",
+          "vulnerable": "<?php // VULNERABLE (illustrative): loose comparison of digests\n$hash = md5($_POST['password']);\nif ($hash == $row['password_hash']) {\n    $_SESSION['uid'] = $row['id'];\n}",
+          "secure": "<?php // SECURE: password_verify reads the stored algorithm\nif (password_verify($_POST['password'], $row['password_hash'])) {\n    session_regenerate_id(true);\n    $_SESSION['uid'] = $row['id'];\n}",
+          "issue": "With ==, two distinct digests in numeric notation can compare equal, and md5 is unsuitable for storage regardless. password_verify checks the password against the algorithm recorded in the stored hash; regenerating the session id closes fixation."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Which PHP function is intended to compare two HMAC values without timing leakage?",
+          "options": [
+            "hash_equals",
+            "strcmp",
+            "==",
+            "md5"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "hash_equals performs a constant-time comparison of known strings. strcmp and == are not constant time, and md5 is a digest rather than a comparison."
+        }
+      ],
+      "references": [
+        {
+          "title": "PHP: Comparison Operators",
+          "publisher": "The PHP Documentation Group",
+          "url": "https://www.php.net/manual/en/language.operators.comparison.php",
+          "license": "CC-BY-3.0"
+        },
+        {
+          "title": "PHP: hash_equals",
+          "publisher": "The PHP Documentation Group",
+          "url": "https://www.php.net/manual/en/function.hash-equals.php",
+          "license": "CC-BY-3.0"
+        },
+        {
+          "title": "CWE-697: Incorrect Comparison",
+          "publisher": "MITRE",
+          "url": "https://cwe.mitre.org/data/definitions/697.html",
+          "license": "MITRE CWE Terms of Use"
+        }
+      ],
+      "tags": [
+        "code-review",
+        "php",
+        "type-juggling",
+        "passwords"
+      ]
+    },
+    {
+      "id": "web-ssti-sandbox-001",
+      "subtopic": "templates",
+      "difficulty": "expert",
+      "title": "Sandboxed template engines are mitigation, not a trust boundary",
+      "fact": "A template sandbox restricts which attributes and callables a template can reach, but it is still an interpreter running attacker-authored code, and published escapes have repeatedly turned a sandbox bug into remote code execution. The context you pass is part of the attack surface: configuration objects, ORM models and framework globals supply the primitives an escape chains together. If user-authored templates are unavoidable, use a separate low-privilege process, a minimal context of plain data, strict output limits and monitoring, and assume the sandbox will fail rather than treating it as the boundary.",
+      "details": [
+        "Jinja2's own documentation warns that the sandbox is not a perfect security mechanism and should not be used for untrusted templates without other controls.",
+        "Logic-less template languages remove expression evaluation but still need escaping and context discipline.",
+        "Render in a worker with no database credentials, no metadata access and a short timeout to contain an escape."
+      ],
+      "code": [
+        {
+          "language": "python",
+          "vulnerable": "# VULNERABLE (illustrative): a sandbox as the only control, with a rich context\nfrom jinja2.sandbox import SandboxedEnvironment\n\nenv = SandboxedEnvironment()\nreturn env.from_string(user_template).render(cfg=app.config)",
+          "secure": "# SECURE: no user-authored templates; fixed template, data-only context\nreturn render_template('report.html', rows=rows)",
+          "issue": "The first version compiles attacker text and hands it the application configuration, so any sandbox escape reaches secrets and imports. The second removes template authoring from the request path entirely, which is the only boundary that does not depend on sandbox correctness."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "What is the strongest control when a product feature requires user-authored templates?",
+          "options": [
+            "Run rendering in an isolated low-privilege process with a minimal data-only context",
+            "Enable the sandbox and pass the full application config",
+            "Disable autoescaping so the sandbox works correctly",
+            "Rely on a WAF rule that blocks curly braces"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "Isolation limits what an escape can reach, while a rich context supplies useful primitives. WAF rules and autoescaping do not address template-code execution."
+        }
+      ],
+      "references": [
+        {
+          "title": "Jinja2 sandbox documentation",
+          "publisher": "Pallets",
+          "url": "https://jinja.palletsprojects.com/en/stable/sandbox/",
+          "license": "BSD-3-Clause"
+        },
+        {
+          "title": "CWE-1336: Improper Neutralization of Special Elements Used in a Template Engine",
+          "publisher": "MITRE",
+          "url": "https://cwe.mitre.org/data/definitions/1336.html",
+          "license": "MITRE CWE Terms of Use"
+        }
+      ],
+      "tags": [
+        "ssti",
+        "sandbox",
+        "isolation"
+      ]
+    },
+    {
+      "id": "web-ssrf-egress-001",
+      "subtopic": "ssrf",
+      "difficulty": "expert",
+      "title": "SSRF defences in code lose to DNS rebinding; egress policy is the boundary",
+      "fact": "Application-level SSRF checks validate a hostname, but the HTTP client resolves it again when connecting, so an attacker-controlled DNS server can answer with a public address during validation and a private address milliseconds later. Redirects add another opportunity to change destination, and alternate IP notations or IPv4-mapped IPv6 forms can evade naive parsers. Deny egress by default at the network layer, allow only the specific destinations the service needs, block metadata endpoints unconditionally, and treat in-process validation as defence in depth rather than the control.",
+      "details": [
+        "Connect to the address you validated and set the Host header explicitly; a generic HTTP client will otherwise re-resolve.",
+        "Disable redirects or re-validate every hop, because a 302 can move a request from an allowed host to an internal one.",
+        "A forward proxy with an allowlist centralises the policy, but the proxy itself must not be reachable as an open relay."
+      ],
+      "configs": [
+        {
+          "language": "kubernetes",
+          "snippet": "apiVersion: networking.k8s.io/v1\nkind: NetworkPolicy\nmetadata:\n  name: orders-api-egress\nspec:\n  podSelector:\n    matchLabels:\n      app: orders-api\n  policyTypes: [Egress]\n  egress:\n    - to:\n        - namespaceSelector:\n            matchLabels:\n              kubernetes.io/metadata.name: kube-system\n      ports:\n        - protocol: UDP\n          port: 53\n        - protocol: TCP\n          port: 53\n    - to:\n        - ipBlock:\n            cidr: 203.0.113.10/32\n      ports:\n        - protocol: TCP\n          port: 443",
+          "purpose": "Deny all egress except DNS and one approved payments endpoint, so a URL-fetch bug cannot reach metadata or internal admin services."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Why does validating a hostname's DNS answer fail to stop a determined SSRF attacker?",
+          "options": [
+            "The client resolves again at connect time, so DNS can return a different address",
+            "DNS answers are always cached forever",
+            "Private IP addresses cannot be returned by public DNS",
+            "TLS verifies the IP address rather than the hostname"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "A separate validation lookup and connection lookup create a race; rebinding exploits it. Caching, DNS policy and TLS hostname verification do not remove the second resolution."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "Blocking 169.254.169.254 and localhost in application code is sufficient SSRF protection.",
+          "correction": "Those checks cover the obvious literals but not redirects, alternate address encodings, IPv6 forms, other internal ranges or DNS rebinding. Network egress policy is what actually constrains where the process can connect."
+        }
+      ],
+      "references": [
+        {
+          "title": "Server Side Request Forgery Prevention Cheat Sheet",
+          "publisher": "OWASP Cheat Sheet Series",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/Server_Side_Request_Forgery_Prevention_Cheat_Sheet.html",
+          "license": "CC-BY-SA-4.0"
+        },
+        {
+          "title": "CWE-918: Server-Side Request Forgery",
+          "publisher": "MITRE",
+          "url": "https://cwe.mitre.org/data/definitions/918.html",
+          "license": "MITRE CWE Terms of Use"
+        },
+        {
+          "title": "Kubernetes: Network Policies",
+          "publisher": "Kubernetes",
+          "url": "https://kubernetes.io/docs/concepts/services-networking/network-policies/",
+          "license": "CC-BY-4.0"
+        }
+      ],
+      "tags": [
+        "ssrf",
+        "egress",
+        "dns-rebinding",
+        "network-policy"
+      ]
+    },
+    {
+      "id": "api-idempotency-atomic-001",
+      "subtopic": "api-design",
+      "difficulty": "expert",
+      "title": "Idempotency keys need atomic compare-and-set, not a cache lookup",
+      "fact": "An Idempotency-Key lets a client retry a create or payment request without duplicating the effect, but a handler that checks a cache and then performs the side effect has the same race it was meant to prevent: two concurrent retries can both miss and both charge. Reserve the key first with a unique constraint scoped to the account, bind it to a hash of the request, and let exactly one worker perform the effect while the others wait for or replay the stored response. Exactly-once delivery is not achievable over a network; the realistic goal is an effectively-once outcome backed by a durable, transactional record.",
+      "details": [
+        "Return 409 or 422 when the same key arrives with a different body hash, rather than silently replaying an unrelated response.",
+        "Expire keys after a bounded window that covers the client's retry policy, and document the window.",
+        "If the side effect and the record cannot share a transaction, use an outbox or a state machine with recovery on crash."
+      ],
+      "code": [
+        {
+          "language": "python",
+          "vulnerable": "# VULNERABLE (illustrative): check-then-insert leaves a race window\ndef charge(key: str, amount: int):\n    row = store.get(key)\n    if row:\n        return row.response\n    result = payments.charge(amount)          # side effect\n    store.put(key, result)\n    return result",
+          "secure": "# SECURE: insert-first reservation with a unique key\ndef charge(key: str, body_hash: str, amount: int):\n    try:\n        store.insert_pending(key, body_hash)   # UNIQUE(account_id, key)\n    except DuplicateKey:\n        row = store.wait_for(key)\n        if row.body_hash != body_hash:\n            raise Conflict('key reused with a different body')\n        return row.response\n    result = payments.charge(amount)\n    store.complete(key, result)\n    return result",
+          "issue": "The check and the insert are not atomic across workers, so two requests can both charge. The unique constraint makes exactly one worker the owner, and binding the key to a body hash prevents an unrelated retry from receiving the wrong result."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "How should an idempotency key be reserved before performing a side effect?",
+          "options": [
+            "Insert it under a unique constraint and treat a duplicate as an existing request",
+            "Read a cache, then insert after the side effect completes",
+            "Store it only in process memory",
+            "Trust the client to retry with a new key"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "The unique constraint is the atomic decision point across processes. Cache-then-act, process-local state and client discipline all leave duplicate execution possible."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "An idempotency key guarantees exactly-once processing.",
+          "correction": "Networks cannot guarantee exactly-once delivery, and a crash can occur after the side effect but before the record is written. Systems achieve effectively-once outcomes through unique constraints, durable state and recovery, not through the key alone."
+        }
+      ],
+      "references": [
+        {
+          "title": "The Idempotency-Key HTTP Header Field (draft)",
+          "publisher": "IETF HTTPAPI Working Group",
+          "url": "https://datatracker.ietf.org/doc/draft-ietf-httpapi-idempotency-key-header/",
+          "license": "IETF Trust Legal Provisions"
+        },
+        {
+          "title": "RFC 9110: HTTP Semantics, section 9.2.2",
+          "publisher": "IETF",
+          "url": "https://www.rfc-editor.org/rfc/rfc9110.html",
+          "license": "IETF Trust Legal Provisions"
+        },
+        {
+          "title": "CWE-362: Concurrent Execution using Shared Resource with Improper Synchronization",
+          "publisher": "MITRE",
+          "url": "https://cwe.mitre.org/data/definitions/362.html",
+          "license": "MITRE CWE Terms of Use"
+        }
+      ],
+      "tags": [
+        "idempotency",
+        "race-condition",
+        "payments"
+      ]
+    }
+  ]
+}
