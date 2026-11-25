@@ -16,6 +16,7 @@ Move entries into a versioned section only when a release is tagged.
 
 ### Added
 
+- E0 pre-training baseline snapshot of `Qwen/Qwen3.5-0.8B` on the smoke evaluation set, with run hashes, per-item predictions, and measured CPU latency/memory, so post-training conditions can be compared against a fixed starting point.
 - `GOALS.md` with the north-star question and six goal groups (G1–G6) tracked as verifiable milestones.
 - Live progress block and progress badge in `README.md`, generated from `GOALS.md` and `docs/roadmap.md`.
 - `scripts/update_progress.py` with `--check` mode to detect a stale README block.
