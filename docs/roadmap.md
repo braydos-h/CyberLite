@@ -2,7 +2,10 @@
 
 The roadmap is ordered by dependency, not by promised dates. A checked item
 means the capability exists in the repository, not that a research claim has
-been established.
+been established. Outcome-level progress is tracked in
+[GOALS.md](../GOALS.md) and summarized live in the
+[README](../README.md#goals-and-live-progress); regenerate that summary with
+`make progress` after changing any checkbox here.
 
 ## Phase 0 — Reproducible foundation (implemented)
 

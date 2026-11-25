@@ -22,11 +22,24 @@ mypy cyberlite
 pytest -m "not integration"
 python scripts/prepare_dataset.py --smoke
 python scripts/validate_repo.py
+make progress-check
 ```
 
 If your change affects model loading, training, inference, or tokenization,
 describe the architecture and library versions you tested. Do not claim a model
 works because it imported once.
+
+## Changelog and progress
+
+Every change needs an entry under `[Unreleased]` in
+[CHANGELOG.md](CHANGELOG.md). Documentation, CI, and dependency-only changes
+are included.
+
+Progress is tracked by the milestone checkboxes in [GOALS.md](GOALS.md) and the
+phase checkboxes in [docs/roadmap.md](docs/roadmap.md). After editing either
+file, regenerate the README block with `make progress`; `make progress-check`
+must pass. Never hand-edit the generated region in `README.md`. The full
+workflow is in [AGENTS.md](AGENTS.md).
 
 ## What we look for
 

@@ -1,4 +1,4 @@
-.PHONY: install install-dev test lint format typecheck validate smoke data paper clean
+.PHONY: install install-dev test lint format typecheck validate progress progress-check smoke data paper clean
 
 install:
 	python -m pip install -e .
@@ -20,6 +20,12 @@ typecheck:
 
 validate:
 	python scripts/validate_repo.py
+
+progress:
+	python scripts/update_progress.py
+
+progress-check:
+	python scripts/update_progress.py --check
 
 data:
 	python scripts/prepare_dataset.py --smoke
