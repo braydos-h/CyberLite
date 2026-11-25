@@ -159,6 +159,15 @@ python scripts/prepare_dataset.py \
 
 ## What is committed
 
-Only tiny, original synthetic examples under `data/seed/` and
-`data/evaluation/smoke_eval.jsonl`. Bulk corpora, model weights, credentials, and
-third-party benchmark items are ignored by Git.
+Only small, license-safe artifacts are committed:
+
+- tiny, original synthetic examples under `data/seed/` and
+  `data/evaluation/smoke_eval.jsonl`;
+- the project-authored `data/evaluation/baseline_probe_v1.jsonl`;
+- corpus manifests under `data/manifests/`, which carry the version, counts,
+  split hashes, license counts, and cleaning statistics but no source text;
+- small baseline result artifacts under `results/baseline/`.
+
+Bulk corpora, raw downloads, model weights, credentials, and third-party
+benchmark items are ignored by Git. The first committed manifest is
+[`data/manifests/pilot-attack-cwe-v1/`](../data/manifests/pilot-attack-cwe-v1/README.md).

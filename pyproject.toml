@@ -63,6 +63,7 @@ docs = []
 [project.scripts]
 cyberlite-serve = "cyberlite.inference.server:main"
 cyberlite-autocomplete = "cyberlite.autocomplete.server:main"
+cyberlite-compute-budget = "cyberlite.compute_budget:main"
 
 [project.urls]
 Homepage = "https://github.com/braydos-h/CyberLite"

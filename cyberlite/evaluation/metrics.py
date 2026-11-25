@@ -30,6 +30,7 @@ _ANSWER_LABEL_RE = re.compile(
 )
 _CITATION_RE = re.compile(r"\[S(\d+)\]")
 _WORD_RE = re.compile(r"[A-Za-z0-9_]+")
+_CHOICE_LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
 
 def normalize_answer(text: str) -> str:
@@ -118,6 +119,40 @@ def parse_mcq_answer(
         if index < count:
             return index
     return None
+
+
+def parse_mcq_answer_set(
+    text: str, choices: Sequence[str], *, num_choices: int | None = None
+) -> list[int] | None:
+    """Parse one or more choice indices from free-form model output.
+
+    Multi-select benchmarks (for example SecEval) mark several choices correct
+    and score an exact set match. Single-answer output such as ``"B"`` returns
+    ``[1]``; ``"AC"``, ``"A, C"``, and ``"Answer: A and C"`` return ``[0, 2]``.
+    Parsing is deliberately conservative: only uppercase letters in the
+    configured range are collected, and choice text is matched exactly first.
+    """
+
+    count = num_choices or len(choices)
+    if count <= 0:
+        return None
+    stripped = text.strip()
+    if not stripped:
+        return None
+    normalized = normalize_answer(stripped)
+    for index, choice in enumerate(choices):
+        if normalized == normalize_answer(choice):
+            return [index]
+    limit = min(count, len(_CHOICE_LETTERS))
+    letters: set[int] = set()
+    for run in re.findall(r"(?<![A-Za-z])([A-Z]{1,4})(?![A-Za-z])", stripped):
+        for letter in run:
+            if letter in _CHOICE_LETTERS[:limit]:
+                letters.add(_CHOICE_LETTERS.index(letter))
+    if letters:
+        return sorted(letters)
+    single = parse_mcq_answer(stripped, choices, num_choices=count)
+    return [single] if single is not None else None
 
 
 def refusal_rate(predictions: Sequence[str]) -> float:

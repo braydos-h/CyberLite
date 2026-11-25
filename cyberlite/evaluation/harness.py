@@ -48,6 +48,22 @@ SYSTEM_PROMPT = (
     "You are CyberLite, a defensive cybersecurity research assistant. Be technically precise, "
     "state uncertainty, and never claim to have executed commands or accessed systems."
 )
+# SecEval's official chat protocol: one instruction plus a single worked example,
+# parsed as a set of letters and scored by exact set match.
+SECEVAL_INSTRUCTION = (
+    "Below are multiple-choice questions concerning cybersecurity. Please select the correct "
+    "answers and respond with the letters ABCD only."
+)
+SECEVAL_FEW_SHOT = [
+    {
+        "role": "user",
+        "content": (
+            "Question: Which mitigation prevent stack overflow bug? "
+            "A: Stack Canary. B: ALSR. C: CFI. D: Code Signing."
+        ),
+    },
+    {"role": "assistant", "content": "Answer: ABC"},
+]
 
 
 @dataclass
@@ -58,6 +74,7 @@ class EvalExample:
     question: str | None = None
     choices: list[str] = field(default_factory=list)
     answer_index: int | None = None
+    answer_indices: list[int] = field(default_factory=list)
     text: str | None = None
     label: str | None = None
     labels: list[str] = field(default_factory=list)
@@ -91,14 +108,15 @@ class EvalExample:
                 raise ValueError(f"{identifier}: mcq requires question and >=2 choices")
             choices = [str(choice) for choice in choices]
             answer = payload.get("answer", payload.get("answer_index"))
-            answer_index = _resolve_answer(answer, choices)
+            answer_indices = _resolve_answers(answer, choices)
             return cls(
                 id=identifier,
                 task=task,
                 source=source,
                 question=question,
                 choices=choices,
-                answer_index=answer_index,
+                answer_index=answer_indices[0] if len(answer_indices) == 1 else None,
+                answer_indices=answer_indices,
                 metadata=metadata,
             )
         if task == "classification":
@@ -170,6 +188,32 @@ def _resolve_answer(answer: Any, choices: Sequence[str]) -> int:
     raise ValueError(f"could not resolve answer {answer!r}")
 
 
+def _resolve_answers(answer: Any, choices: Sequence[str]) -> list[int]:
+    """Resolve a single answer or a multi-select answer set to sorted indices."""
+
+    if isinstance(answer, (list, tuple)):
+        resolved: set[int] = set()
+        for item in answer:
+            resolved.update(_resolve_answers(item, choices))
+        if not resolved:
+            raise ValueError("answer set is empty")
+        return sorted(resolved)
+    if isinstance(answer, str):
+        stripped = answer.strip()
+        normalized = metrics.normalize_answer(stripped)
+        for index, choice in enumerate(choices):
+            if normalized == metrics.normalize_answer(choice):
+                return [index]
+        letters = [char.upper() for char in stripped if char.isalpha()]
+        if (
+            len(stripped) > 1
+            and letters
+            and all(char in LETTERS[: len(choices)] for char in letters)
+        ):
+            return sorted({LETTERS.index(char) for char in letters})
+    return [_resolve_answer(answer, choices)]
+
+
 def load_examples(path: str | Path, *, limit: int | None = None) -> list[EvalExample]:
     examples: list[EvalExample] = []
     seen: set[str] = set()
@@ -197,10 +241,18 @@ def _mcq_prompt(example: EvalExample) -> str:
     choices = "\n".join(
         f"{LETTERS[index]}. {choice}" for index, choice in enumerate(example.choices)
     )
-    return (
-        f"Question:\n{example.question}\n\nChoices:\n{choices}\n\n"
-        "Answer with only the letter of the correct choice."
+    if len(example.answer_indices) > 1:
+        instruction = "Answer with only the letters of the correct choices (for example AC)."
+    else:
+        instruction = "Answer with only the letter of the correct choice."
+    return f"Question:\n{example.question}\n\nChoices:\n{choices}\n\n{instruction}"
+
+
+def _seceval_prompt(example: EvalExample) -> str:
+    choices = " ".join(
+        f"{LETTERS[index]}: {choice}" for index, choice in enumerate(example.choices)
     )
+    return f"Question: {example.question} {choices}"
 
 
 def _classification_prompt(example: EvalExample) -> str:
@@ -223,7 +275,13 @@ def build_prompt(example: EvalExample) -> str:
     raise ValueError(f"unsupported task: {example.task}")
 
 
-def _messages(example: EvalExample) -> list[dict[str, str]]:
+def _messages(example: EvalExample, protocol: str = "default") -> list[dict[str, str]]:
+    if protocol == "seceval" and example.task == "mcq":
+        return [
+            {"role": "system", "content": SECEVAL_INSTRUCTION},
+            *SECEVAL_FEW_SHOT,
+            {"role": "user", "content": _seceval_prompt(example)},
+        ]
     return [
         {"role": "system", "content": SYSTEM_PROMPT},
         {"role": "user", "content": build_prompt(example)},
@@ -275,6 +333,8 @@ class EvaluationHarness:
     max_new_tokens: int | None = None
     positive_label: str | None = None
     cost_per_hour_usd: float | None = None
+    protocol: str = "default"
+    group_by: str | None = None
 
     def __post_init__(self) -> None:
         self.autocomplete = (
@@ -284,7 +344,12 @@ class EvaluationHarness:
         self.peak_memory: dict[str, Any] = {}
 
     def _generate(self, example: EvalExample, index: int) -> tuple[str, dict[str, Any]]:
-        max_tokens = self.max_new_tokens or _task_max_tokens(example.task)
+        if self.max_new_tokens is not None:
+            max_tokens = self.max_new_tokens
+        elif self.protocol == "seceval" and example.task == "mcq":
+            max_tokens = 5
+        else:
+            max_tokens = _task_max_tokens(example.task)
         if example.task == "completion":
             if self.autocomplete is None:
                 raise RuntimeError("completion evaluation requires an inference engine tokenizer")
@@ -306,28 +371,45 @@ class EvaluationHarness:
             temperature=max(self.temperature, 0.0),
             seed=self.seed + index,
         )
+        prompt = (
+            _seceval_prompt(example)
+            if self.protocol == "seceval" and example.task == "mcq"
+            else build_prompt(example)
+        )
         if self.prompt_style == "chat":
             try:
-                result = self.engine.chat(_messages(example), settings)
+                result = self.engine.chat(_messages(example, self.protocol), settings)
             except (TypeError, ValueError):
-                result = self.engine.complete(build_prompt(example), settings)
+                result = self.engine.complete(prompt, settings)
         else:
-            result = self.engine.complete(build_prompt(example), settings)
+            result = self.engine.complete(prompt, settings)
         return result.text, {
             "latency_seconds": result.latency_seconds,
             "prompt_tokens": result.prompt_tokens,
             "completion_tokens": result.completion_tokens,
-            "mode": self.prompt_style,
+            "finish_reason": getattr(result, "finish_reason", None),
+            "mode": self.protocol if self.protocol != "default" else self.prompt_style,
         }
 
     def _score(self, example: EvalExample, output: str) -> dict[str, Any]:
         if example.task == "mcq":
-            predicted_index = metrics.parse_mcq_answer(output, example.choices)
+            predicted_indices = metrics.parse_mcq_answer_set(output, example.choices)
+            gold = sorted(example.answer_indices)
             return {
-                "predicted_index": predicted_index,
-                "predicted": LETTERS[predicted_index] if predicted_index is not None else None,
-                "correct": predicted_index == example.answer_index,
-                "invalid": predicted_index is None,
+                "predicted_index": (
+                    predicted_indices[0]
+                    if predicted_indices and len(predicted_indices) == 1
+                    else None
+                ),
+                "predicted_indices": predicted_indices or [],
+                "predicted": (
+                    "".join(LETTERS[index] for index in predicted_indices)
+                    if predicted_indices
+                    else None
+                ),
+                "correct": predicted_indices is not None and sorted(predicted_indices) == gold,
+                "invalid": predicted_indices is None,
+                "answer_count": len(gold),
             }
         if example.task == "classification":
             predicted_label = parse_classification(output, example.labels)
@@ -385,20 +467,42 @@ class EvaluationHarness:
         for prediction in self.predictions:
             by_task.setdefault(prediction["task"], []).append(prediction)
         metrics_payload: dict[str, Any] = {}
+        group_rows: dict[str, list[tuple[dict[str, Any], EvalExample]]] = {}
         if "mcq" in by_task:
             rows = by_task["mcq"]
-            preds: list[Any] = [row["score"]["predicted_index"] for row in rows]
-            refs: list[Any] = [
-                self.examples[index].answer_index
-                for index in range(len(self.examples))
-                if self.predictions[index]["task"] == "mcq"
+            pairs = [
+                (row, example)
+                for row, example in zip(self.predictions, self.examples, strict=True)
+                if row["task"] == "mcq"
             ]
+            preds: list[Any] = [row["score"]["predicted_indices"] for row, _ in pairs]
+            refs: list[Any] = [sorted(example.answer_indices) for _, example in pairs]
             metrics_payload["mcq"] = {
                 "examples": len(rows),
                 "accuracy": metrics.accuracy(preds, refs),
                 "invalid_rate": sum(row["score"]["invalid"] for row in rows) / len(rows),
                 "accuracy_95ci": metrics.bootstrap_accuracy_ci(preds, refs, seed=self.seed),
             }
+            subsets = {
+                "single_answer": [(row, ex) for row, ex in pairs if len(ex.answer_indices) == 1],
+                "multi_answer": [(row, ex) for row, ex in pairs if len(ex.answer_indices) > 1],
+            }
+            metrics_payload["mcq"]["by_answer_count"] = {
+                name: _mcq_accuracy(
+                    [row for row, _ in subset], [ex for _, ex in subset], seed=self.seed
+                )
+                for name, subset in subsets.items()
+                if subset
+            }
+            if self.group_by:
+                for row, example in pairs:
+                    values = example.metadata.get(self.group_by)
+                    if values is None:
+                        continue
+                    if isinstance(values, str):
+                        values = [values]
+                    for value in values:
+                        group_rows.setdefault(str(value), []).append((row, example))
         if "classification" in by_task:
             rows = by_task["classification"]
             class_preds = [row["score"]["predicted_label"] or "__invalid__" for row in rows]
@@ -508,6 +612,8 @@ class EvaluationHarness:
                 "seed": self.seed,
                 "temperature": self.temperature,
                 "prompt_style": self.prompt_style,
+                "protocol": self.protocol,
+                "group_by": self.group_by,
                 "max_new_tokens": self.max_new_tokens,
                 "examples": len(self.examples),
                 "wall_clock_seconds": round(time.perf_counter() - started, 3),
@@ -536,8 +642,28 @@ class EvaluationHarness:
                 "Benchmark licenses and versions must be reported with any published result.",
             ],
         }
+        if group_rows:
+            summary["groups"] = {
+                name: _mcq_accuracy(
+                    [row for row, _ in rows], [ex for _, ex in rows], seed=self.seed
+                )
+                for name, rows in sorted(group_rows.items())
+            }
         summary["run_sha256"] = sha256_json(summary)
         return summary
+
+
+def _mcq_accuracy(
+    rows: Sequence[dict[str, Any]], examples: Sequence[EvalExample], *, seed: int
+) -> dict[str, Any]:
+    predictions = [row["score"]["predicted_indices"] for row in rows]
+    references = [sorted(example.answer_indices) for example in examples]
+    return {
+        "examples": len(rows),
+        "accuracy": metrics.accuracy(predictions, references),
+        "invalid_rate": (sum(row["score"]["invalid"] for row in rows) / len(rows) if rows else 0.0),
+        "accuracy_95ci": metrics.bootstrap_accuracy_ci(predictions, references, seed=seed),
+    }
 
 
 def _counts(values: Sequence[str]) -> dict[str, int]:
@@ -563,6 +689,17 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--temperature", type=float, default=0.0)
     parser.add_argument("--max-new-tokens", type=int, default=None)
     parser.add_argument("--prompt-style", choices=["auto", "chat", "raw"], default="auto")
+    parser.add_argument(
+        "--protocol",
+        choices=["default", "seceval"],
+        default="default",
+        help="prompt/scoring protocol; seceval follows the upstream chat prompt",
+    )
+    parser.add_argument(
+        "--group-by",
+        default=None,
+        help="metadata key (for example topics) for grouped MCQ metrics",
+    )
     parser.add_argument("--positive-label", default=None)
     parser.add_argument("--cost-per-hour-usd", type=float, default=None)
     parser.add_argument("--device", default="auto", choices=["auto", "cpu", "cuda", "mps"])
@@ -598,6 +735,9 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     style = _prompt_style(args.prompt_style, args.model)
+    if args.protocol == "seceval" and style != "chat":
+        print("error: the seceval protocol requires chat prompt style", file=sys.stderr)
+        return 2
     try:
         engine = InferenceEngine(
             args.model,
@@ -619,6 +759,8 @@ def main(argv: list[str] | None = None) -> int:
         max_new_tokens=args.max_new_tokens,
         positive_label=args.positive_label,
         cost_per_hour_usd=args.cost_per_hour_usd,
+        protocol=args.protocol,
+        group_by=args.group_by,
     )
     summary = harness.run()
     summary["dataset"] = {

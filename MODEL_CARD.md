@@ -74,14 +74,18 @@ Planned metrics, with exact definitions in `docs/evaluation.md`:
 - estimated cost only with explicit rates;
 - performance per billion parameters and per dollar.
 
-No metric has been measured for a research CyberLite checkpoint.
+No metric has been measured for a research CyberLite checkpoint. The untrained
+base model's SecEval baseline is recorded in
+[`results/baseline/e0-instruct-seceval/`](results/baseline/e0-instruct-seceval/README.md).
+It describes the starting point, not a CyberLite model.
 
 ## Evaluation data
 
-Planned: licensed subsets of CyberSecEval/CyberSecEval 2, evaluation-only SecEval,
-and project-authored held-out tasks. CyberLite does not redistribute benchmark
-data. The bundled `smoke_eval.jsonl` is synthetic and for pipeline validation
-only.
+Obtained locally and not redistributed: a pinned SecEval revision (CC BY-NC-SA
+4.0, evaluation-only) and project-authored held-out tasks. CyberSecEval /
+CyberSecEval 2 remain planned because their tasks require upstream terms and, for
+the attack-helpfulness suite, a judge model. The bundled `smoke_eval.jsonl` is
+synthetic and for pipeline validation only.
 
 ## Training data
 
@@ -92,9 +96,10 @@ smoke corpus is 34 original synthetic records.
 
 ## Quantitative analyses
 
-None. There are no verified benchmark results, fairness audits, or red-team
-measurements for a trained CyberLite model. Any numbers in issues or drafts must
-be treated as unverified until reproduced and reviewed.
+There are no verified benchmark results, fairness audits, or red-team
+measurements for a trained CyberLite model. The only real-benchmark measurement
+in the repository is the untrained base model's SecEval baseline. Any numbers in
+issues or drafts must be treated as unverified until reproduced and reviewed.
 
 ## Ethical considerations
 

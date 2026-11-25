@@ -20,4 +20,12 @@ Bundled files:
   signal, not a validated or standardized benchmark, and must not be cited as
   one.
 
+Locally generated files (ignored by Git, never redistributed):
+
+- `seceval_v1.jsonl` — 2,182 usable SecEval items converted by
+  `scripts/prepare_benchmarks.py --download`. SecEval is CC BY-NC-SA 4.0 and
+  evaluation-only. The generated file is in this directory on purpose: the
+  preparation pipeline scans this directory, so future training data is screened
+  against it. See `benchmarks/seceval/README.md`.
+
 Benchmark metadata and access notes: `cyberlite/evaluation/benchmarks.py`.

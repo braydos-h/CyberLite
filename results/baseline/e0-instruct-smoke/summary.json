@@ -1,0 +1,164 @@
+{
+  "run": {
+    "name": "cyberlite-eval-20261125T020528Z",
+    "cyberlite_version": "0.1.0",
+    "created_at": "2026-11-25T02:05:28.541605+00:00",
+    "seed": 42,
+    "temperature": 0.0,
+    "prompt_style": "chat",
+    "max_new_tokens": null,
+    "examples": 8,
+    "wall_clock_seconds": 74.148,
+    "research_status": "experimental; results require review before publication"
+  },
+  "model": {
+    "model_id": "Qwen/Qwen3.5-0.8B",
+    "adapter_path": null,
+    "adapter_sha256": null,
+    "auto_class": "AutoModelForImageTextToText",
+    "device": "cpu",
+    "dtype": "torch.float32",
+    "quantized": false,
+    "max_context": 262144,
+    "parameters": 852985920,
+    "hidden_size": 1024,
+    "layers": 24,
+    "loaded": true
+  },
+  "task_counts": {
+    "classification": 2,
+    "completion": 1,
+    "generation": 1,
+    "mcq": 4
+  },
+  "source_counts": {
+    "synthetic-heldout": 8
+  },
+  "metrics": {
+    "mcq": {
+      "examples": 4,
+      "accuracy": 1.0,
+      "invalid_rate": 0.0,
+      "accuracy_95ci": [
+        1.0,
+        1.0
+      ]
+    },
+    "classification": {
+      "examples": 2,
+      "labels": [
+        "benign",
+        "vulnerable"
+      ],
+      "accuracy": 0.5,
+      "macro_f1": 0.3333333333333333,
+      "invalid_rate": 0.0,
+      "per_class": {
+        "benign": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 1
+        },
+        "vulnerable": {
+          "tp": 1,
+          "fp": 1,
+          "fn": 0
+        }
+      },
+      "positive_label": "vulnerable",
+      "false_positive_rate": 1.0
+    },
+    "generation": {
+      "examples": 1,
+      "exact_match": 0.0,
+      "token_f1": 0.0707070707070707,
+      "refusal_rate": 0.0,
+      "execution_claim_rate": 0.0,
+      "unsupported_token_rate_proxy": 0.9303482587064676,
+      "note": "unsupported_token_rate_proxy is lexical, not a factual hallucination rate."
+    },
+    "completion": {
+      "examples": 1,
+      "exact_match": 0.0,
+      "token_f1": 0.25000000000000006,
+      "mean_edit_similarity": 0.2549019607843137,
+      "syntax_valid_rate": 1.0,
+      "note": "Syntax validation uses ast.parse; generated code is never executed."
+    }
+  },
+  "operational": {
+    "latency_seconds": {
+      "count": 8,
+      "mean": 9.258219384624681,
+      "median": 0.7425754109999616,
+      "p50": 0.7425754109999616,
+      "p95": 44.73383802989971,
+      "min": 0.6739809659993625,
+      "max": 67.7967179139996
+    },
+    "generated_tokens": 540,
+    "tokens_per_second": 7.290818806054506,
+    "peak_memory": {
+      "device": "cpu",
+      "process_peak_rss_gb": 5.329
+    },
+    "cost": {
+      "duration_hours": 0.0206,
+      "note": "no cost rates configured; cost not estimated"
+    }
+  },
+  "derived": {
+    "mcq_accuracy_points_per_billion": 117.23522939276654,
+    "classification_accuracy_points_per_billion": 58.61761469638327,
+    "tokens_per_second": 7.290818806054506
+  },
+  "reproducibility": {
+    "created_at": "2026-11-25T02:05:28.541833+00:00",
+    "python": "3.12.3",
+    "platform": "Linux-6.8.0-151-generic-x86_64-with-glibc2.39",
+    "machine": "x86_64",
+    "processor": "x86_64",
+    "cpu_count": 6,
+    "packages": {
+      "torch": "2.15.0+cpu",
+      "transformers": "5.24.1",
+      "peft": "0.22.0",
+      "accelerate": "1.16.0",
+      "datasets": "5.2.0",
+      "numpy": "2.5.5",
+      "pydantic": "2.14.4",
+      "fastapi": "0.165.0",
+      "bitsandbytes": "not-installed",
+      "torchao": "not-installed"
+    },
+    "git": {
+      "commit": "5e7f592a5292f575d1eb91526bbdaaba24482868",
+      "dirty": false
+    }
+  },
+  "hardware": {
+    "platform": "Linux-6.8.0-151-generic-x86_64-with-glibc2.39",
+    "system": "Linux",
+    "release": "6.8.0-151-generic",
+    "python_version": "3.12.3",
+    "cpu_count": 6,
+    "cpu_model": "Intel(R) Core(TM) i5-9500T CPU @ 2.20GHz",
+    "ram_gb": 15.4,
+    "gpus": [],
+    "mps_available": false,
+    "torch_version": "2.15.0+cpu",
+    "torch_cuda_version": null
+  },
+  "limitations": [
+    "No result is a claim of state-of-the-art performance.",
+    "unsupported_token_rate_proxy measures lexical overlap, not truth.",
+    "Generated code is syntax-checked only; it is never executed by this harness.",
+    "Benchmark licenses and versions must be reported with any published result."
+  ],
+  "run_sha256": "0134da210a0da5a11ab473b49bf8df80842ef6677cd50155e2b9eb17f6000713",
+  "dataset": {
+    "path": "/home/bh/qwen-cyber/CyberLite/data/evaluation/smoke_eval.jsonl",
+    "sha256": "350ab9a509ddfb92f742f90ba65a8acc3c2949a45c54e82a97a500f6cf422102",
+    "examples": 8
+  }
+}

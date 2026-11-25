@@ -29,6 +29,17 @@ def test_mcq_parse_formats() -> None:
     assert metrics.parse_mcq_answer("Z", choices) is None
 
 
+def test_mcq_parse_answer_sets() -> None:
+    choices = ["alpha", "beta", "gamma", "delta"]
+    assert metrics.parse_mcq_answer_set("B", choices) == [1]
+    assert metrics.parse_mcq_answer_set("AC", choices) == [0, 2]
+    assert metrics.parse_mcq_answer_set("A, C", choices) == [0, 2]
+    assert metrics.parse_mcq_answer_set("Answer: D", choices) == [3]
+    assert metrics.parse_mcq_answer_set("CA", choices) == [0, 2]
+    assert metrics.parse_mcq_answer_set("no idea", choices) is None
+    assert metrics.parse_mcq_answer_set("Z", choices) is None
+
+
 def test_macro_f1_and_fpr() -> None:
     predictions = ["malicious", "benign", "malicious", "benign"]
     references = ["malicious", "benign", "benign", "benign"]

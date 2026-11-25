@@ -1,0 +1,224 @@
+{
+  "run": {
+    "name": "cyberlite-eval-20261125T050240Z",
+    "cyberlite_version": "0.1.0",
+    "created_at": "2026-11-25T05:02:40.807564+00:00",
+    "seed": 42,
+    "temperature": 0.0,
+    "prompt_style": "chat",
+    "protocol": "seceval",
+    "group_by": "topics",
+    "max_new_tokens": 5,
+    "examples": 2182,
+    "wall_clock_seconds": 3555.761,
+    "research_status": "experimental; results require review before publication"
+  },
+  "model": {
+    "model_id": "Qwen/Qwen3.5-0.8B",
+    "adapter_path": null,
+    "adapter_sha256": null,
+    "auto_class": "AutoModelForImageTextToText",
+    "device": "cpu",
+    "dtype": "torch.float32",
+    "quantized": false,
+    "max_context": 262144,
+    "parameters": 852985920,
+    "hidden_size": 1024,
+    "layers": 24,
+    "loaded": true
+  },
+  "task_counts": {
+    "mcq": 2182
+  },
+  "source_counts": {
+    "seceval": 2182
+  },
+  "metrics": {
+    "mcq": {
+      "examples": 2182,
+      "accuracy": 0.3464711274060495,
+      "invalid_rate": 0.0,
+      "accuracy_95ci": [
+        0.32676443629697527,
+        0.36526122823098073
+      ],
+      "by_answer_count": {
+        "single_answer": {
+          "examples": 1257,
+          "accuracy": 0.5910898965791567,
+          "invalid_rate": 0.0,
+          "accuracy_95ci": [
+            0.5616547334924423,
+            0.6189339697692919
+          ]
+        },
+        "multi_answer": {
+          "examples": 925,
+          "accuracy": 0.014054054054054054,
+          "invalid_rate": 0.0,
+          "accuracy_95ci": [
+            0.0075675675675675675,
+            0.022702702702702703
+          ]
+        }
+      }
+    }
+  },
+  "operational": {
+    "latency_seconds": {
+      "count": 2182,
+      "mean": 1.6277480025458415,
+      "median": 1.2288378499997634,
+      "p50": 1.2288378499997634,
+      "p95": 2.001417234847939,
+      "min": 0.7777911469966057,
+      "max": 42.57717979800145
+    },
+    "generated_tokens": 4391,
+    "tokens_per_second": 1.2362933117955135,
+    "peak_memory": {
+      "device": "cpu",
+      "process_peak_rss_gb": 5.446
+    },
+    "cost": {
+      "duration_hours": 0.9866,
+      "note": "no cost rates configured; cost not estimated"
+    }
+  },
+  "derived": {
+    "mcq_accuracy_points_per_billion": 40.61862209941866,
+    "tokens_per_second": 1.2362933117955135
+  },
+  "reproducibility": {
+    "created_at": "2026-11-25T05:02:40.808533+00:00",
+    "python": "3.12.3",
+    "platform": "Linux-6.8.0-151-generic-x86_64-with-glibc2.39",
+    "machine": "x86_64",
+    "processor": "x86_64",
+    "cpu_count": 6,
+    "packages": {
+      "torch": "2.15.0+cpu",
+      "transformers": "5.24.1",
+      "peft": "0.22.0",
+      "accelerate": "1.16.0",
+      "datasets": "5.2.0",
+      "numpy": "2.5.5",
+      "pydantic": "2.14.4",
+      "fastapi": "0.165.0",
+      "bitsandbytes": "not-installed",
+      "torchao": "not-installed"
+    },
+    "git": {
+      "commit": "2301b8d9cb72f5e5a71528c5d6fbaf4a3e2dcd17",
+      "dirty": true
+    }
+  },
+  "hardware": {
+    "platform": "Linux-6.8.0-151-generic-x86_64-with-glibc2.39",
+    "system": "Linux",
+    "release": "6.8.0-151-generic",
+    "python_version": "3.12.3",
+    "cpu_count": 6,
+    "cpu_model": "Intel(R) Core(TM) i5-9500T CPU @ 2.20GHz",
+    "ram_gb": 15.4,
+    "gpus": [],
+    "mps_available": false,
+    "torch_version": "2.15.0+cpu",
+    "torch_cuda_version": null
+  },
+  "limitations": [
+    "No result is a claim of state-of-the-art performance.",
+    "unsupported_token_rate_proxy measures lexical overlap, not truth.",
+    "Generated code is syntax-checked only; it is never executed by this harness.",
+    "Benchmark licenses and versions must be reported with any published result."
+  ],
+  "groups": {
+    "ApplicationSecurity": {
+      "examples": 807,
+      "accuracy": 0.32589838909541513,
+      "invalid_rate": 0.0,
+      "accuracy_95ci": [
+        0.2949194547707559,
+        0.3593556381660471
+      ]
+    },
+    "Cryptography": {
+      "examples": 14,
+      "accuracy": 0.14285714285714285,
+      "invalid_rate": 0.0,
+      "accuracy_95ci": [
+        0.0,
+        0.35714285714285715
+      ]
+    },
+    "MemorySafety": {
+      "examples": 48,
+      "accuracy": 0.20833333333333334,
+      "invalid_rate": 0.0,
+      "accuracy_95ci": [
+        0.10416666666666667,
+        0.3333333333333333
+      ]
+    },
+    "NetworkSecurity": {
+      "examples": 228,
+      "accuracy": 0.2894736842105263,
+      "invalid_rate": 0.0,
+      "accuracy_95ci": [
+        0.23684210526315788,
+        0.34649122807017546
+      ]
+    },
+    "PenTest": {
+      "examples": 473,
+      "accuracy": 0.41226215644820297,
+      "invalid_rate": 0.0,
+      "accuracy_95ci": [
+        0.3699788583509514,
+        0.45665961945031713
+      ]
+    },
+    "SoftwareSecurity": {
+      "examples": 232,
+      "accuracy": 0.33189655172413796,
+      "invalid_rate": 0.0,
+      "accuracy_95ci": [
+        0.27586206896551724,
+        0.39655172413793105
+      ]
+    },
+    "SystemSecurity": {
+      "examples": 1062,
+      "accuracy": 0.3182674199623352,
+      "invalid_rate": 0.0,
+      "accuracy_95ci": [
+        0.2900188323917137,
+        0.34653954802259884
+      ]
+    },
+    "Vulnerability": {
+      "examples": 334,
+      "accuracy": 0.3383233532934132,
+      "invalid_rate": 0.0,
+      "accuracy_95ci": [
+        0.2874251497005988,
+        0.38922155688622756
+      ]
+    },
+    "WebSecurity": {
+      "examples": 771,
+      "accuracy": 0.39299610894941633,
+      "invalid_rate": 0.0,
+      "accuracy_95ci": [
+        0.36057068741893644,
+        0.4267185473411154
+      ]
+    }
+  },
+  "run_sha256": "0f2d45e576924a9d6dfb92e77a22dd5b3cc881da3aec95a87ec3a319bc9da90d",
+  "dataset": {
+    "path": "/home/bh/qwen-cyber/CyberLite/data/evaluation/seceval_v1.jsonl",
+    "sha256": "c3bd9a852924da17a05fefc954d60032f4a146a86861ad4cd40ec0350233064b",
+    "examples": 2182
+  }
+}
