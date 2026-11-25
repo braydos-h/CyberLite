@@ -1,0 +1,25 @@
+schema_version: 1
+# Production synthesis build. The 25,000 target counts accepted new records;
+# `include_pilot: true` merges the frozen pilot splits into a new, group-aware
+# split and is reported separately from the synthesis-only count.
+name: synthesis-production
+stage: production
+packs: data/synthesis/knowledge
+out: data/processed/synthesis-production
+manifest_dir: data/manifests/synthesis-production
+pilot_dir: data/processed/pilot-v2
+include_pilot: true
+evaluation_dir: data/evaluation
+seed: 42
+split_seed: 1337
+split:
+  train: 0.90
+  validation: 0.05
+  test: 0.05
+tokenizer: Qwen/Qwen3.5-0.8B
+tokenizer_local_only: true
+max_sequence_tokens: 1024
+dedup_threshold: 3
+semantic_threshold: 0.88
+contamination_n: 13
+contamination_threshold: 0.20

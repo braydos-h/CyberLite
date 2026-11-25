@@ -1,0 +1,36 @@
+{
+  "exact_duplicates": 0,
+  "input": 1999,
+  "kept": 1960,
+  "semantic_method": "word 5-shingle MinHash/LSH (lexical approximation)",
+  "semantic_near_duplicates": 5,
+  "semantic_pairs": [
+    {
+      "left_id": "grnd-owasp-cheatsheets-owasp-cheatsheets-05dc657bde85e4ea-requirement-1",
+      "right_id": "grnd-owasp-cheatsheets-owasp-cheatsheets-05dc657bde85e4ea-requirement-2",
+      "similarity": 0.8923
+    },
+    {
+      "left_id": "grnd-netfilter-nftables-netfilter-nftables-b4529fd9fc104be1-requirement-1",
+      "right_id": "grnd-netfilter-nftables-netfilter-nftables-b4529fd9fc104be1-requirement-2",
+      "similarity": 0.8885
+    },
+    {
+      "left_id": "grnd-netfilter-nftables-netfilter-nftables-0c1de1a16afe4410-requirement-1",
+      "right_id": "grnd-netfilter-nftables-netfilter-nftables-0c1de1a16afe4410-requirement-2",
+      "similarity": 0.8828
+    },
+    {
+      "left_id": "grnd-ietf-rfcs-ietf-rfcs-0dfeec252d33deeb-requirement-1",
+      "right_id": "grnd-ietf-rfcs-ietf-rfcs-0dfeec252d33deeb-requirement-2",
+      "similarity": 0.8819
+    },
+    {
+      "left_id": "grnd-ietf-rfcs-ietf-rfcs-2981ce2371998984-requirement-1",
+      "right_id": "grnd-ietf-rfcs-ietf-rfcs-2981ce2371998984-requirement-2",
+      "similarity": 0.8819
+    }
+  ],
+  "semantic_threshold": 0.88,
+  "simhash_near_duplicates": 34
+}

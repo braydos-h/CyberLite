@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "reviewed_at": "2026-11-25",
+  "reviewer": "agent-D",
+  "facts": [
+    {
+      "id": "rem-verify-patch",
+      "reason": "Fabricated patch-verification inference in the log record; revision requested.",
+      "status": "cleared",
+      "cleared_reason": "Revision verified in the pack; rebuild and re-review."
+    },
+    {
+      "id": "gen-bigo-001",
+      "reason": "Performance issue mislabelled as a security code-review defect; revision requested.",
+      "status": "cleared",
+      "cleared_reason": "Revision verified in the pack; rebuild and re-review."
+    },
+    {
+      "id": "api-excessive-data-001",
+      "reason": "Secure example omitted the object-level authorization predicate; revision requested.",
+      "status": "cleared",
+      "cleared_reason": "Revision verified in the pack; rebuild and re-review."
+    },
+    {
+      "id": "auth-gpo-052",
+      "reason": "gPLink is an attribute of the scope of management, not the GPO container; revision requested.",
+      "status": "cleared",
+      "cleared_reason": "Revision verified in the pack; rebuild and re-review."
+    }
+  ]
+}

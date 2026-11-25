@@ -1,0 +1,1108 @@
+{
+  "reviewer": "agent-E",
+  "review_type": "quality",
+  "artifact": "synthesis-calibration",
+  "dataset_version": "cyberlite-syn-2.0.0-913298850f3e",
+  "items": [
+    {
+      "record_id": "syn-cloud-container-supply-chain-cloud-iam-permission-boundary-intersection-config-1",
+      "scores": {
+        "technical_accuracy": 8,
+        "source_grounding": 8,
+        "completeness": 6,
+        "relevance": 7,
+        "clarity": 9,
+        "practical_usefulness": 6,
+        "originality_diversity": 5,
+        "small_model_suitability": 8
+      },
+      "findings": [
+        "The snippet is a plain identity/permissions policy; it acts as a permissions boundary only when attached as PermissionsBoundary, which the answer does not make explicit.",
+        "The 'assumption that could make it unsafe' and 'what to verify' paragraphs are generic template text, not tied to this policy (e.g., whether the identity policy grants broader actions, whether the boundary is attached).",
+        "Revise: state the attachment requirement and give a concrete negative test (attempt an action outside the boundary)."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": false
+    },
+    {
+      "record_id": "syn-cloud-container-supply-chain-cloud-gcp-iam-condition-binding-explain",
+      "scores": {
+        "technical_accuracy": 9,
+        "source_grounding": 9,
+        "completeness": 7,
+        "relevance": 8,
+        "clarity": 9,
+        "practical_usefulness": 8,
+        "originality_diversity": 7,
+        "small_model_suitability": 9
+      },
+      "findings": [
+        "Prompt asks for concrete CEL conditions and verification steps; the answer gives no example expression and no verification procedure.",
+        "Accurate IAM facts (deny precedence, folder inheritance), but the 'Key specifics'/'Common mistakes' headings are generic template furniture.",
+        "Revise: add one CEL example (request.time / resource.name) and a short verification workflow (policy simulator, effective-policy check)."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": false
+    },
+    {
+      "record_id": "syn-cloud-container-supply-chain-cloud-guardduty-finding-triage-log-1",
+      "scores": {
+        "technical_accuracy": 9,
+        "source_grounding": 9,
+        "completeness": 8,
+        "relevance": 9,
+        "clarity": 9,
+        "practical_usefulness": 9,
+        "originality_diversity": 7,
+        "small_model_suitability": 8
+      },
+      "findings": [
+        "Correctly reads the GuardDuty finding: an instance-role key used outside AWS; correlate CloudTrail and rotate credentials.",
+        "Distinguishes the finding from proof of intent, which is the right analytic caution.",
+        "'Signature of stolen instance credentials' is slightly strong; 'strong indicator' would be more precise."
+      ],
+      "decision": "accept",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": false
+    },
+    {
+      "record_id": "syn-cloud-container-supply-chain-cloud-shared-responsibility-layers-misconception-1",
+      "scores": {
+        "technical_accuracy": 9,
+        "source_grounding": 9,
+        "completeness": 8,
+        "relevance": 9,
+        "clarity": 9,
+        "practical_usefulness": 8,
+        "originality_diversity": 6,
+        "small_model_suitability": 9
+      },
+      "findings": [
+        "Correct rejection of the claim and accurate shared-responsibility split.",
+        "The middle paragraph is a generic IaaS/PaaS/SaaS essay reused from the structured-JSON item; the practical consequence is a stock sentence.",
+        "Revise: replace with a concrete consequence (e.g., unencrypted managed database, over-broad IAM, public bucket) and a specific check."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": false
+    },
+    {
+      "record_id": "syn-cloud-container-supply-chain-cloud-cloudtrail-data-events-gap-mcq-1",
+      "scores": {
+        "technical_accuracy": 10,
+        "source_grounding": 9,
+        "completeness": 9,
+        "relevance": 9,
+        "clarity": 10,
+        "practical_usefulness": 9,
+        "originality_diversity": 7,
+        "small_model_suitability": 10
+      },
+      "findings": [
+        "Correct: S3 GetObject is a data event and is not recorded by default; distractors are plausible.",
+        "Supporting point correctly separates management events from data events.",
+        "Supporting point is longer than needed for a single-answer MCQ."
+      ],
+      "decision": "accept",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": false
+    },
+    {
+      "record_id": "syn-cloud-container-supply-chain-cloud-shared-responsibility-layers-checklist",
+      "scores": {
+        "technical_accuracy": 9,
+        "source_grounding": 9,
+        "completeness": 8,
+        "relevance": 9,
+        "clarity": 9,
+        "practical_usefulness": 8,
+        "originality_diversity": 6,
+        "small_model_suitability": 6
+      },
+      "findings": [
+        "JSON is valid and uses the exact requested keys.",
+        "`principle` copies the entire guidance verbatim instead of summarizing; `checks` strings are long and include claims not in the guidance (managed Kubernetes, liability shield), violating 'short strings'.",
+        "Revise: compress principle to 1-2 sentences and keep checks short and source-faithful."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": false
+    },
+    {
+      "record_id": "syn-cloud-container-supply-chain-cont-dockerfile-nonroot-config-complete",
+      "scores": {
+        "technical_accuracy": 9,
+        "source_grounding": 9,
+        "completeness": 7,
+        "relevance": 7,
+        "clarity": 9,
+        "practical_usefulness": 8,
+        "originality_diversity": 5,
+        "small_model_suitability": 8
+      },
+      "findings": [
+        "The completed line is valid Dockerfile, but the blank is an install step while the stated purpose is 'create an unprivileged account and run as UID 10001'; the answer does not connect the line to that purpose.",
+        "The non-root explanation is accurate but generic, and the closing 'Other values may be syntactically valid...' paragraph is boilerplate.",
+        "Revise: align the blank/purpose or change the purpose to dependency installation; add a check that the process runs as 10001."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": false
+    },
+    {
+      "record_id": "syn-cloud-container-supply-chain-cloud-s3-block-public-access-multi-answer",
+      "scores": {
+        "technical_accuracy": 9,
+        "source_grounding": 9,
+        "completeness": 7,
+        "relevance": 9,
+        "clarity": 9,
+        "practical_usefulness": 9,
+        "originality_diversity": 6,
+        "small_model_suitability": 9
+      },
+      "findings": [
+        "Answer A/C is correct and the four-switch explanation is accurate.",
+        "Options B and D are bad practices, not statements that can be 'supported'; this is the recurring multi-answer format defect.",
+        "No per-option rationale and the sentence 'The selected statements describe the mechanism...' is boilerplate."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": false
+    },
+    {
+      "record_id": "syn-cryptography-identity-access-crypto-pq-migration-018-explain",
+      "scores": {
+        "technical_accuracy": 10,
+        "source_grounding": 9,
+        "completeness": 9,
+        "relevance": 10,
+        "clarity": 9,
+        "practical_usefulness": 9,
+        "originality_diversity": 8,
+        "small_model_suitability": 8
+      },
+      "findings": [
+        "Strong technical coverage: Shor/Grover, FIPS 203/204/205, hybrid X25519MLKEM768, harvest-now-decrypt-later, NIST IR 8547 and CNSA 2.0 timelines.",
+        "Dense but every bullet carries a concrete, checkable fact; appropriate for an advanced explanation.",
+        "Minor: confirm IR 8547 draft status and the OpenSSL 3.5 feature list at publication time."
+      ],
+      "decision": "accept",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": false
+    },
+    {
+      "record_id": "syn-cryptography-identity-access-crypto-aead-002-codereview-1",
+      "scores": {
+        "technical_accuracy": 9,
+        "source_grounding": 9,
+        "completeness": 8,
+        "relevance": 9,
+        "clarity": 9,
+        "practical_usefulness": 9,
+        "originality_diversity": 8,
+        "small_model_suitability": 7
+      },
+      "findings": [
+        "Correctly identifies CBC-without-MAC and fixed-IV weaknesses; the secure version uses AES-GCM with a random 96-bit nonce and AAD.",
+        "Explains AAD and tag verification, which is the right remediation principle.",
+        "Does not mention the original code's missing finalize/padding, and the impact/exploit condition is only implicit."
+      ],
+      "decision": "accept",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": false
+    },
+    {
+      "record_id": "syn-cryptography-identity-access-crypto-kdf-purpose-006-codefix-1",
+      "scores": {
+        "technical_accuracy": 9,
+        "source_grounding": 9,
+        "completeness": 9,
+        "relevance": 9,
+        "clarity": 9,
+        "practical_usefulness": 9,
+        "originality_diversity": 8,
+        "small_model_suitability": 8
+      },
+      "findings": [
+        "Correct root cause: a bare hash lacks salt, domain separation, and length control; HKDF is the right fix for high-entropy input.",
+        "Correctly distinguishes password hashing (Argon2id/scrypt/bcrypt/PBKDF2) from protocol KDFs.",
+        "Regression-test advice is appropriate."
+      ],
+      "decision": "accept",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": false
+    },
+    {
+      "record_id": "syn-cryptography-identity-access-cert-wildcard-026-mcq-1",
+      "scores": {
+        "technical_accuracy": 10,
+        "source_grounding": 9,
+        "completeness": 8,
+        "relevance": 9,
+        "clarity": 10,
+        "practical_usefulness": 9,
+        "originality_diversity": 7,
+        "small_model_suitability": 10
+      },
+      "findings": [
+        "Correct wildcard semantics: exactly one leftmost label; bare domain and multi-label cases excluded.",
+        "Useful edge cases: partial wildcards and public-suffix restrictions.",
+        "Supporting point repeats the first explanation almost verbatim; trim one."
+      ],
+      "decision": "accept",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": false
+    },
+    {
+      "record_id": "syn-fundamentals-linux-networking-fund-hash-vs-encrypt-compare-fund-least-privilege",
+      "scores": {
+        "technical_accuracy": 7,
+        "source_grounding": 8,
+        "completeness": 5,
+        "relevance": 4,
+        "clarity": 7,
+        "practical_usefulness": 5,
+        "originality_diversity": 4,
+        "small_model_suitability": 7
+      },
+      "findings": [
+        "The prompt concatenates two unrelated topics ('Compare hashing ... with least privilege ...'); the answer admits they are not comparable and then gives two separate summaries.",
+        "There is no actual comparison: no shared axis, trade-off, or decision rule connecting cryptography choice with access policy.",
+        "Quarantine: the item is incoherent as written and mostly template filler ('They are not interchangeable. The first concerns ...')."
+      ],
+      "decision": "quarantine",
+      "critical": true,
+      "revision": 0,
+      "source_dependent": false
+    },
+    {
+      "record_id": "syn-fundamentals-linux-networking-lnx-sshd-config-config-complete",
+      "scores": {
+        "technical_accuracy": 9,
+        "source_grounding": 9,
+        "completeness": 8,
+        "relevance": 9,
+        "clarity": 9,
+        "practical_usefulness": 9,
+        "originality_diversity": 5,
+        "small_model_suitability": 9
+      },
+      "findings": [
+        "The completed line (AllowGroups ssh-users) is correct and fits the stated purpose.",
+        "The answer is mostly a general OpenSSH hardening essay plus the recurring 'Other values...' boilerplate; it does not explain why AllowGroups is the missing control or how it interacts with AuthenticationMethods.",
+        "Revise: tie the line to group-based access and verify with sshd -T."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": false
+    },
+    {
+      "record_id": "syn-fundamentals-linux-networking-fund-authn-authz-explain",
+      "scores": {
+        "technical_accuracy": 9,
+        "source_grounding": 9,
+        "completeness": 7,
+        "relevance": 9,
+        "clarity": 10,
+        "practical_usefulness": 9,
+        "originality_diversity": 8,
+        "small_model_suitability": 10
+      },
+      "findings": [
+        "Compact and precise: authentication vs authorization, stolen-cookie example, 401/403 distinction.",
+        "Server-side object-level authorization is stated as the control, which is the key practical point.",
+        "Prompt asks what would make the explanation wrong; that is only implicit in the 'fail separately' framing."
+      ],
+      "decision": "accept",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": false
+    },
+    {
+      "record_id": "syn-fundamentals-linux-networking-lnx-lsm-modes-log-1",
+      "scores": {
+        "technical_accuracy": 8,
+        "source_grounding": 8,
+        "completeness": 7,
+        "relevance": 9,
+        "clarity": 9,
+        "practical_usefulness": 8,
+        "originality_diversity": 7,
+        "small_model_suitability": 8
+      },
+      "findings": [
+        "Correctly identifies the SELinux denial (httpd_t reading user_home_t, permissive=0) and the restorecon fix.",
+        "Presents an unverified cause as fact: 'the file was copied from a home directory with cp -a preserving context' is not in the log.",
+        "Prompt asks to distinguish observations from inferences; revise to label the copy/context hypothesis and add checks (ls -Z, matchpathcon, audit2why, ausearch)."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": false
+    },
+    {
+      "record_id": "syn-fundamentals-linux-networking-fund-cia-triad-misconception-1",
+      "scores": {
+        "technical_accuracy": 9,
+        "source_grounding": 9,
+        "completeness": 7,
+        "relevance": 7,
+        "clarity": 9,
+        "practical_usefulness": 7,
+        "originality_diversity": 5,
+        "small_model_suitability": 8
+      },
+      "findings": [
+        "Correct core point: encryption alone is malleable without AEAD/MAC/signature.",
+        "Most of the answer is a CIA-triad lecture that repeats the supporting point in the CIA MCQ and is not needed to correct the claim.",
+        "Revise: focus on authenticated encryption, a concrete modification scenario, and the practical consequence."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": false
+    },
+    {
+      "record_id": "syn-fundamentals-linux-networking-fund-cia-triad-mcq-1",
+      "scores": {
+        "technical_accuracy": 9,
+        "source_grounding": 9,
+        "completeness": 7,
+        "relevance": 7,
+        "clarity": 9,
+        "practical_usefulness": 8,
+        "originality_diversity": 6,
+        "small_model_suitability": 7
+      },
+      "findings": [
+        "Correct answer A: a digest supports integrity/change detection, not confidentiality, authenticity, or availability.",
+        "Most of the supporting point is a generic CIA-triad essay that repeats the same text used in the misconception item; it is not needed to explain the digest question.",
+        "Revise: replace the essay with a concrete digest/signature comparison and a note on why an unsigned digest does not give authenticity."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": false
+    },
+    {
+      "record_id": "grnd-ietf-rfcs-ietf-rfcs-14da927e6c5964db-claim-1",
+      "scores": {
+        "technical_accuracy": 9,
+        "source_grounding": 10,
+        "completeness": 6,
+        "relevance": 6,
+        "clarity": 9,
+        "practical_usefulness": 4,
+        "originality_diversity": 3,
+        "small_model_suitability": 7
+      },
+      "findings": [
+        "The correct answer is a verbatim sentence from the excerpt; the explanation only notes SHOULD\u2192MUST and a removed negation.",
+        "Tests proofreading of a quoted sentence, not the security principle (transport confidentiality and authentication).",
+        "Low information for 412 tokens; revise to ask what the guidance means and when to disable secret-based authentication."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": true
+    },
+    {
+      "record_id": "syn-incident-response-forensics-threat-intel-forensics-memory-022-explain",
+      "scores": {
+        "technical_accuracy": 9,
+        "source_grounding": 9,
+        "completeness": 9,
+        "relevance": 9,
+        "clarity": 10,
+        "practical_usefulness": 9,
+        "originality_diversity": 8,
+        "small_model_suitability": 10
+      },
+      "findings": [
+        "Specific acquisition detail (WinPmem, LiME, hypervisor snapshot) and an analysis caveat (Volatility symbol/profile mismatch).",
+        "Answers the 'what would make it wrong' request through the mismatched-profile failure mode.",
+        "Good balance of concept and lab-verifiable checks."
+      ],
+      "decision": "accept",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": false
+    },
+    {
+      "record_id": "syn-incident-response-forensics-threat-intel-ir-bec-009-log-1",
+      "scores": {
+        "technical_accuracy": 9,
+        "source_grounding": 9,
+        "completeness": 8,
+        "relevance": 9,
+        "clarity": 9,
+        "practical_usefulness": 10,
+        "originality_diversity": 7,
+        "small_model_suitability": 7
+      },
+      "findings": [
+        "Strong BEC pattern recognition: hidden inbox rule, mark-as-read, external forwarding, unfamiliar IP.",
+        "Concrete containment steps (revoke sessions, remove rule/forwarding, review MFA and sent items).",
+        "'The account is being used to intercept payment discussions' is an inference; label it as a hypothesis."
+      ],
+      "decision": "accept",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": false
+    },
+    {
+      "record_id": "syn-incident-response-forensics-threat-intel-forensics-cloudlogs-034-mcq-1",
+      "scores": {
+        "technical_accuracy": 9,
+        "source_grounding": 8,
+        "completeness": 7,
+        "relevance": 6,
+        "clarity": 8,
+        "practical_usefulness": 7,
+        "originality_diversity": 5,
+        "small_model_suitability": 7
+      },
+      "findings": [
+        "Correct answer B and correct retention facts (Entra sign-in ~30 days, CloudTrail console history 90 days).",
+        "Supporting point opens with browser-forensics SQLite content that is unrelated to cloud audit-log retention; the subtopic appears to have been merged from two records.",
+        "Revise: remove the browser-forensics material and keep the answer on provider retention and legal hold."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": false
+    },
+    {
+      "record_id": "syn-incident-response-forensics-threat-intel-forensics-prefetch-027-explain",
+      "scores": {
+        "technical_accuracy": 9,
+        "source_grounding": 9,
+        "completeness": 9,
+        "relevance": 9,
+        "clarity": 9,
+        "practical_usefulness": 10,
+        "originality_diversity": 8,
+        "small_model_suitability": 9
+      },
+      "findings": [
+        "Specific Windows Prefetch facts: .pf path, run count, eight run times, 1024-entry cap, PECmd.",
+        "Explicitly states the limitation (absence proves little) and concrete causes (disabled service, cleanup, Server default).",
+        "Good example of evidence interpretation with caveats."
+      ],
+      "decision": "accept",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": false
+    },
+    {
+      "record_id": "syn-language-security-retention-go-tls-005-explain",
+      "scores": {
+        "technical_accuracy": 10,
+        "source_grounding": 9,
+        "completeness": 9,
+        "relevance": 10,
+        "clarity": 9,
+        "practical_usefulness": 10,
+        "originality_diversity": 8,
+        "small_model_suitability": 8
+      },
+      "findings": [
+        "Concrete Go crypto/tls guidance: MinVersion, InsecureSkipVerify, RootCAs replacement, config cloning, handshake timeouts.",
+        "Names real failure modes (copying test settings, MaxVersion pinning) and is accurate.",
+        "The six-bullet list is at the upper comfort range for a 0.8B model but remains within budget."
+      ],
+      "decision": "accept",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": false
+    },
+    {
+      "record_id": "syn-language-security-retention-gen-testing-007-misconception-1",
+      "scores": {
+        "technical_accuracy": 9,
+        "source_grounding": 9,
+        "completeness": 9,
+        "relevance": 9,
+        "clarity": 9,
+        "practical_usefulness": 9,
+        "originality_diversity": 7,
+        "small_model_suitability": 10
+      },
+      "findings": [
+        "Correct: coverage measures executed lines, not asserted behaviour; names boundary, error, and concurrency gaps.",
+        "Adds a useful test-discipline sequence (reproduce, fail, fix, pass) and test types.",
+        "The closing 'Acting on the incorrect claim...' sentence is generic filler; a concrete example would be stronger."
+      ],
+      "decision": "accept",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": false
+    },
+    {
+      "record_id": "syn-language-security-retention-gen-bigo-001-codereview-1",
+      "scores": {
+        "technical_accuracy": 8,
+        "source_grounding": 7,
+        "completeness": 6,
+        "relevance": 4,
+        "clarity": 9,
+        "practical_usefulness": 5,
+        "originality_diversity": 5,
+        "small_model_suitability": 8
+      },
+      "findings": [
+        "The prompt asks for security defects, but the code is a correct duplicate check whose only issue is O(n^2) performance; there is no security weakness, exploit condition, or impact.",
+        "The answer forces a security frame and closes with 'malicious input'/'payload string' boilerplate that is nonsensical for this code.",
+        "Quarantine: training this would teach the model to mislabel a performance issue as a vulnerability."
+      ],
+      "decision": "quarantine",
+      "critical": true,
+      "revision": 0,
+      "source_dependent": false
+    },
+    {
+      "record_id": "syn-language-security-retention-gen-stacktrace-002-multi-answer",
+      "scores": {
+        "technical_accuracy": 9,
+        "source_grounding": 9,
+        "completeness": 7,
+        "relevance": 8,
+        "clarity": 9,
+        "practical_usefulness": 8,
+        "originality_diversity": 6,
+        "small_model_suitability": 9
+      },
+      "findings": [
+        "Correct C/D reasoning about Python 3.11 caret markers and exception-type messages.",
+        "Options A and B are bad practices, not statements that can be 'supported'; the multi-answer format is internally inconsistent.",
+        "The sentence 'The selected statements describe the mechanism...' is filler and recurs across multi-answer items; add per-option rationale."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": false
+    },
+    {
+      "record_id": "syn-language-security-retention-go-exec-004-codereview-1",
+      "scores": {
+        "technical_accuracy": 10,
+        "source_grounding": 9,
+        "completeness": 9,
+        "relevance": 10,
+        "clarity": 9,
+        "practical_usefulness": 10,
+        "originality_diversity": 8,
+        "small_model_suitability": 8
+      },
+      "findings": [
+        "Correct command-injection diagnosis for sh -c concatenation; the secure version uses exec.CommandContext with separate argv and a timeout.",
+        "Explains why exec.Command is safe without a shell and when injection reappears.",
+        "Strong, specific, and directly actionable."
+      ],
+      "decision": "accept",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": false
+    },
+    {
+      "record_id": "grnd-linux-man-pages-linux-man-pages-10426f0e9c0ebc37-claim-1",
+      "scores": {
+        "technical_accuracy": 9,
+        "source_grounding": 10,
+        "completeness": 6,
+        "relevance": 5,
+        "clarity": 8,
+        "practical_usefulness": 3,
+        "originality_diversity": 3,
+        "small_model_suitability": 5
+      },
+      "findings": [
+        "723-token item built around a glibc faccessat/fstatat excerpt; the task is spotting fstatat(2) vs fstatat(3) and 'required' vs 'RECOMMENDED'.",
+        "No security reasoning, and the correct answer is a verbatim copy; too long and too obscure for a 0.8B model at 1024 tokens.",
+        "Quarantine: replace with a shorter, security-relevant access-control item if this source is needed."
+      ],
+      "decision": "quarantine",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": true
+    },
+    {
+      "record_id": "grnd-mitre-attack-mitre-attack-2f6456316b4b8a60-claim-1",
+      "scores": {
+        "technical_accuracy": 9,
+        "source_grounding": 10,
+        "completeness": 5,
+        "relevance": 5,
+        "clarity": 9,
+        "practical_usefulness": 3,
+        "originality_diversity": 3,
+        "small_model_suitability": 7
+      },
+      "findings": [
+        "Options differ only by MAY\u2192SHALL and citation year 2010\u21924020; the correct answer is a verbatim excerpt sentence.",
+        "This tests proofreading, not ATT&CK mitigation knowledge; there is no explanation of W32Time or time-provider abuse.",
+        "Quarantine: rewrite as a technique-recognition or mitigation-selection item with paraphrased options."
+      ],
+      "decision": "quarantine",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": true
+    },
+    {
+      "record_id": "grnd-mitre-cwe-mitre-cwe-013eec0b6577f655-claim-1",
+      "scores": {
+        "technical_accuracy": 9,
+        "source_grounding": 10,
+        "completeness": 5,
+        "relevance": 5,
+        "clarity": 8,
+        "practical_usefulness": 3,
+        "originality_diversity": 3,
+        "small_model_suitability": 6
+      },
+      "findings": [
+        "The correct answer is a verbatim sentence about the 'boat' input-validation example, not the core CWE-289 alternate-name authentication bypass.",
+        "Distractors are one-word changes (may/SHALL, a removed negation); there is no reasoning about alternate names or access-control bypass.",
+        "Quarantine: rewrite around the CWE-289 mechanism and a concrete alternate-name scenario."
+      ],
+      "decision": "quarantine",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": true
+    },
+    {
+      "record_id": "syn-monitoring-detection-soc-det-sigma-modifiers-302-config-complete",
+      "scores": {
+        "technical_accuracy": 9,
+        "source_grounding": 9,
+        "completeness": 8,
+        "relevance": 8,
+        "clarity": 9,
+        "practical_usefulness": 9,
+        "originality_diversity": 5,
+        "small_model_suitability": 9
+      },
+      "findings": [
+        "The completed condition line is correct: image AND flags AND payload.",
+        "The explanation drifts into a catalogue of Sigma modifiers while the blank is a condition expression; relevance is only partial.",
+        "Recurring 'Other values may be syntactically valid...' boilerplate; replace with a check that the condition actually requires all three selections."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": false
+    },
+    {
+      "record_id": "syn-monitoring-detection-soc-det-sigma-structure-301-explain",
+      "scores": {
+        "technical_accuracy": 9,
+        "source_grounding": 9,
+        "completeness": 7,
+        "relevance": 9,
+        "clarity": 9,
+        "practical_usefulness": 8,
+        "originality_diversity": 7,
+        "small_model_suitability": 9
+      },
+      "findings": [
+        "Accurate anatomy of a Sigma rule (metadata, logsource, detection, condition, falsepositives, translation).",
+        "Prompt asks what would make the explanation wrong; that is not answered, and the detection block is covered only shallowly.",
+        "Template headings ('Key specifics'/'Common mistakes') make it read as a generated summary rather than a targeted explanation."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": false
+    },
+    {
+      "record_id": "syn-monitoring-detection-soc-hunt-falsification-404-explain",
+      "scores": {
+        "technical_accuracy": 9,
+        "source_grounding": 9,
+        "completeness": 8,
+        "relevance": 9,
+        "clarity": 9,
+        "practical_usefulness": 9,
+        "originality_diversity": 8,
+        "small_model_suitability": 9
+      },
+      "findings": [
+        "Strong falsification framing: competing explanations, control populations, peer review, and programme metrics.",
+        "Actionable hunter guidance rather than a definition.",
+        "Conditions for applying the guidance are implicit; one sentence on telemetry coverage and hypothesis scope would improve completeness."
+      ],
+      "decision": "accept",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": false
+    },
+    {
+      "record_id": "syn-monitoring-detection-soc-det-kql-basics-303-log-1",
+      "scores": {
+        "technical_accuracy": 9,
+        "source_grounding": 9,
+        "completeness": 7,
+        "relevance": 9,
+        "clarity": 9,
+        "practical_usefulness": 8,
+        "originality_diversity": 7,
+        "small_model_suitability": 8
+      },
+      "findings": [
+        "Good reading of the failed-logon buckets: external IP, 41 failures across 3 accounts, then 37 across 2.",
+        "'Consistent with a key retry' for the internal address is an inference; label it and verify with successful-logon and lockout events.",
+        "The KQL pipeline explanation is generic and the 'next verification step' is only the boilerplate correlation sentence; add concrete steps (IP reputation, account lockout, geo, host logs)."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": false
+    },
+    {
+      "record_id": "syn-monitoring-detection-soc-hunt-evidence-collection-402-triage-dialogue",
+      "scores": {
+        "technical_accuracy": 8,
+        "source_grounding": 8,
+        "completeness": 6,
+        "relevance": 6,
+        "clarity": 8,
+        "practical_usefulness": 6,
+        "originality_diversity": 4,
+        "small_model_suitability": 7
+      },
+      "findings": [
+        "The first assistant turn restates the evidence record instead of triaging it; there is no integrity check, custody step, or acquisition validation.",
+        "The second user turn is unrelated to the first artifact, and the answer is the same generic false-positive script used elsewhere; the closing bullets (reboot before memory capture, save the query) do not answer the question.",
+        "Quarantine: the two turns do not form a coherent troubleshooting dialogue and teach no multi-turn reasoning."
+      ],
+      "decision": "quarantine",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": false
+    },
+    {
+      "record_id": "syn-monitoring-detection-soc-log-k8s-verb-110-multi-answer",
+      "scores": {
+        "technical_accuracy": 9,
+        "source_grounding": 9,
+        "completeness": 7,
+        "relevance": 8,
+        "clarity": 9,
+        "practical_usefulness": 8,
+        "originality_diversity": 6,
+        "small_model_suitability": 9
+      },
+      "findings": [
+        "Correct B/C Kubernetes audit reasoning (403 as probing evidence, service-account identity).",
+        "Options A and D are assumptions/mistakes, not false statements; the 'select all that are supported' framing does not fit.",
+        "The answer key gives no per-option rationale and uses the same boilerplate sentence as other multi-answer items."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": false
+    },
+    {
+      "record_id": "grnd-nist-nvd-nist-nvd-0062b87e4e98743f-json",
+      "scores": {
+        "technical_accuracy": 10,
+        "source_grounding": 10,
+        "completeness": 10,
+        "relevance": 10,
+        "clarity": 10,
+        "practical_usefulness": 9,
+        "originality_diversity": 8,
+        "small_model_suitability": 9
+      },
+      "findings": [
+        "Exact extraction: cve_id, low severity, 3.1 base score, network attack vector, CWE-521; no extra keys.",
+        "Handles the requested schema and null policy cleanly; the response is short and directly usable.",
+        "Strong model for structured-output items."
+      ],
+      "decision": "accept",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": true
+    },
+    {
+      "record_id": "grnd-nist-nvd-nist-nvd-000acc9a82d0be67-uncertainty",
+      "scores": {
+        "technical_accuracy": 10,
+        "source_grounding": 10,
+        "completeness": 10,
+        "relevance": 10,
+        "clarity": 10,
+        "practical_usefulness": 10,
+        "originality_diversity": 9,
+        "small_model_suitability": 8
+      },
+      "findings": [
+        "Correctly separates what the NVD record establishes (CVE description) from what the ticket claims (host-01 is vulnerable).",
+        "Lists the missing evidence: installed version, CPE applicability, exposed service, scanner match evidence, reachability, fix/compensating control.",
+        "Strong uncertainty-handling example; appropriately concise."
+      ],
+      "decision": "accept",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": true
+    },
+    {
+      "record_id": "grnd-openssh-docs-openssh-docs-0c5faec983b98400-claim-1",
+      "scores": {
+        "technical_accuracy": 8,
+        "source_grounding": 9,
+        "completeness": 5,
+        "relevance": 5,
+        "clarity": 7,
+        "practical_usefulness": 3,
+        "originality_diversity": 3,
+        "small_model_suitability": 6
+      },
+      "findings": [
+        "The excerpt and options contain 'ssh 1' markup artifacts; the item becomes a typo-spotting exercise (ssh 1 vs ssh 2) rather than OpenSSH configuration reasoning.",
+        "The correct answer is verbatim and the explanation ('SHOULD'\u2192'MUST', 1\u21922) is mechanical.",
+        "Quarantine: clean the source text and rewrite around IdentitiesOnly/IdentityAgent behaviour."
+      ],
+      "decision": "quarantine",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": true
+    },
+    {
+      "record_id": "grnd-owasp-cheatsheets-owasp-cheatsheets-00e26e6ee9da5281-claim-1",
+      "scores": {
+        "technical_accuracy": 9,
+        "source_grounding": 10,
+        "completeness": 6,
+        "relevance": 7,
+        "clarity": 9,
+        "practical_usefulness": 4,
+        "originality_diversity": 3,
+        "small_model_suitability": 8
+      },
+      "findings": [
+        "The correct answer is verbatim; distractors change React 19\u219238 and remove a negation.",
+        "The item tests sentence matching, not why framework URL validation matters or how to validate URLs.",
+        "Revise: ask for the security implication and a concrete validation approach; paraphrase the options."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": true
+    },
+    {
+      "record_id": "syn-vulnerability-classification-remediation-cvss-v31-base-metrics-compare-cvss-v31-environmental",
+      "scores": {
+        "technical_accuracy": 9,
+        "source_grounding": 9,
+        "completeness": 8,
+        "relevance": 8,
+        "clarity": 7,
+        "practical_usefulness": 8,
+        "originality_diversity": 5,
+        "small_model_suitability": 8
+      },
+      "findings": [
+        "Both metric groups are described accurately, but the prompt is ungrammatical ('Compare ... with ... are where ...') and the answer's final paragraph is template filler.",
+        "The 'when to choose one over the other' request is answered only generically; add a concrete example (same CVE scored by vendor vs asset owner).",
+        "Revise for prompt grammar and a real comparison, not two adjacent summaries."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": false
+    },
+    {
+      "record_id": "syn-vulnerability-classification-remediation-rem-verify-patch-log-1",
+      "scores": {
+        "technical_accuracy": 8,
+        "source_grounding": 8,
+        "completeness": 7,
+        "relevance": 8,
+        "clarity": 8,
+        "practical_usefulness": 7,
+        "originality_diversity": 6,
+        "small_model_suitability": 9
+      },
+      "findings": [
+        "A 400 response to a traversal probe is weak evidence and does not prove the patch; the answer asserts 'previously successful' without support.",
+        "The package/process checks are useful, but 'version, runtime, and behavior evidence agree' overstates what the excerpt shows.",
+        "The generic 'single log line' closer is mismatched to a multi-command verification excerpt; revise with a specific plan (changelog/CVE fix, patched-path test, server logs)."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": false
+    },
+    {
+      "record_id": "syn-vulnerability-classification-remediation-cwe-22-path-traversal-codereview-1",
+      "scores": {
+        "technical_accuracy": 9,
+        "source_grounding": 9,
+        "completeness": 6,
+        "relevance": 9,
+        "clarity": 9,
+        "practical_usefulness": 8,
+        "originality_diversity": 7,
+        "small_model_suitability": 9
+      },
+      "findings": [
+        "Correct core fix (realpath + commonpath containment) and correct CWE-22 principle.",
+        "The prompt asks for weakness class, exploit condition, impact, and fix; the answer omits an explicit exploit condition and impact and gives only one sentence of diagnosis.",
+        "Code lacks imports and a file-type check; commonpath can raise on mixed/relative paths, so the snippet needs hardening."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": false
+    },
+    {
+      "record_id": "syn-vulnerability-classification-remediation-cwe-306-missing-authentication-config-1",
+      "scores": {
+        "technical_accuracy": 8,
+        "source_grounding": 8,
+        "completeness": 6,
+        "relevance": 6,
+        "clarity": 9,
+        "practical_usefulness": 6,
+        "originality_diversity": 5,
+        "small_model_suitability": 9
+      },
+      "findings": [
+        "The snippet is a raw HTTP request, not a configuration; calling it a configuration review is a category error.",
+        "CWE-306 facts are correct, but the answer is a generic essay plus boilerplate and gives no concrete verification (e.g., unauthenticated request test, auth middleware check, network policy).",
+        "Revise: either provide an actual config/auth-middleware snippet or reframe as request analysis with explicit evidence."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": false
+    },
+    {
+      "record_id": "syn-vulnerability-classification-remediation-cwe-352-csrf-explain",
+      "scores": {
+        "technical_accuracy": 9,
+        "source_grounding": 9,
+        "completeness": 6,
+        "relevance": 9,
+        "clarity": 9,
+        "practical_usefulness": 9,
+        "originality_diversity": 7,
+        "small_model_suitability": 9
+      },
+      "findings": [
+        "Accurate CWE-352 explanation: ambient credentials, side-effect goal, Synchronizer/double-submit tokens, Origin/Referer checks.",
+        "Prompt asks what would make the explanation wrong; the answer lists defenses but never states the condition that invalidates the explanation.",
+        "No concrete example of a forged state-changing request, which would make the mechanism easier to retain."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": false
+    },
+    {
+      "record_id": "syn-vulnerability-classification-remediation-cvss-v31-temporal-mcq-1",
+      "scores": {
+        "technical_accuracy": 10,
+        "source_grounding": 9,
+        "completeness": 9,
+        "relevance": 9,
+        "clarity": 10,
+        "practical_usefulness": 9,
+        "originality_diversity": 7,
+        "small_model_suitability": 10
+      },
+      "findings": [
+        "Correct CVSS v3.1 point: RL is temporal and does not change base metrics.",
+        "Supporting point gives the full temporal group and defaults, which is useful context.",
+        "Clean, concise, and unambiguous."
+      ],
+      "decision": "accept",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": false
+    },
+    {
+      "record_id": "syn-web-api-secure-development-api-jwt-kid-001-codefix-1",
+      "scores": {
+        "technical_accuracy": 9,
+        "source_grounding": 9,
+        "completeness": 9,
+        "relevance": 9,
+        "clarity": 9,
+        "practical_usefulness": 9,
+        "originality_diversity": 8,
+        "small_model_suitability": 7
+      },
+      "findings": [
+        "Correct kid-path traversal/arbitrary-key diagnosis; a fixed map of trusted keys with unknown-kid rejection is the right control.",
+        "Explains that kid is read before verification and must be treated as an index, not a path.",
+        "`load_key` is undefined but the snippet is clearly illustrative; add algorithm/use checks in a real fix."
+      ],
+      "decision": "accept",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": false
+    },
+    {
+      "record_id": "syn-web-api-secure-development-api-oauth-pkce-001-config-1",
+      "scores": {
+        "technical_accuracy": 9,
+        "source_grounding": 9,
+        "completeness": 8,
+        "relevance": 9,
+        "clarity": 9,
+        "practical_usefulness": 9,
+        "originality_diversity": 6,
+        "small_model_suitability": 8
+      },
+      "findings": [
+        "The PKCE explanation is accurate: S256 challenge, verifier binding, avoid implicit/plain.",
+        "The generic closing paragraph ('Configuration text alone does not prove...') is reused and does not address this flow's specific assumptions (state binding, verifier storage, redirect URI allowlist).",
+        "Revise: add the concrete assumptions and verification steps for the authorization request."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": false
+    },
+    {
+      "record_id": "syn-web-api-secure-development-api-jwt-claims-001-explain",
+      "scores": {
+        "technical_accuracy": 9,
+        "source_grounding": 9,
+        "completeness": 8,
+        "relevance": 10,
+        "clarity": 10,
+        "practical_usefulness": 9,
+        "originality_diversity": 8,
+        "small_model_suitability": 10
+      },
+      "findings": [
+        "Clear separation of signature validity from claim validity; names exp, nbf, aud, iss and PyJWT's required-claim behaviour.",
+        "Concrete clock-skew and revocation guidance; no filler.",
+        "Could add one audience-confusion example, but the item is already useful."
+      ],
+      "decision": "accept",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": false
+    }
+  ]
+}

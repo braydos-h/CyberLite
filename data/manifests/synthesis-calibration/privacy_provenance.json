@@ -1,0 +1,321 @@
+{
+  "records_scanned": 500,
+  "secret_findings": [
+    {
+      "type": "synthetic_credential_placeholder",
+      "status": "false-positive",
+      "severity": "none",
+      "records": [
+        "syn-cryptography-identity-access-crypto-hardcoded-keys-020-codefix-1"
+      ],
+      "evidence": "API_KEY = \"sk_live_[REDACTED]\" in an explicitly labelled insecure example; the literal itself contains 'synthetic_example_not_a_real_key'.",
+      "handling": "Intentional teaching placeholder. Not a live Stripe key; no action required beyond existing redaction conventions."
+    },
+    {
+      "type": "private_key_search_string",
+      "status": "false-positive",
+      "severity": "none",
+      "locations": [
+        "data/synthesis/knowledge/c4-cryptography-identity-access.json#crypto-hardcoded-keys-020"
+      ],
+      "evidence": "Command text 'git log -p -S BEGIN PRIVATE KEY -- .' is a history search pattern, not key material.",
+      "handling": "No PEM block exists anywhere in the calibration splits."
+    },
+    {
+      "type": "encoded_command_blob",
+      "status": "false-positive",
+      "severity": "none",
+      "records": [
+        "syn-monitoring-detection-soc-log-powershell-encoded-108-triage-dialogue"
+      ],
+      "evidence": "A -EncodedCommand value decodes from UTF-16LE to 'Get-CimInstance Win32_OperatingSystem'.",
+      "handling": "Benign SCCM inventory activity presented as a triage exercise. High-entropy string is not a secret."
+    },
+    {
+      "type": "bearer_token_placeholder",
+      "status": "false-positive",
+      "severity": "none",
+      "records": [
+        "syn-web-api-secure-development-api-apikey-001-config-1"
+      ],
+      "evidence": "Header value is the literal placeholder 'Bearer REDACTED_API_KEY'.",
+      "handling": "Already redacted in the corpus."
+    },
+    {
+      "type": "credential_pattern_sweep",
+      "status": "clean",
+      "severity": "none",
+      "counts": {
+        "private_keys": 0,
+        "jwt": 0,
+        "aws_access_keys": 0,
+        "github_tokens": 0,
+        "slack_tokens": 0,
+        "google_api_keys": 0,
+        "credentialed_connection_strings": 0,
+        "pgp_or_openssh_private_keys": 0
+      },
+      "handling": "Regex sweep over prompt/response/middle/prefix/suffix/messages and over all eight knowledge packs returned no real secret material."
+    }
+  ],
+  "pii_findings": [
+    {
+      "type": "public_vendor_role_mailboxes",
+      "status": "not-personal-data",
+      "severity": "info",
+      "count": 7,
+      "domains": [
+        "nist.gov",
+        "vuldb.com",
+        "patchstack.com",
+        "emc.com",
+        "adobe.com",
+        "vmware.com",
+        "oracle.com"
+      ],
+      "records": "NVD-derived records only (26 records across train/validation)",
+      "handling": "These are public CVE-programme / vendor PSIRT role addresses embedded in upstream NVD CVSS and reference metadata. No personal mailbox or named individual was found. If the corpus is republished outside the NVD licence terms, redact local parts."
+    },
+    {
+      "type": "synthetic_contact_addresses",
+      "status": "expected",
+      "severity": "none",
+      "values": [
+        "[redacted]@example.internal",
+        "[redacted]@example-relay.test"
+      ],
+      "handling": "Reserved example domains; consistent with synthetic-scenario policy."
+    },
+    {
+      "type": "email_regex_false_positives",
+      "status": "false-positive",
+      "severity": "none",
+      "examples": [
+        "direct-streamlocal@openssh.com",
+        "forwarded-streamlocal@openssh.com",
+        "n@app.get",
+        "n@app.patch"
+      ],
+      "handling": "OpenSSH streamlocal forwarding directives and JavaScript method names, not addresses."
+    },
+    {
+      "type": "ssn_payment_card_phone_mac",
+      "status": "clean",
+      "severity": "none",
+      "counts": {
+        "ssn": 0,
+        "luhn_valid_payment_cards": 0,
+        "phone_numbers": 0,
+        "mac_addresses": 0
+      },
+      "handling": "Three card-like numeric runs were inspected: two STIX object identifiers (8000-000000000001/2) and one DNS SOA serial (2026031201); none are payment data."
+    }
+  ],
+  "real_identifier_findings": [
+    {
+      "type": "non_reserved_domain",
+      "status": "illustrative-but-not-reserved",
+      "severity": "low",
+      "values": [
+        "updates.example-vendor.net",
+        "cdn.example-vendor.net"
+      ],
+      "records": [
+        "syn-monitoring-detection-soc-log-network-layers-012-triage-dialogue"
+      ],
+      "handling": "Contains an 'example-' label but sits under the real registrable TLD .net, so it is not guaranteed reserved. Prefer example.com/.net/.org or a reserved .example/.test/.invalid name."
+    },
+    {
+      "type": "documentation_ip_ranges",
+      "status": "compliant",
+      "severity": "none",
+      "distinct_addresses": 14,
+      "ranges": [
+        "192.0.2.0/24",
+        "198.51.100.0/24",
+        "203.0.113.0/24"
+      ],
+      "handling": "All routable-looking addresses in prompts and responses fall inside RFC 5737 documentation ranges."
+    },
+    {
+      "type": "private_and_loopback_addresses",
+      "status": "compliant",
+      "severity": "none",
+      "distinct_addresses": 8,
+      "ranges": [
+        "10.20.30.0/24",
+        "127.0.0.0/8",
+        "0.0.0.0"
+      ],
+      "handling": "Clearly-labelled lab subnet, loopback, and a wildcard bind example; no public routable address other than the IMDS endpoint below."
+    },
+    {
+      "type": "real_service_endpoint",
+      "status": "intentional-subject",
+      "severity": "info",
+      "values": [
+        "169.254.169.254"
+      ],
+      "records": "cloud IMDSv2 enforcement records",
+      "handling": "The cloud instance-metadata link-local endpoint is the subject of the defensive guidance, not leaked target data."
+    },
+    {
+      "type": "reserved_private_names",
+      "status": "compliant",
+      "severity": "none",
+      "values": [
+        "*.example.internal",
+        "*.example.test",
+        "*.example.com"
+      ],
+      "handling": ".internal is reserved for private use and .test/.example are reserved; hostnames such as app-01, db-02, ws-014, EXAMPLE\\svc-backup are generic role labels."
+    },
+    {
+      "type": "public_service_hosts",
+      "status": "reference-only",
+      "severity": "none",
+      "values": [
+        "s3.amazonaws.com",
+        "graph.microsoft.com",
+        "registry.npmjs.org"
+      ],
+      "handling": "Appear as documentation/API endpoints in explanatory text, not as observed customer infrastructure."
+    }
+  ],
+  "unsafe_content_findings": [
+    {
+      "type": "no_harmful_instruction",
+      "status": "clean",
+      "severity": "none",
+      "summary": "No record instructs attacks on third parties, exploit weaponisation, malware construction, AV/EDR evasion, credential dumping, ransomware operation, or destructive action against a named target.",
+      "evidence": "Keyword sweep (ransomware, reverse shell, mimikatz, LSASS, rootkit, C2, exfiltration, /dev/tcp, nc -e, certutil, vssadmin, etc.) plus manual reading of every record containing a strong term."
+    },
+    {
+      "type": "destructive_command_as_evidence",
+      "status": "reviewed-not-flagged",
+      "severity": "info",
+      "records": [
+        "syn-incident-response-forensics-threat-intel-ir-ransom-008-incident-plan"
+      ],
+      "evidence": "Log excerpt shows 'vssadmin delete shadows /all /quiet' followed by mass file rename.",
+      "handling": "Presented as observed telemetry for a defensive 30-minute investigation plan; no instruction to run it."
+    },
+    {
+      "type": "inert_vulnerable_code",
+      "status": "reviewed-not-flagged",
+      "severity": "none",
+      "count": 20,
+      "handling": "Secure-code-review records pair a deliberately vulnerable snippet with a secure fix and explicitly say 'Do not write exploit code'. Snippets are inert and target no live system."
+    },
+    {
+      "type": "detection_engineering_content",
+      "status": "defensive",
+      "severity": "none",
+      "handling": "Ten Sigma-style rules cover brute force, failed logon, encoded PowerShell, setuid drift, 404 bursts, root-without-MFA, privileged pods, sudoers changes, long DNS queries and wildcard IAM. All are detection/tuning guidance, not attack procedure."
+    },
+    {
+      "type": "anonymisation_corruption",
+      "status": "quality-issue-not-safety",
+      "severity": "low",
+      "records": [
+        "grnd-mitre-attack-mitre-attack-01d4a8ba2e991f0d-match"
+      ],
+      "evidence": "The ATT&CK tool name 'CMSTP' was rewritten to 'this behaviour.exe' by a synthetic-identifier pass, producing 'this behaviour.exe is a command-line program'.",
+      "handling": "Factual fidelity defect, not unsafe content. Should be corrected by excluding product names from placeholder substitution."
+    }
+  ],
+  "provenance_gaps": {
+    "required_field_coverage": {
+      "source": 500,
+      "license": 500,
+      "source_version": 500,
+      "source_url": 500,
+      "upstream_id": 500,
+      "origin": 500,
+      "group": 500,
+      "content_hash": 500,
+      "content_hash_verified": 500
+    },
+    "missing_or_empty_fields": {
+      "license_url": 423,
+      "pack_sha256": 4,
+      "synthesis_version": 4,
+      "synthetic_identifiers": 423
+    },
+    "unregistered_source_metadata": {
+      "records": 4,
+      "value": "source_version=detection-library-v1, source_title='CyberLite authored detection-rule teaching library'",
+      "detail": "Neither string is registered in data/sources.yaml; the registry only declares cyberlite_synthesis revision synthesis-v1. The values are hard-coded in cyberlite/data/detection.py.",
+      "ids": [
+        "det-det-windows-failed-logon-interpret",
+        "det-det-k8s-privileged-pod-gap",
+        "det-det-k8s-privileged-pod-interpret",
+        "det-det-dns-long-query-interpret"
+      ]
+    },
+    "contradictory_reference_licence": {
+      "records": 4,
+      "detail": "The four detection records carry a reference to a Microsoft Learn URL whose licence is labelled 'Synthetic'. The URL is third-party documentation, not project-authored text."
+    },
+    "stale_pack_hash": {
+      "pack": "fundamentals-linux-networking",
+      "records": 49,
+      "manifest_hash": "35f7a67bcea9776c6ae1eb656899da3bee970a5bb5c72d36615e39b723d67585",
+      "current_file_hash": "3f52467f1e57...",
+      "detail": "Pack file mtime (13:14) is later than the manifest (13:13). The manifest pack hash and the 49 embedded pack_sha256 values no longer match the on-disk pack, so the build cannot be reproduced from current pack bytes."
+    },
+    "restrictive_reference_licence_not_inherited": {
+      "records": 12,
+      "detail": "Records labelled Synthetic and marked redistributable derive from facts whose references are non-redistributable or restricted: ISO/IEC 27037 (paid standard, 4 records), Volatility Software License (3), Splunk docs (2), Micro Focus docs (2), Sigma DRL-1.1 (1). The fact text appears to be independent paraphrase, but attribution/licence inheritance is not recorded per record.",
+      "severity": "medium"
+    },
+    "evaluation_screening_coverage": {
+      "manifest_evaluation_files": 3,
+      "on_disk_evaluation_files": 6,
+      "unscreened_items": 165,
+      "detail": "cyberlite_eval_factual_v1, cyberlite_eval_logs_ir_v1 and cyberlite_eval_vulnerability_v1 were written at 13:17, after the 13:13 manifest. An independent 13-gram screen found maximum overlap 0.04 (one CWE item), so no leakage is evident, but the manifest's contamination record is stale."
+    },
+    "preference_pairs": {
+      "records": 183,
+      "missing": [
+        "content_hash",
+        "url",
+        "non-empty license_url"
+      ],
+      "detail": "Auxiliary file, not part of the 500 calibration records; provenance is otherwise present."
+    },
+    "derived_parent_resolution": {
+      "resolved": 77,
+      "total": 77,
+      "detail": "Every source-derived derivation_parent_id exists in data/processed/pilot-v2."
+    },
+    "group_split_integrity": {
+      "violations": 0,
+      "detail": "No group spans train/validation/test and no content_hash is duplicated across splits."
+    },
+    "human_review_conflicts": 0,
+    "synthetic_flag_conflicts": 0
+  },
+  "license_counts": {
+    "Synthetic": 423,
+    "Public-Domain": 26,
+    "MITRE-CWE": 18,
+    "IETF-Trust": 10,
+    "MITRE-ATTACK": 10,
+    "OpenSSH": 6,
+    "Linux-man-pages-copyleft": 3,
+    "CC-BY-SA-4.0": 2,
+    "GPL-3.0-or-later": 1,
+    "Linux-man-pages-1-para": 1
+  },
+  "limitations": [
+    "Regex and manual review only; no entropy model beyond a long-token sweep and no semantic secret classifier.",
+    "Network checks were spot checks, not exhaustive: 8 URLs were tested; the ISO page returned HTTP 403 and two single-page apps could not be content-verified.",
+    "Public vendor role addresses in NVD metadata were judged not to be personal data; a stricter privacy policy may require redaction before redistribution.",
+    "Contamination screening is lexical (13-gram); conceptual or paraphrased reuse of evaluation material is not detectable.",
+    "The three newest evaluation files post-date the manifest and were screened independently only by the reviewer.",
+    "The c1 pack changed after the manifest was written, so pack-level reproducibility is already broken for this build.",
+    "AI review is not human review; all 500 records remain automated-screened and human_reviewed=false.",
+    "No binaries, archives, or linked external content were opened; only committed JSONL/JSON/YAML/Markdown was inspected."
+  ]
+}

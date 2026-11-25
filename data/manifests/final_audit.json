@@ -1,0 +1,71 @@
+{
+  "auditor": "agent-J2",
+  "verdict": "CONDITIONAL PASS — core snapshot verified, but the frozen production artifact was overwritten during the audit and review provenance is not fully reproducible; do not certify as a frozen reviewed release.",
+  "critical": [
+    "The claimed production build was replaced during the audit: at 13:56 UTC it was cyberlite-syn-2.0.0-37b01792c2d8-rev1 with 15,863 records (14,242/826/795) and 43 review-quarantined IDs absent; by 14:00 UTC the on-disk build was cyberlite-syn-2.0.0-37b01792c2d8 with 15,906 records (14,281/828/797), ai_independent_review=0, no review_report_sha256, and all 43 review-quarantined records restored to the splits. The new files match the new manifest, but the claimed reviewed artifact is no longer reproducible. Cause not identified; no audit command writes data/processed."
+  ],
+  "high": [
+    "Review provenance is stale for 6 of 27 AI-reviewed records: published content hashes differ from the reviewed calibration-build versions (api-bola-001-codereview-1, crypto-aead-002-codereview-1, log-ssh-bruteforce-101-misconception-1, go-path-002-codereview-1, gen-testing-007-misconception-1, det-threshold-correlation-305-checklist).",
+    "Review ledgers contain no content hashes; current apply_reviews.py requires a non-empty matching content_hash, so a fresh apply would mark all 102 reviews stale and reproduce 0 of the 27 reviewed records.",
+    "review_report_sha256 was wrong in the claimed snapshot: manifest 495d367c5a02b49d89d355565ffec96e5f025c7ec5545260b5d28059ceca1b14, actual report 73a4c5429968d04980efeef19f69df74b2a36f0e383bead42ec1c3410d22a269; the current rebuilt manifest drops the field.",
+    "The balanced manifest describes production, not the balanced view: distributions (difficulty 11,658/2,341/1,757/107), token_lengths.records=15,863, and review_coverage.automated_screening=15,863 versus actual 5,600/2,134/1,747/107, 9,588, and 9,588. Counts, split files, hashes, subset relation, and mixture caps are correct."
+  ],
+  "medium": [
+    "final-report.md labels the balanced 6,275 deferred records as 'Rejected' although the balanced manifest has rejected_records=0 and deferred_records=6,275; production rejected 6,908 also excludes the 43 review removals.",
+    "final-report.md reports 'Reviewed records: 102' without making clear this is a calibration sample; production coverage is 27 accepted records, and the report gives 102 more prominence than 27.",
+    "DATASET_CARD.md contains conflicting figures: curated synthetic 2,061 versus source distribution 'synthetic 2,096'; Linux man-pages source 216 versus '197' (197 is the license-class count).",
+    "GOALS.md states the 13-gram screen indexed 241,515 n-grams from SecEval/baseline/smoke; the current build indexes 277,950 across six files including the three frozen eval sets.",
+    "Accepted review means recompute to 8.839 overall / 9.569 technical / 9.040 grounding over 29 accepted aggregate items, not 8.85/9.574/9.043 over 27; two accepted IDs are absent from the published corpus without explanation."
+  ],
+  "low": [
+    "config_sha256 is the hash of the manifest options object, not of configs/synthesis/production.yaml; the value is self-consistent but the name is misleading.",
+    "review_quarantine.jsonl is a decision ledger without prompt/response text, license, source, or content hash, so the 43 quarantined records cannot be content-audited from it.",
+    "35 accepted records are marked pending-human-review, so 'all other accepted records automated-screened' is slightly imprecise.",
+    "DATASET_CARD token p50 is 373 while stored metadata.token_count values give 372 (not re-tokenized).",
+    "277,950 is the sum of per-file n-gram counts, not the unique union; an earlier audit reported 277,879 unique and this was not re-run.",
+    "README still describes the training corpus as pilot-v2 (7,188 records) and does not mention the 15,863/9,588 synthesis builds."
+  ],
+  "reproduced": {
+    "production_snapshot_counts": "15,863 accepted; 14,242/826/795; rejected 6,908; review quarantine 43; max tokens 1,024; 0 contamination removals; 0 cross-split leaks (manifest and files at 13:56 UTC)",
+    "production_file_hashes": "6/6 files matched the claimed manifest at 13:56 UTC",
+    "schema_and_content_hashes": "10/10 sampled records: text_for_dedup SHA-256, required fields, split column all correct; 5,038 groups, 0 multi-split groups, 0 duplicate IDs",
+    "balanced_dataset": "9,588 records; 8,592/517/479; file hashes match; same-split subset of the pre-rebuild production view; 0 group leaks; domain/family caps and difficulty quotas enforced",
+    "review_ledger": "180 reviews / 102 unique records / 13 disagreements = 0.1275; aggregate decisions accept 29, quarantine 21, revise 52; 43 quarantine entries",
+    "review_content_binding": "6/27 reviewed records differ from their reviewed calibration content; review ledgers carry empty content_hash",
+    "evaluation": "3 x 55 items; full SHA-256 match meta and manifest; validator ok=True for all; 0 ID or question overlap with training; 277,950 n-gram sum; 0 matches; CyberSecEval unavailable",
+    "licensing_gate": "preflight software_ready=True, research_ready=False, license_compliance=pass, exit 1; all 11 unresolved licenses acknowledged; unresolved-license/manual-review/preregistration blockers listed",
+    "restricted_text": "data/raw and data/processed are git-ignored; no raw corpus text tracked",
+    "documentation_honesty": "25,000 target and 9,137 shortfall stated; target not padded; 0 human-reviewed explicitly stated; AI review not described as human",
+    "safety_sample": "10 records sampled: no operational exploit/malware instructions; 165 lexical dangerous-term hits were descriptive NVD/ATT&CK/defensive text; 0 benchmark item matches"
+  },
+  "not_reproduced": [
+    "Final on-disk production build matching the claimed 15,863-record rev1 artifact (replaced at 14:00 UTC)",
+    "review_report_sha256 claim in the original manifest",
+    "Re-derivation of the 27 reviewed records with current apply_reviews content-hash matching",
+    "Full 15,863-record schema and provenance sweep",
+    "Tokenizer re-count (stored token_count used)",
+    "Independent 13-gram index rebuild and unique n-gram union",
+    "SimHash/MinHash deletion replay",
+    "Full privacy/PII review",
+    "Live source URL and license verification",
+    "Full corpus safety read",
+    "Rebuild of the corpus from source packs",
+    "Explanation for the 2 accepted review IDs absent from production and the 25 quarantine content mismatches"
+  ],
+  "commands": {
+    "ruff check cyberlite scripts tests": "All checks passed! (exit 0)",
+    "ruff format --check cyberlite scripts tests": "124 files already formatted (exit 0)",
+    "mypy cyberlite": "Success: no issues found in 56 source files (exit 0)",
+    "pytest -m \"not integration\"": "269 passed, 1 deselected, 1 warning in 24.83s (exit 0)",
+    "python scripts/validate_repo.py": "repository validation passed (347 files checked) (exit 0; run as python3)",
+    "python scripts/update_progress.py --check": "README.md progress is up to date (24/47 milestones (51%)) (exit 0; run as python3)",
+    "train preflight configs/lora_synthesis.yaml": "software ready True, research ready False, license_compliance pass, exit 1"
+  },
+  "limitations": [
+    "The production artifact was overwritten by a concurrent process during the audit; production figures are pinned to the 13:56 UTC snapshot unless labelled current.",
+    "Review coverage is AI-only, sampled, 27/15,863 (0.17%), and 6/27 reviewed records do not match their reviewed content; no human review.",
+    "Contamination screening is lexical 13-gram only; paraphrase, translation, and conceptual leakage are undetected; CyberSecEval is unavailable.",
+    "Engineering commands required /home/bh/qwen-cyber/.venv because system python lacks torch, ruff, and mypy.",
+    "Safety, licensing, and documentation checks were targeted samples, not exhaustive reviews."
+  ]
+}

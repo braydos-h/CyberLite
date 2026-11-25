@@ -1,0 +1,27 @@
+{
+  "description": "Held-out CyberLite evaluation set. Evaluation-only; never a training source.",
+  "difficulties": {
+    "advanced": 14,
+    "expert": 3,
+    "foundational": 16,
+    "intermediate": 22
+  },
+  "evaluation_only": true,
+  "file": "cyberlite_eval_factual_v1.jsonl",
+  "frozen": true,
+  "items": 55,
+  "license": "Synthetic",
+  "name": "cyberlite_eval_factual_v1",
+  "schema_version": 1,
+  "sha256": "4f098917af536c3cfbcef6e47aa95a8a72433e1977833b92bdf877622ca88ed0",
+  "suites": {
+    "factual": 25,
+    "knowledge": 20,
+    "uncertainty": 10
+  },
+  "validation": {
+    "error_count": 0,
+    "ok": true,
+    "warning_count": 0
+  }
+}

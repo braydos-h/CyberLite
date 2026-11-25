@@ -16,6 +16,18 @@ Move entries into a versioned section only when a release is tagged.
 
 ### Added
 
+- A deterministic synthesis pipeline (`cyberlite/data/synthesis.py`, `cyberlite/data/grounded.py`, `cyberlite/data/detection.py`, `cyberlite/data/build_synthesis.py`, `scripts/synthesize_dataset.py`) that composes committed knowledge packs and the frozen pilot training split into task-family datasets with stable IDs, groups, provenance, and content hashes.
+- Eight curated cybersecurity knowledge packs (439 facts) covering fundamentals/Linux/networking, web/API secure development, vulnerability classification/remediation, cryptography/identity, cloud/container/supply chain, SOC/monitoring, incident response/forensics/threat intel, and language security/retention.
+- A source-grounded derivation layer for NVD triage, CVSS counterfactuals, CPE applicability, CWE matching/mitigation/review, ATT&CK matching/detection, and normative-requirement evidence QA; only the pilot train split is used and upstream licences are inherited.
+- A Sigma-style detection-rule teaching library and interpretation/tuning records, plus configuration-completion, multi-answer MCQ, error-diagnosis, comparison, incident-investigation, structured-JSON, and FIM task families.
+- Independent review infrastructure (`cyberlite/data/review.py`, `scripts/sample_reviews.py`, `scripts/apply_reviews.py`): eight-dimension rubric, 8.5/9/9 thresholds, disagreement tracking, revision limit, AI-vs-human status, and quarantine ledger.
+- Exact-hash, SimHash, and word-shingle MinHash/LSH deduplication plus response-level duplicate removal; 13-gram contamination screening against all local evaluation JSONL files; group-aware 90/5/5 splitting; and a 1,024-token drop gate.
+- Three frozen held-out evaluation sets (165 items total) authored by agents isolated from the training packs, with schema validation, SHA-256 freeze metadata, and cross-checks against training overlap.
+- Dataset mixture policy and tooling (`configs/synthesis/mix.yaml`, `scripts/plan_mixture.py`) with family/domain caps, minimums, and a two-phase curriculum; export adapters for kind/family/domain views and preference pairs.
+- Machine-readable build manifests, quality/contamination/dedup/coverage/token reports, and a final-report generator (`scripts/build_final_report.py`).
+- Regression tests for pack validation, task-family generation, grounded records, MinHash dedup, review scoring, evaluation validation, detection rules, and deterministic builds.
+- First measured synthesis build: 15,590 accepted unique records (13,990/818/782) after removing 3,625 SimHash, 6 MinHash, 3,052 response-level duplicates and 200 over-length records; 0 exact duplicates, 0 contamination removals against 277,950 indexed n-grams, 0 cross-split leaks, and p95 772 tokens with max 1,024. An 8,287-record mixture-capped training view is published separately; independent review is sampled (5 accepted records) and the corpus is not approved for training.
+
 - CPU-only training preflight (`python scripts/train.py --config ... --preflight`) that checks configuration, dataset availability, frozen-manifest integrity, license compliance, model revision, split statistics, hardware compatibility, and research readiness without downloading or loading the model; supports JSON output, distinguishes software from research readiness, and exits nonzero when mandatory checks fail or research blockers remain.
 - Fail-closed training license validation for both train and validation splits: missing, unknown, prohibited, evaluation-only, and unacknowledged unresolved licenses are rejected with record-level reasons, and the result is stored in `run_metadata.json`.
 - Frozen-manifest dataset verification before model or GPU allocation: dataset version, split counts, SHA-256 and byte hashes, schema, required provenance, duplicate record identifiers, cross-split leakage, evaluation-only contamination, and processed-vs-frozen manifest agreement, with an explicitly separate smoke pathway.
@@ -53,6 +65,11 @@ Move entries into a versioned section only when a release is tagged.
 - `CHANGELOG.md` (this file) as the single record of notable changes.
 
 ### Changed
+
+- `data/sources.yaml` now registers the curated synthesis corpus and held-out evaluation sets with explicit training/evaluation-only use, licence, and redistribution metadata.
+- `data/evaluation/README.md` documents the three frozen evaluation sets and their evaluation-only status.
+- `DATASET_CARD.md`, `docs/synthesis.md`, `docs/README.md`, `GOALS.md`, and `docs/roadmap.md` describe the expansion pipeline, measured build results, review coverage, and remaining blockers without claiming completed human review.
+- `.gitignore` permits the frozen evaluation sets while keeping bulk splits, review batches, and raw source text out of Git.
 
 - Production LoRA, QLoRA, low-VRAM, and distillation configs now use the expanded pilot paths (`data/processed/pilot-v2/{train,validation,test}.jsonl`) or the explicit distillation corpus, with `pilot-v2` manifest version/count expectations; smoke paths remain separate and must opt into the smoke profile.
 - Training and evaluation metadata now record requested/resolved checkpoint revisions, full dataset-integrity and license-validation reports, and a resume fingerprint; matched experiments refuse a different revision.
@@ -96,6 +113,8 @@ Move entries into a versioned section only when a release is tagged.
 
 ### Docs
 
+- Added `docs/reports/code-config-verification.md` and `data/manifests/synthesis-calibration/code_verification.json`: a static-only check of 767 code/config/command artifacts from the knowledge packs and calibration splits plus 10 detection rules, with per-language pass/fail counts and identified defect IDs.
+- Added `docs/reports/dataset-expansion-architecture.md` (independent gap analysis), `docs/reports/source-licensing-review.md` (22 candidate sources and 11 quarantines), and independent technical, quality, privacy/provenance, contamination/dedup, code/config, and ML review reports.
 - `README.md`, `docs/reproducibility.md`, `docs/dataset.md`, `docs/evaluation.md`, `docs/testing.md`, `GOALS.md`, and `docs/roadmap.md` document the preflight, frozen-manifest gate, license policy, pinned revision, resume integrity, and the still-open licensing/manual-review/pre-registration blockers.
 - `docs/dataset.md` documents the source registry versus build configuration, NVD collection, normalizers, quality/contamination controls, audit workflow, licensing limits, and the pilot-v2 reproduction commands.
 - `DATASET_CARD.md` now reports measured pilot-v2 composition, licenses, token lengths, rejection reasons, and the explicit manual-review and CyberSecEval blockers.

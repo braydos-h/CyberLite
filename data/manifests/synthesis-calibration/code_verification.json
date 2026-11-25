@@ -1,0 +1,449 @@
+{
+  "checked": 757,
+  "passed": 745,
+  "failed": 12,
+  "by_language": {
+    "yaml": {
+      "checked": 52,
+      "passed": 49,
+      "failed": 3,
+      "skipped_incomplete": 9
+    },
+    "bash": {
+      "checked": 251,
+      "passed": 249,
+      "failed": 2,
+      "skipped_incomplete": 0
+    },
+    "python": {
+      "checked": 163,
+      "passed": 163,
+      "failed": 0,
+      "skipped_incomplete": 0
+    },
+    "powershell": {
+      "checked": 51,
+      "passed": 51,
+      "failed": 0,
+      "skipped_incomplete": 0
+    },
+    "javascript": {
+      "checked": 44,
+      "passed": 42,
+      "failed": 2,
+      "skipped_incomplete": 0
+    },
+    "json": {
+      "checked": 31,
+      "passed": 31,
+      "failed": 0,
+      "skipped_incomplete": 0
+    },
+    "go": {
+      "checked": 20,
+      "passed": 20,
+      "failed": 0,
+      "skipped_incomplete": 0
+    },
+    "rust": {
+      "checked": 18,
+      "passed": 18,
+      "failed": 0,
+      "skipped_incomplete": 0
+    },
+    "nginx": {
+      "checked": 16,
+      "passed": 16,
+      "failed": 0,
+      "skipped_incomplete": 2
+    },
+    "http": {
+      "checked": 14,
+      "passed": 14,
+      "failed": 0,
+      "skipped_incomplete": 2
+    },
+    "sql": {
+      "checked": 13,
+      "passed": 13,
+      "failed": 0,
+      "skipped_incomplete": 0
+    },
+    "c": {
+      "checked": 12,
+      "passed": 12,
+      "failed": 0,
+      "skipped_incomplete": 0
+    },
+    "ini": {
+      "checked": 8,
+      "passed": 8,
+      "failed": 0,
+      "skipped_incomplete": 1
+    },
+    "dockerfile": {
+      "checked": 7,
+      "passed": 5,
+      "failed": 2,
+      "skipped_incomplete": 1
+    },
+    "systemd": {
+      "checked": 6,
+      "passed": 6,
+      "failed": 0,
+      "skipped_incomplete": 1
+    },
+    "text": {
+      "checked": 5,
+      "passed": 5,
+      "failed": 0,
+      "skipped_incomplete": 1
+    },
+    "audit.rules": {
+      "checked": 4,
+      "passed": 4,
+      "failed": 0,
+      "skipped_incomplete": 0
+    },
+    "java": {
+      "checked": 4,
+      "passed": 4,
+      "failed": 0,
+      "skipped_incomplete": 0
+    },
+    "phc-string": {
+      "checked": 3,
+      "passed": 3,
+      "failed": 0,
+      "skipped_incomplete": 0
+    },
+    "kubernetes": {
+      "checked": 2,
+      "passed": 2,
+      "failed": 0,
+      "skipped_incomplete": 0
+    },
+    "nftables": {
+      "checked": 2,
+      "passed": 2,
+      "failed": 0,
+      "skipped_incomplete": 0
+    },
+    "nsswitch.conf": {
+      "checked": 2,
+      "passed": 2,
+      "failed": 0,
+      "skipped_incomplete": 0
+    },
+    "php": {
+      "checked": 2,
+      "passed": 2,
+      "failed": 0,
+      "skipped_incomplete": 0
+    },
+    "requirements.txt": {
+      "checked": 2,
+      "passed": 2,
+      "failed": 0,
+      "skipped_incomplete": 0
+    },
+    "sshd_config": {
+      "checked": 2,
+      "passed": 2,
+      "failed": 0,
+      "skipped_incomplete": 1
+    },
+    "sudoers": {
+      "checked": 2,
+      "passed": 2,
+      "failed": 0,
+      "skipped_incomplete": 0
+    },
+    "zone": {
+      "checked": 2,
+      "passed": 2,
+      "failed": 0,
+      "skipped_incomplete": 1
+    },
+    "dns-zone": {
+      "checked": 2,
+      "passed": 2,
+      "failed": 0,
+      "skipped_incomplete": 1
+    },
+    "aide.conf": {
+      "checked": 1,
+      "passed": 1,
+      "failed": 0,
+      "skipped_incomplete": 0
+    },
+    "authorized_keys": {
+      "checked": 1,
+      "passed": 1,
+      "failed": 0,
+      "skipped_incomplete": 0
+    },
+    "fstab": {
+      "checked": 1,
+      "passed": 1,
+      "failed": 0,
+      "skipped_incomplete": 0
+    },
+    "kql": {
+      "checked": 1,
+      "passed": 1,
+      "failed": 0,
+      "skipped_incomplete": 0
+    },
+    "pam.d": {
+      "checked": 1,
+      "passed": 1,
+      "failed": 0,
+      "skipped_incomplete": 0
+    },
+    "reg": {
+      "checked": 1,
+      "passed": 1,
+      "failed": 0,
+      "skipped_incomplete": 0
+    },
+    "spl": {
+      "checked": 1,
+      "passed": 1,
+      "failed": 0,
+      "skipped_incomplete": 0
+    },
+    "detection_rule_yaml": {
+      "checked": 10,
+      "passed": 7,
+      "failed": 3,
+      "skipped_incomplete": 0
+    }
+  },
+  "defects": [
+    {
+      "id": "D01",
+      "severity": "high",
+      "language": "javascript",
+      "location": "knowledge/c4-cryptography-identity-access.json#iam-webauthn-038 code.vulnerable and code.secure",
+      "artifact": "code pair",
+      "artifacts_failed": 2,
+      "finding": "The named flaw and its fix are server-side (verify clientDataJSON.origin, rpIdHash, challenge), but both snippets are browser-side. The vulnerable snippet contains no server verification at all, and the secure snippet adds only client options plus a comment claiming the server verifies. The pair therefore neither contains the named flaw nor demonstrates the root-cause fix.",
+      "counted_as_failure": true
+    },
+    {
+      "id": "D02",
+      "severity": "medium",
+      "language": "dockerfile",
+      "location": "knowledge/c5-cloud-container-supply-chain.json#cont-image-digest-pinning configs; corpus/syn-cloud-container-supply-chain-cont-image-digest-pinning-config-1",
+      "artifact": "config",
+      "artifacts_failed": 2,
+      "finding": "The snippet starts `FROM python:3.12-slim@sha256:... AS runtime` and then uses `COPY --from=build ...`, but no stage named `build` exists. Docker resolves the reference as an external image named `build`, which it cannot pull, so the Dockerfile does not build as written even though the digest-pinning claim itself is correctly expressed.",
+      "counted_as_failure": true
+    },
+    {
+      "id": "D03",
+      "severity": "medium",
+      "language": "bash",
+      "location": "knowledge/c7-incident-response-forensics-threat-intel.json#forensics-amcache-028 commands; corpus/syn-incident-response-forensics-threat-intel-forensics-amcache-028-command-1",
+      "artifact": "command",
+      "artifacts_failed": 2,
+      "finding": "`reg save HKLM\\SYSTEM /evidence/SYSTEM.hiv` is declared and prompted as a bash command, but `reg` is a Windows-only executable. In bash the unquoted `\\S` is an escape, so the key argument becomes `HKLMSYSTEM`, and `/evidence/...` is a POSIX-style path. The artifact cannot perform the described SYSTEM-hive export as labelled.",
+      "counted_as_failure": true
+    },
+    {
+      "id": "D04",
+      "severity": "high",
+      "language": "detection_rule_yaml",
+      "location": "data/synthesis/seeds/detection_rules.json#det-linux-setuid",
+      "artifact": "detection rule",
+      "artifacts_failed": 1,
+      "finding": "Purpose claims detection of setuid binary execution, but the rule selects `type: EXECVE` and only excludes three executable basenames. It never inspects a setuid/setgid attribute or effective UID. In auditd, `exe` is a SYSCALL-record field, not an EXECVE field, so the baseline filter is also of uncertain effect. The rule does not implement the claimed property.",
+      "counted_as_failure": true
+    },
+    {
+      "id": "D05",
+      "severity": "high",
+      "language": "detection_rule_yaml",
+      "location": "data/synthesis/seeds/detection_rules.json#det-iam-wildcard-policy",
+      "artifact": "detection rule",
+      "artifacts_failed": 1,
+      "finding": "Purpose claims detection of a policy granting wildcard actions, but the selection is only `eventName: AttachRolePolicy`. The rule does not test the policy ARN, the policy document, or any wildcard action, and it covers only role attachments. It fires on every AttachRolePolicy call regardless of wildcard content.",
+      "counted_as_failure": true
+    },
+    {
+      "id": "D06",
+      "severity": "medium",
+      "language": "detection_rule_yaml",
+      "location": "data/synthesis/seeds/detection_rules.json#det-k8s-privileged-pod",
+      "artifact": "detection rule",
+      "artifacts_failed": 1,
+      "finding": "Purpose claims privileged pods or host namespaces, but detection only tests `containers.securityContext.privileged: true`. hostNetwork, hostPID and hostIPC are not covered. The unindexed `containers` array path is also backend-dependent in Sigma-style field mapping.",
+      "counted_as_failure": true
+    },
+    {
+      "id": "D07",
+      "severity": "medium",
+      "language": "yaml",
+      "location": "corpus/det-det-k8s-privileged-pod-interpret and corpus/det-det-k8s-privileged-pod-gap",
+      "artifact": "detection-rule interpretation record",
+      "artifacts_failed": 2,
+      "finding": "The interpret record says the rule covers host namespaces and that the condition is evaluated over 'the stated window'; the gap record refers to a 'counting window'. The supplied rule has neither host-namespace fields nor a timeframe. The explanation contradicts the rule fields.",
+      "counted_as_failure": true
+    },
+    {
+      "id": "D08",
+      "severity": "low",
+      "language": "yaml",
+      "location": "corpus/det-det-dns-long-query-interpret",
+      "artifact": "detection-rule interpretation record",
+      "artifacts_failed": 1,
+      "finding": "The response says the condition is evaluated over 'the stated window', but the DNS rule has no timeframe field. This is generic boilerplate that contradicts the supplied rule.",
+      "counted_as_failure": true
+    },
+    {
+      "id": "W01",
+      "severity": "low",
+      "language": "ini",
+      "location": "knowledge/c7-incident-response-forensics-threat-intel.json#attack-privesc-056 configs",
+      "artifact": "config",
+      "finding": "The content is a Windows registry fragment (`[HKEY_LOCAL_MACHINE\\...]`, `\"RunAsPPL\"=dword:...`) but is declared `ini` and omits the required `Windows Registry Editor Version 5.00` header used by the pack's `reg` format elsewhere. It is neither an importable .reg file nor a normal INI file.",
+      "counted_as_failure": false
+    },
+    {
+      "id": "W02",
+      "severity": "low",
+      "language": "python",
+      "location": "knowledge/c2-web-api-secure-development.json#api-mass-assignment-001 code.secure",
+      "artifact": "code pair",
+      "finding": "The issue says the handler must verify that `uid` belongs to the caller, but the secure handler never references `uid`; it patches the authenticated `user`. This is safe in effect but does not demonstrate the stated check and leaves the path parameter unused.",
+      "counted_as_failure": false
+    },
+    {
+      "id": "W03",
+      "severity": "low",
+      "language": "python",
+      "location": "knowledge/c2-web-api-secure-development.json#web-csrf-001 code.secure",
+      "artifact": "code pair",
+      "finding": "The issue says the form template must render `csrf_token()`, but the secure snippet only enables CSRFProtect. As supplied, legitimate form posts would be rejected until the unshown template change is made; the server-side deployment also needs a configured secret key.",
+      "counted_as_failure": false
+    },
+    {
+      "id": "W04",
+      "severity": "low",
+      "language": "python",
+      "location": "knowledge/c4-cryptography-identity-access.json#crypto-argon2id-008 code.secure",
+      "artifact": "code pair",
+      "finding": "The vulnerable function hashes; the secure function only verifies and never shows `ph.hash(...)`. Constructor parameters match the issue (64 MiB, time_cost=3), but the hashing half of the claimed fix is absent from the code.",
+      "counted_as_failure": false
+    },
+    {
+      "id": "W05",
+      "severity": "low",
+      "language": "requirements.txt",
+      "location": "knowledge/c2-web-api-secure-development.json#sdlc-dependency-pinning-001 configs; corpus/syn-web-api-secure-development-sdlc-dependency-pinning-001-config-1",
+      "artifact": "config",
+      "finding": "All `--hash=sha256:` values are all-zero placeholders, although the comment says so. With `pip --require-hashes`, these entries reject every downloaded artifact; the claimed property ('require a matching artifact hash') is not demonstrated by the snippet.",
+      "counted_as_failure": false
+    },
+    {
+      "id": "W06",
+      "severity": "low",
+      "language": "text",
+      "location": "knowledge/c5-cloud-container-supply-chain.json#sc-lockfile-integrity-hashes configs (text variant)",
+      "artifact": "config",
+      "finding": "The `--hash=sha256:ca978112...` value is SHA-256 of the one-byte string `a`, not of requests 2.32.3. `pip --require-hashes` would reject the artifact, and the claim that the hash documents the pinned release does not hold.",
+      "counted_as_failure": false
+    },
+    {
+      "id": "W07",
+      "severity": "low",
+      "language": "authorized_keys",
+      "location": "knowledge/c1-fundamentals-linux-networking.json#proto-ssh-user-auth configs",
+      "artifact": "config",
+      "finding": "The key body contains literal `...synthetic...`, which is not valid base64; sshd would reject the line as an invalid key. The options (`restrict`, `from=`, `command=`) are correct.",
+      "counted_as_failure": false
+    },
+    {
+      "id": "W08",
+      "severity": "low",
+      "language": "python",
+      "location": "knowledge/c2-web-api-secure-development.json#sdlc-secure-defaults-001 configs",
+      "artifact": "config",
+      "finding": "`SECRET_KEY = os.environ[...]` is used without `import os`. `ast.parse` passes, but the fragment raises NameError in isolation; it is not self-contained.",
+      "counted_as_failure": false
+    },
+    {
+      "id": "W09",
+      "severity": "low",
+      "language": "yaml",
+      "location": "knowledge/c2-web-api-secure-development.json#sdlc-secrets-001 configs",
+      "artifact": "config",
+      "finding": "The GitHub Actions excerpt has top-level `permissions` and `steps` but no `on:` or `jobs:`; it is not a valid workflow file as shown. It is usable only as a fragment.",
+      "counted_as_failure": false
+    },
+    {
+      "id": "W10",
+      "severity": "low",
+      "language": "detection_rule_yaml",
+      "location": "data/synthesis/seeds/detection_rules.json#det-windows-failed-logon; corpus/det-det-windows-failed-logon-interpret",
+      "artifact": "detection rule",
+      "finding": "Purpose says 'interactive or network logons', but the rule counts all EventID 4625 records with no LogonType filter, so batch and service logons are included.",
+      "counted_as_failure": false
+    },
+    {
+      "id": "W11",
+      "severity": "low",
+      "language": "detection_rule_yaml",
+      "location": "data/synthesis/seeds/detection_rules.json#det-ssh-bruteforce",
+      "artifact": "detection rule",
+      "finding": "The condition aggregates by `src_ip`, but the selection only defines `program` and `message|contains`. No parsing or field mapping creates `src_ip`, so the rule may parse but never match depending on the pipeline.",
+      "counted_as_failure": false
+    },
+    {
+      "id": "W12",
+      "severity": "low",
+      "language": "detection_rule_yaml",
+      "location": "data/synthesis/seeds/detection_rules.json#det-sudoers-change",
+      "artifact": "detection rule",
+      "finding": "Purpose claims writes to sudoers files and drop-in directories, but the rule only matches audit key `sudoers_change`. It depends on a specific audit rule key and never checks a path, which the purpose and tuning do not state.",
+      "counted_as_failure": false
+    },
+    {
+      "id": "W13",
+      "severity": "low",
+      "language": "powershell",
+      "location": "knowledge/c8-language-security-retention.json#ps-encoded-002 commands (decode entry)",
+      "artifact": "command",
+      "finding": "The decode command uses `$enc` defined by a different entry in the same command list. Each artifact is presented as a standalone command, so it fails if run independently.",
+      "counted_as_failure": false
+    },
+    {
+      "id": "W14",
+      "severity": "low",
+      "language": "zone",
+      "location": "knowledge/c1-fundamentals-linux-networking.json#proto-dns-record-types configs",
+      "artifact": "config",
+      "finding": "The zone's NS target `ns1` is in-zone (`ns1.example.internal.`) but has no A/AAAA record. The zone is a plausible record-format example, but it is not a servable delegation as written.",
+      "counted_as_failure": false
+    }
+  ],
+  "unavailable_tools": [
+    "php -l: php not installed; 2 PHP artifacts inspected manually",
+    "PowerShell AST parser (pwsh): not installed; 51 PowerShell artifacts inspected manually",
+    "SQL parser (sqlfluff or equivalent): not installed; 13 SQL artifacts inspected manually",
+    "nginx -t: nginx not installed; 16 nginx snippets inspected manually",
+    "docker build / hadolint: not installed; 7 Dockerfile snippets inspected manually",
+    "tsc: not installed; no TypeScript artifacts were present",
+    "JSX parser: node --check cannot parse JSX; 4 JSX snippets inspected manually",
+    "kubeconform/kubeval and CRD schema validation: not installed; Kubernetes YAML parsed with PyYAML only",
+    "Sigma compiler/backend field mapping: not available; rules parsed and reviewed, not compiled or executed",
+    "sshd -t: binary present but not run (needs host keys/privileged context); sshd_config inspected manually"
+  ],
+  "method": "static only; no execution",
+  "extracted_artifacts": 767,
+  "skipped_incomplete_blanks": 20,
+  "corpus_records_with_code_or_config": 142,
+  "code_pairs_reviewed": 145,
+  "knowledge_facts_scanned": 439
+}

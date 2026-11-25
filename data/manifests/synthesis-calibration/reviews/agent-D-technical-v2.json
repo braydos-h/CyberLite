@@ -1,0 +1,889 @@
+{
+  "reviewer": "agent-D",
+  "review_type": "technical",
+  "artifact": "synthesis-calibration-v2",
+  "dataset_version": "cyberlite-syn-2.0.0-04a21fdaa5ec",
+  "items": [
+    {
+      "record_id": "grnd-nist-nvd-nist-nvd-000acc9a82d0be67-applicability",
+      "scores": {
+        "technical_accuracy": 9,
+        "source_grounding": 9,
+        "completeness": 6,
+        "relevance": 9,
+        "clarity": 9,
+        "practical_usefulness": 7,
+        "originality_diversity": 4,
+        "small_model_suitability": 8
+      },
+      "findings": [
+        "Claimed NVD fix is not present in this build: the response is byte-identical to v1 and never decodes `cpe:2.3:a:adobe:experience_manager:*` (`version=*` means any version) or the `target_sw=aem_cloud_service` edition.",
+        "It is still byte-identical to the CVE-2024-21796 applicability response; this is the only remaining exact-duplicate response group in the 200-record v2 sample.",
+        "No AEM-specific version check or fixed-version boundary (6.5.19 / AEM Cloud)."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": true
+    },
+    {
+      "record_id": "grnd-nist-nvd-nist-nvd-000acc9a82d0be67-uncertainty",
+      "scores": {
+        "technical_accuracy": 9,
+        "source_grounding": 9,
+        "completeness": 7,
+        "relevance": 9,
+        "clarity": 9,
+        "practical_usefulness": 7,
+        "originality_diversity": 5,
+        "small_model_suitability": 9
+      },
+      "findings": [
+        "Claimed fix not present: the response is unchanged from v1 and never mentions the wildcard `version=*`/`-` CPE limits.",
+        "Correctly separates the NVD record from host evidence and recommends an authenticated version check.",
+        "Does not give the fixed-version or vendor-advisory check for 6.5.19 / AEM Cloud."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": true
+    },
+    {
+      "record_id": "grnd-nist-nvd-nist-nvd-000acc9a82d0be67-cvss",
+      "scores": {
+        "technical_accuracy": 8,
+        "source_grounding": 9,
+        "completeness": 7,
+        "relevance": 8,
+        "clarity": 9,
+        "practical_usefulness": 8,
+        "originality_diversity": 5,
+        "small_model_suitability": 8
+      },
+      "findings": [
+        "5.4 MEDIUM is correct for CVSS:3.1/AV:N/AC:L/PR:L/UI:R/S:C/C:L/I:L/A:N (verified by the v3.1 base formula).",
+        "Still omits S:C (scope change) from the interpretation, and the claim that losing PR:L 'would not change' the base score is misleading; environmental modified metrics are the mechanism.",
+        "No change from v1."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": true
+    },
+    {
+      "record_id": "grnd-nist-nvd-nist-nvd-00795ecd6c9525f0-json",
+      "scores": {
+        "technical_accuracy": 10,
+        "source_grounding": 9,
+        "completeness": 9,
+        "relevance": 9,
+        "clarity": 10,
+        "practical_usefulness": 9,
+        "originality_diversity": 6,
+        "small_model_suitability": 9
+      },
+      "findings": [
+        "CVSS 9.8 CRITICAL is correct for AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H; CWE-787 ('Out-of-bounds Write') matches the sscanf stack overflow.",
+        "All required keys present, `weaknesses` is an array, no extra keys.",
+        "This positive extraction is unchanged from v1."
+      ],
+      "decision": "accept",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": true
+    },
+    {
+      "record_id": "grnd-mitre-cwe-mitre-cwe-00650c6f2dd854a0-review",
+      "scores": {
+        "technical_accuracy": 5,
+        "source_grounding": 6,
+        "completeness": 3,
+        "relevance": 5,
+        "clarity": 8,
+        "practical_usefulness": 4,
+        "originality_diversity": 3,
+        "small_model_suitability": 6
+      },
+      "findings": [
+        "Claimed CWE-review gate not applied: CWE-1253 is a hardware fuse/secure-boot weakness, but this record remains in the accepted train split and still asks for code-review questions.",
+        "The three questions are generic and never mention fuses, boot ROM, secure boot, or hardware review; the 'negative test' is a web/API reproduction that cannot exercise fuse programming.",
+        "Quarantine: the item is category-wrong and its test cannot fail on a vulnerable hardware revision."
+      ],
+      "decision": "quarantine",
+      "critical": true,
+      "revision": 0,
+      "source_dependent": true
+    },
+    {
+      "record_id": "grnd-mitre-cwe-mitre-cwe-00c423fba47e9a8f-mitigation",
+      "scores": {
+        "technical_accuracy": 8,
+        "source_grounding": 9,
+        "completeness": 7,
+        "relevance": 8,
+        "clarity": 8,
+        "practical_usefulness": 7,
+        "originality_diversity": 5,
+        "small_model_suitability": 8
+      },
+      "findings": [
+        "Claimed CWE-mitigation fix not applied: the response still appends 'Prefer the control that removes the vulnerable condition (for example, parameterization or a safer API)' to CWE-319 cleartext transmission, where parameterization is inapplicable.",
+        "The quoted CWE-319 mitigations and detection method are otherwise accurate.",
+        "It does not clearly single out the root-cause control (encrypt with a confidentiality-protecting protocol) versus testing/operations controls."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": true
+    },
+    {
+      "record_id": "grnd-mitre-cwe-mitre-cwe-016658719a3756ae-mitigation",
+      "scores": {
+        "technical_accuracy": 8,
+        "source_grounding": 9,
+        "completeness": 7,
+        "relevance": 8,
+        "clarity": 8,
+        "practical_usefulness": 7,
+        "originality_diversity": 5,
+        "small_model_suitability": 8
+      },
+      "findings": [
+        "New CWE-681 mitigation record, but it repeats the same defect: 'parameterization or a safer API' is appended to numeric-conversion guidance where neither is the fix.",
+        "The CWE-681 mitigation ('avoid conversions; check ranges') and SAST detection are accurate.",
+        "The generic closing also says 'a filter that blocks known payloads', which is unrelated to numeric conversion."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": true
+    },
+    {
+      "record_id": "grnd-mitre-cwe-mitre-cwe-00c423fba47e9a8f-match",
+      "scores": {
+        "technical_accuracy": 9,
+        "source_grounding": 9,
+        "completeness": 7,
+        "relevance": 8,
+        "clarity": 8,
+        "practical_usefulness": 6,
+        "originality_diversity": 4,
+        "small_model_suitability": 9
+      },
+      "findings": [
+        "Claimed prefix fix not applied: the prompt still begins 'Pattern: : the weakness.'.",
+        "A/CWE-319 'Cleartext Transmission of Sensitive Information' is correct; the option set is valid.",
+        "No discrimination from CWE-311/312; the item remains a copy-selection task."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": true
+    },
+    {
+      "record_id": "grnd-mitre-attack-mitre-attack-012c208a4d147578-match",
+      "scores": {
+        "technical_accuracy": 10,
+        "source_grounding": 9,
+        "completeness": 8,
+        "relevance": 9,
+        "clarity": 9,
+        "practical_usefulness": 8,
+        "originality_diversity": 6,
+        "small_model_suitability": 9
+      },
+      "findings": [
+        "D/T1120 'Peripheral Device Discovery' is correct; ATT&CK v20.1 lists the tactic as Discovery.",
+        "Distractors are real ATT&CK techniques; no ID is misattributed.",
+        "Unchanged from v1 and still sound."
+      ],
+      "decision": "accept",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": true
+    },
+    {
+      "record_id": "grnd-mitre-attack-mitre-attack-01d4a8ba2e991f0d-match",
+      "scores": {
+        "technical_accuracy": 10,
+        "source_grounding": 9,
+        "completeness": 8,
+        "relevance": 9,
+        "clarity": 9,
+        "practical_usefulness": 8,
+        "originality_diversity": 6,
+        "small_model_suitability": 9
+      },
+      "findings": [
+        "B/T1218.003 'CMSTP' is correct; ATT&CK v20.1 lists the tactic as Stealth (the current name for the former Defense Evasion).",
+        "The behaviour text is a near-verbatim ATT&CK description; distractors are real techniques.",
+        "Unchanged from v1 and still sound."
+      ],
+      "decision": "accept",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": true
+    },
+    {
+      "record_id": "grnd-ietf-rfcs-ietf-rfcs-04baffe38ea43c4e-requirement-2",
+      "scores": {
+        "technical_accuracy": 10,
+        "source_grounding": 9,
+        "completeness": 9,
+        "relevance": 9,
+        "clarity": 9,
+        "practical_usefulness": 8,
+        "originality_diversity": 7,
+        "small_model_suitability": 9
+      },
+      "findings": [
+        "Correctly identifies the MUST-to-MAY weakening for the ALPN implementation requirement and quotes the source; the operational consequence is stated.",
+        "This is the new requirement format working as intended because the source contains a genuine normative keyword.",
+        "Minor: the answer does not name the RFC/BCP, so the claim is not traceable from the item text alone."
+      ],
+      "decision": "accept",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": true
+    },
+    {
+      "record_id": "grnd-ietf-rfcs-ietf-rfcs-0b055e6e1bb95a59-requirement-2",
+      "scores": {
+        "technical_accuracy": 10,
+        "source_grounding": 9,
+        "completeness": 9,
+        "relevance": 9,
+        "clarity": 9,
+        "practical_usefulness": 8,
+        "originality_diversity": 7,
+        "small_model_suitability": 9
+      },
+      "findings": [
+        "Correctly identifies the MUST-to-MAY weakening for the syslog `sequenceId` rule and quotes the source.",
+        "This is a genuine normative weakening, unlike the CWE/man/OpenSSH variants in the same batch.",
+        "No RFC/section citation in the answer."
+      ],
+      "decision": "accept",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": true
+    },
+    {
+      "record_id": "grnd-mitre-cwe-mitre-cwe-0224f8f94abee99e-requirement-1",
+      "scores": {
+        "technical_accuracy": 2,
+        "source_grounding": 5,
+        "completeness": 3,
+        "relevance": 4,
+        "clarity": 6,
+        "practical_usefulness": 2,
+        "originality_diversity": 3,
+        "small_model_suitability": 4
+      },
+      "findings": [
+        "The 'Proposed behaviour' is verbatim identical to the excerpt, yet the answer says 'No ... The proposed behaviour weakens or reverses that requirement.' That is a direct contradiction.",
+        "CWE-1288's sentence is descriptive prose; 'must be consistent' is not an RFC 2119 MUST. The answer invents a normative keyword and a strength difference that does not exist.",
+        "The task's premise (a weakened deployment behaviour) is not satisfied; the item cannot be answered as written."
+      ],
+      "decision": "quarantine",
+      "critical": true,
+      "revision": 0,
+      "source_dependent": true
+    },
+    {
+      "record_id": "grnd-mitre-cwe-mitre-cwe-0c40c6610b622300-requirement-1",
+      "scores": {
+        "technical_accuracy": 2,
+        "source_grounding": 5,
+        "completeness": 3,
+        "relevance": 4,
+        "clarity": 6,
+        "practical_usefulness": 2,
+        "originality_diversity": 3,
+        "small_model_suitability": 4
+      },
+      "findings": [
+        "The proposed behaviour is verbatim from the CWE-291 excerpt and describes attacker behaviour, yet the answer calls it 'required (REQUIRED)' and says it 'weakens or reverses' the requirement.",
+        "There is no normative keyword to weaken; the item is a category error.",
+        "A reader would be taught to treat a descriptive sentence as a mandatory control."
+      ],
+      "decision": "quarantine",
+      "critical": true,
+      "revision": 0,
+      "source_dependent": true
+    },
+    {
+      "record_id": "grnd-openssh-docs-openssh-docs-0eaaa2a47144f8ff-requirement-1",
+      "scores": {
+        "technical_accuracy": 2,
+        "source_grounding": 5,
+        "completeness": 3,
+        "relevance": 4,
+        "clarity": 6,
+        "practical_usefulness": 2,
+        "originality_diversity": 3,
+        "small_model_suitability": 4
+      },
+      "findings": [
+        "The proposed behaviour is verbatim from `ssh_config(5)`; the answer says 'No' and then quotes the same sentence, calling it 'recommended (SHOULD)' and 'weakened or reversed'.",
+        "Lowercase 'should accept' is descriptive man-page prose, not an RFC 2119 SHOULD.",
+        "The `ssh 1` rendering artifact (for `ssh(1)`) persists in both the excerpt and the answer."
+      ],
+      "decision": "quarantine",
+      "critical": true,
+      "revision": 0,
+      "source_dependent": true
+    },
+    {
+      "record_id": "grnd-openssh-docs-openssh-docs-841d94ec4f1d6d22-requirement-1",
+      "scores": {
+        "technical_accuracy": 2,
+        "source_grounding": 5,
+        "completeness": 3,
+        "relevance": 4,
+        "clarity": 6,
+        "practical_usefulness": 2,
+        "originality_diversity": 3,
+        "small_model_suitability": 4
+      },
+      "findings": [
+        "The proposed behaviour is verbatim identical to the excerpt's `PermitRemoteOpen` grammar, yet the answer says it 'weakens or reverses' the requirement.",
+        "The sentence is a grammar description, not a deployment behaviour; 'must be one of the following forms' is not a weakened MUST.",
+        "No operational consequence specific to port forwarding is given."
+      ],
+      "decision": "quarantine",
+      "critical": true,
+      "revision": 0,
+      "source_dependent": true
+    },
+    {
+      "record_id": "grnd-owasp-cheatsheets-owasp-cheatsheets-020ed825636f4e29-requirement-1",
+      "scores": {
+        "technical_accuracy": 2,
+        "source_grounding": 5,
+        "completeness": 3,
+        "relevance": 4,
+        "clarity": 6,
+        "practical_usefulness": 2,
+        "originality_diversity": 3,
+        "small_model_suitability": 4
+      },
+      "findings": [
+        "The proposed behaviour is verbatim identical to the excerpt; the answer says 'No ... recommended (SHOULD) ... weakens or reverses'.",
+        "Lowercase 'should display an error message' is prose, not a normative SHOULD; there is no strength difference.",
+        "The item cannot test normative reasoning because the two statements are the same."
+      ],
+      "decision": "quarantine",
+      "critical": true,
+      "revision": 0,
+      "source_dependent": true
+    },
+    {
+      "record_id": "grnd-linux-man-pages-linux-man-pages-0c1f32be6ed95205-requirement-1",
+      "scores": {
+        "technical_accuracy": 2,
+        "source_grounding": 5,
+        "completeness": 3,
+        "relevance": 4,
+        "clarity": 6,
+        "practical_usefulness": 2,
+        "originality_diversity": 3,
+        "small_model_suitability": 4
+      },
+      "findings": [
+        "The proposed behaviour is verbatim from `group(5)`; the answer says 'No ... required (MUST) ... weakens or reverses'.",
+        "'there must be an entry in /etc/group' is descriptive system behaviour, not a normative requirement that a deployment can weaken.",
+        "No operational consequence of treating it as optional is meaningful."
+      ],
+      "decision": "quarantine",
+      "critical": true,
+      "revision": 0,
+      "source_dependent": true
+    },
+    {
+      "record_id": "det-det-dns-long-query-interpret",
+      "scores": {
+        "technical_accuracy": 8,
+        "source_grounding": 8,
+        "completeness": 7,
+        "relevance": 8,
+        "clarity": 9,
+        "practical_usefulness": 8,
+        "originality_diversity": 7,
+        "small_model_suitability": 8
+      },
+      "findings": [
+        "Claimed per-event/windowed fix not present: the rule is a single-event regex, but the response still says 'The condition is evaluated over the events in the stated window'; no window exists.",
+        "Telemetry mapping remains incomplete: Sigma `category: dns` maps to Zeek `dns.log` and Sysmon Event ID 22, but the field name differs (Zeek `query`, Sysmon `QueryName`).",
+        "The false-positive and 'does not prove' sections are sound."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": true
+    },
+    {
+      "record_id": "det-det-k8s-privileged-pod-gap",
+      "scores": {
+        "technical_accuracy": 5,
+        "source_grounding": 6,
+        "completeness": 3,
+        "relevance": 5,
+        "clarity": 8,
+        "practical_usefulness": 4,
+        "originality_diversity": 5,
+        "small_model_suitability": 6
+      },
+      "findings": [
+        "Claimed replacement is absent: no hostPID rule appears anywhere in the v2 sample; this record is unchanged and still uses the array-valued `requestObject.spec.containers...privileged` path.",
+        "A privileged pod created via Deployment/ReplicaSet/DaemonSet has `objectRef.resource` of `deployments`/`replicasets`/`daemonsets`, not `pods`, so the rule misses it.",
+        "The answer names neither a concrete evasion nor an additional data source; the placeholder phrase 'the fields in det-k8s-privileged-pod' is not an explanation."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": true
+    },
+    {
+      "record_id": "syn-monitoring-detection-soc-det-sigma-modifiers-302-config-complete",
+      "scores": {
+        "technical_accuracy": 9,
+        "source_grounding": 9,
+        "completeness": 8,
+        "relevance": 9,
+        "clarity": 9,
+        "practical_usefulness": 8,
+        "originality_diversity": 6,
+        "small_model_suitability": 9
+      },
+      "findings": [
+        "`condition: selection_img and selection_flags and selection_payload` and `contains|all` semantics are correct.",
+        "The completion now says 'Verify with inspect the admitted object with `kubectl get -o yaml` ... survived defaulting and admission' \u2014 that is Kubernetes admission language, not a Sigma rule test; the verifier is mismatched.",
+        "The modifier explanation is accurate."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": true
+    },
+    {
+      "record_id": "syn-monitoring-detection-soc-det-threshold-correlation-305-checklist",
+      "scores": {
+        "technical_accuracy": 10,
+        "source_grounding": 9,
+        "completeness": 9,
+        "relevance": 9,
+        "clarity": 9,
+        "practical_usefulness": 9,
+        "originality_diversity": 7,
+        "small_model_suitability": 9
+      },
+      "findings": [
+        "Tumbling vs sliding window semantics, late-arriving events, entity-key normalization, and duplicate ingestion are correctly identified.",
+        "Failure modes are concrete ('failure then success' cannot be expressed by volume alone; duplicate ingestion inflates counts).",
+        "JSON uses exactly the required keys and arrays of short strings."
+      ],
+      "decision": "accept",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": false
+    },
+    {
+      "record_id": "syn-vulnerability-classification-remediation-cwe-22-path-traversal-codereview-1",
+      "scores": {
+        "technical_accuracy": 10,
+        "source_grounding": 9,
+        "completeness": 9,
+        "relevance": 9,
+        "clarity": 9,
+        "practical_usefulness": 9,
+        "originality_diversity": 7,
+        "small_model_suitability": 9
+      },
+      "findings": [
+        "Correct root cause; `realpath` + `commonpath` containment is the right control, and 404 avoids path-existence disclosure.",
+        "The regression-test wording improved from the v1 boilerplate ('malicious input') to an abuse-case plus legitimate-case test.",
+        "Minor: `abort` is assumed Flask's; `commonpath` raises on different drives (not POSIX)."
+      ],
+      "decision": "accept",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": false
+    },
+    {
+      "record_id": "syn-language-security-retention-go-exec-004-codereview-1",
+      "scores": {
+        "technical_accuracy": 8,
+        "source_grounding": 9,
+        "completeness": 7,
+        "relevance": 8,
+        "clarity": 8,
+        "practical_usefulness": 7,
+        "originality_diversity": 6,
+        "small_model_suitability": 8
+      },
+      "findings": [
+        "Still says 'The first version ... The second version ...' although the prompt contains one version; a template artifact.",
+        "The fix avoids the shell but still passes attacker-controlled `name` to ImageMagick `convert`; option injection, `https:`/`msl:`/`label:@file` pseudo-protocols and delegates remain. The answer recommends `--` but does not use it.",
+        "CWE-78 is still not named."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": false
+    },
+    {
+      "record_id": "syn-language-security-retention-c-buffer-001-codefix-1",
+      "scores": {
+        "technical_accuracy": 10,
+        "source_grounding": 9,
+        "completeness": 9,
+        "relevance": 9,
+        "clarity": 9,
+        "practical_usefulness": 9,
+        "originality_diversity": 7,
+        "small_model_suitability": 9
+      },
+      "findings": [
+        "`snprintf` with `sizeof message` and the `written < 0 || (size_t)written >= sizeof message` check is the correct truncation-safe replacement for `strcpy`/`strcat`.",
+        "The explanation of `strncpy` non-termination and `snprintf`'s would-have-written return value is accurate.",
+        "Unchanged from v1 and still sound."
+      ],
+      "decision": "accept",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": false
+    },
+    {
+      "record_id": "syn-language-security-retention-c-offbyone-002-codefix-1",
+      "scores": {
+        "technical_accuracy": 7,
+        "source_grounding": 9,
+        "completeness": 7,
+        "relevance": 8,
+        "clarity": 9,
+        "practical_usefulness": 7,
+        "originality_diversity": 7,
+        "small_model_suitability": 8
+      },
+      "findings": [
+        "Still claims the `i <= rows` loop writes 'one byte past the allocation' unconditionally; with width >= 2 index `rows` is in bounds, so the loop corrupts copied data rather than overflowing. OOB only for width == 1 or rows == 0.",
+        "The fix removes the zeroing loop without preserving or justifying its intended effect.",
+        "The signed multiplication overflow and SIZE_MAX check are correct."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": false
+    },
+    {
+      "record_id": "syn-web-api-secure-development-api-excessive-data-001-codereview-1",
+      "scores": {
+        "technical_accuracy": 6,
+        "source_grounding": 8,
+        "completeness": 6,
+        "relevance": 8,
+        "clarity": 9,
+        "practical_usefulness": 6,
+        "originality_diversity": 6,
+        "small_model_suitability": 8
+      },
+      "findings": [
+        "Named as quarantined in the revision note, but still present unchanged in the accepted train split and the v2 review sample.",
+        "The 'SECURE' fix still has no authentication/authorization check: any caller can fetch any user's public fields by UID, an IDOR/BOLA for the returned projection.",
+        "The original `User.__dict__` includes `_sa_instance_state`, which Flask's JSON encoder cannot serialize, so the illustrative vulnerable code likely raises rather than leaks.",
+        "Quarantine: a secure-coding item that labels an unauthorized endpoint 'SECURE' is a safety defect."
+      ],
+      "decision": "quarantine",
+      "critical": true,
+      "revision": 0,
+      "source_dependent": false
+    },
+    {
+      "record_id": "syn-cloud-container-supply-chain-cont-linux-capabilities-drop-config-complete",
+      "scores": {
+        "technical_accuracy": 7,
+        "source_grounding": 9,
+        "completeness": 4,
+        "relevance": 6,
+        "clarity": 8,
+        "practical_usefulness": 5,
+        "originality_diversity": 5,
+        "small_model_suitability": 7
+      },
+      "findings": [
+        "Claimed config-completion fix not applied: the blank is filled with `read_only: true`, which has nothing to do with 'all capabilities dropped except NET_BIND_SERVICE'; the purpose is already met by the visible `cap_drop`/`cap_add`.",
+        "The explanation discusses capabilities, not `read_only`, so the answer is a non-sequitur.",
+        "The verification sentence says `kubectl get -o yaml` for a Compose file."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": true
+    },
+    {
+      "record_id": "syn-fundamentals-linux-networking-lnx-systemd-sandbox-config-complete",
+      "scores": {
+        "technical_accuracy": 8,
+        "source_grounding": 9,
+        "completeness": 5,
+        "relevance": 6,
+        "clarity": 8,
+        "practical_usefulness": 6,
+        "originality_diversity": 6,
+        "small_model_suitability": 7
+      },
+      "findings": [
+        "`ProtectHome=yes` is valid hardening but is not the directive that achieves 'keeps only one writable state directory and no capabilities'; that is already done by `StateDirectory=app`, `ProtectSystem=strict`, and `CapabilityBoundingSet=`.",
+        "The blank placement is arbitrary; many unrelated directives would fit.",
+        "The generic 'reload the service and read the effective value' verifier is weak for a unit-file security property."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": true
+    },
+    {
+      "record_id": "syn-web-api-secure-development-api-versioning-001-config-complete",
+      "scores": {
+        "technical_accuracy": 10,
+        "source_grounding": 9,
+        "completeness": 9,
+        "relevance": 9,
+        "clarity": 9,
+        "practical_usefulness": 9,
+        "originality_diversity": 7,
+        "small_model_suitability": 9
+      },
+      "findings": [
+        "Fixed: the blank is now the `Deprecation: @1767225600` header (2026-01-01), consistent with `Sunset: Wed, 01 Jul 2026`; the completion is tied to the stated purpose.",
+        "The request line is no longer the blank.",
+        "Minor: no RFC 9745/8594 citation."
+      ],
+      "decision": "accept",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": false
+    },
+    {
+      "record_id": "syn-vulnerability-classification-remediation-cvss-v31-base-metrics-config-complete",
+      "scores": {
+        "technical_accuracy": 7,
+        "source_grounding": 7,
+        "completeness": 4,
+        "relevance": 4,
+        "clarity": 8,
+        "practical_usefulness": 4,
+        "originality_diversity": 5,
+        "small_model_suitability": 7
+      },
+      "findings": [
+        "Claimed 'directive-like config languages' restriction is violated: this is a one-line `text` block with the purpose 'Illustrative vector shape only', and any valid CVSS vector would satisfy it.",
+        "The completed vector is valid, but the 'Verify with reload the service and read the effective value' advice is meaningless for a CVSS vector.",
+        "The item does not test configuration completion or a security property."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": true
+    },
+    {
+      "record_id": "syn-incident-response-forensics-threat-intel-ti-stix-048-config-1",
+      "scores": {
+        "technical_accuracy": 9,
+        "source_grounding": 9,
+        "completeness": 7,
+        "relevance": 7,
+        "clarity": 9,
+        "practical_usefulness": 6,
+        "originality_diversity": 6,
+        "small_model_suitability": 8
+      },
+      "findings": [
+        "STIX 2.1 facts are correct (bundle/indicator, patterning, validity window, TAXII).",
+        "The verification paragraph now says 'parse the effective policy with the provider's policy simulator ... attempt the action the control is meant to block' \u2014 IAM language applied to a STIX bundle; still mismatched boilerplate.",
+        "It does not answer the unsafe assumption (unauthenticated feed, unsigned indicators, expired `valid_until`)."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": true
+    },
+    {
+      "record_id": "syn-vulnerability-classification-remediation-rem-verify-patch-log-1",
+      "scores": {
+        "technical_accuracy": 3,
+        "source_grounding": 5,
+        "completeness": 4,
+        "relevance": 6,
+        "clarity": 8,
+        "practical_usefulness": 3,
+        "originality_diversity": 5,
+        "small_model_suitability": 5
+      },
+      "findings": [
+        "Named as quarantined in the revision note, but still present unchanged in the accepted train split and the v2 review sample.",
+        "Still asserts 'The package revision matches the fixed build' although no fixed version is given, and 'the previously successful traversal pattern' although no prior success is shown.",
+        "Still treats a single 400 as proof the traversal is blocked; the prompt asks to distinguish observations from inferences."
+      ],
+      "decision": "quarantine",
+      "critical": true,
+      "revision": 0,
+      "source_dependent": false
+    },
+    {
+      "record_id": "syn-cryptography-identity-access-auth-gpo-052-log-1",
+      "scores": {
+        "technical_accuracy": 6,
+        "source_grounding": 7,
+        "completeness": 6,
+        "relevance": 7,
+        "clarity": 8,
+        "practical_usefulness": 6,
+        "originality_diversity": 6,
+        "small_model_suitability": 7
+      },
+      "findings": [
+        "Named as quarantined in the revision note, but still present unchanged.",
+        "Still reads a `gPLink` change on the GPO container as a link addition; `gPLink` lives on the domain/OU/site SOM, not the GPO object (confirmed against Microsoft Group Policy scope docs).",
+        "The event lacks the Attribute Value (the linked GPO DN), so the link claim is unsupported."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": true
+    },
+    {
+      "record_id": "syn-cloud-container-supply-chain-cloud-guardduty-finding-triage-log-1",
+      "scores": {
+        "technical_accuracy": 8,
+        "source_grounding": 8,
+        "completeness": 8,
+        "relevance": 9,
+        "clarity": 9,
+        "practical_usefulness": 8,
+        "originality_diversity": 6,
+        "small_model_suitability": 8
+      },
+      "findings": [
+        "The finding type is real and severity 8.0 is High on GuardDuty's 1.0-10.0 scale (High band 7.0-8.9).",
+        "Still asserts 'signature of stolen instance credentials' and 'Treat the instance as compromised' without noting legitimate off-AWS use or a proxy.",
+        "Still does not distinguish observations from inferences."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": true
+    },
+    {
+      "record_id": "syn-incident-response-forensics-threat-intel-ir-bec-009-log-1",
+      "scores": {
+        "technical_accuracy": 9,
+        "source_grounding": 9,
+        "completeness": 8,
+        "relevance": 9,
+        "clarity": 9,
+        "practical_usefulness": 9,
+        "originality_diversity": 7,
+        "small_model_suitability": 8
+      },
+      "findings": [
+        "New-InboxRule and Set-Mailbox parameters (`SubjectContainsWords`, `MoveToFolder`, `MarkAsRead`, `ForwardingSmtpAddress`, `DeliverToMailboxAndForward`) are correct for Exchange Online audit records.",
+        "The BEC pattern and containment steps are sound.",
+        "198.51.100.0/24 is TEST-NET-2; the 'unfamiliar IP' baseline is still asserted rather than established."
+      ],
+      "decision": "accept",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": true
+    },
+    {
+      "record_id": "syn-cryptography-identity-access-crypto-gcm-nonce-003-diagnose",
+      "scores": {
+        "technical_accuracy": 8,
+        "source_grounding": 8,
+        "completeness": 6,
+        "relevance": 8,
+        "clarity": 9,
+        "practical_usefulness": 7,
+        "originality_diversity": 6,
+        "small_model_suitability": 8
+      },
+      "findings": [
+        "Claimed error-diagnosis fix only partial: the body has GCM specifics, but 'the check that distinguishes them' is still the identical 'confirm the service loaded the configuration...' boilerplate.",
+        "The 2^32 cap and 96-bit IV guidance are broadly consistent with SP 800-38D; 'random IVs carry collision risk well before' that cap is imprecise.",
+        "No nonce-source instrumentation or per-key encryption count is given."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": true
+    },
+    {
+      "record_id": "syn-vulnerability-classification-remediation-cwe-770-allocation-limits-diagnose",
+      "scores": {
+        "technical_accuracy": 8,
+        "source_grounding": 9,
+        "completeness": 6,
+        "relevance": 8,
+        "clarity": 8,
+        "practical_usefulness": 7,
+        "originality_diversity": 6,
+        "small_model_suitability": 8
+      },
+      "findings": [
+        "Body specifics are correct (CWE-770 child of CWE-400; admission control/backpressure), but the distinguishing check is still generic config-load text.",
+        "The two causes are plausible, but no measurement is given (request rate, queue depth, RSS, rejection counters).",
+        "'quota-shaped subset' remains undefined jargon."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": true
+    },
+    {
+      "record_id": "syn-language-security-retention-js-domxss-002-diagnose",
+      "scores": {
+        "technical_accuracy": 7,
+        "source_grounding": 8,
+        "completeness": 6,
+        "relevance": 7,
+        "clarity": 8,
+        "practical_usefulness": 6,
+        "originality_diversity": 5,
+        "small_model_suitability": 8
+      },
+      "findings": [
+        "Second cause is still wrong: using `innerHTML = ''` to clear a node does not create an XSS condition; `replaceChildren()` is a style/robustness preference.",
+        "The distinguishing check is still generic config-load text, not a DOM-sink/sanitizer check.",
+        "The first cause (hand-escaping misses contexts) and the DOMPurify guidance are sound."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": true
+    },
+    {
+      "record_id": "syn-cloud-container-supply-chain-cloud-iam-permission-boundary-intersection-config-1",
+      "scores": {
+        "technical_accuracy": 9,
+        "source_grounding": 9,
+        "completeness": 8,
+        "relevance": 9,
+        "clarity": 9,
+        "practical_usefulness": 8,
+        "originality_diversity": 6,
+        "small_model_suitability": 8
+      },
+      "findings": [
+        "Partially fixed: verification now says to use a policy simulator and attempt the blocked action, instead of 'confirm the file is loaded'.",
+        "Still does not state what the boundary is attached to or that a matching identity policy is required; the snippet is a policy statement, not an attachment.",
+        "No mention of `iam:SimulatePrincipalPolicy`/`GetRolePolicy` specifically."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": true
+    }
+  ]
+}

@@ -1,0 +1,76 @@
+schema_version: 1
+# Mixture policy for the CyberLite synthesis corpus.
+#
+# Shares are of accepted records, not tokens, and are hard upper bounds. The
+# planner reports when a family or domain exceeds its cap rather than silently
+# truncating the corpus. `min_share` keeps reasoning and uncertainty examples
+# from disappearing under a volume-first mixture.
+name: cyberlite-synthesis-mix-v1
+target_sequence_tokens: 1024
+target_epochs: 3
+max_share_by_task_family:
+  instruction-response: 0.16
+  multiple-choice: 0.12
+  evidence-grounded-qa: 0.20
+  structured-json: 0.08
+  uncertainty-handling: 0.05
+  multiple-choice-multi-answer: 0.05
+  secure-code-review: 0.08
+  code-remediation: 0.07
+  secure-autocomplete: 0.06
+  configuration-analysis: 0.06
+  configuration-completion: 0.04
+  log-interpretation: 0.07
+  incident-investigation: 0.04
+  detection-rule-interpretation: 0.04
+  vulnerability-classification: 0.25
+  vulnerability-remediation: 0.06
+  attack-technique-recognition: 0.08
+  comparison: 0.04
+  misconception-correction: 0.04
+  error-diagnosis: 0.04
+  preference-pair: 0.03
+  general-retention: 0.04
+max_share_by_domain:
+  nist_nvd: 0.30
+  mitre_cwe: 0.15
+  owasp_cheatsheets: 0.15
+  mitre_attack: 0.12
+  cyberlite_synthesis: 0.20
+  ietf_rfcs: 0.04
+  linux_man_pages: 0.03
+  project_examples: 0.01
+  vulnerability-classification-remediation: 0.20
+  monitoring-detection-soc: 0.16
+  incident-response-forensics-threat-intel: 0.14
+  web-api-secure-development: 0.14
+  cloud-container-supply-chain: 0.12
+  cryptography-identity-access: 0.10
+  fundamentals-linux-networking: 0.12
+  language-security-retention: 0.12
+min_share:
+  uncertainty-handling: 0.02
+  false-positive-recognition: 0.02
+  general-retention: 0.01
+  evidence-grounded-qa: 0.005
+curriculum:
+  phase_1:
+    name: foundations-and-evidence
+    families:
+      - instruction-response
+      - evidence-grounded-qa
+      - multiple-choice
+      - log-interpretation
+  phase_2:
+    name: applied-defence
+    families:
+      - secure-code-review
+      - code-remediation
+      - configuration-analysis
+      - vulnerability-classification
+      - attack-technique-recognition
+      - incident-investigation
+      - detection-rule-interpretation
+notes: >-
+  Caps are planning policy, not measured quality. The planner compares the
+  accepted corpus to this file and reports every violation for a human decision.

@@ -1,0 +1,3140 @@
+{
+  "schema_version": 1,
+  "domain": "cryptography-identity-access",
+  "display_name": "Cryptography, PKI, and identity and access management",
+  "author": "worker:C4",
+  "facts": [
+    {
+      "id": "crypto-sym-asym-001",
+      "subtopic": "symmetric-vs-asymmetric",
+      "difficulty": "foundational",
+      "title": "Symmetric and asymmetric cryptography do different jobs in a protocol",
+      "fact": "Symmetric cryptography uses one shared secret for both encryption and decryption and is fast enough for bulk data; AES-128-GCM and ChaCha20-Poly1305 are typical choices. Asymmetric cryptography uses a key pair, where the private key is held by one party and the public key can be distributed, and is used for key agreement (X25519, ECDH) and signatures rather than bulk encryption. Real protocols combine them: TLS 1.3 runs an ephemeral Diffie-Hellman exchange with asymmetric keys, then protects application records with a symmetric AEAD key derived from the shared secret.",
+      "details": [
+        "Distributing a symmetric key is the hard part; asymmetric key agreement solves it without sending the key itself.",
+        "Asymmetric operations cost far more per byte than AES or ChaCha20, which is why they are not used for record encryption.",
+        "AES-256 and ChaCha20 use 256-bit keys, while X25519 and Ed25519 use 32-byte keys and provide roughly 128-bit security."
+      ],
+      "pitfalls": [
+        "Assuming 'encryption' in a design means asymmetric encryption; most application data is protected symmetrically after a handshake.",
+        "Using RSA to encrypt a large payload directly instead of encrypting a symmetric data key with RSA-OAEP or, better, using ECDH."
+      ],
+      "commands": [
+        {
+          "language": "bash",
+          "code": "openssl rand -hex 32",
+          "purpose": "Generate a 256-bit symmetric key for a synthetic test fixture."
+        },
+        {
+          "language": "bash",
+          "code": "openssl genpkey -algorithm X25519 -out x25519.key",
+          "purpose": "Generate a throwaway X25519 key pair to inspect key agreement tooling."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "In TLS 1.3, which primitive protects the application data records after the handshake?",
+          "options": [
+            "A symmetric AEAD cipher such as AES-GCM or ChaCha20-Poly1305",
+            "RSA-2048 encryption of every record",
+            "An ECDSA signature over every record",
+            "A SHA-256 hash of every record"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "TLS 1.3 uses asymmetric operations only to authenticate and agree on a shared secret; record protection is symmetric AEAD, which is far faster."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "Asymmetric encryption is what protects the bulk of HTTPS traffic.",
+          "correction": "Asymmetric keys establish a shared secret and authenticate the peers; the traffic itself is encrypted with a symmetric AEAD key, because asymmetric operations are orders of magnitude slower per byte."
+        }
+      ],
+      "references": [
+        {
+          "title": "SP 800-57 Part 1 Rev. 5: Recommendation for Key Management",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/57/pt1/r5/final",
+          "license": "Public domain (US Government work)"
+        },
+        {
+          "title": "RFC 8446: The Transport Layer Security (TLS) Protocol Version 1.3",
+          "publisher": "IETF",
+          "url": "https://www.rfc-editor.org/rfc/rfc8446.html",
+          "license": "IETF Trust RFC copyright"
+        }
+      ],
+      "tags": [
+        "symmetric",
+        "asymmetric",
+        "hybrid-encryption"
+      ]
+    },
+    {
+      "id": "crypto-aead-002",
+      "subtopic": "aead",
+      "difficulty": "foundational",
+      "title": "AEAD combines confidentiality with integrity in one primitive",
+      "fact": "Authenticated encryption with associated data (AEAD) is a single construction that provides confidentiality, integrity, and authenticity. AES-GCM, ChaCha20-Poly1305, and AES-CCM are common AEADs. The associated data (AAD) is authenticated but not encrypted, so it can carry protocol headers, version numbers, or a tenant identifier that must not be altered. A decryptor must verify the authentication tag and reject the message before releasing any plaintext; doing encryption and MAC as separate hand-written steps invites ordering and comparison mistakes.",
+      "details": [
+        "The tag is usually 128 bits; truncating it lowers forgery resistance and is only acceptable where a profile explicitly allows it.",
+        "AAD binds ciphertext to its context, so a record moved to another tenant or protocol version fails authentication.",
+        "Libraries expose AEAD as encrypt and decrypt calls that return an error on tag mismatch; never ignore that error and use partial output."
+      ],
+      "code": [
+        {
+          "language": "python",
+          "vulnerable": "from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes\n\ndef encrypt(key: bytes, data: bytes) -> bytes:\n    # CBC with no integrity protection and a fixed IV\n    cipher = Cipher(algorithms.AES(key), modes.CBC(b\"\\x00\" * 16))\n    return cipher.encryptor().update(data)\n",
+          "secure": "import os\nfrom cryptography.hazmat.primitives.ciphers.aead import AESGCM\n\ndef encrypt(key: bytes, data: bytes, aad: bytes) -> bytes:\n    nonce = os.urandom(12)  # unique per key; store beside the ciphertext\n    return nonce + AESGCM(key).encrypt(nonce, data, aad)\n",
+          "issue": "CBC without a MAC provides no integrity and a fixed IV leaks plaintext equality; the replacement uses a library AEAD with a random 96-bit nonce and authenticated context."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "What does the associated data (AAD) input of an AEAD construction protect?",
+          "options": [
+            "Context that is authenticated but transmitted in the clear",
+            "The secret key material",
+            "The plaintext, which is encrypted twice",
+            "The nonce, which is hidden from the receiver"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "AAD is not encrypted; it is covered by the authentication tag so that headers or context cannot be modified without detection."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "AEAD means the associated data is encrypted together with the payload.",
+          "correction": "AAD is authenticated but remains in the clear. It binds the ciphertext to context such as a protocol version or tenant ID; if it needed confidentiality it would have to be part of the plaintext."
+        }
+      ],
+      "references": [
+        {
+          "title": "RFC 5116: An Interface and Algorithms for Authenticated Encryption",
+          "publisher": "IETF",
+          "url": "https://www.rfc-editor.org/rfc/rfc5116.html",
+          "license": "IETF Trust RFC copyright"
+        },
+        {
+          "title": "SP 800-38D: Galois/Counter Mode (GCM) and GMAC",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/38/d/final",
+          "license": "Public domain (US Government work)"
+        }
+      ],
+      "tags": [
+        "aead",
+        "gcm",
+        "integrity"
+      ]
+    },
+    {
+      "id": "crypto-gcm-nonce-003",
+      "subtopic": "aead",
+      "difficulty": "advanced",
+      "title": "AES-GCM needs a 96-bit IV and a hard invocation budget per key",
+      "fact": "AES-GCM is a 128-bit block AEAD that takes an initialization vector. A 96-bit (12-byte) IV is handled natively; other lengths are first compressed with GHASH, which costs an extra operation and is easier to get wrong. NIST SP 800-38D caps the total number of invocations under one key at 2^32, and random IVs carry collision risk well before that cap. Any IV repeat under the same key destroys both confidentiality and authenticity. Prefer a per-key counter or a structured nonce with a unique device or context field, and rekey well before the limit.",
+      "details": [
+        "A 128-bit tag is the default; 32-bit and 64-bit tags sharply reduce forgery resistance and have much tighter invocation limits.",
+        "TLS 1.3 derives each record nonce from the traffic key and a 64-bit sequence number, so the sequence counter must never repeat or wrap.",
+        "AES-GCM-SIV (RFC 8452) is a misuse-resistant alternative that tolerates accidental nonce reuse with degraded rather than catastrophic consequences."
+      ],
+      "pitfalls": [
+        "Generating a fresh random IV per message but keeping one key for billions of messages, which crosses the 2^32 random-IV bound.",
+        "Using a 128-bit IV 'because longer is safer' without checking the GHASH derivation and the profile that governs it."
+      ],
+      "commands": [
+        {
+          "language": "bash",
+          "code": "openssl enc -aes-256-gcm -in plain.bin -out cipher.bin",
+          "purpose": "Show that the openssl enc CLI rejects AEAD ciphers with 'AEAD ciphers not supported'; use a library AEAD API instead."
+        }
+      ],
+      "logs": [
+        {
+          "context": "OpenSSL 3.x command-line encryption with an AEAD cipher",
+          "text": "$ openssl enc -aes-256-gcm -in plain.bin -out cipher.bin\nenc: AEAD ciphers not supported",
+          "reading": "The enc subcommand is a raw block-cipher tool and deliberately refuses AEAD modes; it cannot manage nonces or tags, so the error is a design guardrail rather than a missing feature."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Under SP 800-38D, what is the maximum total number of invocations of AES-GCM under a given key?",
+          "options": [
+            "2^32",
+            "2^64",
+            "2^96",
+            "There is no limit if IVs are random"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "SP 800-38D caps total invocations at 2^32 for a given key across all instances, because IV collisions become likely and a repeat destroys confidentiality and authenticity."
+        },
+        {
+          "question": "Why is a 96-bit IV the preferred size for AES-GCM?",
+          "options": [
+            "It is used directly as the counter block, avoiding an extra GHASH derivation",
+            "It is the only size the AES block cipher accepts",
+            "It makes the authentication tag optional",
+            "It allows the same IV to be reused safely"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "GCM's native IV length is 96 bits; other lengths are hashed with GHASH first, adding work and implementation risk. Uniqueness is still mandatory."
+        }
+      ],
+      "references": [
+        {
+          "title": "SP 800-38D: Galois/Counter Mode (GCM) and GMAC",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/38/d/final",
+          "license": "Public domain (US Government work)"
+        },
+        {
+          "title": "RFC 8452: AES-GCM-SIV",
+          "publisher": "IETF",
+          "url": "https://www.rfc-editor.org/rfc/rfc8452.html",
+          "license": "IETF Trust RFC copyright"
+        }
+      ],
+      "tags": [
+        "aes-gcm",
+        "nonce",
+        "invocation-limit"
+      ]
+    },
+    {
+      "id": "crypto-chacha-004",
+      "subtopic": "aead",
+      "difficulty": "intermediate",
+      "title": "ChaCha20-Poly1305 trades AES hardware for fast portable software",
+      "fact": "ChaCha20-Poly1305 (RFC 8439) is an AEAD built from a 256-bit stream cipher and a 128-bit one-time authenticator. It uses a 96-bit nonce and a 32-bit block counter, and it is fast in portable software because it needs no lookup tables or AES hardware. That makes it attractive on older mobile and embedded CPUs, and it is one of the five TLS 1.3 cipher suites. Like AES-GCM, it fails catastrophically if a nonce is reused under the same key.",
+      "details": [
+        "The TLS 1.3 suite is TLS_CHACHA20_POLY1305_SHA256 (0x1303); the SHA-256 part names the transcript hash, not the AEAD.",
+        "Poly1305's one-time key is derived from the first ChaCha20 block, which is why nonce uniqueness is inseparable from authenticity.",
+        "On CPUs with AES-NI, AES-GCM is usually faster; on CPUs without it, ChaCha20 often wins and avoids cache-timing concerns."
+      ],
+      "code": [
+        {
+          "language": "python",
+          "vulnerable": "from cryptography.hazmat.primitives.ciphers.aead import ChaCha20Poly1305\n\nkey = bytes(32)\nnonce = b\"fixed-nonce!\"  # 12 bytes, reused for every message\nct = ChaCha20Poly1305(key).encrypt(nonce, b\"payload\", None)\n",
+          "secure": "import os\nfrom cryptography.hazmat.primitives.ciphers.aead import ChaCha20Poly1305\n\nkey = ChaCha20Poly1305.generate_key()\nnonce = os.urandom(12)  # never repeat under this key\nct = ChaCha20Poly1305(key).encrypt(nonce, b\"payload\", b\"v1\")\n",
+          "issue": "A fixed nonce turns the stream cipher into a two-time pad and exposes the Poly1305 key; the secure version draws a fresh 96-bit nonce for each message."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "What makes ChaCha20-Poly1305 attractive on devices without AES acceleration?",
+          "options": [
+            "It is fast in portable software and needs no table lookups",
+            "It has a larger authentication tag than GCM",
+            "It does not require a nonce",
+            "It is the only FIPS-approved AEAD"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "ChaCha20 is built from add-rotate-xor operations that run quickly in software and avoid secret-dependent table lookups; AES-GCM is usually faster only when AES-NI is present."
+        }
+      ],
+      "references": [
+        {
+          "title": "RFC 8439: ChaCha20 and Poly1305 for IETF Protocols",
+          "publisher": "IETF",
+          "url": "https://www.rfc-editor.org/rfc/rfc8439.html",
+          "license": "IETF Trust RFC copyright"
+        },
+        {
+          "title": "RFC 8446: The Transport Layer Security (TLS) Protocol Version 1.3",
+          "publisher": "IETF",
+          "url": "https://www.rfc-editor.org/rfc/rfc8446.html",
+          "license": "IETF Trust RFC copyright"
+        }
+      ],
+      "tags": [
+        "chacha20",
+        "poly1305",
+        "tls13"
+      ]
+    },
+    {
+      "id": "crypto-nonce-reuse-005",
+      "subtopic": "nonce-management",
+      "difficulty": "intermediate",
+      "title": "Nonce rules differ by mode: uniqueness for CTR/GCM, unpredictability for CBC",
+      "fact": "A nonce or IV does not have to be secret, but it must satisfy the mode's rule. CTR and GCM require uniqueness under a key; CBC requires unpredictability. Reusing a CTR or GCM nonce turns the cipher into a two-time pad, so XORing two ciphertexts reveals the XOR of the plaintexts, and GCM additionally exposes the authentication subkey, which enables forgery. Reusing a CBC IV leaks whether two messages share a common prefix.",
+      "details": [
+        "A deterministic counter is acceptable for GCM if it never wraps and is unique across every instance sharing the key.",
+        "Random 96-bit nonces approach the birthday bound near 2^32 messages, so track the count or rekey earlier.",
+        "Nonce state must be allocated atomically across replicas; two nodes that both start at zero under one key reproduce the failure."
+      ],
+      "pitfalls": [
+        "Treating 'nonce' as a synonym for 'random number' and therefore assuming randomness alone satisfies every mode.",
+        "Resetting a counter after a process restart while reusing the same key from persistent storage."
+      ],
+      "code": [
+        {
+          "language": "python",
+          "vulnerable": "from cryptography.hazmat.primitives.ciphers.aead import AESGCM\n\nkey = bytes(32)\nnonce = b\"\\x00\" * 12\nfor msg in messages:\n    ct = AESGCM(key).encrypt(nonce, msg, None)  # same nonce every time\n",
+          "secure": "import os\nfrom cryptography.hazmat.primitives.ciphers.aead import AESGCM\n\nkey = AESGCM.generate_key(bit_length=256)\nfor msg in messages:\n    nonce = os.urandom(12)\n    ct = nonce + AESGCM(key).encrypt(nonce, msg, None)\n",
+          "issue": "Reusing a GCM nonce under one key leaks plaintext relationships and the authentication subkey; the secure loop generates a unique 96-bit nonce per message."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Which property does a CBC initialization vector require that a GCM nonce does not?",
+          "options": [
+            "Unpredictability",
+            "Uniqueness per key",
+            "Confidentiality",
+            "A length of 128 bits"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "CBC needs an unpredictable IV to prevent chosen-plaintext attacks that exploit predictable IVs. GCM needs uniqueness under the key; neither mode requires the IV to be secret."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "An IV must be kept secret in the same way as the encryption key.",
+          "correction": "IVs and nonces are public and travel with the ciphertext. The requirement is uniqueness under a key for CTR/GCM and unpredictability for CBC; secrecy is neither required nor sufficient."
+        }
+      ],
+      "references": [
+        {
+          "title": "SP 800-38A: Block Cipher Modes of Operation",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/38/a/final",
+          "license": "Public domain (US Government work)"
+        },
+        {
+          "title": "SP 800-38D: Galois/Counter Mode (GCM) and GMAC",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/38/d/final",
+          "license": "Public domain (US Government work)"
+        }
+      ],
+      "tags": [
+        "nonce",
+        "iv",
+        "two-time-pad"
+      ]
+    },
+    {
+      "id": "crypto-kdf-purpose-006",
+      "subtopic": "key-derivation",
+      "difficulty": "foundational",
+      "title": "Key derivation, password hashing, and MACs solve different problems",
+      "fact": "Key derivation functions turn one secret into purpose-specific keys. HKDF (RFC 5869) is the standard choice for a high-entropy input such as an ECDH shared secret, and SP 800-108 defines counter and feedback KDFs for similar jobs. Password hashing is a different problem: the input is low-entropy and guessable, so PBKDF2, scrypt, bcrypt, or Argon2id deliberately consume CPU and memory. A fast hash or HKDF must not be used to store passwords, and a password hash must not be used to derive protocol keys.",
+      "details": [
+        "HKDF is extract-then-expand: the salt strengthens extraction and the info parameter provides domain separation between uses.",
+        "Distinct info labels such as 'app-v1/encryption' and 'app-v1/mac' prevent cross-protocol key reuse from one shared secret.",
+        "SP 800-108 KDFs are common in smart cards and key hierarchies where an input key and a fixed label must produce a derived key."
+      ],
+      "code": [
+        {
+          "language": "python",
+          "vulnerable": "import hashlib\n\ndef derive(shared_secret: bytes) -> bytes:\n    # no salt, no context, one output reused for every purpose\n    return hashlib.sha256(shared_secret).digest()\n",
+          "secure": "from cryptography.hazmat.primitives import hashes\nfrom cryptography.hazmat.primitives.kdf.hkdf import HKDF\n\ndef derive(shared_secret: bytes, salt: bytes, label: bytes) -> bytes:\n    return HKDF(algorithm=hashes.SHA256(), length=32, salt=salt, info=label).derive(shared_secret)\n",
+          "issue": "A bare hash gives no salt, no domain separation, and no bound on output length; HKDF provides all three and is the correct tool for high-entropy input."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Which function is the best fit for deriving an encryption key from an ECDH shared secret?",
+          "options": [
+            "HKDF-SHA-256 with a salt and an info label",
+            "PBKDF2 with 600,000 iterations",
+            "A single SHA-256 hash of the secret",
+            "Argon2id with 64 MiB of memory"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "HKDF is designed for high-entropy inputs and supports salt and context separation. PBKDF2 and Argon2id are for low-entropy passwords, and a bare hash lacks domain separation."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "Salting and hashing a password with SHA-256 is a valid alternative to a password-hashing function.",
+          "correction": "A salted SHA-256 runs in microseconds on a GPU, so an attacker can test billions of guesses. Password storage needs a deliberately slow, memory-hard function such as Argon2id, scrypt, bcrypt, or PBKDF2 with a high work factor."
+        }
+      ],
+      "references": [
+        {
+          "title": "RFC 5869: HKDF: HMAC-based Extract-and-Expand Key Derivation Function",
+          "publisher": "IETF",
+          "url": "https://www.rfc-editor.org/rfc/rfc5869.html",
+          "license": "IETF Trust RFC copyright"
+        },
+        {
+          "title": "SP 800-108 Rev. 1: Key Derivation Functions",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/108/r1/upd1/final",
+          "license": "Public domain (US Government work)"
+        },
+        {
+          "title": "SP 800-132: Recommendation for Password-Based Key Derivation",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/132/final",
+          "license": "Public domain (US Government work)"
+        }
+      ],
+      "tags": [
+        "kdf",
+        "hkdf",
+        "password-hashing"
+      ]
+    },
+    {
+      "id": "crypto-pbkdf2-007",
+      "subtopic": "password-hashing",
+      "difficulty": "intermediate",
+      "title": "PBKDF2 is FIPS-approved but not memory-hard",
+      "fact": "PBKDF2 (RFC 8018, SP 800-132) iterates an HMAC many times over the password and salt. It is FIPS-approved and universally available, but it is not memory-hard, so GPUs and ASICs get a large advantage over the defender. OWASP's current guidance is 600,000 iterations with HMAC-SHA-256, 210,000 with HMAC-SHA-512, and 1,300,000 with SHA-1 for legacy systems only. The iteration count and salt must be stored with the hash and raised over time.",
+      "details": [
+        "Use a salt of at least 128 bits from a CSPRNG, unique per password, and an output of at least 256 bits.",
+        "A PHC-style string such as $pbkdf2-sha256$600000$<salt>$<hash> keeps algorithm and parameters with the digest.",
+        "On a successful login, rehash with the current parameters if the stored work factor is below policy."
+      ],
+      "code": [
+        {
+          "language": "python",
+          "vulnerable": "import hashlib\n\ndef store(password: bytes) -> str:\n    return hashlib.sha256(password).hexdigest()  # unsalted, single pass\n",
+          "secure": "import hashlib, os\n\ndef store(password: bytes) -> str:\n    salt = os.urandom(16)\n    dk = hashlib.pbkdf2_hmac(\"sha256\", password, salt, 600_000)\n    return f\"$pbkdf2-sha256$600000${salt.hex()}${dk.hex()}\"\n",
+          "issue": "A single unsalted SHA-256 is trivially enumerated and reveals identical passwords; the replacement uses a unique salt and 600,000 HMAC iterations and records the parameters."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "What is OWASP's current recommended work factor for PBKDF2-HMAC-SHA256?",
+          "options": [
+            "600,000 iterations",
+            "10,000 iterations",
+            "1,000 iterations",
+            "A single iteration with a 32-byte salt"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "OWASP's Password Storage Cheat Sheet recommends 600,000 iterations for PBKDF2-HMAC-SHA256, with 210,000 for SHA-512 and 1,300,000 for SHA-1 only in legacy systems."
+        }
+      ],
+      "references": [
+        {
+          "title": "RFC 8018: PKCS #5: Password-Based Cryptography Specification Version 2.1",
+          "publisher": "IETF",
+          "url": "https://www.rfc-editor.org/rfc/rfc8018.html",
+          "license": "IETF Trust RFC copyright"
+        },
+        {
+          "title": "SP 800-132: Recommendation for Password-Based Key Derivation",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/132/final",
+          "license": "Public domain (US Government work)"
+        },
+        {
+          "title": "OWASP Password Storage Cheat Sheet",
+          "publisher": "OWASP Foundation",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html",
+          "license": "CC BY-SA 4.0"
+        }
+      ],
+      "tags": [
+        "pbkdf2",
+        "password-hashing",
+        "work-factor"
+      ]
+    },
+    {
+      "id": "crypto-argon2id-008",
+      "subtopic": "password-hashing",
+      "difficulty": "advanced",
+      "title": "Argon2id parameters are memory, iterations, and parallelism",
+      "fact": "Argon2id (RFC 9106) combines data-independent and data-dependent memory filling, which resists side-channel and GPU/ASIC attacks better than PBKDF2 or bcrypt. Its parameters are memory m in KiB, iterations t, and parallelism p. OWASP's minimum is m=19 MiB, t=2, p=1, while RFC 9106's first recommended option is m=2 GiB, t=1, p=4. Tune so that one hash takes roughly 100 to 500 ms on production hardware, and record the chosen parameters in the stored hash string.",
+      "details": [
+        "A PHC string such as $argon2id$v=19$m=65536,t=3,p=4$<salt>$<hash> encodes everything needed to verify and to rehash later.",
+        "Memory cost dominates attacker economics because each parallel guess needs its own working set.",
+        "Cap concurrent hashing so a login flood cannot exhaust server RAM; rate limiting is still required."
+      ],
+      "configs": [
+        {
+          "language": "phc-string",
+          "snippet": "$argon2id$v=19$m=65536,t=3,p=4$c2FsdHlzYWx0eXNhbHR5$<computed-hash>",
+          "purpose": "Illustrate the PHC encoding of Argon2id parameters; the salt and hash shown are synthetic placeholders."
+        }
+      ],
+      "code": [
+        {
+          "language": "python",
+          "vulnerable": "import hashlib\n\ndef hash_password(password: bytes) -> str:\n    return hashlib.md5(password).hexdigest()  # fast, unsalted, broken\n",
+          "secure": "from argon2 import PasswordHasher\nfrom argon2.exceptions import VerifyMismatchError\n\nph = PasswordHasher(time_cost=3, memory_cost=65536, parallelism=4)  # 64 MiB\n\ndef check(stored: str, password: str) -> bool:\n    try:\n        return ph.verify(stored, password)\n    except VerifyMismatchError:\n        return False\n",
+          "issue": "MD5 is fast and unsalted, so guesses are cheap; Argon2id with 64 MiB and three passes makes each guess consume memory as well as time."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Which Argon2id parameter most directly raises the cost of large-scale GPU cracking?",
+          "options": [
+            "Memory cost m",
+            "Output length",
+            "Salt length",
+            "The version field"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "Memory cost forces each candidate password to occupy a working set, which limits how many guesses a GPU or ASIC can run in parallel."
+        }
+      ],
+      "references": [
+        {
+          "title": "RFC 9106: Argon2 Memory-Hard Function for Password Hashing",
+          "publisher": "IETF",
+          "url": "https://www.rfc-editor.org/rfc/rfc9106.html",
+          "license": "IETF Trust RFC copyright"
+        },
+        {
+          "title": "OWASP Password Storage Cheat Sheet",
+          "publisher": "OWASP Foundation",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html",
+          "license": "CC BY-SA 4.0"
+        }
+      ],
+      "tags": [
+        "argon2id",
+        "password-hashing",
+        "memory-hard"
+      ]
+    },
+    {
+      "id": "crypto-scrypt-bcrypt-009",
+      "subtopic": "password-hashing",
+      "difficulty": "intermediate",
+      "title": "scrypt is memory-hard; bcrypt has a hard 72-byte input limit",
+      "fact": "scrypt (RFC 7914) is memory-hard and configured with N (CPU and memory cost), r (block size), and p (parallelism); OWASP's minimum is N=2^17, r=8, p=1, roughly 128 MiB. bcrypt is older and widely deployed but takes at most 72 bytes of input, so longer passwords are silently truncated unless they are pre-hashed, and a work factor of 10 or more is the floor. Both need a unique random salt and a stored parameter string so the work factor can be raised later.",
+      "details": [
+        "The bcrypt variants $2a$, $2b$, and $2y$ differ in how they handle long inputs and null bytes; new systems should use $2b$.",
+        "bcrypt's limit is 72 bytes, not characters, so a UTF-8 passphrase can reach it sooner than expected.",
+        "If 72 bytes is too small, pre-hash with SHA-256 and Base64-encode the digest before bcrypt, and document the scheme."
+      ],
+      "configs": [
+        {
+          "language": "phc-string",
+          "snippet": "$2b$12$<22-character-salt><31-character-hash>\n$scrypt$ln=17,r=8,p=1$<salt>$<hash>",
+          "purpose": "Show how bcrypt and scrypt encode cost parameters alongside the salt; values are synthetic placeholders."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "What happens when a 100-byte password is passed to bcrypt without pre-hashing?",
+          "options": [
+            "Only the first 72 bytes are used for verification",
+            "bcrypt automatically hashes the remainder",
+            "bcrypt rejects the password with an error",
+            "The password is truncated to 72 characters"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "bcrypt truncates its input at 72 bytes, so two passwords sharing the first 72 bytes verify identically. Pre-hash with SHA-256 and Base64 when longer input must be supported."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "bcrypt safely handles passwords of any length.",
+          "correction": "bcrypt processes at most 72 bytes and silently ignores the rest, so long passphrases lose entropy. Pre-hash with SHA-256 plus Base64 or use Argon2id."
+        }
+      ],
+      "references": [
+        {
+          "title": "RFC 7914: The scrypt Password-Based Key Derivation Function",
+          "publisher": "IETF",
+          "url": "https://www.rfc-editor.org/rfc/rfc7914.html",
+          "license": "IETF Trust RFC copyright"
+        },
+        {
+          "title": "OWASP Password Storage Cheat Sheet",
+          "publisher": "OWASP Foundation",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html",
+          "license": "CC BY-SA 4.0"
+        }
+      ],
+      "tags": [
+        "scrypt",
+        "bcrypt",
+        "password-hashing"
+      ]
+    },
+    {
+      "id": "crypto-hmac-010",
+      "subtopic": "integrity",
+      "difficulty": "intermediate",
+      "title": "HMAC resists length extension; H(key || message) does not",
+      "fact": "HMAC (RFC 2104, FIPS 198-1) is a keyed message authentication code built from a hash with inner and outer padding, and it remains secure even when the underlying hash is vulnerable to length extension. A naive construction such as H(key || message) is not a MAC: for Merkle-Damgard hashes an attacker can append data and recompute the digest without knowing the key. HMAC tags must be compared in constant time, and a MAC provides integrity and authenticity but not confidentiality.",
+      "details": [
+        "HMAC-SHA-256 is the common choice; for new designs, AEAD or KMAC (SP 800-185) may fit better.",
+        "Never reuse one HMAC key for two purposes; derive separate keys with a KDF and distinct labels.",
+        "A MAC computed over ciphertext (encrypt-then-MAC) is sound if verification happens before decryption and comparison is constant time."
+      ],
+      "code": [
+        {
+          "language": "python",
+          "vulnerable": "import hashlib\n\ndef tag(key: bytes, msg: bytes) -> bytes:\n    return hashlib.sha256(key + msg).digest()  # length-extendable, not a MAC\n",
+          "secure": "import hashlib, hmac\n\ndef tag(key: bytes, msg: bytes) -> bytes:\n    return hmac.new(key, msg, hashlib.sha256).digest()\n\ndef verify(key: bytes, msg: bytes, expected: bytes) -> bool:\n    return hmac.compare_digest(expected, tag(key, msg))\n",
+          "issue": "H(key || message) allows length-extension forgery and a plain equality check leaks timing; HMAC plus compare_digest fixes both."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Why is SHA-256(key || message) unsafe as a message authentication code?",
+          "options": [
+            "An attacker can extend the message and recompute a valid digest without the key",
+            "SHA-256 is reversible",
+            "It is slower than HMAC",
+            "It exposes the key in the digest"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "Merkle-Damgard hashes are vulnerable to length extension: given H(key || message) and the message length, an attacker can compute H(key || message || padding || extra) without the key. HMAC's nested construction prevents this."
+        }
+      ],
+      "references": [
+        {
+          "title": "RFC 2104: HMAC: Keyed-Hashing for Message Authentication",
+          "publisher": "IETF",
+          "url": "https://www.rfc-editor.org/rfc/rfc2104.html",
+          "license": "IETF Trust RFC copyright"
+        },
+        {
+          "title": "FIPS 198-1: The Keyed-Hash Message Authentication Code (HMAC)",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/fips/198-1/final",
+          "license": "Public domain (US Government work)"
+        }
+      ],
+      "tags": [
+        "hmac",
+        "mac",
+        "length-extension"
+      ]
+    },
+    {
+      "id": "crypto-signatures-011",
+      "subtopic": "digital-signatures",
+      "difficulty": "foundational",
+      "title": "Digital signatures prove integrity and origin, not confidentiality",
+      "fact": "A digital signature is produced with a private key over a message digest and verified with the corresponding public key. It provides integrity, authenticity, and, when the private key is properly protected and the signing ceremony is sound, non-repudiation. It provides no confidentiality. Signatures should cover a domain-separated encoding of the message, not a bare digest, so that a signature produced for one protocol cannot be replayed in another context.",
+      "details": [
+        "Signing is not 'encrypting with the private key'; RSA signing is a padding and exponentiation defined by the signature scheme.",
+        "Include a context or purpose string in what is signed, and verify the algorithm identifier rather than trusting it from the message.",
+        "Verification must fail closed on unknown algorithms, malformed encodings, and missing certificates."
+      ],
+      "commands": [
+        {
+          "language": "bash",
+          "code": "openssl dgst -sha256 -sign signing.key -out artifact.sig artifact.bin",
+          "purpose": "Sign a synthetic artifact with a throwaway RSA or EC private key."
+        },
+        {
+          "language": "bash",
+          "code": "openssl dgst -sha256 -verify signing.pub -signature artifact.sig artifact.bin",
+          "purpose": "Verify the signature using the public key and report a clear success or failure."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Which security property does a digital signature NOT provide?",
+          "options": [
+            "Confidentiality of the message",
+            "Integrity of the message",
+            "Authenticity of the signer",
+            "Non-repudiation when key custody is sound"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "A signature proves who signed and that the content is unchanged, but the message remains readable unless it is also encrypted."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "A signature encrypts the message so that only the holder of the public key can read it.",
+          "correction": "Signing uses the private key and verification uses the public key; the message stays in the clear. Confidentiality requires encryption to the recipient's public key or a shared symmetric key."
+        }
+      ],
+      "references": [
+        {
+          "title": "FIPS 186-5: Digital Signature Standard (DSS)",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/fips/186-5/final",
+          "license": "Public domain (US Government work)"
+        },
+        {
+          "title": "SP 800-57 Part 1 Rev. 5: Recommendation for Key Management",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/57/pt1/r5/final",
+          "license": "Public domain (US Government work)"
+        }
+      ],
+      "tags": [
+        "signatures",
+        "non-repudiation",
+        "integrity"
+      ]
+    },
+    {
+      "id": "crypto-rsa-ecdsa-ed25519-012",
+      "subtopic": "digital-signatures",
+      "difficulty": "intermediate",
+      "title": "RSA, ECDSA, and Ed25519 trade size, determinism, and ecosystem support",
+      "fact": "RSA with PKCS#1 v1.5 or PSS has large keys and signatures but fast verification. ECDSA (FIPS 186-5) has small keys but needs a unique per-signature nonce; a repeated or biased nonce leaks the private key. Ed25519 (RFC 8032) is deterministic, uses 32-byte keys and 64-byte signatures, and removes parameter and nonce choices, which makes it hard to misuse, though it has fewer enterprise integrations than ECDSA P-256. EdDSA became approved for federal use in FIPS 186-5.",
+      "details": [
+        "An RSA-2048 signature is about 256 bytes, a P-256 ECDSA signature about 64 bytes in raw form, and an Ed25519 signature exactly 64 bytes.",
+        "Deterministic ECDSA via RFC 6979 avoids catastrophic nonce reuse from a broken random generator.",
+        "ECDSA signatures are malleable: both s and n-s verify unless the protocol canonicalizes them, which matters for transaction identifiers."
+      ],
+      "mcqs": [
+        {
+          "question": "Which signature scheme is deterministic by design and therefore avoids nonce-reuse key recovery?",
+          "options": [
+            "Ed25519",
+            "ECDSA with a random k",
+            "RSA PKCS#1 v1.5",
+            "DSA with a random k"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "Ed25519 derives its nonce deterministically from the private key and message, eliminating the random-nonce failure that exposes ECDSA and DSA keys."
+        }
+      ],
+      "references": [
+        {
+          "title": "RFC 8032: Edwards-Curve Digital Signature Algorithm (EdDSA)",
+          "publisher": "IETF",
+          "url": "https://www.rfc-editor.org/rfc/rfc8032.html",
+          "license": "IETF Trust RFC copyright"
+        },
+        {
+          "title": "RFC 6979: Deterministic Usage of DSA and ECDSA",
+          "publisher": "IETF",
+          "url": "https://www.rfc-editor.org/rfc/rfc6979.html",
+          "license": "IETF Trust RFC copyright"
+        },
+        {
+          "title": "FIPS 186-5: Digital Signature Standard (DSS)",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/fips/186-5/final",
+          "license": "Public domain (US Government work)"
+        }
+      ],
+      "tags": [
+        "rsa",
+        "ecdsa",
+        "ed25519"
+      ]
+    },
+    {
+      "id": "crypto-key-sizes-013",
+      "subtopic": "key-management",
+      "difficulty": "intermediate",
+      "title": "Key size only means something relative to algorithm and security strength",
+      "fact": "NIST SP 800-57 Part 1 Rev. 5 equates roughly 112-bit security with RSA-2048 or ECDSA P-224, 128-bit with RSA-3072 or P-256, 192-bit with RSA-7680 or P-384, and 256-bit with RSA-15360 or P-521. AES-128, AES-192, and AES-256 map to 128, 192, and 256 bits of security. An RSA-2048 key therefore does not provide 2048 bits of security; it provides about 112 bits. SP 800-57 recommends 128-bit strength for new systems that must remain secure beyond 2030.",
+      "details": [
+        "Doubling an RSA modulus roughly doubles defender work but adds only a few bits of security, which is why RSA keys grow so fast.",
+        "P-256 at 128-bit strength is the common TLS default; P-384 is used where 192-bit strength is required.",
+        "SHA-256 gives 128-bit collision resistance even though its output is 256 bits, because of the birthday bound."
+      ],
+      "commands": [
+        {
+          "language": "bash",
+          "code": "openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:3072 -out rsa3072.key",
+          "purpose": "Generate a 3072-bit RSA key for a synthetic 128-bit-strength example."
+        },
+        {
+          "language": "bash",
+          "code": "openssl ecparam -list_curves | head -20",
+          "purpose": "List named elliptic curves available in the local OpenSSL build."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Approximately how much security does RSA-2048 provide?",
+          "options": [
+            "112 bits",
+            "128 bits",
+            "256 bits",
+            "2048 bits"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "SP 800-57 Part 1 Rev. 5 maps RSA-2048 to 112-bit strength, which is why 3072-bit keys are needed for 128-bit strength."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "An RSA-2048 key provides 2048 bits of security.",
+          "correction": "RSA-2048 provides about 112 bits of security by the NIST equivalence tables. The modulus size is not the security level; the best known attack is sub-exponential rather than brute force."
+        }
+      ],
+      "references": [
+        {
+          "title": "SP 800-57 Part 1 Rev. 5: Recommendation for Key Management",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/57/pt1/r5/final",
+          "license": "Public domain (US Government work)"
+        }
+      ],
+      "tags": [
+        "key-size",
+        "security-strength",
+        "rsa"
+      ]
+    },
+    {
+      "id": "crypto-entropy-014",
+      "subtopic": "randomness",
+      "difficulty": "intermediate",
+      "title": "Keys come from the OS CSPRNG, never from a language PRNG",
+      "fact": "Cryptographic keys must come from a CSPRNG seeded by the operating system's entropy pool, not from language-level PRNGs or time values. On Linux, getrandom(2) and /dev/urandom provide the kernel CSPRNG; Python's secrets module and os.urandom wrap it, while random is a Mersenne Twister and is predictable from a few outputs. Virtual machines and containers can boot with little entropy, so a virtio-rng or equivalent source should be attached.",
+      "details": [
+        "getrandom blocks until the pool is initialized, which removes the early-boot weakness that affected /dev/urandom on old kernels.",
+        "A 256-bit key needs 256 bits of entropy, not 256 bytes of random-looking text or a UUID built from a timestamp.",
+        "Hardware random sources need health tests and a DRBG per SP 800-90B before their output is trusted."
+      ],
+      "commands": [
+        {
+          "language": "bash",
+          "code": "python3 -c \"import secrets; print(secrets.token_hex(32))\"",
+          "purpose": "Print a 256-bit value from the OS CSPRNG for a synthetic fixture."
+        },
+        {
+          "language": "bash",
+          "code": "head -c 32 /dev/urandom | xxd -p",
+          "purpose": "Illustrate reading 32 bytes from the kernel CSPRNG."
+        }
+      ],
+      "code": [
+        {
+          "language": "python",
+          "vulnerable": "import random, string\n\ndef reset_token() -> str:\n    alphabet = string.ascii_letters + string.digits\n    return \"\".join(random.choice(alphabet) for _ in range(32))  # predictable MT\n",
+          "secure": "import secrets\n\ndef reset_token() -> str:\n    return secrets.token_urlsafe(32)  # CSPRNG, 256 bits of entropy\n",
+          "issue": "The random module is a Mersenne Twister seeded predictably and its state is recoverable; secrets uses the OS CSPRNG and is the correct source for tokens and keys."
+        }
+      ],
+      "logs": [
+        {
+          "context": "Linux kernel boot log on a synthetic VM",
+          "text": "random: crng init done\nrandom: 7 urandom warning(s) missed due to ratelimiting",
+          "reading": "The CRNG is initialized, but the missed-warning line means something read /dev/urandom before that point. Keys generated in that window may have had insufficient entropy, so provisioning should wait for initialization."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Which Python API is appropriate for generating a password-reset token?",
+          "options": [
+            "secrets.token_urlsafe",
+            "random.randint",
+            "time.time_ns",
+            "uuid.uuid1"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "secrets draws from the OS CSPRNG. random is a predictable Mersenne Twister, time is guessable, and uuid1 encodes time and MAC addresses."
+        }
+      ],
+      "references": [
+        {
+          "title": "SP 800-90B: Entropy Sources",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/90/b/final",
+          "license": "Public domain (US Government work)"
+        },
+        {
+          "title": "getrandom(2) manual page",
+          "publisher": "Linux man-pages project",
+          "url": "https://man7.org/linux/man-pages/man2/getrandom.2.html",
+          "license": "Linux-man-pages-copyleft"
+        },
+        {
+          "title": "Python secrets module documentation",
+          "publisher": "Python Software Foundation",
+          "url": "https://docs.python.org/3/library/secrets.html",
+          "license": "PSF-2.0"
+        }
+      ],
+      "tags": [
+        "entropy",
+        "csprng",
+        "tokens"
+      ]
+    },
+    {
+      "id": "crypto-constant-time-015",
+      "subtopic": "implementation",
+      "difficulty": "advanced",
+      "title": "Secret comparisons must run in constant time",
+      "fact": "Comparing a secret with == or memcmp stops at the first differing byte, so an attacker who can measure the operation can recover a token or MAC byte by byte. Constant-time comparison always examines the full length, and libraries expose it: hmac.compare_digest in Python, crypto/subtle.ConstantTimeCompare in Go, CRYPTO_memcmp in OpenSSL, and MessageDigest.isEqual in Java. If lengths differ, compare fixed-length digests of both values so the length itself does not leak.",
+      "details": [
+        "Timing leaks also come from early-return error paths, secret-indexed table lookups, and compression before comparison.",
+        "Network jitter makes remote exploitation harder but does not remove the leak; a local attacker or a co-tenant can measure far more precisely.",
+        "Do not write constant-time primitives yourself; use the library function that matches the platform."
+      ],
+      "code": [
+        {
+          "language": "python",
+          "vulnerable": "def check(provided: str, expected: str) -> bool:\n    return provided == expected  # exits at the first differing character\n",
+          "secure": "import hmac\n\ndef check(provided: str, expected: str) -> bool:\n    return hmac.compare_digest(provided.encode(), expected.encode())\n",
+          "issue": "String equality short-circuits and leaks the length of the matching prefix; compare_digest runs in time independent of the contents."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Which Python function compares two byte strings in constant time?",
+          "options": [
+            "hmac.compare_digest",
+            "==",
+            "bytes.startswith",
+            "str.find"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "hmac.compare_digest compares without early exit and is intended for MACs and tokens; the other options short-circuit on the first difference."
+        }
+      ],
+      "references": [
+        {
+          "title": "OpenSSL CRYPTO_memcmp manual page",
+          "publisher": "OpenSSL Project",
+          "url": "https://docs.openssl.org/3.5/man3/CRYPTO_memcmp/",
+          "license": "Apache-2.0"
+        },
+        {
+          "title": "Python hmac module documentation",
+          "publisher": "Python Software Foundation",
+          "url": "https://docs.python.org/3/library/hmac.html",
+          "license": "PSF-2.0"
+        }
+      ],
+      "tags": [
+        "timing-attack",
+        "constant-time",
+        "token-comparison"
+      ]
+    },
+    {
+      "id": "crypto-tls13-suites-016",
+      "subtopic": "tls",
+      "difficulty": "advanced",
+      "title": "TLS 1.3 cipher suites are AEAD-only and decoupled from key exchange",
+      "fact": "TLS 1.3 (RFC 8446) defines five cipher suites, all AEAD: TLS_AES_128_GCM_SHA256, TLS_AES_256_GCM_SHA384, TLS_CHACHA20_POLY1305_SHA256, TLS_AES_128_CCM_SHA256, and TLS_AES_128_CCM_8_SHA256. Key exchange is negotiated separately through supported groups such as X25519, secp256r1, and ffdhe2048, so a cipher suite no longer bundles authentication, key exchange, and encryption as it did in TLS 1.2. TLS 1.3 removed static RSA key exchange, CBC modes, compression, and renegotiation.",
+      "details": [
+        "NIST SP 800-52 Rev. 2 approves TLS 1.3 with these suites for federal systems.",
+        "In OpenSSL 3.x, -ciphersuites controls TLS 1.3 suites while -cipher still controls TLS 1.2 and below.",
+        "nginx needs ssl_conf_command Ciphersuites ... because ssl_ciphers only affects TLS 1.2 and earlier."
+      ],
+      "commands": [
+        {
+          "language": "bash",
+          "code": "openssl ciphers -v -s -tls1_3",
+          "purpose": "List the TLS 1.3 cipher suites enabled by the local OpenSSL 3.x build."
+        },
+        {
+          "language": "bash",
+          "code": "openssl s_client -connect app.example.internal:443 -servername app.example.internal -tls1_3 </dev/null",
+          "purpose": "Negotiate TLS 1.3 against a synthetic host and print the chosen suite and group."
+        }
+      ],
+      "configs": [
+        {
+          "language": "nginx",
+          "snippet": "ssl_protocols TLSv1.2 TLSv1.3;\nssl_conf_command Ciphersuites TLS_AES_128_GCM_SHA256:TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256;\nssl_prefer_server_ciphers off;",
+          "purpose": "Restrict TLS 1.3 suites in nginx 1.19.4 or later, where ssl_ciphers does not apply to TLS 1.3."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "How does TLS 1.3 negotiate the key exchange algorithm?",
+          "options": [
+            "Separately from the cipher suite, through supported groups",
+            "Inside each cipher suite name",
+            "Through the certificate's keyUsage",
+            "Through the SNI value"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "TLS 1.3 decouples key exchange (supported_groups such as X25519 or secp256r1) from record protection (the AEAD cipher suite), unlike TLS 1.2 suite names."
+        }
+      ],
+      "references": [
+        {
+          "title": "RFC 8446: The Transport Layer Security (TLS) Protocol Version 1.3",
+          "publisher": "IETF",
+          "url": "https://www.rfc-editor.org/rfc/rfc8446.html",
+          "license": "IETF Trust RFC copyright"
+        },
+        {
+          "title": "SP 800-52 Rev. 2: Guidelines for TLS Implementations",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/52/r2/final",
+          "license": "Public domain (US Government work)"
+        }
+      ],
+      "tags": [
+        "tls13",
+        "cipher-suites",
+        "nginx"
+      ]
+    },
+    {
+      "id": "crypto-forward-secrecy-017",
+      "subtopic": "tls",
+      "difficulty": "foundational",
+      "title": "Forward secrecy comes from ephemeral key exchange, not from TLS itself",
+      "fact": "Forward secrecy means that compromise of a server's long-term private key does not decrypt previously recorded sessions, because each session key came from an ephemeral Diffie-Hellman exchange that was discarded. TLS 1.3 requires (EC)DHE for all non-PSK handshakes; in TLS 1.2 the property depends on choosing ECDHE or DHE suites rather than static RSA key transport. Session resumption and PSK-only modes have different, weaker properties and should be evaluated separately.",
+      "details": [
+        "Check the negotiated group in openssl s_client output under 'Server Temp Key'; static RSA gives no ephemeral key at all.",
+        "TLS 1.3 removed static RSA and static DH key exchange, so a compliant TLS 1.3 session has forward secrecy unless it is PSK-only.",
+        "An adversary who records traffic today can decrypt it later if the server's static key is compromised and no ephemeral exchange was used."
+      ],
+      "commands": [
+        {
+          "language": "bash",
+          "code": "openssl s_client -connect app.example.internal:443 -servername app.example.internal </dev/null 2>/dev/null | grep -E \"Protocol|Cipher|Server Temp Key|Server public key\"",
+          "purpose": "Show the negotiated protocol, cipher, and ephemeral group for a synthetic TLS endpoint."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Which TLS 1.2 configuration provides forward secrecy?",
+          "options": [
+            "ECDHE-RSA-AES128-GCM-SHA256",
+            "AES128-GCM-SHA256 with static RSA key transport",
+            "RC4-SHA",
+            "3DES-EDE-CBC-SHA"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "The ECDHE prefix indicates an ephemeral elliptic-curve Diffie-Hellman exchange, so the session key is not derivable from the server's long-term private key."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "Any TLS connection provides forward secrecy.",
+          "correction": "Forward secrecy depends on the key-exchange method. Static RSA or static DH in TLS 1.2 does not provide it; TLS 1.3 mandates ephemeral (EC)DHE for non-PSK handshakes."
+        }
+      ],
+      "references": [
+        {
+          "title": "RFC 8446: The Transport Layer Security (TLS) Protocol Version 1.3",
+          "publisher": "IETF",
+          "url": "https://www.rfc-editor.org/rfc/rfc8446.html",
+          "license": "IETF Trust RFC copyright"
+        },
+        {
+          "title": "SP 800-52 Rev. 2: Guidelines for TLS Implementations",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/52/r2/final",
+          "license": "Public domain (US Government work)"
+        }
+      ],
+      "tags": [
+        "forward-secrecy",
+        "ecdhe",
+        "tls"
+      ]
+    },
+    {
+      "id": "crypto-pq-migration-018",
+      "subtopic": "post-quantum",
+      "difficulty": "advanced",
+      "title": "Post-quantum migration is hybrid-first and starts with key exchange",
+      "fact": "A cryptographically relevant quantum computer would break RSA, ECDSA, and finite-field or elliptic-curve Diffie-Hellman through Shor's algorithm, while Grover's algorithm roughly halves the effective security of symmetric primitives, so AES-256 and SHA-384 remain comfortable. NIST finalized FIPS 203 (ML-KEM), FIPS 204 (ML-DSA), and FIPS 205 (SLH-DSA) in August 2024. Migration is hybrid first, for example X25519MLKEM768 in TLS, so traffic stays protected if either component fails.",
+      "details": [
+        "Harvest-now-decrypt-later makes confidentiality migration urgent for long-lived secrets; signature migration is slower because of firmware and protocol support.",
+        "NIST IR 8547 (initial public draft) proposes deprecating RSA and ECC by 2030 and disallowing them after 2035.",
+        "CNSA 2.0 asks for preference by 2030 and exclusive use by 2033 in national security systems.",
+        "OpenSSL 3.5 added ML-KEM, ML-DSA, and SLH-DSA, which makes local experimentation possible."
+      ],
+      "commands": [
+        {
+          "language": "bash",
+          "code": "openssl list -kem-algorithms",
+          "purpose": "List key-encapsulation algorithms, including ML-KEM, in OpenSSL 3.5 or later."
+        },
+        {
+          "language": "bash",
+          "code": "openssl list -signature-algorithms | grep -i -E \"ml-dsa|slh-dsa\"",
+          "purpose": "Check whether the local OpenSSL build exposes post-quantum signature algorithms."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Which NIST standard defines ML-KEM, the post-quantum key-encapsulation mechanism?",
+          "options": [
+            "FIPS 203",
+            "FIPS 204",
+            "FIPS 205",
+            "FIPS 186-5"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "FIPS 203 is ML-KEM, FIPS 204 is ML-DSA for signatures, FIPS 205 is SLH-DSA for hash-based signatures, and FIPS 186-5 is the classical digital signature standard."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "Post-quantum migration means replacing AES with ML-KEM everywhere.",
+          "correction": "ML-KEM replaces the key-establishment step; symmetric encryption stays and is strengthened to AES-256 because Grover halves its effective security. Signatures move to ML-DSA or SLH-DSA separately, and hybrids are used during transition."
+        }
+      ],
+      "references": [
+        {
+          "title": "FIPS 203: Module-Lattice-Based Key-Encapsulation Mechanism Standard",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/fips/203/final",
+          "license": "Public domain (US Government work)"
+        },
+        {
+          "title": "NIST IR 8547 (Initial Public Draft): Transition to Post-Quantum Cryptography Standards",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/ir/8547/ipd",
+          "license": "Public domain (US Government work)"
+        }
+      ],
+      "tags": [
+        "post-quantum",
+        "ml-kem",
+        "migration"
+      ]
+    },
+    {
+      "id": "crypto-ecb-019",
+      "subtopic": "modes-of-operation",
+      "difficulty": "foundational",
+      "title": "ECB mode leaks plaintext structure and has no integrity",
+      "fact": "Electronic Codebook mode encrypts each block independently with the same key and no IV, so identical plaintext blocks always produce identical ciphertext blocks. That leaks structure, repetition, and equality of fields across records, and ECB is also unauthenticated. It is unsuitable for any data longer than one block. Use an AEAD mode instead; the classic demonstration is an image whose outline remains visible after ECB encryption.",
+      "details": [
+        "ECB also enables cut-and-paste splicing: blocks from one ciphertext can be rearranged or combined with blocks from another.",
+        "openssl enc -aes-128-ecb exists mainly for test vectors and interoperability checks, not for protecting data.",
+        "A large key does not fix ECB, because the weakness is the deterministic block mapping, not key size."
+      ],
+      "commands": [
+        {
+          "language": "bash",
+          "code": "openssl enc -aes-128-ecb -K 000102030405060708090a0b0c0d0e0f -in sample.bin -out sample.ecb",
+          "purpose": "Reproduce ECB's deterministic block mapping on synthetic data with a throwaway test key."
+        }
+      ],
+      "code": [
+        {
+          "language": "python",
+          "vulnerable": "from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes\n\ndef encrypt(key: bytes, data: bytes) -> bytes:\n    enc = Cipher(algorithms.AES(key), modes.ECB()).encryptor()\n    return enc.update(data) + enc.finalize()\n",
+          "secure": "import os\nfrom cryptography.hazmat.primitives.ciphers.aead import AESGCM\n\ndef encrypt(key: bytes, data: bytes) -> bytes:\n    nonce = os.urandom(12)\n    return nonce + AESGCM(key).encrypt(nonce, data, b\"record-v1\")\n",
+          "issue": "ECB repeats ciphertext for repeated plaintext blocks and provides no integrity; AES-GCM with a unique nonce and AAD hides patterns and detects tampering."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Why does ECB mode reveal patterns in the plaintext?",
+          "options": [
+            "Each identical plaintext block maps to the same ciphertext block under a fixed key",
+            "It uses a predictable IV",
+            "It appends the plaintext to the ciphertext",
+            "It uses a 64-bit block size"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "ECB has no chaining or IV, so the block cipher acts as a fixed codebook: equal inputs always produce equal outputs, preserving structure."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "ECB is safe as long as the key is 256 bits.",
+          "correction": "Key size does not address ECB's deterministic per-block mapping or its lack of authentication. Identical blocks still leak equality and permit splicing regardless of key length."
+        }
+      ],
+      "references": [
+        {
+          "title": "SP 800-38A: Block Cipher Modes of Operation",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/38/a/final",
+          "license": "Public domain (US Government work)"
+        }
+      ],
+      "tags": [
+        "ecb",
+        "modes-of-operation",
+        "data-leakage"
+      ]
+    },
+    {
+      "id": "crypto-hardcoded-keys-020",
+      "subtopic": "key-management",
+      "difficulty": "foundational",
+      "title": "A key embedded in an artifact is not a secret",
+      "fact": "A key or password embedded in source code, a container image, a mobile binary, or a firmware blob is not secret: anyone who can obtain the artifact can extract it, and it often survives in Git history after removal. Rotation then requires rebuilding and redeploying every copy. Use a secrets manager or KMS, workload identity federation, or envelope encryption, and keep keys out of build logs and environment dumps.",
+      "details": [
+        "Environment variables are better than source but still appear in crash dumps, /proc, and CI logs; a managed secret store is stronger.",
+        "Client-side applications cannot hold secrets at all, so they need short-lived tokens or a server-side component.",
+        "Deleting a file does not remove it from Git history; rotate the exposed key first, then purge history if required."
+      ],
+      "commands": [
+        {
+          "language": "bash",
+          "code": "git log -p -S 'BEGIN PRIVATE KEY' -- .",
+          "purpose": "Search commit history for accidentally committed private-key material in a synthetic repository."
+        },
+        {
+          "language": "bash",
+          "code": "gitleaks detect --source . --no-git",
+          "purpose": "Scan a working tree for high-entropy strings and known credential patterns."
+        }
+      ],
+      "code": [
+        {
+          "language": "python",
+          "vulnerable": "API_KEY = \"sk_live_synthetic_example_not_a_real_key\"\n\ndef call_api():\n    return client.get(\"/v1/items\", headers={\"Authorization\": f\"Bearer {API_KEY}\"})\n",
+          "secure": "import os\nfrom cloud_kms import decrypt\n\ndef call_api():\n    token = decrypt(os.environ[\"WRAPPED_TOKEN_B64\"])\n    return client.get(\"/v1/items\", headers={\"Authorization\": f\"Bearer {token}\"})\n",
+          "issue": "A literal key ships with the code and cannot be rotated without a release; the secure version unwraps a short-lived token from a KMS at runtime."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Why is deleting a hardcoded key from the latest commit insufficient?",
+          "options": [
+            "The key remains in earlier Git objects and in deployed artifacts",
+            "Git encrypts old commits",
+            "The key is cached by the compiler",
+            "Deletion changes the file hash"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "Git keeps history, and built images or binaries may still embed the key. The credential must be rotated, not just removed from the current tree."
+        }
+      ],
+      "references": [
+        {
+          "title": "OWASP Secrets Management Cheat Sheet",
+          "publisher": "OWASP Foundation",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/Secrets_Management_Cheat_Sheet.html",
+          "license": "CC BY-SA 4.0"
+        },
+        {
+          "title": "SP 800-57 Part 1 Rev. 5: Recommendation for Key Management",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/57/pt1/r5/final",
+          "license": "Public domain (US Government work)"
+        }
+      ],
+      "tags": [
+        "hardcoded-secrets",
+        "key-management",
+        "kms"
+      ]
+    },
+    {
+      "id": "crypto-rsa-padding-021",
+      "subtopic": "digital-signatures",
+      "difficulty": "expert",
+      "title": "RSA without proper padding is malleable and oracle-prone",
+      "fact": "Textbook RSA is deterministic and multiplicatively malleable, so real schemes add randomized padding. RSAES-PKCS1-v1_5 encryption is vulnerable to Bleichenbacher-style padding oracles, which the ROBOT attack revived against TLS stacks in 2017. RSAES-OAEP with SHA-256 is the acceptable encryption padding, and new designs should prefer ECDH or HPKE over RSA encryption entirely. For signatures, RSASSA-PSS is preferred over PKCS#1 v1.5, and padding checks must be constant-time.",
+      "details": [
+        "The oracle can be a timing difference, a distinct TLS alert, or a different HTTP response; any observable distinction is enough.",
+        "TLS 1.3 removed RSA key transport, which eliminates this attack class in that protocol version.",
+        "Do not implement PKCS#1 unpadding yourself; use a maintained library and its high-level API."
+      ],
+      "mcqs": [
+        {
+          "question": "Which RSA encryption padding is designed to resist Bleichenbacher-style attacks?",
+          "options": [
+            "RSAES-OAEP with SHA-256",
+            "RSAES-PKCS1-v1_5",
+            "Raw textbook RSA",
+            "RSA with no padding but a 4096-bit key"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "OAEP uses a randomized, structured encoding with a hash-based Feistel network. PKCS#1 v1.5 encryption has a long history of padding-oracle breaks, and raw RSA is deterministic and malleable."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "RSA is obsolete, so the choice of padding no longer matters.",
+          "correction": "RSA is still widely deployed for signatures and some encryption. Padding choice determines whether the scheme is secure: OAEP and PSS are the acceptable options, while PKCS#1 v1.5 encryption remains oracle-prone."
+        }
+      ],
+      "references": [
+        {
+          "title": "RFC 8017: PKCS #1: RSA Cryptography Specifications Version 2.2",
+          "publisher": "IETF",
+          "url": "https://www.rfc-editor.org/rfc/rfc8017.html",
+          "license": "IETF Trust RFC copyright"
+        },
+        {
+          "title": "SP 800-56B Rev. 2: Recommendation for Pair-Wise Key Establishment Using Integer Factorization Cryptography",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/56/b/r2/final",
+          "license": "Public domain (US Government work)"
+        }
+      ],
+      "tags": [
+        "rsa",
+        "oaep",
+        "padding-oracle"
+      ]
+    },
+    {
+      "id": "crypto-hash-selection-022",
+      "subtopic": "hashing",
+      "difficulty": "foundational",
+      "title": "Use SHA-2 or SHA-3; SHA-1 and MD5 are broken for security",
+      "fact": "A cryptographic hash maps arbitrary input to a fixed-length digest and is used for integrity, signatures, MACs, and password hashing, but hashing is not encryption and cannot be reversed. Use SHA-256, SHA-384, or SHA-512 from the SHA-2 family, or SHA-3 (FIPS 202). SHA-1 has practical collisions (SHAttered, 2017) and is disallowed for digital signatures, and MD5 is thoroughly broken. For password storage, use a password-hashing function rather than a general hash.",
+      "details": [
+        "SHA-256 provides 128-bit collision resistance because of the birthday bound, even though its output is 256 bits.",
+        "SHA-512/256 is a distinct truncated variant with its own initial values; it is not the same as taking the first 32 bytes of SHA-512.",
+        "A bare hash cannot provide authenticity; that requires a keyed MAC or a signature."
+      ],
+      "commands": [
+        {
+          "language": "bash",
+          "code": "openssl dgst -sha256 artifact.bin",
+          "purpose": "Compute a SHA-256 digest of a synthetic artifact for an integrity manifest."
+        },
+        {
+          "language": "bash",
+          "code": "openssl dgst -sha1 artifact.bin",
+          "purpose": "Show the legacy digest command so it can be recognised and removed from pipelines."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Which hash algorithm is no longer acceptable for digital signatures because of practical collisions?",
+          "options": [
+            "SHA-1",
+            "SHA-256",
+            "SHA-384",
+            "SHA3-256"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "The SHAttered attack produced two different files with the same SHA-1 digest, and NIST disallows SHA-1 for digital signatures."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "A SHA-256 hash is encryption and can be decrypted with the right key.",
+          "correction": "Hashing is a one-way compression with no key and no inverse; it cannot be decrypted. If you need reversible protection, use encryption, and if you need to verify a password, use a password hash."
+        }
+      ],
+      "references": [
+        {
+          "title": "FIPS 180-4: Secure Hash Standard (SHS)",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/fips/180-4/final",
+          "license": "Public domain (US Government work)"
+        },
+        {
+          "title": "SP 800-131A Rev. 2: Transitioning the Use of Cryptographic Algorithms and Key Lengths",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/131/a/r2/final",
+          "license": "Public domain (US Government work)"
+        }
+      ],
+      "tags": [
+        "hashing",
+        "sha2",
+        "sha1"
+      ]
+    },
+    {
+      "id": "cert-x509-fields-023",
+      "subtopic": "x509",
+      "difficulty": "intermediate",
+      "title": "X.509 v3 semantics live in the extensions, not the subject name",
+      "fact": "An X.509 v3 certificate (RFC 5280) binds a subject to a public key through fields: version, serialNumber, signature algorithm, issuer, validity, subject, and subjectPublicKeyInfo. The extensions carry the semantics that matter: basicConstraints with CA:TRUE and optional pathLenConstraint, keyUsage, extendedKeyUsage, subjectAltName, nameConstraints, CRLDistributionPoints, and authorityInfoAccess. The critical flag tells a validator to reject the certificate if it does not understand the extension.",
+      "details": [
+        "Serial numbers must be unique per issuer and positive; validity uses UTCTime through 2049 and GeneralizedTime from 2050.",
+        "extendedKeyUsage serverAuth and clientAuth gate TLS roles; a certificate without the right EKU is rejected even if the chain is valid.",
+        "A certificate is not a CA because its subject says so; basicConstraints CA:TRUE and keyUsage keyCertSign are required."
+      ],
+      "commands": [
+        {
+          "language": "bash",
+          "code": "openssl x509 -in leaf.pem -noout -text",
+          "purpose": "Decode all fields and extensions of a synthetic certificate."
+        },
+        {
+          "language": "bash",
+          "code": "openssl x509 -in leaf.pem -noout -serial -subject -issuer -dates",
+          "purpose": "Print the identity and validity window in a compact form for inventory."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Which extension determines whether a certificate may act as a CA?",
+          "options": [
+            "basicConstraints with CA:TRUE",
+            "subjectAltName",
+            "authorityInfoAccess",
+            "extendedKeyUsage serverAuth"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "basicConstraints marks the certificate as a CA and can limit the path length below it; name fields alone confer no CA authority."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "A certificate whose subject contains 'CA' is a certificate authority.",
+          "correction": "CA status comes from basicConstraints CA:TRUE plus the keyCertSign key usage. A misleading subject string grants nothing and is ignored by path validation."
+        }
+      ],
+      "references": [
+        {
+          "title": "RFC 5280: Internet X.509 Public Key Infrastructure Certificate and CRL Profile",
+          "publisher": "IETF",
+          "url": "https://www.rfc-editor.org/rfc/rfc5280.html",
+          "license": "IETF Trust RFC copyright"
+        }
+      ],
+      "tags": [
+        "x509",
+        "extensions",
+        "basic-constraints"
+      ]
+    },
+    {
+      "id": "cert-chain-024",
+      "subtopic": "chain-validation",
+      "difficulty": "intermediate",
+      "title": "Path validation walks from leaf through intermediates to a local trust anchor",
+      "fact": "Validation builds a path from the leaf through one or more intermediates to a self-signed root that is already trusted locally. For each link the validator checks the signature, validity window, basicConstraints and path length, keyUsage, name chaining, and applicable policies; revocation checking is layered on top. A server should send the leaf and the intermediates it needs, but not the root, because the client already has the trust anchor.",
+      "details": [
+        "An out-of-order chain breaks some clients even when every certificate is present; leaf-first is the safest order.",
+        "A cross-signed root can create multiple valid paths, and name constraints on a private intermediate restrict which names it may issue.",
+        "openssl verify needs -untrusted for intermediates and -CAfile or -CApath for the trust anchor."
+      ],
+      "commands": [
+        {
+          "language": "bash",
+          "code": "openssl verify -CAfile root.pem -untrusted intermediate.pem leaf.pem",
+          "purpose": "Validate a synthetic leaf against a private root with the intermediate supplied explicitly."
+        },
+        {
+          "language": "bash",
+          "code": "openssl s_client -connect app.example.internal:443 -servername app.example.internal -showcerts </dev/null",
+          "purpose": "Print the chain a server actually presents, including any missing intermediate."
+        }
+      ],
+      "logs": [
+        {
+          "context": "OpenSSL 3.x chain verification",
+          "text": "$ openssl verify -CAfile root.pem leaf.pem\nleaf.pem: CN = app.example.internal\nerror 20 at 0 depth lookup: unable to get local issuer certificate\nerror leaf.pem: verification failed\n\n$ openssl verify -CAfile root.pem -untrusted intermediate.pem leaf.pem\nleaf.pem: OK",
+          "reading": "The leaf was issued by an intermediate that was not supplied, so the path stopped one link short of the trusted root. Adding the intermediate with -untrusted fixes it; the root alone is not enough."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Which certificate should a TLS server normally omit from the chain it sends?",
+          "options": [
+            "The trusted root",
+            "The leaf",
+            "The intermediate that signed the leaf",
+            "Cross-signed intermediates"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "The client already holds the trust anchor in its store. Sending the root adds bytes and can confuse path building when the client has a different version of that root."
+        }
+      ],
+      "references": [
+        {
+          "title": "RFC 5280: Internet X.509 Public Key Infrastructure Certificate and CRL Profile",
+          "publisher": "IETF",
+          "url": "https://www.rfc-editor.org/rfc/rfc5280.html",
+          "license": "IETF Trust RFC copyright"
+        },
+        {
+          "title": "OpenSSL verification options manual page",
+          "publisher": "OpenSSL Project",
+          "url": "https://docs.openssl.org/3.5/man1/openssl-verification-options/",
+          "license": "Apache-2.0"
+        }
+      ],
+      "tags": [
+        "chain",
+        "path-validation",
+        "intermediate"
+      ]
+    },
+    {
+      "id": "cert-san-cn-025",
+      "subtopic": "hostname-validation",
+      "difficulty": "foundational",
+      "title": "Hostname identity comes from subjectAltName, not commonName",
+      "fact": "The identity of a TLS server is carried in the subjectAltName extension: dNSName entries for hostnames and iPAddress entries for IP addresses. The commonName is legacy; modern clients ignore it when a SAN is present, and public CAs must not rely on it. A certificate can carry several SANs, and a mismatch on every presented name is a hostname verification failure even when the chain is valid.",
+      "details": [
+        "RFC 9525 defines service identity for TLS and obsoletes RFC 6125; wildcard and IDNA rules apply to SAN entries.",
+        "A certificate used for both an internal short name and an external FQDN needs both names in SAN.",
+        "IP-address clients compare against iPAddress SAN entries; a dNSName containing digits does not match an address."
+      ],
+      "commands": [
+        {
+          "language": "bash",
+          "code": "openssl x509 -in leaf.pem -noout -ext subjectAltName",
+          "purpose": "Show the SAN entries that clients actually use for identity matching."
+        },
+        {
+          "language": "bash",
+          "code": "openssl s_client -connect app.example.internal:443 -verify_hostname app.example.internal </dev/null",
+          "purpose": "Verify the presented certificate against an expected hostname."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Where does a modern TLS client look for the server's hostname?",
+          "options": [
+            "The subjectAltName dNSName entries",
+            "The subject commonName",
+            "The issuer commonName",
+            "The serial number"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "SAN dNSName entries are authoritative for hostname matching; CN is legacy and ignored when a SAN is present."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "Browsers check the certificate's commonName to decide whether a site is trusted.",
+          "correction": "Modern clients match against subjectAltName dNSName entries. Public CAs are not permitted to rely on CN for identity, and a certificate with only a CN fails on current browsers."
+        }
+      ],
+      "references": [
+        {
+          "title": "RFC 9525: Service Identity in TLS",
+          "publisher": "IETF",
+          "url": "https://www.rfc-editor.org/rfc/rfc9525.html",
+          "license": "IETF Trust RFC copyright"
+        },
+        {
+          "title": "RFC 5280: Internet X.509 Public Key Infrastructure Certificate and CRL Profile",
+          "publisher": "IETF",
+          "url": "https://www.rfc-editor.org/rfc/rfc5280.html",
+          "license": "IETF Trust RFC copyright"
+        }
+      ],
+      "tags": [
+        "san",
+        "common-name",
+        "hostname-verification"
+      ]
+    },
+    {
+      "id": "cert-wildcard-026",
+      "subtopic": "hostname-validation",
+      "difficulty": "intermediate",
+      "title": "A wildcard matches exactly one label and never the bare domain",
+      "fact": "A wildcard such as *.example.com matches exactly one label to the left of the suffix, so it covers app.example.com but not example.com and not eu.app.example.com. For publicly trusted certificates the wildcard must be the entire leftmost label, partial wildcards such as app*.example.com are not allowed, and a wildcard may not cover a public suffix or a registry-controlled label. Wildcards reduce certificate count but widen the blast radius of a single key compromise.",
+      "details": [
+        "The wildcard does not match an empty label, which is why *.example.com does not cover example.com.",
+        "Internationalised domain names have additional wildcard restrictions; punycode and label boundaries must be handled by the library.",
+        "Put services with different risk profiles on separate certificates so one compromised key does not cover all of them."
+      ],
+      "commands": [
+        {
+          "language": "bash",
+          "code": "openssl x509 -in wildcard.pem -noout -ext subjectAltName",
+          "purpose": "Inspect which wildcard names a synthetic certificate actually asserts."
+        },
+        {
+          "language": "bash",
+          "code": "openssl s_client -connect eu.app.example.internal:443 -verify_hostname eu.app.example.internal </dev/null",
+          "purpose": "Show that a one-label wildcard does not match a two-label subdomain."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Does the SAN entry *.example.com match eu.app.example.com?",
+          "options": [
+            "No, a wildcard matches exactly one label",
+            "Yes, wildcards match any depth",
+            "Yes, but only for HTTPS",
+            "Only if the certificate also lists example.com"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "The wildcard replaces exactly one leftmost label, so *.example.com matches app.example.com but not eu.app.example.com or the bare example.com."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "*.example.com covers the bare domain and every subdomain depth.",
+          "correction": "It covers exactly one label and not the apex. A certificate for both example.com and app.example.com must list example.com separately, and two-level subdomains need their own name."
+        }
+      ],
+      "references": [
+        {
+          "title": "RFC 9525: Service Identity in TLS",
+          "publisher": "IETF",
+          "url": "https://www.rfc-editor.org/rfc/rfc9525.html",
+          "license": "IETF Trust RFC copyright"
+        },
+        {
+          "title": "CA/Browser Forum Baseline Requirements for TLS Server Certificates",
+          "publisher": "CA/Browser Forum",
+          "url": "https://cabforum.org/working-groups/server/baseline-requirements/documents/",
+          "license": "CC BY 4.0"
+        }
+      ],
+      "tags": [
+        "wildcard",
+        "san",
+        "certificate-scope"
+      ]
+    },
+    {
+      "id": "cert-revocation-027",
+      "subtopic": "revocation",
+      "difficulty": "advanced",
+      "title": "CRL, OCSP, and stapling trade freshness, privacy, and availability",
+      "fact": "Revocation status can be distributed as a CRL (RFC 5280) or queried per certificate with OCSP (RFC 6960). OCSP stapling lets the server fetch and attach a signed response, which improves latency and privacy, and the must-staple extension (RFC 7633) makes clients require it. Browsers have largely stopped enforcing online OCSP checks, so revocation is a weaker control than short certificate lifetimes, and a stapled response must be refreshed before it expires.",
+      "details": [
+        "CRLs grow with issuer size; delta CRLs and partitioned CRLs keep them manageable.",
+        "Unstapled OCSP reveals which certificate a client is validating to the responder, a privacy leak.",
+        "Must-staple converts a stapling outage into a hard failure, so monitoring must cover the responder path.",
+        "CRLite and similar compressed designs push revocation data to the client instead of querying per connection."
+      ],
+      "commands": [
+        {
+          "language": "bash",
+          "code": "openssl ocsp -issuer intermediate.pem -cert leaf.pem -url http://ocsp.example.internal -resp_text -no_nonce",
+          "purpose": "Query a synthetic OCSP responder and print the signed status response."
+        }
+      ],
+      "logs": [
+        {
+          "context": "OpenSSL OCSP client against a synthetic responder",
+          "text": "$ openssl ocsp -issuer intermediate.pem -cert leaf.pem -url http://ocsp.example.internal\nleaf.pem: good\n\tThis Update: Nov 20 09:14:00 2026 GMT\n\tNext Update: Nov 27 09:14:00 2026 GMT",
+          "reading": "The certificate is reported good, but the response is only valid until Next Update. Once that passes, many clients proceed without a fresh status rather than failing closed, so stale stapling does not reliably stop a revoked certificate."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "What does OCSP stapling improve compared with a client querying the responder directly?",
+          "options": [
+            "Latency and client privacy",
+            "The certificate's key strength",
+            "The CA's signing algorithm",
+            "The length of the certificate chain"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "The server fetches the signed response once and attaches it, so the client avoids a per-connection lookup and does not disclose its browsing to the responder."
+        }
+      ],
+      "references": [
+        {
+          "title": "RFC 6960: Online Certificate Status Protocol",
+          "publisher": "IETF",
+          "url": "https://www.rfc-editor.org/rfc/rfc6960.html",
+          "license": "IETF Trust RFC copyright"
+        },
+        {
+          "title": "RFC 6961: TLS Multiple Certificate Status Request Extension",
+          "publisher": "IETF",
+          "url": "https://www.rfc-editor.org/rfc/rfc6961.html",
+          "license": "IETF Trust RFC copyright"
+        },
+        {
+          "title": "RFC 7633: X.509v3 Transport Layer Security (TLS) Feature Extension",
+          "publisher": "IETF",
+          "url": "https://www.rfc-editor.org/rfc/rfc7633.html",
+          "license": "IETF Trust RFC copyright"
+        }
+      ],
+      "tags": [
+        "revocation",
+        "ocsp",
+        "stapling"
+      ]
+    },
+    {
+      "id": "cert-ct-028",
+      "subtopic": "transparency",
+      "difficulty": "advanced",
+      "title": "Certificate Transparency makes misissuance detectable after the fact",
+      "fact": "Certificate Transparency (RFC 6962, with RFC 9162 defining CT v2) requires CAs to submit certificates to public append-only logs and return signed certificate timestamps (SCTs); browsers require enough SCTs for publicly trusted certificates. CT makes misissuance detectable, and monitors plus CAA checks reduce the window. Private-CA certificates are normally not submitted to public logs, so CT gives no coverage for internal PKI.",
+      "details": [
+        "An SCT proves that a certificate was submitted to a log, not that the log operator is honest; gossip and independent monitors matter.",
+        "Embedded SCTs travel inside the certificate, while OCSP-stapled SCTs depend on the responder being reachable.",
+        "Logs can be sharded or retired, so validators rely on a current list of trusted logs."
+      ],
+      "commands": [
+        {
+          "language": "bash",
+          "code": "openssl s_client -connect app.example.internal:443 -servername app.example.internal -ct </dev/null",
+          "purpose": "Request signed certificate timestamps during the handshake for a synthetic host."
+        },
+        {
+          "language": "bash",
+          "code": "openssl x509 -in leaf.pem -noout -text | grep -A3 \"Signed Certificate Timestamp\"",
+          "purpose": "Show embedded SCTs in a certificate that carries them."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "What does a signed certificate timestamp prove?",
+          "options": [
+            "That the certificate was submitted to a particular log",
+            "That the certificate is free of vulnerabilities",
+            "That the private key is stored in an HSM",
+            "That the domain owner approved the certificate"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "An SCT is a log's promise to include the certificate by a future time. It enables detection of misissuance but does not assert correctness or key protection."
+        }
+      ],
+      "references": [
+        {
+          "title": "RFC 9162: Certificate Transparency Version 2.0",
+          "publisher": "IETF",
+          "url": "https://www.rfc-editor.org/rfc/rfc9162.html",
+          "license": "IETF Trust RFC copyright"
+        },
+        {
+          "title": "RFC 6962: Certificate Transparency",
+          "publisher": "IETF",
+          "url": "https://www.rfc-editor.org/rfc/rfc6962.html",
+          "license": "IETF Trust RFC copyright"
+        }
+      ],
+      "tags": [
+        "certificate-transparency",
+        "sct",
+        "misissuance"
+      ]
+    },
+    {
+      "id": "cert-pinning-029",
+      "subtopic": "pinning",
+      "difficulty": "advanced",
+      "title": "Pinning is a strong control with a sharp operational edge",
+      "fact": "Pinning restricts trust to a specific certificate, public key, or SPKI hash instead of any CA in the platform store. It blocks misissuance and enterprise interception, but it creates an operational hazard: a forgotten pin or an emergency key rotation can brick every client. HTTP Public Key Pinning was deprecated and removed from browsers. Mobile apps that pin should ship backup pins, set an expiry, and keep a remote-disable path; CAA records (RFC 8659) are a lighter control that tells CAs which issuers may issue.",
+      "details": [
+        "Pin the SPKI rather than the certificate so routine renewal does not break the pin.",
+        "Certificate pinning inside a browser fights the user's own trust store and breaks TLS inspection and private roots.",
+        "CAA is advisory to compliant CAs and does not stop a compromised or malicious CA."
+      ],
+      "configs": [
+        {
+          "language": "dns-zone",
+          "snippet": "app.example.internal. 300 IN CAA 0 issue \"letsencrypt.org\"\napp.example.internal. 300 IN CAA 0 iodef \"mailto:security@example.internal\"",
+          "purpose": "Restrict which CA may issue for a synthetic domain and provide a reporting address."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "What is the current status of HTTP Public Key Pinning (HPKP) in browsers?",
+          "options": [
+            "Deprecated and removed",
+            "Required for all public sites",
+            "Enabled by default since TLS 1.3",
+            "Replaced by OCSP stapling"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "HPKP caused accidental and malicious denial of service and was removed from browsers. Apps that need pinning implement it in their own network stack with backup pins."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "Pinning is always a strict improvement over normal PKI validation.",
+          "correction": "Pinning adds protection against misissuance but also adds outage risk, breaks interception proxies, and complicates key rotation. It needs backup pins, expiry, and a recovery plan, and it is often the wrong tool for browsers."
+        }
+      ],
+      "references": [
+        {
+          "title": "RFC 7469: Public Key Pinning Extension for HTTP",
+          "publisher": "IETF",
+          "url": "https://www.rfc-editor.org/rfc/rfc7469.html",
+          "license": "IETF Trust RFC copyright"
+        },
+        {
+          "title": "RFC 8659: DNS Certification Authority Authorization (CAA) Resource Record",
+          "publisher": "IETF",
+          "url": "https://www.rfc-editor.org/rfc/rfc8659.html",
+          "license": "IETF Trust RFC copyright"
+        }
+      ],
+      "tags": [
+        "pinning",
+        "caa",
+        "hpkp"
+      ]
+    },
+    {
+      "id": "cert-acme-030",
+      "subtopic": "automation",
+      "difficulty": "intermediate",
+      "title": "ACME automates issuance and renewal around a challenge",
+      "fact": "ACME (RFC 8555) automates issuance: the client creates an account key, orders a certificate, proves control through http-01, dns-01, or tls-alpn-01, finalizes a CSR, and downloads the chain. Renewal should run well before expiry, and the service must be reloaded after the new certificate is written. Failures are usually DNS, firewall, or challenge-path problems rather than cryptography.",
+      "details": [
+        "dns-01 is required for wildcard certificates; http-01 needs port 80 reachable from the CA.",
+        "certbot's default renewal threshold is 30 days remaining on a 90-day certificate, which is one third of the lifetime.",
+        "--dry-run uses the staging endpoint and does not consume production rate limits, so it is safe to schedule as a canary."
+      ],
+      "commands": [
+        {
+          "language": "bash",
+          "code": "certbot renew --dry-run",
+          "purpose": "Exercise the renewal path against the staging service without issuing a production certificate."
+        },
+        {
+          "language": "bash",
+          "code": "certbot certificates",
+          "purpose": "List managed certificates, their names, and remaining validity."
+        },
+        {
+          "language": "bash",
+          "code": "lego --email ops@example.internal --domains app.example.internal --http run",
+          "purpose": "Run an ACME http-01 flow for a synthetic domain with the lego client."
+        }
+      ],
+      "configs": [
+        {
+          "language": "ini",
+          "snippet": "[renewalparams]\nrenew_before_expiry = 30 days\ndeploy_hook = /usr/local/sbin/reload-tls.sh",
+          "purpose": "Show the two settings that matter most: renew early and reload the service after issuance."
+        }
+      ],
+      "references": [
+        {
+          "title": "RFC 8555: Automatic Certificate Management Environment (ACME)",
+          "publisher": "IETF",
+          "url": "https://www.rfc-editor.org/rfc/rfc8555.html",
+          "license": "IETF Trust RFC copyright"
+        },
+        {
+          "title": "Certbot User Guide",
+          "publisher": "Electronic Frontier Foundation",
+          "url": "https://eff-certbot.readthedocs.io/en/stable/using.html",
+          "license": "Apache-2.0"
+        }
+      ],
+      "tags": [
+        "acme",
+        "renewal",
+        "certbot"
+      ]
+    },
+    {
+      "id": "cert-key-storage-031",
+      "subtopic": "key-protection",
+      "difficulty": "intermediate",
+      "title": "Private-key storage is a confidentiality and rotation problem",
+      "fact": "A TLS private key is the credential that impersonates the service, so it needs file permissions of 0600, ownership by the service account, and encryption at rest or, better, storage in an HSM, TPM, or cloud KMS where the key is non-exportable. PKCS#8 carries private keys with optional encryption, PKCS#12 bundles a key with its chain for Windows and Java, and unencrypted PEM is common on Linux but must be protected by permissions and disk encryption.",
+      "details": [
+        "One key per host and service limits blast radius; a key baked into a container image or a world-readable ConfigMap is exposed to every tenant.",
+        "Rotate on suspected compromise and on staff departure, and keep the old public certificate until its clients stop using it.",
+        "openssl pkey -check validates key consistency, not secrecy; permissions and the storage backend determine secrecy."
+      ],
+      "commands": [
+        {
+          "language": "bash",
+          "code": "stat -c '%a %U:%G %n' /etc/ssl/private/app.key",
+          "purpose": "Confirm a synthetic key file is mode 600 and owned by the service account."
+        },
+        {
+          "language": "bash",
+          "code": "openssl pkcs8 -topk8 -v2 aes-256-cbc -in app.key -out app.key.enc",
+          "purpose": "Convert a synthetic key to encrypted PKCS#8 at rest."
+        },
+        {
+          "language": "bash",
+          "code": "openssl pkey -in app.key -check -noout",
+          "purpose": "Verify that a private key file is internally consistent."
+        }
+      ],
+      "configs": [
+        {
+          "language": "nginx",
+          "snippet": "ssl_certificate     /etc/ssl/certs/app.pem;\nssl_certificate_key /etc/ssl/private/app.key;",
+          "purpose": "Point nginx at a certificate and a key stored outside the web root with restricted permissions."
+        }
+      ],
+      "references": [
+        {
+          "title": "SP 800-57 Part 1 Rev. 5: Recommendation for Key Management",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/57/pt1/r5/final",
+          "license": "Public domain (US Government work)"
+        },
+        {
+          "title": "RFC 5958: Asymmetric Key Packages",
+          "publisher": "IETF",
+          "url": "https://www.rfc-editor.org/rfc/rfc5958.html",
+          "license": "IETF Trust RFC copyright"
+        }
+      ],
+      "tags": [
+        "private-key",
+        "hsm",
+        "pkcs8"
+      ]
+    },
+    {
+      "id": "cert-mtls-032",
+      "subtopic": "mutual-tls",
+      "difficulty": "advanced",
+      "title": "mTLS authenticates both ends but still needs authorization",
+      "fact": "Mutual TLS adds a client certificate to the handshake, so the server authenticates the client's key as well as its own identity. The server must validate the client chain to a trust anchor, require extendedKeyUsage clientAuth, map the certificate identity to an authorization principal, and reject expired or revoked certificates. In TLS 1.3 the client certificate is encrypted in the handshake, unlike TLS 1.2 where it was visible on the wire.",
+      "details": [
+        "Client certificates are long-lived credentials and need their own rotation plan and revocation story.",
+        "The SAN or a private extension carries the workload identity; the subject string alone is a poor authorization key.",
+        "mTLS authenticates a key, not a human, so it must be paired with an authorization policy and audit.",
+        "OAuth 2.0 mTLS (RFC 8705) binds an access token to a certificate, giving sender-constrained tokens without DPoP."
+      ],
+      "commands": [
+        {
+          "language": "bash",
+          "code": "openssl s_client -connect mesh.example.internal:8443 -cert client.pem -key client.key -CAfile ca.pem </dev/null",
+          "purpose": "Present a synthetic client certificate and verify the server chain."
+        }
+      ],
+      "configs": [
+        {
+          "language": "nginx",
+          "snippet": "ssl_client_certificate /etc/ssl/certs/internal-ca.pem;\nssl_verify_client on;\nssl_verify_depth 2;",
+          "purpose": "Require a client certificate chaining to a private CA, with a bounded chain depth."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Which extended key usage must a client certificate carry for mTLS?",
+          "options": [
+            "clientAuth",
+            "serverAuth",
+            "codeSigning",
+            "emailProtection"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "The server checks that the client certificate is valid for clientAuth. A serverAuth-only certificate is rejected even if its chain is valid."
+        }
+      ],
+      "references": [
+        {
+          "title": "RFC 8446: The Transport Layer Security (TLS) Protocol Version 1.3",
+          "publisher": "IETF",
+          "url": "https://www.rfc-editor.org/rfc/rfc8446.html",
+          "license": "IETF Trust RFC copyright"
+        },
+        {
+          "title": "RFC 8705: OAuth 2.0 Mutual-TLS Client Authentication and Certificate-Bound Access Tokens",
+          "publisher": "IETF",
+          "url": "https://www.rfc-editor.org/rfc/rfc8705.html",
+          "license": "IETF Trust RFC copyright"
+        }
+      ],
+      "tags": [
+        "mtls",
+        "client-certificate",
+        "workload-identity"
+      ]
+    },
+    {
+      "id": "cert-verify-errors-033",
+      "subtopic": "troubleshooting",
+      "difficulty": "foundational",
+      "title": "Each certificate verification error points at a different layer",
+      "fact": "The common verification errors point at different layers. 'unable to get local issuer certificate' means the presented chain does not reach a local trust anchor, usually a missing intermediate. 'unable to verify the first certificate' means the leaf's issuer is not supplied. 'certificate has expired' is a validity-window failure. 'hostname mismatch' is a SAN comparison failure, and 'self-signed certificate in certificate chain' means an untrusted private root. Read the error before replacing anything.",
+      "details": [
+        "A missing intermediate affects some clients but not others because they cache it or fetch it through authorityInfoAccess.",
+        "System clock skew causes false expiry errors and is common on freshly provisioned embedded devices.",
+        "A TLS-inspecting proxy or middlebox can substitute a private root, which looks like a server misconfiguration to the client.",
+        "Test with the same trust store the failing client uses; the host's curl and a container may not share one."
+      ],
+      "commands": [
+        {
+          "language": "bash",
+          "code": "openssl s_client -connect app.example.internal:443 -servername app.example.internal -showcerts </dev/null",
+          "purpose": "Print the exact chain and verification result a synthetic server presents."
+        },
+        {
+          "language": "bash",
+          "code": "openssl verify -CAfile /etc/ssl/certs/ca-certificates.crt -untrusted intermediate.pem leaf.pem",
+          "purpose": "Reproduce validation against the system trust store with the intermediate supplied."
+        }
+      ],
+      "logs": [
+        {
+          "context": "OpenSSL 3.x s_client verification output",
+          "text": "verify error:num=20:unable to get local issuer certificate\nverify return:1\nverify error:num=21:unable to verify the first certificate\nverify return:1",
+          "reading": "Errors 20 and 21 both indicate an incomplete chain rather than a bad key: the client has no anchor for the leaf's issuer. Supplying the intermediate resolves error 20; error 21 means even the first link is missing."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Which error most directly indicates that the server failed to send an intermediate certificate?",
+          "options": [
+            "unable to get local issuer certificate",
+            "hostname mismatch",
+            "certificate has expired",
+            "unsupported certificate purpose"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "The client can see the leaf but cannot build a path to a trusted anchor, which is the signature of a missing intermediate. A hostname mismatch or expiry reports a different error number."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "If curl succeeds from one host, every client will trust the certificate chain.",
+          "correction": "Trust stores and AIA fetching differ between hosts, containers, Java runtimes, and mobile devices. A chain can validate on one machine and fail on another; test with the client's own trust store."
+        }
+      ],
+      "references": [
+        {
+          "title": "OpenSSL verification options manual page",
+          "publisher": "OpenSSL Project",
+          "url": "https://docs.openssl.org/3.5/man1/openssl-verification-options/",
+          "license": "Apache-2.0"
+        },
+        {
+          "title": "RFC 5280: Internet X.509 Public Key Infrastructure Certificate and CRL Profile",
+          "publisher": "IETF",
+          "url": "https://www.rfc-editor.org/rfc/rfc5280.html",
+          "license": "IETF Trust RFC copyright"
+        }
+      ],
+      "tags": [
+        "verification",
+        "troubleshooting",
+        "chain"
+      ]
+    },
+    {
+      "id": "cert-private-ca-034",
+      "subtopic": "pki-design",
+      "difficulty": "foundational",
+      "title": "A private CA with an offline root scales better than self-signed leaves",
+      "fact": "A self-signed certificate is its own root and must be trusted individually by every client, which is acceptable for a lab but does not scale to a fleet. A private CA uses an offline root and one or more online intermediates to issue short-lived leaf certificates, so the root can stay offline, revocation and policy are possible, and clients trust one anchor distributed by MDM or Group Policy. The private root must never be added to public trust stores.",
+      "details": [
+        "Keep the root key offline or in an HSM and issue from an intermediate so routine issuance does not expose the anchor.",
+        "Name constraints on a private intermediate limit it to internal namespaces such as .example.internal.",
+        "Document the trust-distribution path, because an unmanaged root install is a lasting backdoor into every client.",
+        "Plan root rotation before expiry; replacing a root is a fleet-wide migration, not a routine renewal."
+      ],
+      "commands": [
+        {
+          "language": "bash",
+          "code": "openssl req -x509 -new -newkey rsa:3072 -nodes -days 3650 -subj \"/CN=Example Internal Root\" -keyout root.key -out root.pem",
+          "purpose": "Create a synthetic private root for a lab; the key is a throwaway example, not a credential."
+        },
+        {
+          "language": "bash",
+          "code": "openssl x509 -req -in leaf.csr -CA intermediate.pem -CAkey intermediate.key -CAcreateserial -days 90 -out leaf.pem",
+          "purpose": "Sign a short-lived leaf with a synthetic intermediate."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Why should a private CA keep its root key offline?",
+          "options": [
+            "So routine issuance cannot expose the trust anchor",
+            "Because offline keys are faster",
+            "Because browsers reject online roots",
+            "To avoid using a passphrase"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "The root signs intermediates, not leaves. Keeping it offline or in an HSM means a compromised issuing system cannot mint a new root or a rogue intermediate."
+        }
+      ],
+      "references": [
+        {
+          "title": "SP 800-57 Part 1 Rev. 5: Recommendation for Key Management",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/57/pt1/r5/final",
+          "license": "Public domain (US Government work)"
+        },
+        {
+          "title": "OpenSSL ca manual page",
+          "publisher": "OpenSSL Project",
+          "url": "https://docs.openssl.org/3.5/man1/openssl-ca/",
+          "license": "Apache-2.0"
+        }
+      ],
+      "tags": [
+        "private-ca",
+        "offline-root",
+        "pki"
+      ]
+    },
+    {
+      "id": "cert-expiry-035",
+      "subtopic": "troubleshooting",
+      "difficulty": "intermediate",
+      "title": "Expiry monitoring must cover intermediates, not just the leaf",
+      "fact": "Certificate expiry must be monitored for every certificate in the chain, because an expired intermediate or root breaks every leaf beneath it even when the leaf is current. Check notAfter on the leaf and on each presented intermediate, compare against UTC, and allow for clock skew. Automate an alert well before expiry and a renewal action earlier still; the fix is renewal plus a reload, not a trust-store workaround.",
+      "details": [
+        "openssl x509 -checkend exits non-zero when the certificate will expire within the given number of seconds.",
+        "A Java or container trust store may carry its own stale copy of a root, so expiry can differ by runtime.",
+        "An expired certificate cannot be revived by backdating a production client's clock; that breaks TLS and audit integrity."
+      ],
+      "commands": [
+        {
+          "language": "bash",
+          "code": "openssl x509 -in leaf.pem -noout -enddate",
+          "purpose": "Print the notAfter timestamp of a synthetic certificate."
+        },
+        {
+          "language": "bash",
+          "code": "openssl x509 -in leaf.pem -noout -checkend 2592000",
+          "purpose": "Exit non-zero if the certificate expires within 30 days, suitable for monitoring."
+        },
+        {
+          "language": "bash",
+          "code": "openssl s_client -connect app.example.internal:443 -servername app.example.internal </dev/null 2>/dev/null | openssl x509 -noout -dates",
+          "purpose": "Read the validity window of the certificate actually served."
+        }
+      ],
+      "logs": [
+        {
+          "context": "Synthetic certificate-expiry monitor",
+          "text": "[2026-11-20T04:00:12Z] certmon host=app.example.internal expires=2026-11-24T23:59:59Z days_left=4 source=leaf status=ok\n[2026-11-21T04:00:12Z] certmon host=app.example.internal expires=2026-11-24T23:59:59Z days_left=3 source=leaf status=renewal_not_attempted",
+          "reading": "Four days remain and no renewal has been attempted, so the automation is broken rather than merely late. Check the ACME order, DNS challenge, and deploy hook; do not add the private root to a trust store."
+        }
+      ],
+      "references": [
+        {
+          "title": "RFC 5280: Internet X.509 Public Key Infrastructure Certificate and CRL Profile",
+          "publisher": "IETF",
+          "url": "https://www.rfc-editor.org/rfc/rfc5280.html",
+          "license": "IETF Trust RFC copyright"
+        },
+        {
+          "title": "OpenSSL x509 manual page",
+          "publisher": "OpenSSL Project",
+          "url": "https://docs.openssl.org/3.5/man1/openssl-x509/",
+          "license": "Apache-2.0"
+        }
+      ],
+      "tags": [
+        "expiry",
+        "monitoring",
+        "notafter"
+      ]
+    },
+    {
+      "id": "cert-lifetime-036",
+      "subtopic": "policy",
+      "difficulty": "intermediate",
+      "title": "Public TLS certificate lifetimes are shrinking in phases",
+      "fact": "Publicly trusted TLS certificate lifetimes are capped by the CA/Browser Forum Baseline Requirements, and the caps are shrinking: 398 days for certificates issued before 15 March 2026, 200 days from that date, 100 days from 15 March 2027, and 47 days from 15 March 2029. The limit applies by issuance date, and domain-validation reuse shrinks in step, down to 10 days at the final stage. Private-CA certificates are outside these caps but benefit from the same automation.",
+      "details": [
+        "A day is counted as 86,400 seconds and any excess counts as another day, so CAs issue slightly under the cap.",
+        "Shorter lifetimes reduce the value of revocation and make ACME-style automation mandatory rather than optional.",
+        "Plan renewal at roughly two thirds of lifetime so a failed order still leaves time for a retry."
+      ],
+      "mcqs": [
+        {
+          "question": "What is the maximum validity for a publicly trusted TLS certificate issued in 2027?",
+          "options": [
+            "100 days",
+            "398 days",
+            "200 days",
+            "47 days"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "The CA/Browser Forum schedule sets 200 days from 15 March 2026, 100 days from 15 March 2027, and 47 days from 15 March 2029, applied by issuance date."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "The 47-day certificate limit already applies to every public certificate.",
+          "correction": "The limit is phased: 200 days from March 2026, 100 days from March 2027, and 47 days from March 2029. A certificate keeps the validity it was issued with."
+        }
+      ],
+      "references": [
+        {
+          "title": "Ballot SC-081v3: Schedule of Reducing Validity and Data Reuse Periods",
+          "publisher": "CA/Browser Forum",
+          "url": "https://cabforum.org/2025/04/11/ballot-sc081v3-introduce-schedule-of-reducing-validity-and-data-reuse-periods/",
+          "license": "CC BY 4.0"
+        },
+        {
+          "title": "CA/Browser Forum Baseline Requirements for TLS Server Certificates",
+          "publisher": "CA/Browser Forum",
+          "url": "https://cabforum.org/working-groups/server/baseline-requirements/documents/",
+          "license": "CC BY 4.0"
+        }
+      ],
+      "tags": [
+        "certificate-lifetime",
+        "ca-b-forum",
+        "automation"
+      ]
+    },
+    {
+      "id": "iam-factors-aal-037",
+      "subtopic": "authentication",
+      "difficulty": "foundational",
+      "title": "MFA needs two different factor categories, and AAL3 needs phishing resistance",
+      "fact": "Authentication factors are something you know, something you have, and something you are. MFA requires two different categories, so two passwords, or a password plus a security question, is not MFA. NIST SP 800-63B-4 defines AAL1, AAL2, and AAL3: at AAL2 verifiers must offer at least one phishing-resistant option, and AAL3 requires a cryptographic authenticator with a non-exportable private key, phishing resistance, verifier impersonation resistance, and authentication intent. SMS one-time codes are a possession factor but are exposed to SIM swap and interception.",
+      "details": [
+        "AAL2 reauthentication is at most 24 hours overall or 1 hour of inactivity; AAL3 is 12 hours overall or 15 minutes of inactivity.",
+        "AAL3 prohibits key export, which excludes synced passkeys from that level even though they are allowed at AAL2.",
+        "Recovery paths must meet the same assurance as the primary factor, or they become the cheapest way in."
+      ],
+      "mcqs": [
+        {
+          "question": "Which combination is genuinely multi-factor?",
+          "options": [
+            "Password plus a hardware security key",
+            "Password plus a security question",
+            "Two different passwords",
+            "A password plus a remembered PIN"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "A password is knowledge and a hardware key is possession, so the categories differ. Security questions, a second password, and a PIN are all knowledge factors."
+        },
+        {
+          "question": "What does NIST SP 800-63B-4 require at AAL2?",
+          "options": [
+            "That verifiers offer at least one phishing-resistant option",
+            "That every user must use a hardware token",
+            "That passwords be rotated every 60 days",
+            "That SMS be the only second factor"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "AAL2 requires a phishing-resistant option to be available and encourages its use; AAL3 requires phishing resistance for all authentication at that level."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "Any second step during login counts as multi-factor authentication.",
+          "correction": "MFA requires two different factor categories. A password followed by a security question, a PIN, or a second password is still single-category knowledge authentication and does not resist credential phishing or replay."
+        }
+      ],
+      "references": [
+        {
+          "title": "SP 800-63B-4: Authentication and Authenticator Management",
+          "publisher": "NIST",
+          "url": "https://pages.nist.gov/800-63-4/sp800-63b.html",
+          "license": "Public domain (US Government work)"
+        }
+      ],
+      "tags": [
+        "mfa",
+        "aal",
+        "phishing-resistance"
+      ]
+    },
+    {
+      "id": "iam-webauthn-038",
+      "subtopic": "phishing-resistance",
+      "difficulty": "advanced",
+      "title": "WebAuthn resists phishing because the browser binds the signature to the origin",
+      "fact": "WebAuthn, standardized by the W3C with the CTAP2 authenticator protocol, creates a public-key credential scoped to a relying-party ID and origin. The private key stays in the authenticator, and the browser signs a server challenge together with the origin. That origin binding is what makes it phishing-resistant: a lookalike domain cannot obtain a signature for the real RP ID. Discoverable credentials allow username-less login, and attestation is optional and often withheld for privacy.",
+      "details": [
+        "The server stores the credential ID, public key, and signature counter, and verifies clientDataJSON origin, rpIdHash, challenge, and user presence or verification.",
+        "Synced passkeys are exportable by design, so they are allowed at AAL2 but not AAL3.",
+        "Conditional UI and related-origin requests need explicit configuration; a credential is not portable across unrelated domains."
+      ],
+      "code": [
+        {
+          "language": "javascript",
+          "vulnerable": "// The server issues a challenge but never checks where the assertion came from.\nconst cred = await navigator.credentials.get({ publicKey: { challenge } });\nawait fetch(\"/login\", {\n  method: \"POST\",\n  body: JSON.stringify({ id: cred.id, signature: cred.response.signature })\n});\n",
+          "secure": "const cred = await navigator.credentials.get({\n  publicKey: {\n    challenge: serverChallenge,          // fresh and single-use\n    rpId: \"app.example.internal\",\n    userVerification: \"required\"\n  }\n});\n// The server verifies clientDataJSON.origin, rpIdHash, challenge, and the signature.\n",
+          "issue": "If the server does not verify the origin, RP ID hash, and challenge, a phished assertion from another site can be replayed; WebAuthn's protection depends on those server-side checks."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "What property of WebAuthn prevents a phishing site from replaying a credential?",
+          "options": [
+            "The signature is bound to the RP ID and origin",
+            "The password is hashed twice",
+            "The authenticator stores a shared secret",
+            "The server rotates the user's PIN"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "The browser includes the origin in clientDataJSON and the RP ID hash in the authenticator data, so a signature made for one origin cannot validate for another."
+        }
+      ],
+      "references": [
+        {
+          "title": "Web Authentication: An API for accessing Public Key Credentials Level 2",
+          "publisher": "W3C",
+          "url": "https://www.w3.org/TR/webauthn-2/",
+          "license": "W3C Document License"
+        },
+        {
+          "title": "SP 800-63B-4: Authentication and Authenticator Management",
+          "publisher": "NIST",
+          "url": "https://pages.nist.gov/800-63-4/sp800-63b.html",
+          "license": "Public domain (US Government work)"
+        }
+      ],
+      "tags": [
+        "webauthn",
+        "fido2",
+        "phishing-resistance"
+      ]
+    },
+    {
+      "id": "iam-passkeys-039",
+      "subtopic": "passwordless",
+      "difficulty": "intermediate",
+      "title": "Passkeys remove shared secrets but move risk to recovery and the platform account",
+      "fact": "Passkeys are discoverable WebAuthn credentials, usually synchronized by a platform account so they work across a user's devices. They remove shared secrets and phishing risk, but they shift the security boundary to the platform account and to account recovery: an attacker who takes over the cloud account or the recovery channel may enroll a new passkey. Services should support multiple passkeys per user, allow device-bound as well as synced authenticators, and treat recovery as a high-risk flow.",
+      "details": [
+        "Synced passkeys are exportable and therefore not AAL3; device-bound passkeys in a secure element can meet higher assurance.",
+        "A passkey is bound to an RP ID, so it does not work across unrelated domains without explicit related-origin configuration.",
+        "Lost-device recovery needs identity proofing at least as strong as enrollment, or it becomes the weakest link."
+      ],
+      "mcqs": [
+        {
+          "question": "What is the main residual risk after an organisation adopts passkeys?",
+          "options": [
+            "Account recovery and platform-account takeover",
+            "Nonce reuse in the authenticator",
+            "Certificate expiration on the client",
+            "Password spraying against the user"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "The credential itself resists phishing and guessing, so attackers target recovery flows and the cloud account that syncs the passkeys, where a new credential can be enrolled."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "Passkeys make account takeover impossible.",
+          "correction": "Passkeys remove password phishing and reuse, but recovery flows, help-desk reset, and platform-account compromise can still enroll an attacker-controlled credential. Recovery must be designed to the same assurance level."
+        }
+      ],
+      "references": [
+        {
+          "title": "SP 800-63B-4: Authentication and Authenticator Management",
+          "publisher": "NIST",
+          "url": "https://pages.nist.gov/800-63-4/sp800-63b.html",
+          "license": "Public domain (US Government work)"
+        },
+        {
+          "title": "Web Authentication: An API for accessing Public Key Credentials Level 3",
+          "publisher": "W3C",
+          "url": "https://www.w3.org/TR/webauthn-3/",
+          "license": "W3C Document License"
+        }
+      ],
+      "tags": [
+        "passkeys",
+        "passwordless",
+        "account-recovery"
+      ]
+    },
+    {
+      "id": "iam-session-token-040",
+      "subtopic": "sessions",
+      "difficulty": "foundational",
+      "title": "Server-side sessions revoke immediately; bearer tokens expire instead",
+      "fact": "A cookie session is server-side state referenced by an opaque identifier, so logout and revocation take effect immediately. A bearer token such as a JWT is self-contained and signed, so it validates without a database lookup but remains valid until it expires unless the server keeps a revocation list. Sessions need HttpOnly, Secure, and SameSite attributes, rotation on privilege change, and both idle and absolute timeouts. A JWT is signed, not encrypted, so anyone holding it can read its claims.",
+      "details": [
+        "Store browser tokens in memory or a hardened HttpOnly cookie rather than localStorage, which is reachable from cross-site scripting.",
+        "SameSite=Lax blocks most cross-site POSTs but is not a complete CSRF defense; pair it with a token or origin check.",
+        "Reject alg: none and pin the accepted algorithm and key when verifying a JWT."
+      ],
+      "configs": [
+        {
+          "language": "http",
+          "snippet": "Set-Cookie: __Host-session=<opaque-id>; Path=/; Secure; HttpOnly; SameSite=Lax\nCache-Control: no-store",
+          "purpose": "Set a host-scoped session cookie that JavaScript cannot read and that is not cached."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Which session mechanism allows immediate revocation on logout?",
+          "options": [
+            "A server-side session referenced by an opaque cookie",
+            "A self-contained JWT with a one-hour expiry",
+            "A signed JWT stored in localStorage",
+            "A stateless token with no revocation list"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "Deleting server-side session state invalidates the cookie at once. A self-contained token stays valid until expiry unless the server maintains a revocation mechanism."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "A signed JWT cannot be read by the client because it is protected by a signature.",
+          "correction": "JWS signing provides integrity, not confidentiality. The payload is Base64url-encoded and readable by anyone; use JWE or keep sensitive claims out of the token."
+        }
+      ],
+      "references": [
+        {
+          "title": "OWASP Session Management Cheat Sheet",
+          "publisher": "OWASP Foundation",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html",
+          "license": "CC BY-SA 4.0"
+        },
+        {
+          "title": "RFC 7519: JSON Web Token (JWT)",
+          "publisher": "IETF",
+          "url": "https://www.rfc-editor.org/rfc/rfc7519.html",
+          "license": "IETF Trust RFC copyright"
+        }
+      ],
+      "tags": [
+        "sessions",
+        "jwt",
+        "cookies"
+      ]
+    },
+    {
+      "id": "iam-rbac-abac-041",
+      "subtopic": "authorization-models",
+      "difficulty": "intermediate",
+      "title": "RBAC, ABAC, and ReBAC differ in granularity and operational cost",
+      "fact": "RBAC assigns permissions to roles and roles to identities, which is simple to audit but leads to role explosion as exceptions accumulate. ABAC evaluates attributes of subject, resource, action, and environment against policy, which handles fine-grained and context-dependent rules but is harder to test and reason about. ReBAC models relationships in a graph, such as owner, editor, or member-of, and suits hierarchical or shared resources at the cost of more complex queries and consistency.",
+      "details": [
+        "NIST SP 800-162 describes ABAC; INCITS 359 defines the RBAC reference model.",
+        "A hybrid is common: coarse RBAC for job function plus ABAC for row-level or time-based constraints.",
+        "Every model still needs periodic access review and a deny-by-default baseline; none removes the need for governance."
+      ],
+      "mcqs": [
+        {
+          "question": "Which authorization model is built on relationships between entities?",
+          "options": [
+            "ReBAC",
+            "RBAC",
+            "ABAC",
+            "MAC"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "Relationship-based access control (ReBAC) evaluates graph relations such as owner or member-of, which is natural for hierarchical and shared resources."
+        }
+      ],
+      "references": [
+        {
+          "title": "SP 800-162: Guide to Attribute Based Access Control (ABAC) Definition and Considerations",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/162/final",
+          "license": "Public domain (US Government work)"
+        },
+        {
+          "title": "Role Based Access Control (RBAC) project",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/projects/role-based-access-control",
+          "license": "Public domain (US Government work)"
+        }
+      ],
+      "tags": [
+        "rbac",
+        "abac",
+        "rebac"
+      ]
+    },
+    {
+      "id": "iam-least-privilege-042",
+      "subtopic": "authorization",
+      "difficulty": "foundational",
+      "title": "Least privilege and separation of duties constrain both scope and time",
+      "fact": "Least privilege means granting the minimum permissions, for the minimum time, to the minimum set of identities. Separation of duties means no single identity can both initiate and approve a sensitive action. In practice this needs deny-by-default policy, scoped roles, short-lived credentials, and periodic access reviews; standing administrator rights violate both principles. Break-glass accounts are the documented exception, kept sealed and monitored.",
+      "details": [
+        "NIST SP 800-53 Rev. 5 AC-6 covers least privilege and AC-5 covers separation of duties.",
+        "Wildcard permissions such as *:* and roles/owner are the usual findings in cloud reviews.",
+        "Privilege creep after a role change is the common failure mode; access reviews must compare current duties with granted rights."
+      ],
+      "configs": [
+        {
+          "language": "json",
+          "snippet": "{\n  \"Version\": \"2012-10-17\",\n  \"Statement\": [\n    {\"Effect\": \"Deny\", \"Action\": \"*\", \"Resource\": \"*\", \"Condition\": {\"Bool\": {\"aws:SecureTransport\": \"false\"}}},\n    {\"Effect\": \"Allow\", \"Action\": [\"s3:GetObject\"], \"Resource\": \"arn:aws:s3:::example-reports/*\"}\n  ]\n}",
+          "purpose": "Show a deny-by-default-style policy: one narrow allow plus an explicit guardrail deny for non-TLS access."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Which situation violates separation of duties?",
+          "options": [
+            "The same identity creates a vendor and approves its payment",
+            "A developer can read staging logs",
+            "An on-call engineer can restart a service",
+            "A user can edit their own profile"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "Creation and approval of the same financial action must be split across identities; combining them allows fraud without a second party."
+        }
+      ],
+      "references": [
+        {
+          "title": "SP 800-53 Rev. 5: Security and Privacy Controls for Information Systems",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/53/r5/upd1/final",
+          "license": "Public domain (US Government work)"
+        },
+        {
+          "title": "SP 800-162: Guide to Attribute Based Access Control (ABAC)",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/162/final",
+          "license": "Public domain (US Government work)"
+        }
+      ],
+      "tags": [
+        "least-privilege",
+        "separation-of-duties",
+        "iam-policy"
+      ]
+    },
+    {
+      "id": "iam-pam-jit-043",
+      "subtopic": "privileged-access",
+      "difficulty": "advanced",
+      "title": "Just-in-time elevation replaces standing privilege with brokered sessions",
+      "fact": "Privileged access management vaults administrative credentials, brokers sessions, records them, and rotates secrets after use. Just-in-time elevation grants a role for a bounded window after an approval and a ticket reference, then revokes automatically; this replaces standing domain-admin or cloud-owner assignments. The control only works if every plane is covered, including directories, cloud control planes, databases, and hypervisors, and if break-glass access is separately logged and reviewed.",
+      "details": [
+        "Record sessions and keystrokes for audit, but protect the recording store as sensitive data.",
+        "Verify that revocation propagates to cached tokens and existing sessions, not just to new logins.",
+        "Time-bound elevation should still require MFA and, for high tiers, a second approver."
+      ],
+      "configs": [
+        {
+          "language": "yaml",
+          "snippet": "policy: cloud-owner-jit\nmax_duration: 60m\napprovers: [security-oncall, platform-lead]\nrequire_ticket: true\nrequire_mfa: true\nrevoke_on_expiry: true",
+          "purpose": "Describe a bounded, approved elevation policy for a synthetic cloud role."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "What does just-in-time privileged access remove?",
+          "options": [
+            "Standing administrative entitlements",
+            "The need for audit logging",
+            "The need for authentication",
+            "The need for separation of duties"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "JIT grants elevated rights only for an approved window, so administrators do not hold permanent owner or domain-admin rights. It adds approval and logging rather than replacing them."
+        }
+      ],
+      "references": [
+        {
+          "title": "Microsoft Entra Privileged Identity Management configuration",
+          "publisher": "Microsoft",
+          "url": "https://learn.microsoft.com/en-us/entra/id-governance/privileged-identity-management/pim-configure",
+          "license": "CC BY 4.0"
+        },
+        {
+          "title": "SP 800-207: Zero Trust Architecture",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/207/final",
+          "license": "Public domain (US Government work)"
+        }
+      ],
+      "tags": [
+        "pam",
+        "jit",
+        "privileged-access"
+      ]
+    },
+    {
+      "id": "iam-service-accounts-044",
+      "subtopic": "machine-identity",
+      "difficulty": "intermediate",
+      "title": "Non-human identities should use short-lived workload identity, not shared keys",
+      "fact": "Service accounts and other non-human identities should be scoped to one workload, authenticated with short-lived workload identity rather than a static key, and inventoried like human accounts. Where a static secret is unavoidable, store it in a secret manager, rotate it on a schedule with a dual-credential overlap, and alert on use from unexpected networks. Shared service accounts destroy attribution and should be split.",
+      "details": [
+        "Cloud workload identity federation exchanges a platform token for short-lived cloud credentials, removing long-lived access keys.",
+        "Kubernetes projected service account tokens are audience-scoped and time-bound; do not mount them where they are unused.",
+        "Secrets rotation needs a consumer inventory, or it breaks silently when the old credential is revoked."
+      ],
+      "commands": [
+        {
+          "language": "bash",
+          "code": "kubectl auth can-i --list --as=system:serviceaccount:payments:payments-api",
+          "purpose": "Show the effective permissions of a synthetic Kubernetes service account."
+        },
+        {
+          "language": "bash",
+          "code": "aws sts get-caller-identity",
+          "purpose": "Confirm which principal a workload is actually using after federation."
+        }
+      ],
+      "configs": [
+        {
+          "language": "kubernetes",
+          "snippet": "apiVersion: v1\nkind: ServiceAccount\nmetadata:\n  name: payments-api\n  namespace: payments\n  annotations:\n    eks.amazonaws.com/role-arn: arn:aws:iam::123456789012:role/payments-api",
+          "purpose": "Bind a Kubernetes service account to a narrowly scoped cloud role through workload identity, with a synthetic account number."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "What is the preferred way for a CI pipeline to obtain cloud credentials?",
+          "options": [
+            "OIDC workload identity federation for a short-lived token",
+            "A long-lived access key in a repository secret",
+            "A shared service account password",
+            "An SSH key committed to the build image"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "Federation exchanges a signed CI identity token for short-lived credentials, so there is no static cloud key to steal or rotate."
+        }
+      ],
+      "references": [
+        {
+          "title": "SP 800-207: Zero Trust Architecture",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/207/final",
+          "license": "Public domain (US Government work)"
+        },
+        {
+          "title": "SP 800-53 Rev. 5: Security and Privacy Controls for Information Systems",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/53/r5/upd1/final",
+          "license": "Public domain (US Government work)"
+        }
+      ],
+      "tags": [
+        "service-accounts",
+        "workload-identity",
+        "secrets-rotation"
+      ]
+    },
+    {
+      "id": "iam-jml-045",
+      "subtopic": "lifecycle",
+      "difficulty": "foundational",
+      "title": "Joiner-mover-leaver events must drive provisioning and deprovisioning",
+      "fact": "The joiner-mover-leaver lifecycle ties identity provisioning to HR events. A joiner gets a baseline role plus approved requests, a mover has old access removed before new access is granted, and a leaver is disabled immediately with sessions, tokens, and application accounts revoked. Orphaned accounts and access that survives a role change are recurring audit findings because manual processes miss them. Automation through SCIM or an identity governance platform is the control that scales.",
+      "details": [
+        "Disable at the identity provider first, then revoke downstream sessions and tokens.",
+        "Transfer data ownership instead of deleting it, and retain audit records according to policy.",
+        "Contractors and vendor accounts need expiry dates at creation, not at the end of the engagement."
+      ],
+      "commands": [
+        {
+          "language": "powershell",
+          "code": "Get-ADUser -Filter {Enabled -eq $true} -Properties LastLogonDate | Where-Object { $_.LastLogonDate -lt (Get-Date).AddDays(-90) } | Select-Object SamAccountName, LastLogonDate",
+          "purpose": "Find enabled synthetic directory accounts that have not logged on in 90 days for review."
+        }
+      ],
+      "logs": [
+        {
+          "context": "Synthetic identity-governance timeline for a leaver",
+          "text": "2026-11-02T09:00:00Z hr.termination employee=E1042 effective=2026-11-02\n2026-11-02T09:04:11Z idp.user.disable employee=E1042 status=ok\n2026-11-02T09:04:40Z app.session.revoke employee=E1042 count=3 status=ok\n2026-11-03T09:00:00Z access.review employee=E1042 app=crm local_account=still_enabled",
+          "reading": "The IdP account and its sessions were disabled within minutes, but a downstream CRM account survived. SSO does not deprovision app-local accounts; the gap needs SCIM or a connector, and it would be an audit finding."
+        }
+      ],
+      "references": [
+        {
+          "title": "SP 800-53 Rev. 5: Security and Privacy Controls for Information Systems",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/53/r5/upd1/final",
+          "license": "Public domain (US Government work)"
+        },
+        {
+          "title": "Microsoft Entra ID governance overview",
+          "publisher": "Microsoft",
+          "url": "https://learn.microsoft.com/en-us/entra/id-governance/identity-governance-overview",
+          "license": "CC BY 4.0"
+        }
+      ],
+      "tags": [
+        "jml",
+        "provisioning",
+        "offboarding"
+      ]
+    },
+    {
+      "id": "iam-sso-scim-046",
+      "subtopic": "federation",
+      "difficulty": "intermediate",
+      "title": "SSO authenticates; SCIM provisions and deprovisions",
+      "fact": "SSO centralizes authentication through SAML or OIDC so users sign in once at an identity provider, but it does not automatically create or delete accounts in each application. SCIM (RFC 7643 schema, RFC 7644 protocol) fills that gap with REST Users and Groups resources and PATCH operations, driven by the IdP on joiner, mover, and leaver events. A deployment with SSO but no provisioning still accumulates local accounts that outlive employment.",
+      "details": [
+        "SCIM uses a bearer token that must be scoped, rotated, and protected like any other credential.",
+        "Group push maps IdP groups to application roles, and entitlement drift appears when that mapping is stale.",
+        "SCIM active:false should deactivate an account; hard deletion is a separate retention decision."
+      ],
+      "commands": [
+        {
+          "language": "bash",
+          "code": "curl -sS -X PATCH https://app.example.internal/scim/v2/Users/<id> -H \"Authorization: Bearer $SCIM_TOKEN\" -H \"Content-Type: application/scim+json\" -d @deactivate.json",
+          "purpose": "Send a synthetic SCIM deactivation request with a scoped bearer token."
+        }
+      ],
+      "configs": [
+        {
+          "language": "json",
+          "snippet": "{\n  \"schemas\": [\"urn:ietf:params:scim:api:messages:2.0:PatchOp\"],\n  \"Operations\": [\n    {\"op\": \"replace\", \"path\": \"active\", \"value\": false}\n  ]\n}",
+          "purpose": "Deactivate a SCIM user with a standards-shaped PATCH body."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "What does SCIM add that SSO alone does not provide?",
+          "options": [
+            "Automated account provisioning and deprovisioning",
+            "Stronger encryption of the login page",
+            "Password hashing for the IdP",
+            "Certificate pinning for the browser"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "SSO authenticates a user to applications, but SCIM creates, updates, and deactivates the corresponding accounts through a standard REST API."
+        }
+      ],
+      "references": [
+        {
+          "title": "RFC 7643: System for Cross-domain Identity Management: Core Schema",
+          "publisher": "IETF",
+          "url": "https://www.rfc-editor.org/rfc/rfc7643.html",
+          "license": "IETF Trust RFC copyright"
+        },
+        {
+          "title": "RFC 7644: System for Cross-domain Identity Management: Protocol",
+          "publisher": "IETF",
+          "url": "https://www.rfc-editor.org/rfc/rfc7644.html",
+          "license": "IETF Trust RFC copyright"
+        }
+      ],
+      "tags": [
+        "sso",
+        "scim",
+        "provisioning"
+      ]
+    },
+    {
+      "id": "iam-oauth-oidc-saml-047",
+      "subtopic": "federation",
+      "difficulty": "advanced",
+      "title": "OAuth is authorization, OIDC adds authentication, and SAML uses signed XML",
+      "fact": "OAuth 2.0 delegates authorization and issues access tokens; it is not an authentication protocol, which is why OIDC adds an ID token, a signed JWT with iss, sub, aud, exp, and nonce, plus a UserInfo endpoint. SAML 2.0 instead exchanges signed XML assertions through browser POST or redirect bindings. OIDC clients must validate issuer, audience, signature, expiry, and nonce and must use PKCE and state. SAML implementations must defend against XML Signature Wrapping and canonicalization attacks by validating the signed element and the assertion subject together.",
+      "details": [
+        "Never treat an OAuth access token as proof of user identity; use the ID token or UserInfo with proper validation.",
+        "RFC 9700, the OAuth 2.0 Security Best Current Practice, recommends PKCE for all clients and exact redirect URI matching.",
+        "The OAuth 2.1 Internet-Draft consolidates RFC 6749 and RFC 6750, mandates PKCE, and removes the implicit and password grants, but it is not yet an RFC."
+      ],
+      "mcqs": [
+        {
+          "question": "Which protocol layer provides user authentication rather than authorization delegation?",
+          "options": [
+            "OpenID Connect, through the ID token",
+            "OAuth 2.0 access tokens alone",
+            "SCIM",
+            "LDAP simple bind"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "OIDC adds an ID token that describes the authentication event. An OAuth access token authorizes API access and does not by itself assert who the user is."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "A valid OAuth 2.0 access token proves the user's identity to your application.",
+          "correction": "Access tokens are bearer authorization artifacts and may be issued to a client rather than a user. Authentication requires an OIDC ID token or UserInfo response validated for issuer, audience, nonce, and signature."
+        }
+      ],
+      "references": [
+        {
+          "title": "RFC 9700: Best Current Practice for OAuth 2.0 Security",
+          "publisher": "IETF",
+          "url": "https://www.rfc-editor.org/rfc/rfc9700.html",
+          "license": "IETF Trust RFC copyright"
+        },
+        {
+          "title": "OpenID Connect Core 1.0",
+          "publisher": "OpenID Foundation",
+          "url": "https://openid.net/specs/openid-connect-core-1_0.html",
+          "license": "OpenID Foundation spec license"
+        },
+        {
+          "title": "SAML 2.0 Core Specification",
+          "publisher": "OASIS",
+          "url": "https://docs.oasis-open.org/security/saml/v2.0/saml-core-2.0-os.pdf",
+          "license": "OASIS IPR Policy"
+        }
+      ],
+      "tags": [
+        "oauth2",
+        "oidc",
+        "saml"
+      ]
+    },
+    {
+      "id": "iam-token-lifetime-048",
+      "subtopic": "tokens",
+      "difficulty": "expert",
+      "title": "Short access tokens plus rotated refresh tokens limit replay damage",
+      "fact": "Access tokens should be short-lived, on the order of minutes, and refresh tokens should be rotated on every use with reuse detection, so a stolen refresh token is either useless or detectable. Refresh tokens must be bound to the client and revoked on logout, password change, and privilege change. High-value APIs should use sender-constrained tokens through DPoP (RFC 9449) or mutual TLS (RFC 8705) rather than bearer tokens alone. JWT validation must check signature, issuer, audience, expiry, and not-before with only small clock skew.",
+      "details": [
+        "RFC 9700 requires rotation or a sender constraint for refresh tokens issued to public clients.",
+        "Refresh token reuse should revoke the entire token family, not just the presented token.",
+        "A JWT exp claim is not a revocation mechanism; server-side state or a denylist is still needed for immediate logout.",
+        "Store refresh tokens hashed server-side so a database read does not yield usable credentials."
+      ],
+      "configs": [
+        {
+          "language": "json",
+          "snippet": "{\n  \"access_token\": \"<opaque-or-jwt>\",\n  \"token_type\": \"DPoP\",\n  \"expires_in\": 300,\n  \"refresh_token\": \"<single-use-rotating-token>\"\n}",
+          "purpose": "Show a short access-token lifetime, a DPoP-bound token type, and a rotating refresh token."
+        }
+      ],
+      "logs": [
+        {
+          "context": "Synthetic authorization server token audit",
+          "text": "2026-11-12T10:00:00Z token.issue client=web-app grant=refresh family=f-8842 jti=t-1001\n2026-11-12T10:15:00Z token.rotate client=web-app family=f-8842 old_jti=t-1001 new_jti=t-1002\n2026-11-12T10:16:02Z token.reuse_detected client=web-app family=f-8842 presented_jti=t-1001\naction=revoke_family status=ok",
+          "reading": "The same refresh token was presented twice, once rotated and once replayed. Reuse detection revoked the whole family, which limits the attacker to the already-issued short-lived access token."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Why rotate refresh tokens on every use?",
+          "options": [
+            "So theft is detectable and replay is bounded",
+            "To make the token shorter",
+            "To avoid validating the signature",
+            "To remove the need for TLS"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "Each refresh consumes the token and issues a new one. A second use of the old token signals theft, and the server can revoke the token family."
+        }
+      ],
+      "references": [
+        {
+          "title": "RFC 9700: Best Current Practice for OAuth 2.0 Security",
+          "publisher": "IETF",
+          "url": "https://www.rfc-editor.org/rfc/rfc9700.html",
+          "license": "IETF Trust RFC copyright"
+        },
+        {
+          "title": "RFC 9449: OAuth 2.0 Demonstrating Proof of Possession (DPoP)",
+          "publisher": "IETF",
+          "url": "https://www.rfc-editor.org/rfc/rfc9449.html",
+          "license": "IETF Trust RFC copyright"
+        },
+        {
+          "title": "RFC 8705: OAuth 2.0 Mutual-TLS Client Authentication and Certificate-Bound Access Tokens",
+          "publisher": "IETF",
+          "url": "https://www.rfc-editor.org/rfc/rfc8705.html",
+          "license": "IETF Trust RFC copyright"
+        }
+      ],
+      "tags": [
+        "tokens",
+        "refresh-rotation",
+        "dpop"
+      ]
+    },
+    {
+      "id": "auth-kerberos-049",
+      "subtopic": "kerberos",
+      "difficulty": "advanced",
+      "title": "Kerberos issues a TGT, then service tickets, and RC4 enables Kerberoasting",
+      "fact": "Kerberos (RFC 4120) authenticates with tickets. The client sends an AS-REQ and receives a TGT encrypted with the krbtgt key, then a TGS-REQ for a service ticket encrypted with that service account's key, and finally an AP-REQ to the service. A service principal name (SPN) identifies the service instance, for example MSSQLSvc/db01.example.internal:1433. Pre-authentication (PA-ENC-TIMESTAMP) prevents offline AS-REP roasting, and disabling RC4 (etype 23) blocks the classic Kerberoasting path that cracks service tickets offline.",
+      "details": [
+        "Event 4768 logs TGT requests, 4769 logs service ticket requests including the encryption type, and 4771 logs pre-authentication failures.",
+        "A service ticket with etype 0x17 is RC4 and worth investigating; 0x12 indicates AES-256.",
+        "gMSA accounts and long random service-account passwords make offline cracking of a service ticket expensive."
+      ],
+      "commands": [
+        {
+          "language": "powershell",
+          "code": "klist",
+          "purpose": "List Kerberos tickets in the current synthetic logon session."
+        },
+        {
+          "language": "powershell",
+          "code": "setspn -L svc-sql",
+          "purpose": "List the service principal names registered to a synthetic service account."
+        },
+        {
+          "language": "bash",
+          "code": "kinit svc-read@EXAMPLE.INTERNAL",
+          "purpose": "Request a TGT for a synthetic principal on a Linux client."
+        }
+      ],
+      "logs": [
+        {
+          "context": "Windows domain controller, synthetic Security event",
+          "text": "EventID=4769\nAccount Name: svc-sql$\nService Name: MSSQLSvc/db01.example.internal:1433\nTicket Encryption Type: 0x17\nTicket Options: 0x40810000\nStatus: 0x0",
+          "reading": "A service ticket was issued with RC4 (0x17), which is crackable offline if the service account password is weak. Move the account to AES with a gMSA and investigate why RC4 was negotiated."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Which ticket is encrypted with the target service account's key?",
+          "options": [
+            "The service ticket from the TGS-REP",
+            "The TGT from the AS-REP",
+            "The AP-REQ authenticator",
+            "The PAC signature"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "The KDC encrypts the service ticket with the service account's long-term key, which is why Kerberoasting requests service tickets and cracks them offline."
+        }
+      ],
+      "references": [
+        {
+          "title": "RFC 4120: The Kerberos Network Authentication Service (V5)",
+          "publisher": "IETF",
+          "url": "https://www.rfc-editor.org/rfc/rfc4120.html",
+          "license": "IETF Trust RFC copyright"
+        },
+        {
+          "title": "Kerberos authentication overview",
+          "publisher": "Microsoft",
+          "url": "https://learn.microsoft.com/en-us/windows-server/security/kerberos/kerberos-authentication-overview",
+          "license": "CC BY 4.0"
+        }
+      ],
+      "tags": [
+        "kerberos",
+        "spn",
+        "kerberoasting"
+      ]
+    },
+    {
+      "id": "auth-delegation-050",
+      "subtopic": "kerberos",
+      "difficulty": "expert",
+      "title": "Unconstrained delegation forwards a user's TGT and is a tier-0 risk",
+      "fact": "Unconstrained Kerberos delegation lets a service impersonate any authenticated user to any service, because the user's TGT is forwarded and cached; a compromised host with that flag is a domain-wide escalation path. Constrained delegation limits impersonation to named SPNs through S4U2Self and S4U2Proxy, but protocol transition allows impersonation without the user's ticket. Resource-based constrained delegation puts the control on the target account, which is more granular but also abusable if an attacker can write that attribute.",
+      "details": [
+        "Audit accounts and computers with TRUSTED_FOR_DELEGATION set and remove it where it is not required.",
+        "Mark tier-0 accounts 'sensitive and cannot be delegated' and add them to Protected Users.",
+        "Monitor Event 4624 logon type 3 and anomalous S4U activity; Defender for Identity flags unconstrained delegation."
+      ],
+      "commands": [
+        {
+          "language": "powershell",
+          "code": "Get-ADComputer -Filter {TrustedForDelegation -eq $true} -Properties TrustedForDelegation | Select-Object Name, TrustedForDelegation",
+          "purpose": "Find synthetic computer accounts configured for unconstrained delegation."
+        },
+        {
+          "language": "powershell",
+          "code": "Get-ADUser -Filter {TrustedToAuthForDelegation -eq $true} | Select-Object SamAccountName",
+          "purpose": "Find accounts allowed to request protocol-transition tickets."
+        },
+        {
+          "language": "powershell",
+          "code": "Get-ADComputer db01 -Properties msDS-AllowedToActOnBehalfOfOtherIdentity",
+          "purpose": "Inspect resource-based constrained delegation on a synthetic target."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Which delegation configuration forwards a user's TGT to the service?",
+          "options": [
+            "Unconstrained delegation",
+            "Constrained delegation with S4U2Proxy",
+            "Resource-based constrained delegation",
+            "Kerberos armoring"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "Unconstrained delegation caches the user's TGT on the service host so it can impersonate the user to any service, which is why it is a tier-0 escalation path."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "Constrained delegation is always safe because the SPN list is limited.",
+          "correction": "Protocol transition (TrustedToAuthForDelegation) lets a service obtain tickets for users who did not authenticate to it, so a compromised service can impersonate arbitrary users to the allowed SPNs. The SPN list narrows but does not eliminate the risk."
+        }
+      ],
+      "references": [
+        {
+          "title": "Kerberos constrained delegation overview",
+          "publisher": "Microsoft",
+          "url": "https://learn.microsoft.com/en-us/windows-server/security/kerberos/kerberos-constrained-delegation-overview",
+          "license": "CC BY 4.0"
+        },
+        {
+          "title": "Security assessment: Unconstrained Kerberos delegation",
+          "publisher": "Microsoft",
+          "url": "https://learn.microsoft.com/en-us/defender-for-identity/security-assessment-unconstrained-kerberos",
+          "license": "CC BY 4.0"
+        }
+      ],
+      "tags": [
+        "kerberos",
+        "delegation",
+        "active-directory"
+      ]
+    },
+    {
+      "id": "auth-ldap-051",
+      "subtopic": "ldap",
+      "difficulty": "intermediate",
+      "title": "LDAP simple bind is cleartext unless the connection is protected",
+      "fact": "LDAP simple bind sends a distinguished name and password, which are cleartext unless the connection is protected. Use LDAPS on port 636 or StartTLS on 389, validate the server certificate, and prefer SASL EXTERNAL with a client certificate or GSSAPI/Kerberos over a password bind. Active Directory additionally supports LDAP signing for integrity and channel binding to stop relay attacks, and both should be required rather than negotiated opportunistically.",
+      "details": [
+        "Anonymous and unauthenticated binds should be disabled; a bind with an empty password may be treated as anonymous by some servers and must be rejected.",
+        "Directory service accounts need long random passwords or, better, a gMSA, and should be limited to the reads they require.",
+        "Referrals can redirect a client to an unprotected server if referral chasing is not controlled."
+      ],
+      "commands": [
+        {
+          "language": "bash",
+          "code": "ldapsearch -H ldaps://dc01.example.internal -b \"dc=example,dc=internal\" -D \"cn=svc-read,ou=svc,dc=example,dc=internal\" -W \"(objectClass=user)\"",
+          "purpose": "Run a synthetic LDAPS query that prompts for the password instead of putting it on the command line."
+        }
+      ],
+      "configs": [
+        {
+          "language": "ini",
+          "snippet": "[domain/example.internal]\nldap_uri = ldaps://dc01.example.internal\nldap_tls_reqcert = demand\nldap_id_use_start_tls = false",
+          "purpose": "Configure SSSD to require a validated LDAPS connection to a synthetic domain controller."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Which port does LDAPS use by default?",
+          "options": [
+            "636",
+            "389",
+            "88",
+            "3268"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "LDAPS uses TCP 636 with TLS from the start. Port 389 is plain LDAP, optionally upgraded with StartTLS, and 88 is Kerberos."
+        }
+      ],
+      "references": [
+        {
+          "title": "RFC 4511: Lightweight Directory Access Protocol (LDAP): The Protocol",
+          "publisher": "IETF",
+          "url": "https://www.rfc-editor.org/rfc/rfc4511.html",
+          "license": "IETF Trust RFC copyright"
+        },
+        {
+          "title": "Enable LDAP signing in Windows Server",
+          "publisher": "Microsoft",
+          "url": "https://learn.microsoft.com/en-us/troubleshoot/windows-server/active-directory/enable-ldap-signing-in-windows-server",
+          "license": "CC BY 4.0"
+        }
+      ],
+      "tags": [
+        "ldap",
+        "ldaps",
+        "starttls"
+      ]
+    },
+    {
+      "id": "auth-gpo-052",
+      "subtopic": "active-directory",
+      "difficulty": "intermediate",
+      "title": "GPOs are powerful, broadly readable in SYSVOL, and need tiered delegation",
+      "fact": "Group Policy Objects apply configuration to users and computers through links on sites, domains, and organizational units, with precedence determined by link order, inheritance, and enforcement. Editing or linking a GPO is a privileged operation because it can push scripts, scheduled tasks, or security settings to every object in scope, so delegation should be tiered and audited. Group Policy Preferences once stored cpassword values in SYSVOL that were decryptable by any domain user (MS14-025, fixed in 2014), a reminder that SYSVOL is readable by all authenticated users.",
+      "details": [
+        "The Group Policy Central Store keeps ADMX templates consistent across administrators.",
+        "Loopback processing changes which user settings apply on shared hosts such as kiosks and RDS servers.",
+        "Event 5136 records directory changes to GPO objects, while a link change appears as a gPLink modification on the site, domain, or OU object; monitor both alongside file changes under SYSVOL.",
+        "Group nesting should follow a documented model such as AGDLP: accounts into global groups, global into domain local, domain local onto permissions."
+      ],
+      "commands": [
+        {
+          "language": "powershell",
+          "code": "Get-GPO -All | Get-GPOReport -ReportType Xml -Path C:\\Temp\\gpo-report.xml",
+          "purpose": "Export all synthetic GPO settings to XML for review."
+        },
+        {
+          "language": "powershell",
+          "code": "gpresult /h C:\\Temp\\rsop.html",
+          "purpose": "Produce a Resultant Set of Policy report showing which GPOs won and why."
+        },
+        {
+          "language": "powershell",
+          "code": "Get-GPInheritance -Target \"OU=Servers,DC=example,DC=internal\"",
+          "purpose": "Show link order and inheritance state for a synthetic organizational unit."
+        }
+      ],
+      "logs": [
+        {
+          "context": "Windows domain controller, synthetic directory change event",
+          "text": "EventID=5136\nObject DN: CN={3F2A9C11-7B44-4E0A-9C2D-1A6B5E8D7C33},CN=Policies,CN=System,DC=example,DC=internal\nObject Class: groupPolicyContainer\nAttribute: versionNumber\nOperation: Value Added\nAttribute Value: 4\nSubject: EXAMPLE\\gpo-admin",
+          "reading": "This event shows a change to the GPO container object itself: the directory incremented the GPO's versionNumber, which happens when the GPO's settings are edited. It does not show a link. gPLink is an attribute of a scope of management, meaning a site, domain, or OU object, so a link addition would be a 5136 event on that scope's DN with Attribute: gPLink and an Attribute Value holding the linked GPO's DN plus link options, for example [LDAP://cn={3F2A9C11-7B44-4E0A-9C2D-1A6B5E8D7C33},cn=policies,cn=system,dc=example,dc=internal;0]. Since the excerpt names no scope of management and carries no gPLink value, it cannot establish that a link was added or which containers the GPO now applies to; that requires the corresponding gPLink event on the domain, OU, or site object."
+        }
+      ],
+      "references": [
+        {
+          "title": "Group Policy overview for Windows Server",
+          "publisher": "Microsoft",
+          "url": "https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/manage/group-policy/group-policy-overview",
+          "license": "CC BY 4.0"
+        },
+        {
+          "title": "Microsoft Security Bulletin MS14-025: Vulnerability in Group Policy Preferences",
+          "publisher": "Microsoft",
+          "url": "https://learn.microsoft.com/en-us/security-updates/securitybulletins/2014/ms14-025",
+          "license": "CC BY 4.0"
+        }
+      ],
+      "tags": [
+        "gpo",
+        "active-directory",
+        "sysvol"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,1484 @@
+{
+  "applied": {
+    "accepted_grounding_average": 9.0,
+    "accepted_review_average": 8.687,
+    "accepted_reviewed_records": 5,
+    "accepted_technical_average": 9.15,
+    "independence_warnings": [],
+    "quarantined_records": 13,
+    "review_average": 6.81,
+    "reviewed_records": 5,
+    "source_grounding_average": 8.06,
+    "stale_review_records": 4,
+    "technical_accuracy_average": 8.155
+  },
+  "created_at": "2026-11-25T14:11:20.029282+00:00",
+  "decisions": {
+    "accept": 5,
+    "quarantine": 1,
+    "revise": 23
+  },
+  "human_review": {
+    "completed": false,
+    "note": "AI review is not human review.",
+    "reviewed_records": 0
+  },
+  "quarantine": [
+    {
+      "average": 7.5,
+      "decision": "revise",
+      "findings": [
+        "Verdict and quote are correct: the excerpt says 'Two REQUIRED key exchange methods have been defined', so the proposed OPTIONAL behaviour is not supported, and the quotation is exact.",
+        "The normative-strength explanation is muddled: it equates REQUIRED with MUST without saying so (RFC 2119 treats REQUIRED as synonymous with MUST, an absolute requirement) and then discusses SHOULD, which does not appear in the excerpt.",
+        "The operational consequence is abstract ('changes interoperability or security assumptions'); a concrete one is that a peer implementing only the MTI methods would fail algorithm negotiation, or that an operator could wrongly disable a method still marked REQUIRED in this excerpt.",
+        "The instruction to confirm the keyword in the current source is good, but the item does not acknowledge that RFC 9142 updates RFC 4253 and demotes both methods, which is exactly the staleness risk in the companion record.",
+        "Correctly identifies the REQUIRED vs OPTIONAL contradiction and quotes the sentence, but then explains it in MUST/SHOULD terms that do not appear in the excerpt, blurring the exact normative keyword the prompt asks about.",
+        "The requested operational consequence is vague ('changes interoperability or security assumptions'); it should say that omitting group14-sha1 breaks key exchange with conforming peers that require it, or pins peers to the weaker group1.",
+        "Introduces a SHOULD discussion that is not in the excerpt, contrary to the evidence-only framing.",
+        "Does not note that both listed methods are REQUIRED (not alternatives) or that the proposal also strips the Section 8 pointer."
+      ],
+      "id": "grnd-ietf-rfcs-ietf-rfcs-004bfcfa7226989d-requirement-1",
+      "reason": "review:revise",
+      "record": {
+        "id": "grnd-ietf-rfcs-ietf-rfcs-004bfcfa7226989d-requirement-1",
+        "kind": "completion",
+        "license": "IETF-Trust",
+        "metadata": {
+          "build_id": "cyberlite-syn-2.0.0-c7a2b7f426ce",
+          "category": "Standards Track                                C. Lonvick, Ed.",
+          "citation": "IETF Trust. Request for Comments series.",
+          "content_hash": "9b5b758d23ad3fd09ad9bd2e1ccdf46e1c7f02ae0c242430e47e7f2ccaf8e9a6",
+          "dataset_stage": "production",
+          "dataset_version": "cyberlite-syn-2.0.0-c7a2b7f426ce",
+          "date": "January 2006",
+          "derivation_parent_id": "ietf_rfcs-004bfcfa7226989d",
+          "derivation_version": "grounded-v1",
+          "difficulty": "advanced",
+          "domain": "fundamentals-linux-networking",
+          "evidence_chars": 785,
+          "evidence_coverage": 0.9,
+          "generation_method": "grounded-evidence-composition",
+          "group": "ietf_rfcs:RFC4253",
+          "heading": "RFC 4253 \u00a76.5 Key Exchange Methods",
+          "human_reviewed": false,
+          "license_url": "https://trustee.ietf.org/license-info",
+          "normative_strength": "required (REQUIRED)",
+          "origin": "source-derived",
+          "prepared_by": "cyberlite-0.1.0",
+          "requirement": "Two REQUIRED key exchange methods have been defined: diffie-hellman-group1-sha1 REQUIRED diffie-hellman-group14-sha1 REQUIRED These methods are described in Section 8.",
+          "review_status": "automated-screened",
+          "rfc": "RFC 4253",
+          "source_title": "IETF Request for Comments (selected networking standards)",
+          "source_url": "https://www.rfc-editor.org/rfc/rfc4253.txt",
+          "source_version": "2026-11-25-selection-v1",
+          "synthetic": false,
+          "synthetic_identifiers": true,
+          "task_family": "evidence-grounded-qa",
+          "terms_url": "https://www.rfc-editor.org/rfc/rfc5378",
+          "title": "The Secure Shell (SSH) Transport Layer Protocol",
+          "token_count": 409,
+          "transformation": "cyberlite-normalize-v2",
+          "upstream_id": "RFC4253:RFC 4253 \u00a76.5 Key Exchange Methods",
+          "variant": "normative-requirement-application"
+        },
+        "prompt": "Use only the excerpt below. A deployment plan states the following behaviour. Is that behaviour supported by the excerpt? Quote the relevant requirement, explain the difference in normative strength, and state one operational consequence of treating it as optional.\n\nExcerpt:\n\"\"\"\nThe key exchange method specifies how one-time session keys are generated for encryption and for authentication, and how the server authentication is done. Two REQUIRED key exchange methods have been defined: diffie-hellman-group1-sha1 REQUIRED diffie-hellman-group14-sha1 REQUIRED These methods are described in Section 8. Additional methods may be defined as specified in [SSH-NUMBERS]. The name \"diffie-hellman-group1-sha1\" is used for a key exchange method using an Oakley group, as defined in [RFC2409]. SSH maintains its own group identifier space that is logically distinct from Oakley [RFC2412] and IKE; however, for one additional group, the Working Group adopted the number assigned by [RFC3526], using diffie- hellman-group14-sha1 for the name of the second defined group. \u2026\n\"\"\"\n\nProposed behaviour: Two OPTIONAL key exchange methods have been defined: diffie-hellman-group1-sha1 REQUIRED diffie-hellman-group14-sha1 REQUIRED These methods are described in Section 8.",
+        "response": "No. The excerpt makes this required (REQUIRED): \"Two REQUIRED key exchange methods have been defined: diffie-hellman-group1-sha1 REQUIRED diffie-hellman-group14-sha1 REQUIRED These methods are described in Section 8.\" The proposed behaviour weakens or reverses that requirement. Treating a MUST as optional changes interoperability or security assumptions; treating a SHOULD as optional may be defensible only with a documented reason and compensating control. Confirm the exact normative keyword in the current version of the source before making the decision, and record the deployment exception if one is taken.",
+        "source": "ietf_rfcs",
+        "split": "train",
+        "task": "grounded-reasoning",
+        "url": "https://www.rfc-editor.org/rfc/rfc4253.txt"
+      },
+      "reviews": [
+        {
+          "accepted": false,
+          "average": 7.75,
+          "content_hash": "9b5b758d23ad3fd09ad9bd2e1ccdf46e1c7f02ae0c242430e47e7f2ccaf8e9a6",
+          "critical": false,
+          "decision": "revise",
+          "findings": [
+            "Verdict and quote are correct: the excerpt says 'Two REQUIRED key exchange methods have been defined', so the proposed OPTIONAL behaviour is not supported, and the quotation is exact.",
+            "The normative-strength explanation is muddled: it equates REQUIRED with MUST without saying so (RFC 2119 treats REQUIRED as synonymous with MUST, an absolute requirement) and then discusses SHOULD, which does not appear in the excerpt.",
+            "The operational consequence is abstract ('changes interoperability or security assumptions'); a concrete one is that a peer implementing only the MTI methods would fail algorithm negotiation, or that an operator could wrongly disable a method still marked REQUIRED in this excerpt.",
+            "The instruction to confirm the keyword in the current source is good, but the item does not acknowledge that RFC 9142 updates RFC 4253 and demotes both methods, which is exactly the staleness risk in the companion record."
+          ],
+          "record_id": "grnd-ietf-rfcs-ietf-rfcs-004bfcfa7226989d-requirement-1",
+          "review_type": "technical",
+          "reviewer": "agent-D3",
+          "revision": 0,
+          "scores": {
+            "clarity": 9.0,
+            "completeness": 6.0,
+            "originality_diversity": 6.0,
+            "practical_usefulness": 6.0,
+            "relevance": 9.0,
+            "small_model_suitability": 8.0,
+            "source_grounding": 9.0,
+            "technical_accuracy": 9.0
+          }
+        },
+        {
+          "accepted": false,
+          "average": 7.25,
+          "content_hash": "9b5b758d23ad3fd09ad9bd2e1ccdf46e1c7f02ae0c242430e47e7f2ccaf8e9a6",
+          "critical": false,
+          "decision": "revise",
+          "findings": [
+            "Correctly identifies the REQUIRED vs OPTIONAL contradiction and quotes the sentence, but then explains it in MUST/SHOULD terms that do not appear in the excerpt, blurring the exact normative keyword the prompt asks about.",
+            "The requested operational consequence is vague ('changes interoperability or security assumptions'); it should say that omitting group14-sha1 breaks key exchange with conforming peers that require it, or pins peers to the weaker group1.",
+            "Introduces a SHOULD discussion that is not in the excerpt, contrary to the evidence-only framing.",
+            "Does not note that both listed methods are REQUIRED (not alternatives) or that the proposal also strips the Section 8 pointer."
+          ],
+          "record_id": "grnd-ietf-rfcs-ietf-rfcs-004bfcfa7226989d-requirement-1",
+          "review_type": "quality",
+          "reviewer": "agent-E3",
+          "revision": 0,
+          "scores": {
+            "clarity": 8.0,
+            "completeness": 6.0,
+            "originality_diversity": 5.5,
+            "practical_usefulness": 6.5,
+            "relevance": 7.5,
+            "small_model_suitability": 7.0,
+            "source_grounding": 9.0,
+            "technical_accuracy": 8.5
+          }
+        }
+      ],
+      "split": "train"
+    },
+    {
+      "average": 4.531,
+      "decision": "quarantine",
+      "findings": [
+        "The prompt asks for operational security implications and forbids added requirements; the response is a verbatim RFC excerpt with zero operational guidance: no deprecation status, no configuration advice, no verification steps.",
+        "Materially misleading as 2026 guidance: it presents `diffie-hellman-group1-sha1 REQUIRED` without noting that RFC 9142 (January 2022, Updates RFC 4253) reclassifies group1-sha1 as SHOULD NOT and group14-sha1 as MAY, and that group1 is a 1024-bit MODP group (~80-bit strength).",
+        "The verbatim copy preserves PDF-style line breaks and broken hyphenation ('diffie-\\nhellman-group14-sha1'), which is poor text for a completion target.",
+        "It omits the key operational distinction: REQUIRED in RFC 4253 means 'MUST implement' for interoperability, not 'MUST enable or negotiate', which is what a defender actually needs to decide.",
+        "The response is a verbatim reproduction of RFC 4253 \u00a76.5, including layout whitespace; it adds no explanation, no defender guidance, and no operational security implications, which are the only things the prompt asks for.",
+        "Zero instruction-following signal: a model trained on this learns to copy source text when asked to explain it.",
+        "Reproduces IETF Trust copyrighted text verbatim in a record licensed 'Synthetic' with no transformation or attribution beyond metadata; resolve licensing before any use.",
+        "Near-duplicate of the evidence-grounded requirement record built from the same excerpt, but without the analysis.",
+        "Replace, do not patch: the intended answer is a summary of the two REQUIRED methods, group1-sha1's weakness, and peer-compatibility implications, without adding requirements."
+      ],
+      "id": "ietf_rfcs-004bfcfa7226989d",
+      "reason": "review:quarantine",
+      "record": {
+        "id": "ietf_rfcs-004bfcfa7226989d",
+        "kind": "completion",
+        "license": "IETF-Trust",
+        "metadata": {
+          "build_id": "cyberlite-syn-2.0.0-c7a2b7f426ce",
+          "category": "Standards Track                                C. Lonvick, Ed.",
+          "citation": "IETF Trust. Request for Comments series.",
+          "content_hash": "87a1d25fab71e2b46465b2ba00e4de091806e46b7a51e5bece4d2807f93d47e0",
+          "dataset_stage": "production",
+          "dataset_version": "cyberlite-syn-2.0.0-c7a2b7f426ce",
+          "date": "January 2006",
+          "difficulty": "advanced",
+          "domain": "ietf_rfcs",
+          "group": "ietf_rfcs:RFC4253",
+          "heading": "RFC 4253 \u00a76.5 Key Exchange Methods",
+          "human_reviewed": false,
+          "license_url": "https://trustee.ietf.org/license-info",
+          "origin": "source-derived",
+          "prepared_by": "cyberlite-0.1.0",
+          "review_status": "automated-screened",
+          "rfc": "RFC 4253",
+          "source_title": "IETF Request for Comments (selected networking standards)",
+          "source_url": "https://www.rfc-editor.org/rfc/rfc4253.txt",
+          "source_version": "2026-11-25-selection-v1",
+          "synthetic": false,
+          "task_family": "instruction-response",
+          "terms_url": "https://www.rfc-editor.org/rfc/rfc5378",
+          "title": "The Secure Shell (SSH) Transport Layer Protocol",
+          "token_count": 310,
+          "transformation": "cyberlite-normalize-v2",
+          "upstream_id": "RFC4253:RFC 4253 \u00a76.5 Key Exchange Methods"
+        },
+        "prompt": "Explain RFC 4253 \u00a76.5 Key Exchange Methods from IETF RFC 4253 for a defender or network administrator. Focus on operational security implications and do not add requirements the RFC does not state.",
+        "response": "# RFC 4253 \u00a76.5 Key Exchange Methods\n\nThe key exchange method specifies how one-time session keys are\n   generated for encryption and for authentication, and how the server\n   authentication is done.\n\n   Two REQUIRED key exchange methods have been defined:\n\n      diffie-hellman-group1-sha1 REQUIRED\n      diffie-hellman-group14-sha1 REQUIRED\n\n   These methods are described in Section 8.\n\n   Additional methods may be defined as specified in [SSH-NUMBERS].  The\n   name \"diffie-hellman-group1-sha1\" is used for a key exchange method\n   using an Oakley group, as defined in [RFC2409].  SSH maintains its\n   own group identifier space that is logically distinct from Oakley\n   [RFC2412] and IKE; however, for one additional group, the Working\n   Group adopted the number assigned by [RFC3526], using diffie-\n   hellman-group14-sha1 for the name of the second defined group.\n   Implementations should treat these names as opaque identifiers and\n   should not assume any relationship between the groups used by SSH and\n   the groups defined for IKE.",
+        "source": "ietf_rfcs",
+        "split": "train",
+        "task": "ssh",
+        "url": "https://www.rfc-editor.org/rfc/rfc4253.txt"
+      },
+      "reviews": [
+        {
+          "accepted": false,
+          "average": 4.625,
+          "content_hash": "87a1d25fab71e2b46465b2ba00e4de091806e46b7a51e5bece4d2807f93d47e0",
+          "critical": false,
+          "decision": "revise",
+          "findings": [
+            "The prompt asks for operational security implications and forbids added requirements; the response is a verbatim RFC excerpt with zero operational guidance: no deprecation status, no configuration advice, no verification steps.",
+            "Materially misleading as 2026 guidance: it presents `diffie-hellman-group1-sha1 REQUIRED` without noting that RFC 9142 (January 2022, Updates RFC 4253) reclassifies group1-sha1 as SHOULD NOT and group14-sha1 as MAY, and that group1 is a 1024-bit MODP group (~80-bit strength).",
+            "The verbatim copy preserves PDF-style line breaks and broken hyphenation ('diffie-\\nhellman-group14-sha1'), which is poor text for a completion target.",
+            "It omits the key operational distinction: REQUIRED in RFC 4253 means 'MUST implement' for interoperability, not 'MUST enable or negotiate', which is what a defender actually needs to decide."
+          ],
+          "record_id": "ietf_rfcs-004bfcfa7226989d",
+          "review_type": "technical",
+          "reviewer": "agent-D3",
+          "revision": 0,
+          "scores": {
+            "clarity": 7.0,
+            "completeness": 3.0,
+            "originality_diversity": 2.0,
+            "practical_usefulness": 2.0,
+            "relevance": 3.0,
+            "small_model_suitability": 4.0,
+            "source_grounding": 9.0,
+            "technical_accuracy": 7.0
+          }
+        },
+        {
+          "accepted": false,
+          "average": 4.438,
+          "content_hash": "87a1d25fab71e2b46465b2ba00e4de091806e46b7a51e5bece4d2807f93d47e0",
+          "critical": true,
+          "decision": "quarantine",
+          "findings": [
+            "The response is a verbatim reproduction of RFC 4253 \u00a76.5, including layout whitespace; it adds no explanation, no defender guidance, and no operational security implications, which are the only things the prompt asks for.",
+            "Zero instruction-following signal: a model trained on this learns to copy source text when asked to explain it.",
+            "Reproduces IETF Trust copyrighted text verbatim in a record licensed 'Synthetic' with no transformation or attribution beyond metadata; resolve licensing before any use.",
+            "Near-duplicate of the evidence-grounded requirement record built from the same excerpt, but without the analysis.",
+            "Replace, do not patch: the intended answer is a summary of the two REQUIRED methods, group1-sha1's weakness, and peer-compatibility implications, without adding requirements."
+          ],
+          "record_id": "ietf_rfcs-004bfcfa7226989d",
+          "review_type": "quality",
+          "reviewer": "agent-E3",
+          "revision": 0,
+          "scores": {
+            "clarity": 8.0,
+            "completeness": 2.0,
+            "originality_diversity": 1.0,
+            "practical_usefulness": 1.0,
+            "relevance": 2.0,
+            "small_model_suitability": 2.0,
+            "source_grounding": 10.0,
+            "technical_accuracy": 9.5
+          }
+        }
+      ],
+      "split": "train"
+    },
+    {
+      "average": 5.906,
+      "decision": "revise",
+      "findings": [
+        "The answer never explains the command, which is the first half of the prompt: --name, --resource at subscription scope, --workspace and the --logs JSON are not decoded, and the 90-day retention fact is background rather than an explanation of what the invocation does.",
+        "The wrong-assumption risk is not identified. `create` is a PUT that overwrites an existing subscription diagnostic setting with the same name (silently dropping categories the caller did not resend), and the caller needs Monitoring Contributor/Owner on the subscription; neither is mentioned.",
+        "The documented subscription-scope form is `az monitor diagnostic-settings subscription create` with `--location` (verified against the Microsoft Learn Azure CLI reference, 2026-11). The record uses the resource-scoped form with a subscription ID and omits --location, and the answer presents it as correct without caveat.",
+        "'How to verify before acting' is answered with generic 'run in non-production and compare with an independent source' instead of `az monitor diagnostic-settings subscription show -n send-activity-log` plus a query of the AzureActivity table.",
+        "Dataset meta-text leaks into the answer: 'Generated commands in this corpus are examples and are never executed by the project.' That is corpus scaffolding, not security guidance.",
+        "Does not explain the command's parts: --name collision behaviour, subscription-scope --resource, the --workspace target, or that --logs defines the routed category set; only a one-line purpose statement is given.",
+        "The requested 'what could go wrong' is not answered for this command (overwriting an existing 'send-activity-log' setting, missing Microsoft.Insights/diagnosticSettings/write, assuming resource logs are covered); generic Activity Log background is substituted.",
+        "Verification advice ('compare it with an independent source such as the service configuration or audit log') is not actionable; the applicable check is `az monitor diagnostic-settings show` plus a workspace query.",
+        "Ends with corpus meta-text: 'Generated commands in this corpus are examples and are never executed by the project.' The sentence appears verbatim in 3 records and is not training content.",
+        "Four Activity Log background sentences are shared verbatim with the YAML/compare records in the same batch."
+      ],
+      "id": "syn-cloud-container-supply-chain-cloud-azure-diagnostic-settings-command-1",
+      "reason": "review:revise",
+      "record": {
+        "id": "syn-cloud-container-supply-chain-cloud-azure-diagnostic-settings-command-1",
+        "kind": "completion",
+        "license": "Synthetic",
+        "metadata": {
+          "artifact": "command",
+          "artifact_language": "bash",
+          "authoring_agent": "worker:C5",
+          "build_id": "cyberlite-syn-2.0.0-c7a2b7f426ce",
+          "content_hash": "1c04aca0bf13ed6512b148084efbfe0c32faa9e162fbdf9061e5dcba19a6ea90",
+          "dataset_stage": "production",
+          "dataset_version": "cyberlite-syn-2.0.0-c7a2b7f426ce",
+          "difficulty": "intermediate",
+          "domain": "cloud-container-supply-chain",
+          "generation_method": "curated-fact-composition",
+          "group": "synthesis:cloud-container-supply-chain:cloud-azure-diagnostic-settings",
+          "human_reviewed": false,
+          "license_url": "https://github.com/braydos-h/CyberLite/blob/main/LICENSE",
+          "origin": "curated-synthetic",
+          "pack_sha256": "8edd4aaee00aea5bbed913a3fe1379169db4d4b7bb1227eecb395ee4ba0da6f4",
+          "references": [
+            {
+              "license": "CC-BY-4.0",
+              "publisher": "Microsoft",
+              "title": "Microsoft Learn: Azure Monitor diagnostic settings",
+              "url": "https://learn.microsoft.com/en-us/azure/azure-monitor/essentials/diagnostic-settings"
+            },
+            {
+              "license": "CC-BY-4.0",
+              "publisher": "Microsoft",
+              "title": "Microsoft Learn: Azure Activity log",
+              "url": "https://learn.microsoft.com/en-us/azure/azure-monitor/essentials/activity-log"
+            }
+          ],
+          "review_status": "automated-screened",
+          "source_title": "CyberLite curated synthesis knowledge pack",
+          "source_url": "https://learn.microsoft.com/en-us/azure/azure-monitor/essentials/diagnostic-settings",
+          "source_version": "synthesis-v1",
+          "subtopic": "azure-logging",
+          "synthesis_version": "synthesis-v1",
+          "synthetic": true,
+          "task_family": "command-explanation",
+          "token_count": 336,
+          "upstream_id": "cloud-azure-diagnostic-settings"
+        },
+        "prompt": "Explain what this bash command does, what could go wrong if it is run with the wrong assumptions, and how to verify the result before acting on it:\n\n```bash\naz monitor diagnostic-settings create --name send-activity-log --resource \"/subscriptions/00000000-0000-0000-0000-000000000000\" --workspace \"/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-ops/providers/Microsoft.OperationalInsights/workspaces/law-ops\" --logs '[{\"category\":\"Administrative\",\"enabled\":true},{\"category\":\"Security\",\"enabled\":true},{\"category\":\"Policy\",\"enabled\":true}]'\n```",
+        "response": "Purpose: Route subscription control-plane log categories to a Log Analytics workspace.\n\nThe Azure Activity Log records subscription-level control-plane events and is retained for 90 days by default. To retain it longer or query it alongside other telemetry, you create a diagnostic setting that routes categories such as Administrative, Security, Alert and Policy to a Log Analytics workspace, a storage account or an event hub. Resource logs are separate: each resource type needs its own diagnostic setting, and not every resource emits the categories you expect.\n\nRun it first in a non-production or read-only context, capture the output with timestamps, and compare it with an independent source such as the service configuration or audit log. Generated commands in this corpus are examples and are never executed by the project.",
+        "source": "cyberlite_synthesis",
+        "split": "train",
+        "task": "system-administration",
+        "url": "https://learn.microsoft.com/en-us/azure/azure-monitor/essentials/diagnostic-settings"
+      },
+      "reviews": [
+        {
+          "accepted": false,
+          "average": 5.5,
+          "content_hash": "1c04aca0bf13ed6512b148084efbfe0c32faa9e162fbdf9061e5dcba19a6ea90",
+          "critical": false,
+          "decision": "revise",
+          "findings": [
+            "The answer never explains the command, which is the first half of the prompt: --name, --resource at subscription scope, --workspace and the --logs JSON are not decoded, and the 90-day retention fact is background rather than an explanation of what the invocation does.",
+            "The wrong-assumption risk is not identified. `create` is a PUT that overwrites an existing subscription diagnostic setting with the same name (silently dropping categories the caller did not resend), and the caller needs Monitoring Contributor/Owner on the subscription; neither is mentioned.",
+            "The documented subscription-scope form is `az monitor diagnostic-settings subscription create` with `--location` (verified against the Microsoft Learn Azure CLI reference, 2026-11). The record uses the resource-scoped form with a subscription ID and omits --location, and the answer presents it as correct without caveat.",
+            "'How to verify before acting' is answered with generic 'run in non-production and compare with an independent source' instead of `az monitor diagnostic-settings subscription show -n send-activity-log` plus a query of the AzureActivity table.",
+            "Dataset meta-text leaks into the answer: 'Generated commands in this corpus are examples and are never executed by the project.' That is corpus scaffolding, not security guidance."
+          ],
+          "record_id": "syn-cloud-container-supply-chain-cloud-azure-diagnostic-settings-command-1",
+          "review_type": "technical",
+          "reviewer": "agent-D3",
+          "revision": 0,
+          "scores": {
+            "clarity": 8.0,
+            "completeness": 4.0,
+            "originality_diversity": 3.0,
+            "practical_usefulness": 4.0,
+            "relevance": 5.0,
+            "small_model_suitability": 6.0,
+            "source_grounding": 7.0,
+            "technical_accuracy": 7.0
+          }
+        },
+        {
+          "accepted": false,
+          "average": 6.312,
+          "content_hash": "1c04aca0bf13ed6512b148084efbfe0c32faa9e162fbdf9061e5dcba19a6ea90",
+          "critical": false,
+          "decision": "revise",
+          "findings": [
+            "Does not explain the command's parts: --name collision behaviour, subscription-scope --resource, the --workspace target, or that --logs defines the routed category set; only a one-line purpose statement is given.",
+            "The requested 'what could go wrong' is not answered for this command (overwriting an existing 'send-activity-log' setting, missing Microsoft.Insights/diagnosticSettings/write, assuming resource logs are covered); generic Activity Log background is substituted.",
+            "Verification advice ('compare it with an independent source such as the service configuration or audit log') is not actionable; the applicable check is `az monitor diagnostic-settings show` plus a workspace query.",
+            "Ends with corpus meta-text: 'Generated commands in this corpus are examples and are never executed by the project.' The sentence appears verbatim in 3 records and is not training content.",
+            "Four Activity Log background sentences are shared verbatim with the YAML/compare records in the same batch."
+          ],
+          "record_id": "syn-cloud-container-supply-chain-cloud-azure-diagnostic-settings-command-1",
+          "review_type": "quality",
+          "reviewer": "agent-E3",
+          "revision": 0,
+          "scores": {
+            "clarity": 7.0,
+            "completeness": 5.0,
+            "originality_diversity": 4.0,
+            "practical_usefulness": 6.0,
+            "relevance": 6.0,
+            "small_model_suitability": 6.5,
+            "source_grounding": 8.0,
+            "technical_accuracy": 8.0
+          }
+        }
+      ],
+      "split": "train"
+    },
+    {
+      "average": 6.625,
+      "decision": "revise",
+      "findings": [
+        "No review of the supplied YAML occurs. The obvious supply-chain weakness in a supply-chain domain is that `aws-actions/configure-aws-credentials@v4` is a mutable tag while `actions/checkout` is pinned to a commit SHA; the response never mentions it.",
+        "The property depends on the role trust policy, which is not in the file: the answer never names the checks that make or break it (issuer, audience `sts.amazonaws.com`, `sub` pinned to `repo:org/repo:ref:refs/heads/main`, account and role scope).",
+        "Verification text is Kubernetes boilerplate ('inspect the effective object after defaults and admission'); GitHub Actions has no admission controller, so that check does not apply. The real checks are the decoded OIDC token claims and a CloudTrail AssumeRoleWithWebIdentity event.",
+        "The 'assumption that could make it unsafe' is generic; concrete ones are a wildcard `sub`, a role assumable by any repository in the org, and `permissions` granted workflow-wide rather than at the deploy job.",
+        "Does not state the decisive assumption: the role's trust policy is not shown, so the required `sub`/`aud`/issuer pinning cannot be verified from the snippet; this is exactly the 'assumption that could make it unsafe' the prompt asks for.",
+        "Misses a concrete supply-chain defect: actions/checkout is SHA-pinned but aws-actions/configure-aws-credentials@v4 is tag-pinned, so the step that handles cloud credentials is the mutable one.",
+        "Verification advice ('parse the YAML and inspect the effective object after defaults and admission') uses Kubernetes/admission-control vocabulary that does not apply to GitHub Actions; the applicable checks are the role trust policy and a CloudTrail AssumeRoleWithWebIdentity event.",
+        "Does not discuss the workflow-level `id-token: write` grant or environment protection rules, both visible and relevant in the snippet."
+      ],
+      "id": "syn-cloud-container-supply-chain-cloud-ci-oidc-federation-config-1",
+      "reason": "review:revise",
+      "record": {
+        "id": "syn-cloud-container-supply-chain-cloud-ci-oidc-federation-config-1",
+        "kind": "completion",
+        "license": "Synthetic",
+        "metadata": {
+          "artifact": "config",
+          "artifact_language": "yaml",
+          "authoring_agent": "worker:C5",
+          "build_id": "cyberlite-syn-2.0.0-c7a2b7f426ce",
+          "content_hash": "9586c31458c260559cb3176aa157d022c829a755c8160f5c05dff89bbe6b9756",
+          "dataset_stage": "production",
+          "dataset_version": "cyberlite-syn-2.0.0-c7a2b7f426ce",
+          "difficulty": "intermediate",
+          "domain": "cloud-container-supply-chain",
+          "generation_method": "curated-fact-composition",
+          "group": "synthesis:cloud-container-supply-chain:cloud-ci-oidc-federation",
+          "human_reviewed": false,
+          "license_url": "https://github.com/braydos-h/CyberLite/blob/main/LICENSE",
+          "origin": "curated-synthetic",
+          "pack_sha256": "8edd4aaee00aea5bbed913a3fe1379169db4d4b7bb1227eecb395ee4ba0da6f4",
+          "references": [
+            {
+              "license": "CC-BY-4.0",
+              "publisher": "GitHub",
+              "title": "GitHub Docs: About security hardening with OpenID Connect",
+              "url": "https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/about-security-hardening-with-openid-connect"
+            },
+            {
+              "license": "CC-BY-SA-4.0",
+              "publisher": "Amazon Web Services",
+              "title": "AWS Identity and Access Management: Creating OIDC identity providers",
+              "url": "https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_providers_create_oidc.html"
+            }
+          ],
+          "review_status": "automated-screened",
+          "source_title": "CyberLite curated synthesis knowledge pack",
+          "source_url": "https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/about-security-hardening-with-openid-connect",
+          "source_version": "synthesis-v1",
+          "subtopic": "ci-identity",
+          "synthesis_version": "synthesis-v1",
+          "synthetic": true,
+          "task_family": "configuration-analysis",
+          "token_count": 408,
+          "upstream_id": "cloud-ci-oidc-federation"
+        },
+        "prompt": "Review this yaml configuration snippet for a security review:\n\n```yaml\nname: deploy\non:\n  push:\n    branches: [main]\npermissions:\n  id-token: write\n  contents: read\njobs:\n  deploy:\n    runs-on: ubuntu-24.04\n    steps:\n      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683\n      - name: Assume deploy role with OIDC\n        uses: aws-actions/configure-aws-credentials@v4\n        with:\n          role-to-assume: arn:aws:iam::111122223333:role/gh-deploy\n          aws-region: eu-west-1\n      - run: aws sts get-caller-identity\n```\n\nWhat security property does it establish, what assumption could make it unsafe, and what should be verified in the deployed system?",
+        "response": "Intended property: Minimal GitHub Actions workflow that requests an OIDC token and assumes a role without storing cloud keys.\n\nA CI platform can act as an OpenID Connect identity provider so a pipeline job exchanges a short-lived signed token for temporary cloud credentials. The cloud role's trust policy must restrict the token's issuer, audience and subject claims, such as a specific repository, branch or environment. The job needs permission to request an identity token, typically `id-token: write` in GitHub Actions, and the resulting credentials expire with the job rather than persisting in repository secrets.\n\nCheck: parse the YAML and inspect the effective object after defaults and admission; then attempt the action the control is meant to block and confirm it fails for the intended identity and scope. A syntactically valid directive can still be overridden by a more specific rule or a later scope, so compare the rendered/effective configuration, not only the file.",
+        "source": "cyberlite_synthesis",
+        "split": "train",
+        "task": "system-hardening",
+        "url": "https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/about-security-hardening-with-openid-connect"
+      },
+      "reviews": [
+        {
+          "accepted": false,
+          "average": 6.5,
+          "content_hash": "9586c31458c260559cb3176aa157d022c829a755c8160f5c05dff89bbe6b9756",
+          "critical": false,
+          "decision": "revise",
+          "findings": [
+            "No review of the supplied YAML occurs. The obvious supply-chain weakness in a supply-chain domain is that `aws-actions/configure-aws-credentials@v4` is a mutable tag while `actions/checkout` is pinned to a commit SHA; the response never mentions it.",
+            "The property depends on the role trust policy, which is not in the file: the answer never names the checks that make or break it (issuer, audience `sts.amazonaws.com`, `sub` pinned to `repo:org/repo:ref:refs/heads/main`, account and role scope).",
+            "Verification text is Kubernetes boilerplate ('inspect the effective object after defaults and admission'); GitHub Actions has no admission controller, so that check does not apply. The real checks are the decoded OIDC token claims and a CloudTrail AssumeRoleWithWebIdentity event.",
+            "The 'assumption that could make it unsafe' is generic; concrete ones are a wildcard `sub`, a role assumable by any repository in the org, and `permissions` granted workflow-wide rather than at the deploy job."
+          ],
+          "record_id": "syn-cloud-container-supply-chain-cloud-ci-oidc-federation-config-1",
+          "review_type": "technical",
+          "reviewer": "agent-D3",
+          "revision": 0,
+          "scores": {
+            "clarity": 8.0,
+            "completeness": 5.0,
+            "originality_diversity": 4.0,
+            "practical_usefulness": 6.0,
+            "relevance": 7.0,
+            "small_model_suitability": 7.0,
+            "source_grounding": 7.0,
+            "technical_accuracy": 8.0
+          }
+        },
+        {
+          "accepted": false,
+          "average": 6.75,
+          "content_hash": "9586c31458c260559cb3176aa157d022c829a755c8160f5c05dff89bbe6b9756",
+          "critical": false,
+          "decision": "revise",
+          "findings": [
+            "Does not state the decisive assumption: the role's trust policy is not shown, so the required `sub`/`aud`/issuer pinning cannot be verified from the snippet; this is exactly the 'assumption that could make it unsafe' the prompt asks for.",
+            "Misses a concrete supply-chain defect: actions/checkout is SHA-pinned but aws-actions/configure-aws-credentials@v4 is tag-pinned, so the step that handles cloud credentials is the mutable one.",
+            "Verification advice ('parse the YAML and inspect the effective object after defaults and admission') uses Kubernetes/admission-control vocabulary that does not apply to GitHub Actions; the applicable checks are the role trust policy and a CloudTrail AssumeRoleWithWebIdentity event.",
+            "Does not discuss the workflow-level `id-token: write` grant or environment protection rules, both visible and relevant in the snippet."
+          ],
+          "record_id": "syn-cloud-container-supply-chain-cloud-ci-oidc-federation-config-1",
+          "review_type": "quality",
+          "reviewer": "agent-E3",
+          "revision": 0,
+          "scores": {
+            "clarity": 8.0,
+            "completeness": 6.0,
+            "originality_diversity": 4.0,
+            "practical_usefulness": 6.0,
+            "relevance": 7.0,
+            "small_model_suitability": 7.0,
+            "source_grounding": 8.0,
+            "technical_accuracy": 8.0
+          }
+        }
+      ],
+      "split": "train"
+    },
+    {
+      "average": 6.688,
+      "decision": "revise",
+      "findings": [
+        "`checks` contains statements of fact, not checks: none is an action an operator can run or verify ('Data Access logs can be enabled per service' is background, not a check).",
+        "`principle` truncates the guidance to its first clause and omits the retention facts a runbook needs (400-day `_Required`, 30-day `_Default`, Policy Denied).",
+        "Only two failure modes are returned and neither covers the retention split, so the output would not help a reader catch the most likely mistake (assuming 30-day retention is sufficient).",
+        "Entries are 80-110 character sentences, not the 'short strings' the prompt explicitly requires."
+      ],
+      "id": "syn-cloud-container-supply-chain-cloud-gcp-audit-log-types-checklist",
+      "reason": "review:revise",
+      "record": {
+        "id": "syn-cloud-container-supply-chain-cloud-gcp-audit-log-types-checklist",
+        "kind": "completion",
+        "license": "Synthetic",
+        "metadata": {
+          "authoring_agent": "worker:C5",
+          "build_id": "cyberlite-syn-2.0.0-c7a2b7f426ce",
+          "content_hash": "a2c081bf54e7253ac1c6a3fa3a3479761b539f45303432ea5ae1d16d67e76c07",
+          "dataset_stage": "production",
+          "dataset_version": "cyberlite-syn-2.0.0-c7a2b7f426ce",
+          "difficulty": "intermediate",
+          "domain": "cloud-container-supply-chain",
+          "generation_method": "curated-fact-composition",
+          "group": "synthesis:cloud-container-supply-chain:cloud-gcp-audit-log-types",
+          "human_reviewed": false,
+          "license_url": "https://github.com/braydos-h/CyberLite/blob/main/LICENSE",
+          "origin": "curated-synthetic",
+          "pack_sha256": "8edd4aaee00aea5bbed913a3fe1379169db4d4b7bb1227eecb395ee4ba0da6f4",
+          "references": [
+            {
+              "license": "CC-BY-4.0",
+              "publisher": "Google Cloud",
+              "title": "Google Cloud: Cloud Audit Logs overview",
+              "url": "https://cloud.google.com/logging/docs/audit"
+            },
+            {
+              "license": "CC-BY-4.0",
+              "publisher": "Google Cloud",
+              "title": "Google Cloud: Configure and view audit logs",
+              "url": "https://cloud.google.com/logging/docs/audit/configure-data-access"
+            }
+          ],
+          "review_status": "automated-screened",
+          "source_title": "CyberLite curated synthesis knowledge pack",
+          "source_url": "https://cloud.google.com/logging/docs/audit",
+          "source_version": "synthesis-v1",
+          "structured_output": "json",
+          "subtopic": "gcp-logging",
+          "synthesis_version": "synthesis-v1",
+          "synthetic": true,
+          "task_family": "structured-json",
+          "token_count": 309,
+          "upstream_id": "cloud-gcp-audit-log-types"
+        },
+        "prompt": "Return a JSON object summarizing this guidance for a runbook. Use exactly the keys `principle`, `checks`, and `failure_modes`. `checks` and `failure_modes` must be arrays of short strings.\n\nGuidance: Google Cloud Audit Logs comprise Admin Activity, Data Access, System Event and Policy Denied logs. Admin Activity and System Event logs are always enabled and cannot be disabled; Data Access logs are disabled by default except for BigQuery, and Policy Denied logs record denials caused by IAM deny policies or organization policy. The `_Required` bucket retains Admin Activity for 400 days, while the `_Default` bucket retains other audit logs for 30 days unless you create a sink or custom retention.",
+        "response": "{\n  \"principle\": \"Google Cloud Audit Logs comprise Admin Activity, Data Access, System Event and Policy Denied logs\",\n  \"checks\": [\n    \"Data Access logs can be enabled per service, and they are often the only record of object reads or secret access.\",\n    \"Log sinks can route audit logs to Cloud Storage, BigQuery or Pub/Sub for long-term retention and analysis.\",\n    \"Audit log entries carry a `protoPayload` with authentication info, request metadata and the resource name.\"\n  ],\n  \"failure_modes\": [\n    \"Assuming all reads are logged; Data Access logging must be explicitly enabled and can be expensive.\",\n    \"Relying on project-level sinks when organization-level policy requires central retention.\"\n  ]\n}",
+        "source": "cyberlite_synthesis",
+        "split": "train",
+        "task": "security-knowledge",
+        "url": "https://cloud.google.com/logging/docs/audit"
+      },
+      "reviews": [
+        {
+          "accepted": false,
+          "average": 6.688,
+          "content_hash": "a2c081bf54e7253ac1c6a3fa3a3479761b539f45303432ea5ae1d16d67e76c07",
+          "critical": false,
+          "decision": "revise",
+          "findings": [
+            "`checks` contains statements of fact, not checks: none is an action an operator can run or verify ('Data Access logs can be enabled per service' is background, not a check).",
+            "`principle` truncates the guidance to its first clause and omits the retention facts a runbook needs (400-day `_Required`, 30-day `_Default`, Policy Denied).",
+            "Only two failure modes are returned and neither covers the retention split, so the output would not help a reader catch the most likely mistake (assuming 30-day retention is sufficient).",
+            "Entries are 80-110 character sentences, not the 'short strings' the prompt explicitly requires."
+          ],
+          "record_id": "syn-cloud-container-supply-chain-cloud-gcp-audit-log-types-checklist",
+          "review_type": "quality",
+          "reviewer": "agent-E3",
+          "revision": 0,
+          "scores": {
+            "clarity": 7.0,
+            "completeness": 5.5,
+            "originality_diversity": 5.0,
+            "practical_usefulness": 6.0,
+            "relevance": 6.5,
+            "small_model_suitability": 6.5,
+            "source_grounding": 8.5,
+            "technical_accuracy": 8.5
+          }
+        }
+      ],
+      "split": "train"
+    },
+    {
+      "average": 7.25,
+      "decision": "revise",
+      "findings": [
+        "States as fact that the finding is 'the signature of stolen instance credentials' and 'treat the instance as compromised'. The event only shows the key was used from an external IP, which a corporate egress proxy, VPN, or a legitimate off-AWS job can also produce; the prompt explicitly asks what it does not prove.",
+        "'Rotate the role credentials' is not actionable for an EC2 instance profile: the role has no long-term credentials to rotate. The correct actions are to revoke active sessions (aws:TokenIssueTime / AWSRevokeOlderSessions), replace the instance profile or instance, and investigate the metadata path.",
+        "Severity 8.0 is not mapped to GuardDuty's High band (7.0-8.9), and the CloudTrail next step is not tied to the access key ID and the event time window even though the dialogue variant supplies 02:14 UTC.",
+        "Correct and useful: GuardDuty is detective not preventive, and the answer cautions against treating one log line as proof of intent."
+      ],
+      "id": "syn-cloud-container-supply-chain-cloud-guardduty-finding-triage-log-1",
+      "reason": "review:revise",
+      "record": {
+        "id": "syn-cloud-container-supply-chain-cloud-guardduty-finding-triage-log-1",
+        "kind": "completion",
+        "license": "Synthetic",
+        "metadata": {
+          "artifact": "log",
+          "authoring_agent": "worker:C5",
+          "build_id": "cyberlite-syn-2.0.0-c7a2b7f426ce",
+          "content_hash": "968d24e385e964e1c535fad6b3ef558f978e7f9421e081361605dfc77654df93",
+          "dataset_stage": "production",
+          "dataset_version": "cyberlite-syn-2.0.0-c7a2b7f426ce",
+          "difficulty": "foundational",
+          "domain": "cloud-container-supply-chain",
+          "generation_method": "curated-fact-composition",
+          "group": "synthesis:cloud-container-supply-chain:cloud-guardduty-finding-triage",
+          "human_reviewed": false,
+          "license_url": "https://github.com/braydos-h/CyberLite/blob/main/LICENSE",
+          "origin": "curated-synthetic",
+          "pack_sha256": "8edd4aaee00aea5bbed913a3fe1379169db4d4b7bb1227eecb395ee4ba0da6f4",
+          "references": [
+            {
+              "license": "CC-BY-SA-4.0",
+              "publisher": "Amazon Web Services",
+              "title": "Amazon GuardDuty User Guide: What is Amazon GuardDuty?",
+              "url": "https://docs.aws.amazon.com/guardduty/latest/ug/what-is-guardduty.html"
+            },
+            {
+              "license": "CC-BY-SA-4.0",
+              "publisher": "Amazon Web Services",
+              "title": "Amazon GuardDuty User Guide: Finding types",
+              "url": "https://docs.aws.amazon.com/guardduty/latest/ug/guardduty_finding-types-active.html"
+            }
+          ],
+          "review_status": "automated-screened",
+          "source_title": "CyberLite curated synthesis knowledge pack",
+          "source_url": "https://docs.aws.amazon.com/guardduty/latest/ug/what-is-guardduty.html",
+          "source_version": "synthesis-v1",
+          "subtopic": "threat-detection",
+          "synthesis_version": "synthesis-v1",
+          "synthetic": true,
+          "task_family": "log-interpretation",
+          "token_count": 359,
+          "upstream_id": "cloud-guardduty-finding-triage"
+        },
+        "prompt": "Review this GuardDuty finding delivered as JSON to EventBridge excerpt:\n\n```\n{\n  \"schemaVersion\": \"2.0\",\n  \"accountId\": \"111122223333\",\n  \"region\": \"eu-west-1\",\n  \"type\": \"UnauthorizedAccess:IAMUser/InstanceCredentialExfiltration.OutsideAWS\",\n  \"severity\": 8.0,\n  \"title\": \"Credentials created exclusively for an EC2 instance are used from an external IP address\",\n  \"resource\": {\n    \"resourceType\": \"AccessKey\",\n    \"accessKeyDetails\": {\"userName\": \"app-instance-role\"}\n  }\n}\n```\n\nWhat does it support, what does it not prove, and what is the next verification step? Distinguish observations from inferences.",
+        "response": "The finding maps an access key used from outside AWS to an instance role, which is the signature of stolen instance credentials. Treat the instance as compromised, rotate the role credentials, and inspect CloudTrail for the actions taken with the key.\n\nRelevant principle: Amazon GuardDuty is a managed threat-detection service that consumes VPC flow logs, DNS logs, CloudTrail management events and optional malware or runtime sources, then emits findings with a type, severity and affected resource. It does not block activity. A finding such as instance-credential exfiltration indicates that credentials belonging to an EC2 instance role were used from outside AWS, which usually means the instance was compromised or its metadata was reached through a proxy.\n\nDo not treat a single log line as proof of intent. Correlate it with identity, endpoint, and network telemetry covering the same time window before escalating or changing the system.",
+        "source": "cyberlite_synthesis",
+        "split": "train",
+        "task": "log-analysis",
+        "url": "https://docs.aws.amazon.com/guardduty/latest/ug/what-is-guardduty.html"
+      },
+      "reviews": [
+        {
+          "accepted": false,
+          "average": 7.25,
+          "content_hash": "968d24e385e964e1c535fad6b3ef558f978e7f9421e081361605dfc77654df93",
+          "critical": false,
+          "decision": "revise",
+          "findings": [
+            "States as fact that the finding is 'the signature of stolen instance credentials' and 'treat the instance as compromised'. The event only shows the key was used from an external IP, which a corporate egress proxy, VPN, or a legitimate off-AWS job can also produce; the prompt explicitly asks what it does not prove.",
+            "'Rotate the role credentials' is not actionable for an EC2 instance profile: the role has no long-term credentials to rotate. The correct actions are to revoke active sessions (aws:TokenIssueTime / AWSRevokeOlderSessions), replace the instance profile or instance, and investigate the metadata path.",
+            "Severity 8.0 is not mapped to GuardDuty's High band (7.0-8.9), and the CloudTrail next step is not tied to the access key ID and the event time window even though the dialogue variant supplies 02:14 UTC.",
+            "Correct and useful: GuardDuty is detective not preventive, and the answer cautions against treating one log line as proof of intent."
+          ],
+          "record_id": "syn-cloud-container-supply-chain-cloud-guardduty-finding-triage-log-1",
+          "review_type": "technical",
+          "reviewer": "agent-D3",
+          "revision": 0,
+          "scores": {
+            "clarity": 9.0,
+            "completeness": 6.0,
+            "originality_diversity": 6.0,
+            "practical_usefulness": 7.0,
+            "relevance": 8.0,
+            "small_model_suitability": 8.0,
+            "source_grounding": 7.0,
+            "technical_accuracy": 7.0
+          }
+        }
+      ],
+      "split": "train"
+    },
+    {
+      "average": 6.812,
+      "decision": "revise",
+      "findings": [
+        "The final assistant turn appends two bullets ('Treating a GuardDuty finding as a blocked attack...', 'Enabling GuardDuty only in the home region...') that answer no question in the conversation; they are leftover template content and read as non sequiturs.",
+        "The first turn repeats the same over-assertion as the single-turn record ('signature of stolen instance credentials') and prescribes rotating role credentials that do not exist for an instance profile.",
+        "The false-positive guidance is sound: positive evidence means confirming initiator, authorization, change record, and peer-asset behaviour, and escalation triggers are listed.",
+        "Multi-turn coherence is otherwise acceptable: it preserves the raw event and timestamp, but no later turn refers to the specifics established earlier (account, region, access key).",
+        "Remediation is imprecise: 'rotate the role credentials' is not the action for instance-profile credentials; the correct steps are to isolate/stop the instance and revoke active sessions (deny-all session policy or revoke session), then review CloudTrail.",
+        "Ends with two bare bullets ('Treating a GuardDuty finding as a blocked attack...', 'Enabling GuardDuty only in the home region...') that are unrelated to the false-positive question and have no lead-in; they are pasted failure-mode fragments.",
+        "The second turn answers false-positive closure generically and names no GuardDuty-specific evidence such as the peer-instance baseline, VPC Flow Logs for the source IP, or the IP's ASN/reputation.",
+        "The finding's severity 8.0 and its specific type are not used to prioritise the containment order."
+      ],
+      "id": "syn-cloud-container-supply-chain-cloud-guardduty-finding-triage-triage-dialogue",
+      "reason": "review:revise",
+      "record": {
+        "id": "syn-cloud-container-supply-chain-cloud-guardduty-finding-triage-triage-dialogue",
+        "kind": "chat",
+        "license": "Synthetic",
+        "messages": [
+          {
+            "content": "This GuardDuty finding delivered as JSON to EventBridge event fired at 02:14 UTC:\n\n```\n{\n  \"schemaVersion\": \"2.0\",\n  \"accountId\": \"111122223333\",\n  \"region\": \"eu-west-1\",\n  \"type\": \"UnauthorizedAccess:IAMUser/InstanceCredentialExfiltration.OutsideAWS\",\n  \"severity\": 8.0,\n  \"title\": \"Credentials created exclusively for an EC2 instance are used from an external IP address\",\n  \"resource\": {\n    \"resourceType\": \"AccessKey\",\n    \"accessKeyDetails\": {\"userName\": \"app-instance-role\"}\n  }\n}\n```\nHow should I triage it?",
+            "role": "user"
+          },
+          {
+            "content": "The finding maps an access key used from outside AWS to an instance role, which is the signature of stolen instance credentials. Treat the instance as compromised, rotate the role credentials, and inspect CloudTrail for the actions taken with the key.\n\nStart by establishing scope and context: the account, host, and source address, whether the activity is expected for that asset, and what happened immediately before and after. Preserve the raw event with its original timestamp.",
+            "role": "assistant"
+          },
+          {
+            "content": "The alert is noisy and the on-call engineer wants to close it as a false positive. What evidence would justify that decision, and what would force escalation?",
+            "role": "user"
+          },
+          {
+            "content": "Closing as a false positive requires positive evidence, not absence of an obvious payload. Confirm the initiating process, user authorization, change record, and matching behaviour on peer assets. Escalate if the account or host is unusual, if the activity continues after the user stops, if persistence or credential access appears, or if the same pattern appears on multiple hosts.\n\n- Treating a GuardDuty finding as a blocked attack and taking no containment action.\n- Enabling GuardDuty only in the home region while workloads run elsewhere.",
+            "role": "assistant"
+          }
+        ],
+        "metadata": {
+          "artifact": "log",
+          "authoring_agent": "worker:C5",
+          "build_id": "cyberlite-syn-2.0.0-c7a2b7f426ce",
+          "content_hash": "28412636e5352289cc6e22e30906c7be63d2f7fe119fa1cfe0a9324e55f1e44f",
+          "dataset_stage": "production",
+          "dataset_version": "cyberlite-syn-2.0.0-c7a2b7f426ce",
+          "difficulty": "foundational",
+          "domain": "cloud-container-supply-chain",
+          "generation_method": "curated-fact-composition",
+          "group": "synthesis:cloud-container-supply-chain:cloud-guardduty-finding-triage",
+          "human_reviewed": false,
+          "license_url": "https://github.com/braydos-h/CyberLite/blob/main/LICENSE",
+          "origin": "curated-synthetic",
+          "pack_sha256": "8edd4aaee00aea5bbed913a3fe1379169db4d4b7bb1227eecb395ee4ba0da6f4",
+          "references": [
+            {
+              "license": "CC-BY-SA-4.0",
+              "publisher": "Amazon Web Services",
+              "title": "Amazon GuardDuty User Guide: What is Amazon GuardDuty?",
+              "url": "https://docs.aws.amazon.com/guardduty/latest/ug/what-is-guardduty.html"
+            },
+            {
+              "license": "CC-BY-SA-4.0",
+              "publisher": "Amazon Web Services",
+              "title": "Amazon GuardDuty User Guide: Finding types",
+              "url": "https://docs.aws.amazon.com/guardduty/latest/ug/guardduty_finding-types-active.html"
+            }
+          ],
+          "review_status": "automated-screened",
+          "source_title": "CyberLite curated synthesis knowledge pack",
+          "source_url": "https://docs.aws.amazon.com/guardduty/latest/ug/what-is-guardduty.html",
+          "source_version": "synthesis-v1",
+          "subtopic": "threat-detection",
+          "synthesis_version": "synthesis-v1",
+          "synthetic": true,
+          "task_family": "multi-turn-troubleshooting",
+          "token_count": 398,
+          "turns": 2,
+          "upstream_id": "cloud-guardduty-finding-triage"
+        },
+        "source": "cyberlite_synthesis",
+        "split": "train",
+        "task": "incident-triage",
+        "url": "https://docs.aws.amazon.com/guardduty/latest/ug/what-is-guardduty.html"
+      },
+      "reviews": [
+        {
+          "accepted": false,
+          "average": 6.625,
+          "content_hash": "28412636e5352289cc6e22e30906c7be63d2f7fe119fa1cfe0a9324e55f1e44f",
+          "critical": false,
+          "decision": "revise",
+          "findings": [
+            "The final assistant turn appends two bullets ('Treating a GuardDuty finding as a blocked attack...', 'Enabling GuardDuty only in the home region...') that answer no question in the conversation; they are leftover template content and read as non sequiturs.",
+            "The first turn repeats the same over-assertion as the single-turn record ('signature of stolen instance credentials') and prescribes rotating role credentials that do not exist for an instance profile.",
+            "The false-positive guidance is sound: positive evidence means confirming initiator, authorization, change record, and peer-asset behaviour, and escalation triggers are listed.",
+            "Multi-turn coherence is otherwise acceptable: it preserves the raw event and timestamp, but no later turn refers to the specifics established earlier (account, region, access key)."
+          ],
+          "record_id": "syn-cloud-container-supply-chain-cloud-guardduty-finding-triage-triage-dialogue",
+          "review_type": "technical",
+          "reviewer": "agent-D3",
+          "revision": 0,
+          "scores": {
+            "clarity": 7.0,
+            "completeness": 6.0,
+            "originality_diversity": 5.0,
+            "practical_usefulness": 7.0,
+            "relevance": 7.0,
+            "small_model_suitability": 7.0,
+            "source_grounding": 7.0,
+            "technical_accuracy": 7.0
+          }
+        },
+        {
+          "accepted": false,
+          "average": 7.0,
+          "content_hash": "28412636e5352289cc6e22e30906c7be63d2f7fe119fa1cfe0a9324e55f1e44f",
+          "critical": false,
+          "decision": "revise",
+          "findings": [
+            "Remediation is imprecise: 'rotate the role credentials' is not the action for instance-profile credentials; the correct steps are to isolate/stop the instance and revoke active sessions (deny-all session policy or revoke session), then review CloudTrail.",
+            "Ends with two bare bullets ('Treating a GuardDuty finding as a blocked attack...', 'Enabling GuardDuty only in the home region...') that are unrelated to the false-positive question and have no lead-in; they are pasted failure-mode fragments.",
+            "The second turn answers false-positive closure generically and names no GuardDuty-specific evidence such as the peer-instance baseline, VPC Flow Logs for the source IP, or the IP's ASN/reputation.",
+            "The finding's severity 8.0 and its specific type are not used to prioritise the containment order."
+          ],
+          "record_id": "syn-cloud-container-supply-chain-cloud-guardduty-finding-triage-triage-dialogue",
+          "review_type": "quality",
+          "reviewer": "agent-E3",
+          "revision": 0,
+          "scores": {
+            "clarity": 7.5,
+            "completeness": 7.0,
+            "originality_diversity": 5.0,
+            "practical_usefulness": 7.0,
+            "relevance": 6.5,
+            "small_model_suitability": 7.0,
+            "source_grounding": 8.0,
+            "technical_accuracy": 8.0
+          }
+        }
+      ],
+      "split": "train"
+    },
+    {
+      "average": 4.625,
+      "decision": "revise",
+      "findings": [
+        "Dataset scaffolding leaks into the answer: 'Find synthetic computer accounts configured for unconstrained delegation.' There is no 'synthetic' AD object class; this is corpus vocabulary appearing as domain terminology.",
+        "The command is not explained: -Filter, -Properties, Select-Object, and the fact that the filter is evaluated server-side by AD Web Services are all unmentioned, so the first third of the prompt is unanswered.",
+        "The main wrong-assumption risk is missed: Get-ADComputer returns only computer objects, so user accounts and gMSAs with unconstrained delegation are invisible. The correct sweep uses userAccountControl bit 0x80000 (LDAP 1.2.840.113556.1.4.803:=524288) across object classes, and should also surface msDS-AllowedToDelegateTo for constrained delegation.",
+        "Verification is boilerplate ('compare with the service configuration or audit log') plus the corpus disclaimer, not a re-query or a check in ADUC/`Get-ADObject`."
+      ],
+      "id": "syn-cryptography-identity-access-auth-delegation-050-command-1",
+      "reason": "review:revise",
+      "record": {
+        "id": "syn-cryptography-identity-access-auth-delegation-050-command-1",
+        "kind": "completion",
+        "license": "Synthetic",
+        "metadata": {
+          "artifact": "command",
+          "artifact_language": "powershell",
+          "authoring_agent": "worker:C4",
+          "build_id": "cyberlite-syn-2.0.0-c7a2b7f426ce",
+          "content_hash": "3b4653758a76a7a127fd55e1617c8a0f2fc3f231bf9a5ac7724cd5360882e78f",
+          "dataset_stage": "production",
+          "dataset_version": "cyberlite-syn-2.0.0-c7a2b7f426ce",
+          "difficulty": "expert",
+          "domain": "cryptography-identity-access",
+          "generation_method": "curated-fact-composition",
+          "group": "synthesis:cryptography-identity-access:auth-delegation-050",
+          "human_reviewed": false,
+          "license_url": "https://github.com/braydos-h/CyberLite/blob/main/LICENSE",
+          "origin": "curated-synthetic",
+          "pack_sha256": "9e27671eb1057f37ea57f5891be17dade23dd17c59ee091c3dc874cc0602dd0f",
+          "references": [
+            {
+              "license": "CC BY 4.0",
+              "publisher": "Microsoft",
+              "title": "Kerberos constrained delegation overview",
+              "url": "https://learn.microsoft.com/en-us/windows-server/security/kerberos/kerberos-constrained-delegation-overview"
+            },
+            {
+              "license": "CC BY 4.0",
+              "publisher": "Microsoft",
+              "title": "Security assessment: Unconstrained Kerberos delegation",
+              "url": "https://learn.microsoft.com/en-us/defender-for-identity/security-assessment-unconstrained-kerberos"
+            }
+          ],
+          "review_status": "automated-screened",
+          "source_title": "CyberLite curated synthesis knowledge pack",
+          "source_url": "https://learn.microsoft.com/en-us/windows-server/security/kerberos/kerberos-constrained-delegation-overview",
+          "source_version": "synthesis-v1",
+          "subtopic": "kerberos",
+          "synthesis_version": "synthesis-v1",
+          "synthetic": true,
+          "task_family": "command-explanation",
+          "token_count": 243,
+          "upstream_id": "auth-delegation-050"
+        },
+        "prompt": "Explain what this powershell command does, what could go wrong if it is run with the wrong assumptions, and how to verify the result before acting on it:\n\n```powershell\nGet-ADComputer -Filter {TrustedForDelegation -eq $true} -Properties TrustedForDelegation | Select-Object Name, TrustedForDelegation\n```",
+        "response": "Purpose: Find synthetic computer accounts configured for unconstrained delegation.\n\nUnconstrained Kerberos delegation lets a service impersonate any authenticated user to any service, because the user's TGT is forwarded and cached; a compromised host with that flag is a domain-wide escalation path. Constrained delegation limits impersonation to named SPNs through S4U2Self and S4U2Proxy, but protocol transition allows impersonation without the user's ticket. Resource-based constrained delegation puts the control on the target account, which is more granular but also abusable if an attacker can write that attribute.\n\nRun it first in a non-production or read-only context, capture the output with timestamps, and compare it with an independent source such as the service configuration or audit log. Generated commands in this corpus are examples and are never executed by the project.",
+        "source": "cyberlite_synthesis",
+        "split": "train",
+        "task": "system-administration",
+        "url": "https://learn.microsoft.com/en-us/windows-server/security/kerberos/kerberos-constrained-delegation-overview"
+      },
+      "reviews": [
+        {
+          "accepted": false,
+          "average": 4.625,
+          "content_hash": "3b4653758a76a7a127fd55e1617c8a0f2fc3f231bf9a5ac7724cd5360882e78f",
+          "critical": false,
+          "decision": "revise",
+          "findings": [
+            "Dataset scaffolding leaks into the answer: 'Find synthetic computer accounts configured for unconstrained delegation.' There is no 'synthetic' AD object class; this is corpus vocabulary appearing as domain terminology.",
+            "The command is not explained: -Filter, -Properties, Select-Object, and the fact that the filter is evaluated server-side by AD Web Services are all unmentioned, so the first third of the prompt is unanswered.",
+            "The main wrong-assumption risk is missed: Get-ADComputer returns only computer objects, so user accounts and gMSAs with unconstrained delegation are invisible. The correct sweep uses userAccountControl bit 0x80000 (LDAP 1.2.840.113556.1.4.803:=524288) across object classes, and should also surface msDS-AllowedToDelegateTo for constrained delegation.",
+            "Verification is boilerplate ('compare with the service configuration or audit log') plus the corpus disclaimer, not a re-query or a check in ADUC/`Get-ADObject`."
+          ],
+          "record_id": "syn-cryptography-identity-access-auth-delegation-050-command-1",
+          "review_type": "technical",
+          "reviewer": "agent-D3",
+          "revision": 0,
+          "scores": {
+            "clarity": 7.0,
+            "completeness": 3.0,
+            "originality_diversity": 3.0,
+            "practical_usefulness": 3.0,
+            "relevance": 4.0,
+            "small_model_suitability": 5.0,
+            "source_grounding": 6.0,
+            "technical_accuracy": 6.0
+          }
+        }
+      ],
+      "split": "train"
+    },
+    {
+      "average": 6.25,
+      "decision": "revise",
+      "findings": [
+        "Over-asserts on a 401: the log supports 'unauthenticated', not 'carried no acceptable credentials' (expired/invalid token, missing header, or a 401 by policy all fit), and the excerpt has no WWW-Authenticate header to prove a challenge was issued.",
+        "403 is asserted as 'a valid identity that lacks the admin role', but the log contains no identity and a 403 can come from IP allowlisting, a WAF, CSRF rejection, HTTP method, or a disabled account.",
+        "The prompt asks to distinguish observations from inferences; the first two sentences state inferences as observations, and only the trailing boilerplate cautions against it.",
+        "The core 401-vs-403 principle is correct, and the point that treating both as 'login problems' hides an authorization event is a good teaching line."
+      ],
+      "id": "syn-fundamentals-linux-networking-fund-authn-authz-log-1",
+      "reason": "review:revise",
+      "record": {
+        "id": "syn-fundamentals-linux-networking-fund-authn-authz-log-1",
+        "kind": "completion",
+        "license": "Synthetic",
+        "metadata": {
+          "artifact": "log",
+          "authoring_agent": "worker:C1",
+          "build_id": "cyberlite-syn-2.0.0-c7a2b7f426ce",
+          "content_hash": "ea1cf08a2b1c963edabd78fd89dd9f6c25f3500e0f9c0b199d1a4bfa9c776895",
+          "dataset_stage": "production",
+          "dataset_version": "cyberlite-syn-2.0.0-c7a2b7f426ce",
+          "difficulty": "foundational",
+          "domain": "fundamentals-linux-networking",
+          "generation_method": "curated-fact-composition",
+          "group": "synthesis:fundamentals-linux-networking:fund-authn-authz",
+          "human_reviewed": false,
+          "license_url": "https://github.com/braydos-h/CyberLite/blob/main/LICENSE",
+          "origin": "curated-synthetic",
+          "pack_sha256": "46df4a39ebaba644530fc6e430e4a5a11e7c844fa0d26ecbeed67c8d33bdb2f0",
+          "references": [
+            {
+              "license": "Public-Domain",
+              "publisher": "NIST Computer Security Resource Center",
+              "title": "NIST Glossary: authentication",
+              "url": "https://csrc.nist.gov/glossary/term/authentication"
+            },
+            {
+              "license": "Public-Domain",
+              "publisher": "NIST Computer Security Resource Center",
+              "title": "NIST Glossary: authorization",
+              "url": "https://csrc.nist.gov/glossary/term/authorization"
+            },
+            {
+              "license": "IETF-Trust",
+              "publisher": "IETF",
+              "title": "RFC 9110: HTTP Semantics",
+              "url": "https://www.rfc-editor.org/rfc/rfc9110.html"
+            }
+          ],
+          "review_status": "automated-screened",
+          "source_title": "CyberLite curated synthesis knowledge pack",
+          "source_url": "https://csrc.nist.gov/glossary/term/authentication",
+          "source_version": "synthesis-v1",
+          "subtopic": "identity",
+          "synthesis_version": "synthesis-v1",
+          "synthetic": true,
+          "task_family": "log-interpretation",
+          "token_count": 354,
+          "upstream_id": "fund-authn-authz"
+        },
+        "prompt": "Review this Synthetic reverse-proxy access log excerpt:\n\n```\n203.0.113.45 - - [12 Mar 2026:09:14:02 +0000] \"GET /admin HTTP/1.1\" 401 0\n203.0.113.45 - - [12 Mar 2026:09:14:19 +0000] \"GET /admin HTTP/1.1\" 403 162\n```\n\nWhat does it support, what does it not prove, and what is the next verification step? Distinguish observations from inferences.",
+        "response": "The first request carried no acceptable credentials, so the proxy challenged it. The second carried a valid identity that lacks the admin role, so access was refused. Treating both as 'login problems' hides an authorization event.\n\nRelevant principle: Authentication establishes that a subject is who it claims to be. Authorization decides which actions that subject may perform on which resources. They fail separately: a stolen session cookie authenticates an attacker perfectly and grants whatever the victim's roles allow, so authorization must be enforced server-side on every request and checked against the specific object. Identification is the claimed name and accounting records what was done. HTTP separates the two failures: 401 means credentials are missing or invalid and requires a WWW-Authenticate challenge, while 403 means the identity is known but the action is refused.\n\nDo not treat a single log line as proof of intent. Correlate it with identity, endpoint, and network telemetry covering the same time window before escalating or changing the system.",
+        "source": "cyberlite_synthesis",
+        "split": "train",
+        "task": "log-analysis",
+        "url": "https://csrc.nist.gov/glossary/term/authentication"
+      },
+      "reviews": [
+        {
+          "accepted": false,
+          "average": 6.25,
+          "content_hash": "ea1cf08a2b1c963edabd78fd89dd9f6c25f3500e0f9c0b199d1a4bfa9c776895",
+          "critical": false,
+          "decision": "revise",
+          "findings": [
+            "Over-asserts on a 401: the log supports 'unauthenticated', not 'carried no acceptable credentials' (expired/invalid token, missing header, or a 401 by policy all fit), and the excerpt has no WWW-Authenticate header to prove a challenge was issued.",
+            "403 is asserted as 'a valid identity that lacks the admin role', but the log contains no identity and a 403 can come from IP allowlisting, a WAF, CSRF rejection, HTTP method, or a disabled account.",
+            "The prompt asks to distinguish observations from inferences; the first two sentences state inferences as observations, and only the trailing boilerplate cautions against it.",
+            "The core 401-vs-403 principle is correct, and the point that treating both as 'login problems' hides an authorization event is a good teaching line."
+          ],
+          "record_id": "syn-fundamentals-linux-networking-fund-authn-authz-log-1",
+          "review_type": "technical",
+          "reviewer": "agent-D3",
+          "revision": 0,
+          "scores": {
+            "clarity": 9.0,
+            "completeness": 6.0,
+            "originality_diversity": 4.0,
+            "practical_usefulness": 6.0,
+            "relevance": 8.0,
+            "small_model_suitability": 6.0,
+            "source_grounding": 5.0,
+            "technical_accuracy": 6.0
+          }
+        }
+      ],
+      "split": "train"
+    },
+    {
+      "average": 7.875,
+      "decision": "revise",
+      "findings": [
+        "The blank is inferable from the prefix (salt and dk are defined), but the expected output format is underspecified: hex, base64, or bytes-plus-separator are all plausible and ':' is an arbitrary delimiter.",
+        "There is no verify() companion, so the completion teaches a storage format without the constant-time comparison needed to use it.",
+        "The scrypt parameters (n=2^14, r=8, p=1) are fixed in the prefix but not encoded in the stored string, so a later parameter change cannot be detected or migrated.",
+        "It tests recall of one formatting line rather than password-hashing reasoning."
+      ],
+      "id": "syn-fundamentals-linux-networking-fund-hash-vs-encrypt-fim-1",
+      "reason": "review:revise",
+      "record": {
+        "id": "syn-fundamentals-linux-networking-fund-hash-vs-encrypt-fim-1",
+        "kind": "fim",
+        "license": "Synthetic",
+        "metadata": {
+          "artifact": "code",
+          "artifact_language": "python",
+          "authoring_agent": "worker:C1",
+          "build_id": "cyberlite-syn-2.0.0-c7a2b7f426ce",
+          "completion_line": "    return salt.hex() + ':' + dk.hex()",
+          "content_hash": "f8b7cd95ed339ed0a2adeeaa42f656f59e118cc0efd627c30d53e0ebab1a01db",
+          "dataset_stage": "production",
+          "dataset_version": "cyberlite-syn-2.0.0-c7a2b7f426ce",
+          "difficulty": "foundational",
+          "domain": "fundamentals-linux-networking",
+          "generation_method": "curated-fact-composition",
+          "group": "synthesis:fundamentals-linux-networking:fund-hash-vs-encrypt",
+          "human_reviewed": false,
+          "license_url": "https://github.com/braydos-h/CyberLite/blob/main/LICENSE",
+          "origin": "curated-synthetic",
+          "pack_sha256": "46df4a39ebaba644530fc6e430e4a5a11e7c844fa0d26ecbeed67c8d33bdb2f0",
+          "references": [
+            {
+              "license": "PSF-2.0",
+              "publisher": "Python Software Foundation",
+              "title": "hashlib: Secure hashes and message digests",
+              "url": "https://docs.python.org/3/library/hashlib.html"
+            },
+            {
+              "license": "Public-Domain",
+              "publisher": "NIST",
+              "title": "SP 800-57 Part 1 Rev. 5: Key Management",
+              "url": "https://csrc.nist.gov/pubs/sp/800/57/pt1/r5/final"
+            }
+          ],
+          "review_status": "automated-screened",
+          "source_title": "CyberLite curated synthesis knowledge pack",
+          "source_url": "https://docs.python.org/3/library/hashlib.html",
+          "source_version": "synthesis-v1",
+          "subtopic": "cryptography-basics",
+          "synthesis_version": "synthesis-v1",
+          "synthetic": true,
+          "task_family": "fill-in-the-middle",
+          "token_count": 66,
+          "upstream_id": "fund-hash-vs-encrypt"
+        },
+        "middle": "    return salt.hex() + ':' + dk.hex()",
+        "prefix": "import hashlib, secrets\n\ndef store(password: str) -> str:\n    salt = secrets.token_bytes(16)\n    dk = hashlib.scrypt(password.encode(), salt=salt, n=2**14, r=8, p=1)\n",
+        "source": "cyberlite_synthesis",
+        "split": "train",
+        "suffix": "\n",
+        "task": "secure-autocomplete",
+        "url": "https://docs.python.org/3/library/hashlib.html"
+      },
+      "reviews": [
+        {
+          "accepted": false,
+          "average": 7.875,
+          "content_hash": "f8b7cd95ed339ed0a2adeeaa42f656f59e118cc0efd627c30d53e0ebab1a01db",
+          "critical": false,
+          "decision": "revise",
+          "findings": [
+            "The blank is inferable from the prefix (salt and dk are defined), but the expected output format is underspecified: hex, base64, or bytes-plus-separator are all plausible and ':' is an arbitrary delimiter.",
+            "There is no verify() companion, so the completion teaches a storage format without the constant-time comparison needed to use it.",
+            "The scrypt parameters (n=2^14, r=8, p=1) are fixed in the prefix but not encoded in the stored string, so a later parameter change cannot be detected or migrated.",
+            "It tests recall of one formatting line rather than password-hashing reasoning."
+          ],
+          "record_id": "syn-fundamentals-linux-networking-fund-hash-vs-encrypt-fim-1",
+          "review_type": "technical",
+          "reviewer": "agent-D3",
+          "revision": 0,
+          "scores": {
+            "clarity": 8.0,
+            "completeness": 8.0,
+            "originality_diversity": 7.0,
+            "practical_usefulness": 7.0,
+            "relevance": 8.0,
+            "small_model_suitability": 8.0,
+            "source_grounding": 8.0,
+            "technical_accuracy": 9.0
+          }
+        }
+      ],
+      "split": "train"
+    },
+    {
+      "average": 5.375,
+      "decision": "revise",
+      "findings": [
+        "The supplied directives are never analyzed: User=, Group= and NoNewPrivileges=yes are not mentioned, and NoNewPrivileges is not explained (it blocks setuid/file-capability gains at execve and does not remove capabilities the process already holds).",
+        "The 'assumption that could make it unsafe' is not answered concretely. Real assumptions are a unit file writable by appsvc, SupplementaryGroups/AmbientCapabilities, appsvc in sudo or the docker group, or missing ProtectSystem/ProtectHome hardening.",
+        "Verification is generic; for systemd it should be `systemctl show -p User -p Group -p NoNewPrivileges <unit>` plus a check of unit-file ownership and drop-ins.",
+        "The least-privilege essay is accurate but disconnected from the snippet, and the 'Check' paragraph is reused verbatim from the LDAP and nftables records."
+      ],
+      "id": "syn-fundamentals-linux-networking-fund-least-privilege-config-1",
+      "reason": "review:revise",
+      "record": {
+        "id": "syn-fundamentals-linux-networking-fund-least-privilege-config-1",
+        "kind": "completion",
+        "license": "Synthetic",
+        "metadata": {
+          "artifact": "config",
+          "artifact_language": "systemd",
+          "authoring_agent": "worker:C1",
+          "build_id": "cyberlite-syn-2.0.0-c7a2b7f426ce",
+          "content_hash": "daa459635bdb9b2fe9dce9d4f4296146c7b6fb81134d33bf2c4ad857c4de8d36",
+          "dataset_stage": "production",
+          "dataset_version": "cyberlite-syn-2.0.0-c7a2b7f426ce",
+          "difficulty": "foundational",
+          "domain": "fundamentals-linux-networking",
+          "generation_method": "curated-fact-composition",
+          "group": "synthesis:fundamentals-linux-networking:fund-least-privilege",
+          "human_reviewed": false,
+          "license_url": "https://github.com/braydos-h/CyberLite/blob/main/LICENSE",
+          "origin": "curated-synthetic",
+          "pack_sha256": "46df4a39ebaba644530fc6e430e4a5a11e7c844fa0d26ecbeed67c8d33bdb2f0",
+          "references": [
+            {
+              "license": "Public-Domain",
+              "publisher": "NIST",
+              "title": "SP 800-53 Rev. 5, AC-6: Least Privilege",
+              "url": "https://csrc.nist.gov/pubs/sp/800/53/r5/final"
+            },
+            {
+              "license": "Public-Domain",
+              "publisher": "NIST",
+              "title": "SP 800-12 Rev. 2: An Introduction to Information Security",
+              "url": "https://csrc.nist.gov/pubs/sp/800/12/final"
+            }
+          ],
+          "review_status": "automated-screened",
+          "source_title": "CyberLite curated synthesis knowledge pack",
+          "source_url": "https://csrc.nist.gov/pubs/sp/800/53/r5/final",
+          "source_version": "synthesis-v1",
+          "subtopic": "access-policy",
+          "synthesis_version": "synthesis-v1",
+          "synthetic": true,
+          "task_family": "configuration-analysis",
+          "token_count": 254,
+          "upstream_id": "fund-least-privilege"
+        },
+        "prompt": "Review this systemd configuration snippet for a security review:\n\n```systemd\n[Service]\nUser=appsvc\nGroup=appsvc\nNoNewPrivileges=yes\n```\n\nWhat security property does it establish, what assumption could make it unsafe, and what should be verified in the deployed system?",
+        "response": "Intended property: Run a service under its own account and block setuid or capability gains.\n\nLeast privilege grants each subject the minimum access, for the minimum time, needed to complete a task, and separates duties so no single identity can both cause and conceal a damaging action. It applies to people, services, and tokens alike: a web application should run as a dedicated unprivileged account, a deployment job should hold only the permissions its pipeline needs, and administrative access should be time-bound and attributable. Shared administrator accounts are the classic failure because they destroy attribution and make credential rotation impossible after one holder leaves.\n\nCheck: reload the service and read the effective value from the running process; then attempt the action the control is meant to block and confirm it fails for the intended identity and scope. A syntactically valid directive can still be overridden by a more specific rule or a later scope, so compare the rendered/effective configuration, not only the file.",
+        "source": "cyberlite_synthesis",
+        "split": "train",
+        "task": "system-hardening",
+        "url": "https://csrc.nist.gov/pubs/sp/800/53/r5/final"
+      },
+      "reviews": [
+        {
+          "accepted": false,
+          "average": 5.375,
+          "content_hash": "daa459635bdb9b2fe9dce9d4f4296146c7b6fb81134d33bf2c4ad857c4de8d36",
+          "critical": false,
+          "decision": "revise",
+          "findings": [
+            "The supplied directives are never analyzed: User=, Group= and NoNewPrivileges=yes are not mentioned, and NoNewPrivileges is not explained (it blocks setuid/file-capability gains at execve and does not remove capabilities the process already holds).",
+            "The 'assumption that could make it unsafe' is not answered concretely. Real assumptions are a unit file writable by appsvc, SupplementaryGroups/AmbientCapabilities, appsvc in sudo or the docker group, or missing ProtectSystem/ProtectHome hardening.",
+            "Verification is generic; for systemd it should be `systemctl show -p User -p Group -p NoNewPrivileges <unit>` plus a check of unit-file ownership and drop-ins.",
+            "The least-privilege essay is accurate but disconnected from the snippet, and the 'Check' paragraph is reused verbatim from the LDAP and nftables records."
+          ],
+          "record_id": "syn-fundamentals-linux-networking-fund-least-privilege-config-1",
+          "review_type": "technical",
+          "reviewer": "agent-D3",
+          "revision": 0,
+          "scores": {
+            "clarity": 8.0,
+            "completeness": 4.0,
+            "originality_diversity": 3.0,
+            "practical_usefulness": 4.0,
+            "relevance": 5.0,
+            "small_model_suitability": 6.0,
+            "source_grounding": 6.0,
+            "technical_accuracy": 7.0
+          }
+        }
+      ],
+      "split": "train"
+    },
+    {
+      "average": 7.688,
+      "decision": "revise",
+      "findings": [
+        "Answer leakage: the 'observed behaviour' is the verbatim ATT&CK description including the phrase 'remove indicators from tools', and option A repeats the technique name, so the item is answerable by string matching without understanding.",
+        "Distractor rationale is absent: the answer only says the other options 'name different techniques' and never explains why PE injection (T1055.002), VDSO hijacking (T1055.014), or Regsvr32 (T1218.010) do not fit.",
+        "The mapping is correct: T1027.005, Stealth tactic, verified against attack.mitre.org v20.1, and the 'analytic judgement, not a detection' caveat is appropriate.",
+        "The stem should paraphrase the behaviour (e.g. recompiling malware after an AV signature quarantine) so the technique name is not present in the prompt.",
+        "Correct mapping to T1027.005 with the technique ID and a reasonable caution that ATT&CK mapping is analytic judgement.",
+        "'in the stealth phase' is not ATT&CK terminology; T1027.005 sits under Defense Evasion, and the answer should use the tactic name.",
+        "The observed-behaviour stem is verbatim ATT&CK description text, so the item tests recognition of copied wording more than reasoning, and the three distractors are unrelated techniques.",
+        "Does not explain why B/C/D are wrong beyond 'would require different evidence'."
+      ],
+      "id": "grnd-mitre-attack-mitre-attack-00dbb2cb3426ae0c-match",
+      "reason": "review:revise",
+      "record": {
+        "id": "grnd-mitre-attack-mitre-attack-00dbb2cb3426ae0c-match",
+        "kind": "completion",
+        "license": "MITRE-ATTACK",
+        "metadata": {
+          "attack_id": "T1027.005",
+          "attack_version": "",
+          "build_id": "cyberlite-syn-2.0.0-c7a2b7f426ce",
+          "citation": "The MITRE Corporation. MITRE ATT&CK. https://attack.mitre.org",
+          "content_hash": "05a7cf5833635f0832b2b6c8f08d50be7175873967e2a90a7495d6b8e5ce8f07",
+          "dataset_stage": "production",
+          "dataset_version": "cyberlite-syn-2.0.0-c7a2b7f426ce",
+          "deprecated": false,
+          "derivation_parent_id": "mitre_attack-00dbb2cb3426ae0c",
+          "derivation_version": "grounded-v1",
+          "difficulty": "intermediate",
+          "domain": "incident-response-forensics-threat-intel",
+          "evidence_coverage": 1.0,
+          "generation_method": "grounded-evidence-composition",
+          "group": "mitre_attack:T1027.005",
+          "human_reviewed": false,
+          "kill_chain_phases": "stealth",
+          "license_url": "https://attack.mitre.org/resources/legal-and-branding/",
+          "mcq_answer_indexes": [
+            0
+          ],
+          "mcq_options": [
+            "Indicator Removal from Tools",
+            "Portable Executable Injection",
+            "VDSO Hijacking",
+            "Regsvr32"
+          ],
+          "name": "Indicator Removal from Tools",
+          "object_type": "attack-pattern",
+          "origin": "source-derived",
+          "platforms": "Linux, macOS, Windows",
+          "prepared_by": "cyberlite-0.1.0",
+          "review_status": "automated-screened",
+          "revoked": false,
+          "source_title": "MITRE ATT&CK Enterprise (STIX 2.1)",
+          "source_url": "https://attack.mitre.org/techniques/T1027/005",
+          "source_version": "v20.1",
+          "synthetic": false,
+          "synthetic_identifiers": true,
+          "task_family": "attack-technique-recognition",
+          "terms_url": "https://attack.mitre.org/resources/legal-and-branding/",
+          "token_count": 282,
+          "transformation": "cyberlite-normalize-v2",
+          "upstream_id": "T1027.005",
+          "variant": "attack-matching"
+        },
+        "prompt": "Which MITRE ATT&CK technique does the following observed behaviour most closely match? Select one option.\n\nObserved behaviour: Adversaries may remove indicators from tools if they believe their malicious tool was detected, quarantined, or otherwise curtailed. They can modify the tool by removing the indicator and using the updated version that is no longer detected by the target's defensive systems or subsequent targets that may use similar systems. A good example of this is when malware is detected with a file signature and quarantined by anti-virus software. An adversary who can determine that the malware was quarantined because of its file signature may modify the file to explicitly avoid that signature, and then re-use the malware.(Citation: Files and Antivirus Detection)\n\nA. Indicator Removal from Tools\nB. Portable Executable Injection\nC. VDSO Hijacking\nD. Regsvr32",
+        "response": "**Correct answer: A \u2014 Indicator Removal from Tools (T1027.005)**\n\nThe behaviour aligns with Indicator Removal from Tools in the stealth phase. The other options name different techniques and would require different evidence: match on the action actually observed, not on a tool name or a single string.\n\nConfirm the mapping with the technique's documented procedure examples and the telemetry available in your environment. ATT&CK mapping is an analytic judgement, not a detection by itself.",
+        "source": "mitre_attack",
+        "split": "validation",
+        "task": "attack-technique",
+        "url": "https://attack.mitre.org/techniques/T1027/005"
+      },
+      "reviews": [
+        {
+          "accepted": false,
+          "average": 6.875,
+          "content_hash": "05a7cf5833635f0832b2b6c8f08d50be7175873967e2a90a7495d6b8e5ce8f07",
+          "critical": false,
+          "decision": "revise",
+          "findings": [
+            "Answer leakage: the 'observed behaviour' is the verbatim ATT&CK description including the phrase 'remove indicators from tools', and option A repeats the technique name, so the item is answerable by string matching without understanding.",
+            "Distractor rationale is absent: the answer only says the other options 'name different techniques' and never explains why PE injection (T1055.002), VDSO hijacking (T1055.014), or Regsvr32 (T1218.010) do not fit.",
+            "The mapping is correct: T1027.005, Stealth tactic, verified against attack.mitre.org v20.1, and the 'analytic judgement, not a detection' caveat is appropriate.",
+            "The stem should paraphrase the behaviour (e.g. recompiling malware after an AV signature quarantine) so the technique name is not present in the prompt."
+          ],
+          "record_id": "grnd-mitre-attack-mitre-attack-00dbb2cb3426ae0c-match",
+          "review_type": "technical",
+          "reviewer": "agent-D3",
+          "revision": 0,
+          "scores": {
+            "clarity": 9.0,
+            "completeness": 6.0,
+            "originality_diversity": 3.0,
+            "practical_usefulness": 6.0,
+            "relevance": 8.0,
+            "small_model_suitability": 5.0,
+            "source_grounding": 9.0,
+            "technical_accuracy": 9.0
+          }
+        },
+        {
+          "accepted": true,
+          "average": 8.5,
+          "content_hash": "05a7cf5833635f0832b2b6c8f08d50be7175873967e2a90a7495d6b8e5ce8f07",
+          "critical": false,
+          "decision": "accept",
+          "findings": [
+            "Correct mapping to T1027.005 with the technique ID and a reasonable caution that ATT&CK mapping is analytic judgement.",
+            "'in the stealth phase' is not ATT&CK terminology; T1027.005 sits under Defense Evasion, and the answer should use the tactic name.",
+            "The observed-behaviour stem is verbatim ATT&CK description text, so the item tests recognition of copied wording more than reasoning, and the three distractors are unrelated techniques.",
+            "Does not explain why B/C/D are wrong beyond 'would require different evidence'."
+          ],
+          "record_id": "grnd-mitre-attack-mitre-attack-00dbb2cb3426ae0c-match",
+          "review_type": "quality",
+          "reviewer": "agent-E3",
+          "revision": 0,
+          "scores": {
+            "clarity": 9.0,
+            "completeness": 8.5,
+            "originality_diversity": 6.5,
+            "practical_usefulness": 8.0,
+            "relevance": 9.0,
+            "small_model_suitability": 8.5,
+            "source_grounding": 9.5,
+            "technical_accuracy": 9.0
+          }
+        }
+      ],
+      "split": "validation"
+    },
+    {
+      "average": 6.0,
+      "decision": "revise",
+      "findings": [
+        "The math is right: tp=0.99, fp=0.01*9999=99.99, precision 0.99/100.98 ~= 0.0098, so about 1% of alerts are real at 1-in-10,000 prevalence; the 1 TP / 100 FP walkthrough is a good base-rate explanation.",
+        "The command itself is never explained: `python3 -c`, the expression `tp/(tp+fp)`, and the fact that `1` positive and `9999` negatives encode the prevalence are all unmentioned.",
+        "The 'what could go wrong / how to verify' answer is nonsensical boilerplate about service configuration and audit logs for a pure arithmetic one-liner. Real risks are float rounding, a changed prevalence assumption, and mistaking lab sensitivity/specificity for production values.",
+        "Dataset meta-text ('Generated commands in this corpus...') again leaks into the answer."
+      ],
+      "id": "syn-fundamentals-linux-networking-fund-detection-errors-command-1",
+      "reason": "review:revise",
+      "record": {
+        "id": "syn-fundamentals-linux-networking-fund-detection-errors-command-1",
+        "kind": "completion",
+        "license": "Synthetic",
+        "metadata": {
+          "artifact": "command",
+          "artifact_language": "bash",
+          "authoring_agent": "worker:C1",
+          "build_id": "cyberlite-syn-2.0.0-c7a2b7f426ce",
+          "content_hash": "802a5bf8a81291d5c28a8ddfba61215459b9d3f1f7300942d589c6f50b2d6856",
+          "dataset_stage": "production",
+          "dataset_version": "cyberlite-syn-2.0.0-c7a2b7f426ce",
+          "difficulty": "intermediate",
+          "domain": "fundamentals-linux-networking",
+          "generation_method": "curated-fact-composition",
+          "group": "synthesis:fundamentals-linux-networking:fund-detection-errors",
+          "human_reviewed": false,
+          "license_url": "https://github.com/braydos-h/CyberLite/blob/main/LICENSE",
+          "origin": "curated-synthetic",
+          "pack_sha256": "46df4a39ebaba644530fc6e430e4a5a11e7c844fa0d26ecbeed67c8d33bdb2f0",
+          "references": [
+            {
+              "license": "Public-Domain",
+              "publisher": "NIST",
+              "title": "SP 800-94: Guide to Intrusion Detection and Prevention Systems",
+              "url": "https://csrc.nist.gov/pubs/sp/800/94/final"
+            },
+            {
+              "license": "Public-Domain",
+              "publisher": "NIST",
+              "title": "SP 800-137: Information Security Continuous Monitoring",
+              "url": "https://csrc.nist.gov/pubs/sp/800/137/final"
+            }
+          ],
+          "review_status": "automated-screened",
+          "source_title": "CyberLite curated synthesis knowledge pack",
+          "source_url": "https://csrc.nist.gov/pubs/sp/800/94/final",
+          "source_version": "synthesis-v1",
+          "subtopic": "detection-metrics",
+          "synthesis_version": "synthesis-v1",
+          "synthetic": true,
+          "task_family": "command-explanation",
+          "token_count": 294,
+          "upstream_id": "fund-detection-errors"
+        },
+        "prompt": "Explain what this bash command does, what could go wrong if it is run with the wrong assumptions, and how to verify the result before acting on it:\n\n```bash\npython3 -c \"tp=0.99*1; fp=0.01*9999; print(round(tp/(tp+fp), 3))\"\n```",
+        "response": "Purpose: Compute positive predictive value for a 1-in-10,000 prevalence with 99 percent sensitivity and specificity.\n\nA false positive is an alert on benign activity; a false negative is malicious activity that raised no alert. Recall, or sensitivity, is true positives divided by all malicious events. Precision is true positives divided by all alerts. Tightening a rule usually trades precision for recall. Alert quality also depends on base rate: if one event in 10,000 is malicious and a detector is 99 percent sensitive and 99 percent specific, then 10,000 events produce about 1 true alert and 100 false ones, so roughly 1 percent of alerts are real. Tune on a sample with realistic prevalence, not a balanced lab set.\n\nRun it first in a non-production or read-only context, capture the output with timestamps, and compare it with an independent source such as the service configuration or audit log. Generated commands in this corpus are examples and are never executed by the project.",
+        "source": "cyberlite_synthesis",
+        "split": "test",
+        "task": "system-administration",
+        "url": "https://csrc.nist.gov/pubs/sp/800/94/final"
+      },
+      "reviews": [
+        {
+          "accepted": false,
+          "average": 6.0,
+          "content_hash": "802a5bf8a81291d5c28a8ddfba61215459b9d3f1f7300942d589c6f50b2d6856",
+          "critical": false,
+          "decision": "revise",
+          "findings": [
+            "The math is right: tp=0.99, fp=0.01*9999=99.99, precision 0.99/100.98 ~= 0.0098, so about 1% of alerts are real at 1-in-10,000 prevalence; the 1 TP / 100 FP walkthrough is a good base-rate explanation.",
+            "The command itself is never explained: `python3 -c`, the expression `tp/(tp+fp)`, and the fact that `1` positive and `9999` negatives encode the prevalence are all unmentioned.",
+            "The 'what could go wrong / how to verify' answer is nonsensical boilerplate about service configuration and audit logs for a pure arithmetic one-liner. Real risks are float rounding, a changed prevalence assumption, and mistaking lab sensitivity/specificity for production values.",
+            "Dataset meta-text ('Generated commands in this corpus...') again leaks into the answer."
+          ],
+          "record_id": "syn-fundamentals-linux-networking-fund-detection-errors-command-1",
+          "review_type": "technical",
+          "reviewer": "agent-D3",
+          "revision": 0,
+          "scores": {
+            "clarity": 8.0,
+            "completeness": 4.0,
+            "originality_diversity": 4.0,
+            "practical_usefulness": 5.0,
+            "relevance": 5.0,
+            "small_model_suitability": 6.0,
+            "source_grounding": 7.0,
+            "technical_accuracy": 9.0
+          }
+        }
+      ],
+      "split": "test"
+    }
+  ],
+  "report": "independent-ai-review",
+  "review_files": [
+    "data/manifests/synthesis-production/reviews/agent-D3-technical.json",
+    "data/manifests/synthesis-production/reviews/agent-E3-quality.json"
+  ],
+  "review_provenance": "A review is applied only when its content_hash matches the record's current content_hash.",
+  "summary": {
+    "decisions": {
+      "accept": 5,
+      "quarantine": 1,
+      "revise": 23
+    },
+    "disagreement_ids": [
+      "grnd-mitre-attack-mitre-attack-00dbb2cb3426ae0c-match",
+      "ietf_rfcs-004bfcfa7226989d"
+    ],
+    "disagreement_rate": 0.069,
+    "disagreement_records": 2,
+    "ledgers": 2,
+    "review_types": {
+      "quality": 20,
+      "technical": 20
+    },
+    "reviewed_records": 29,
+    "reviewers": [
+      "agent-D3",
+      "agent-E3"
+    ],
+    "reviews": 40
+  }
+}

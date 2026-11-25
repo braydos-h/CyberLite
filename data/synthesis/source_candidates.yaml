@@ -1,0 +1,656 @@
+schema_version: 1
+# Proposed source-registry additions from the Agent B source and licensing review.
+#
+# Every entry is disabled. A human must approve the license, the pinned
+# revision, and the normalizer before any acquisition or training use.
+# License identifiers follow data/sources.yaml conventions; some entries use a
+# custom identifier because no SPDX identifier exists (DRL, IETF, Community
+# Specification License, NIST public domain).
+sources:
+  windows_server_security:
+    title: Windows Server security documentation (secured-core seed)
+    kind: markdown
+    license: CC-BY-4.0
+    homepage: https://learn.microsoft.com/en-us/windows-server/security/security-and-assurance
+    url: https://raw.githubusercontent.com/MicrosoftDocs/windowsserverdocs/b640f2cf0c08a765e9281dca814d7e3f379e5a52/WindowsServerDocs/security/configure-secured-core-server.md
+    filename: windows-server-secured-core.md
+    enabled: false
+    redistributable: false
+    revision: b640f2cf0c08a765e9281dca814d7e3f379e5a52
+    license_url: https://github.com/MicrosoftDocs/windowsserverdocs/blob/b640f2cf0c08a765e9281dca814d7e3f379e5a52/LICENSE
+    terms_url: https://learn.microsoft.com/en-us/legal/termsofuse
+    attribution_required: true
+    commercial_use: true
+    allowed_uses: [training, research, commercial-use]
+    redistribution_notes: >-
+      The repository LICENSE grants CC BY 4.0, but the Microsoft Learn Terms of
+      Use state personal, non-commercial use and no derivative works. Keep
+      redistributable false until counsel resolves the conflict.
+    unresolved:
+      - Microsoft Learn Terms of Use may override the repository CC BY 4.0 grant for training and redistribution.
+      - This entry covers Windows Server, not Windows client security.
+      - The full repository archive is large; acquire only the curated security files.
+    citation: >-
+      Microsoft. Windows Server security documentation. Microsoft Learn.
+      https://learn.microsoft.com/en-us/windows-server/security/security-and-assurance
+    notes: >-
+      License verified from the raw LICENSE file on 2026-11-25 (CC BY 4.0).
+      Single-file seed; add further WindowsServerDocs/security files from the
+      same commit through an explicit allowlist. Contamination risk: low
+      lexical, possible conceptual overlap with Windows certification items.
+
+  windows_authentication:
+    title: Windows Server authentication documentation
+    kind: markdown
+    license: CC-BY-4.0
+    homepage: https://learn.microsoft.com/en-us/windows-server/security/windows-authentication/windows-authentication-overview
+    url: https://raw.githubusercontent.com/MicrosoftDocs/windowsserverdocs/b640f2cf0c08a765e9281dca814d7e3f379e5a52/WindowsServerDocs/security/windows-authentication/windows-authentication-overview.md
+    filename: windows-authentication-overview.md
+    enabled: false
+    redistributable: false
+    revision: b640f2cf0c08a765e9281dca814d7e3f379e5a52
+    license_url: https://github.com/MicrosoftDocs/windowsserverdocs/blob/b640f2cf0c08a765e9281dca814d7e3f379e5a52/LICENSE
+    terms_url: https://learn.microsoft.com/en-us/legal/termsofuse
+    attribution_required: true
+    commercial_use: true
+    allowed_uses: [training, research, commercial-use]
+    redistribution_notes: >-
+      Repository LICENSE is CC BY 4.0; Microsoft Learn TOU conflict is
+      unresolved. Keep redistributable false pending legal review.
+    unresolved:
+      - Microsoft Learn Terms of Use may override the repository CC BY 4.0 grant.
+      - Windows authentication is one part of Windows security, not a complete substitute.
+    citation: >-
+      Microsoft. Windows authentication overview. Microsoft Learn.
+      https://learn.microsoft.com/en-us/windows-server/security/windows-authentication/windows-authentication-overview
+    notes: >-
+      License verified from the raw LICENSE file on 2026-11-25 (CC BY 4.0).
+      Contamination risk: low lexical; possible overlap with identity and
+      Windows administration exam items.
+
+  aws_security_hub_docs:
+    title: AWS Security Hub User Guide
+    kind: markdown
+    license: CC-BY-SA-4.0
+    homepage: https://docs.aws.amazon.com/securityhub/latest/userguide/what-is-securityhub.html
+    url: https://codeload.github.com/awsdocs/aws-security-hub-user-guide/tar.gz/8923bfa7a709e8545599d4fac03dbbb2d1e3fca5
+    filename: aws-security-hub-user-guide-8923bfa.tar.gz
+    enabled: false
+    redistributable: false
+    revision: 8923bfa7a709e8545599d4fac03dbbb2d1e3fca5
+    license_url: https://github.com/awsdocs/aws-security-hub-user-guide/blob/archived/LICENSE
+    terms_url: https://github.com/awsdocs/aws-security-hub-user-guide/blob/archived/LICENSE
+    attribution_required: true
+    commercial_use: true
+    allowed_uses: [training, research, commercial-use]
+    redistribution_notes: >-
+      CC BY-SA 4.0. Raw or adapted redistribution requires attribution and
+      share-alike. CyberLite does not redistribute the source text.
+    unresolved:
+      - The repository is archived and may not reflect current AWS guidance.
+      - Share-alike scope for a derived training corpus is unsettled.
+    citation: >-
+      Amazon Web Services. AWS Security Hub User Guide.
+      https://docs.aws.amazon.com/securityhub/latest/userguide/what-is-securityhub.html
+    notes: >-
+      License verified from the raw LICENSE file on 2026-11-25 (CC BY-SA 4.0).
+      Contamination risk: low lexical; possible overlap with AWS certification
+      questions. Use current AWS documentation for operational truth.
+
+  azure_security_fundamentals:
+    title: Azure security best practices and patterns
+    kind: markdown
+    license: CC-BY-4.0
+    homepage: https://learn.microsoft.com/en-us/azure/security/fundamentals/best-practices-and-patterns
+    url: https://raw.githubusercontent.com/MicrosoftDocs/azure-docs/2c8012dcc487d6cafa44b38c305644a6c8669684/articles/security/fundamentals/best-practices-and-patterns.md
+    filename: azure-security-best-practices-and-patterns.md
+    enabled: false
+    redistributable: false
+    revision: 2c8012dcc487d6cafa44b38c305644a6c8669684
+    license_url: https://github.com/MicrosoftDocs/azure-docs/blob/2c8012dcc487d6cafa44b38c305644a6c8669684/LICENSE
+    terms_url: https://learn.microsoft.com/en-us/legal/termsofuse
+    attribution_required: true
+    commercial_use: true
+    allowed_uses: [training, research, commercial-use]
+    redistribution_notes: >-
+      Repository LICENSE is CC BY 4.0; Microsoft Learn TOU conflict is
+      unresolved. Keep redistributable false pending legal review.
+    unresolved:
+      - Microsoft Learn Terms of Use may override the repository CC BY 4.0 grant.
+      - The azure-docs repository is very large; only curated raw files may be acquired.
+    citation: >-
+      Microsoft. Azure security best practices and patterns. Microsoft Learn.
+      https://learn.microsoft.com/en-us/azure/security/fundamentals/best-practices-and-patterns
+    notes: >-
+      License verified from the raw LICENSE file on 2026-11-25 (CC BY 4.0).
+      Single-file seed from a very large repository; do not download the full
+      archive. Contamination risk: low lexical; possible conceptual overlap
+      with Azure certification items.
+
+  gcp_security_framework:
+    title: Google Cloud Architecture Framework - Security, privacy, and compliance
+    kind: html_docs
+    license: CC-BY-4.0
+    homepage: https://cloud.google.com/architecture/framework/security
+    url: https://cloud.google.com/architecture/framework/security
+    filename: ""
+    enabled: false
+    redistributable: true
+    revision: site-snapshot-2026-11-25
+    license_url: https://creativecommons.org/licenses/by/4.0/
+    terms_url: https://developers.google.com/site-policies
+    attribution_required: true
+    commercial_use: true
+    allowed_uses: [training, research, commercial-use, redistribution]
+    redistribution_notes: >-
+      CC BY 4.0 with attribution. Code samples are Apache 2.0. Exclude images,
+      videos, and linked third-party material unless separately licensed.
+    unresolved:
+      - No stable upstream revision or content hash; the page is a moving target.
+      - A new html_docs normalizer or a dated Markdown snapshot is required.
+      - Some page elements are excluded from the CC BY 4.0 grant.
+    citation: >-
+      Google Cloud. Google Cloud Architecture Framework: Security, privacy, and
+      compliance. https://cloud.google.com/architecture/framework/security
+    notes: >-
+      License verified from the page footer and Google Developers Site Policies
+      on 2026-11-25 (CC BY 4.0). No pinned revision; capture a dated snapshot
+      and hash before use. Contamination risk: low lexical; possible overlap
+      with Google Cloud certification items.
+
+  kubernetes_docs:
+    title: Kubernetes documentation
+    kind: markdown
+    license: CC-BY-4.0
+    homepage: https://kubernetes.io/docs/concepts/security/
+    url: https://raw.githubusercontent.com/kubernetes/website/1ad3951a91f073a5ac0037ede662bebdc054774b/content/en/docs/concepts/security/_index.md
+    filename: kubernetes-security-index.md
+    enabled: false
+    redistributable: true
+    revision: 1ad3951a91f073a5ac0037ede662bebdc054774b
+    license_url: https://github.com/kubernetes/website/blob/1ad3951a91f073a5ac0037ede662bebdc054774b/LICENSE
+    terms_url: https://github.com/kubernetes/website/blob/1ad3951a91f073a5ac0037ede662bebdc054774b/LICENSE
+    attribution_required: true
+    commercial_use: true
+    allowed_uses: [training, research, commercial-use, redistribution]
+    redistribution_notes: >-
+      CC BY 4.0 for documentation. Code fragments may carry Apache 2.0 or
+      other per-file terms; retain notices and do not imply CNCF endorsement.
+    unresolved:
+      - Per-file code and third-party diagram licenses need review.
+      - The repository archive is large; ingest only docs/concepts/security and related pages.
+    citation: >-
+      The Kubernetes Authors. Kubernetes documentation.
+      https://kubernetes.io/docs/
+    notes: >-
+      License verified from the raw LICENSE file on 2026-11-25 (CC BY 4.0).
+      Single-file seed; curate additional security pages from the same commit.
+      The full repository archive is large and should not be bulk-downloaded.
+      Contamination risk: low lexical; possible conceptual overlap with CKA/CKS
+      items. A CKS-style certification overlap should be screened.
+
+  oci_runtime_spec:
+    title: Open Container Initiative Runtime Specification v1.3.0
+    kind: markdown
+    license: Apache-2.0
+    homepage: https://github.com/opencontainers/runtime-spec
+    url: https://codeload.github.com/opencontainers/runtime-spec/tar.gz/v1.3.0
+    filename: runtime-spec-v1.3.0.tar.gz
+    enabled: false
+    redistributable: true
+    revision: v1.3.0
+    license_url: https://github.com/opencontainers/runtime-spec/blob/v1.3.0/LICENSE
+    terms_url: https://github.com/opencontainers/runtime-spec/blob/v1.3.0/LICENSE
+    attribution_required: true
+    commercial_use: true
+    allowed_uses: [training, research, commercial-use, redistribution]
+    redistribution_notes: >-
+      Apache 2.0; retain LICENSE and NOTICE, mark modified files, and do not
+      use OCI marks to endorse derived material.
+    unresolved:
+      - Normative specification text is not operational container-hardening guidance.
+    citation: >-
+      Open Container Initiative. Runtime Specification v1.3.0.
+      https://github.com/opencontainers/runtime-spec
+    notes: >-
+      License verified from the raw LICENSE file on 2026-11-25 (Apache 2.0).
+      Contamination risk: low.
+
+  slsa_spec:
+    title: SLSA Specification v1.2
+    kind: markdown
+    license: Community-Spec-1.0
+    homepage: https://slsa.dev/spec/v1.2/
+    url: https://codeload.github.com/slsa-framework/slsa/tar.gz/v1.2
+    filename: slsa-v1.2.tar.gz
+    enabled: false
+    redistributable: false
+    revision: v1.2
+    license_url: https://github.com/slsa-framework/slsa/blob/v1.2/LICENSE.md
+    terms_url: https://github.com/slsa-framework/slsa/blob/v1.2/LICENSE.md
+    attribution_required: true
+    commercial_use: true
+    allowed_uses: [training, research, commercial-use]
+    redistribution_notes: >-
+      Community Specification License 1.0 permits reproduction and derivative
+      works with attribution. CyberLite keeps redistribution false pending
+      review of the patent and notice terms.
+    unresolved:
+      - Whether training a model on specification text is within the license grant is unsettled.
+      - The Community Specification License is not an SPDX-listed license.
+      - Patent license acceptance mechanics need review.
+    citation: >-
+      Open Source Security Foundation. SLSA Specification v1.2.
+      https://slsa.dev/spec/v1.2/
+    notes: >-
+      License verified from the raw LICENSE.md on 2026-11-25 (Community
+      Specification License 1.0). Contamination risk: low.
+
+  nist_ssdf:
+    title: NIST SP 800-218, Secure Software Development Framework (SSDF) v1.1
+    kind: pdf_text
+    license: Public-Domain
+    homepage: https://csrc.nist.gov/pubs/sp/800/218/final
+    url: https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-218.pdf
+    filename: NIST.SP.800-218.pdf
+    enabled: false
+    redistributable: true
+    revision: SP 800-218 (2022-02-03)
+    license_url: https://www.nist.gov/open/license
+    terms_url: https://www.nist.gov/open/license
+    attribution_required: false
+    commercial_use: true
+    allowed_uses: [training, research, commercial-use, redistribution]
+    redistribution_notes: >-
+      U.S. Government work; not copyrighted in the United States. NIST requests
+      acknowledgment, a change notice for modified works, and no endorsement.
+      Foreign rights may subsist; NIST grants worldwide reuse for its technical series.
+    unresolved:
+      - A new pdf_text normalizer is required before ingestion.
+      - Third-party figures or quoted material may carry separate terms.
+    citation: >-
+      National Institute of Standards and Technology. Secure Software
+      Development Framework (SSDF) Version 1.1. NIST SP 800-218, 2022.
+      https://doi.org/10.6028/NIST.SP.800-218
+    notes: >-
+      Public-domain status verified from the NIST copyright and licensing page
+      on 2026-11-25. Contamination risk: low lexical; possible overlap with
+      secure-SDLC exam items.
+
+  nist_800_63b:
+    title: NIST SP 800-63B-4, Digital Identity Guidelines - Authentication
+    kind: pdf_text
+    license: Public-Domain
+    homepage: https://csrc.nist.gov/pubs/sp/800/63/b/4/final
+    url: https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-63b-4.pdf
+    filename: NIST.SP.800-63b-4.pdf
+    enabled: false
+    redistributable: true
+    revision: SP 800-63B-4 (2025-07-31)
+    license_url: https://www.nist.gov/open/license
+    terms_url: https://www.nist.gov/open/license
+    attribution_required: false
+    commercial_use: true
+    allowed_uses: [training, research, commercial-use, redistribution]
+    redistribution_notes: >-
+      U.S. Government work; not copyrighted in the United States. Acknowledge
+      NIST, note modifications, and do not imply NIST endorsement.
+    unresolved:
+      - A new pdf_text normalizer is required.
+      - Companion volumes 800-63A and 800-63C may be needed for full identity coverage.
+    citation: >-
+      National Institute of Standards and Technology. Digital Identity
+      Guidelines: Authentication and Authenticator Management. NIST SP
+      800-63B-4, 2025. https://doi.org/10.6028/NIST.SP.800-63b-4
+    notes: >-
+      Public-domain status verified from the NIST copyright and licensing page
+      on 2026-11-25. Contamination risk: low; possible overlap with identity
+      certification items.
+
+  oauth_security_bcp:
+    title: IETF RFC 9700, Best Current Practice for OAuth 2.0 Security
+    kind: rfc_text
+    license: IETF-Trust
+    homepage: https://www.rfc-editor.org/rfc/rfc9700.html
+    url: https://www.rfc-editor.org/rfc/rfc9700.txt
+    filename: rfc9700.txt
+    enabled: false
+    redistributable: false
+    revision: RFC 9700 (2025-01)
+    license_url: https://trustee.ietf.org/license-info
+    terms_url: https://www.rfc-editor.org/rfc/rfc5378
+    attribution_required: true
+    commercial_use: true
+    allowed_uses: [training, research, commercial-use]
+    redistribution_notes: >-
+      IETF Trust terms. Retain copyright notices; do not redistribute modified
+      RFC text without reviewing BCP 78.
+    unresolved:
+      - Derived-text redistribution requires a terms review.
+      - This RFC overlaps the existing ietf_rfcs source and should be added to that selection.
+    citation: >-
+      T. Lodderstedt, J. Bradley, A. Labunets, D. Fett. Best Current Practice
+      for OAuth 2.0 Security. RFC 9700, 2025.
+    notes: >-
+      License terms verified from the RFC copyright notice on 2026-11-25
+      (IETF Trust, BCP 78). Contamination risk: low.
+
+  go_docs:
+    title: Go security documentation
+    kind: markdown
+    license: BSD-3-Clause
+    homepage: https://go.dev/doc/security/
+    url: https://raw.githubusercontent.com/golang/website/0eef789c9f9a7cc074eab1b3fb2d96baea282546/_content/doc/security/index.md
+    filename: go-security-index.md
+    enabled: false
+    redistributable: true
+    revision: 0eef789c9f9a7cc074eab1b3fb2d96baea282546
+    license_url: https://github.com/golang/website/blob/0eef789c9f9a7cc074eab1b3fb2d96baea282546/LICENSE
+    terms_url: https://github.com/golang/website/blob/0eef789c9f9a7cc074eab1b3fb2d96baea282546/LICENSE
+    attribution_required: true
+    commercial_use: true
+    allowed_uses: [training, research, commercial-use, redistribution]
+    redistribution_notes: >-
+      BSD-3-Clause. Retain the copyright and permission notice; do not use the
+      Go name to endorse derived material.
+    unresolved:
+      - This is a security-resource hub, not a complete secure-coding standard.
+      - Single-file seed; curate additional Go documentation pages from the same commit.
+    citation: >-
+      The Go Authors. Go security documentation. https://go.dev/doc/security/
+    notes: >-
+      License verified from the raw LICENSE file on 2026-11-25 (BSD-3-Clause).
+      The full website archive is large and should not be bulk-downloaded.
+      Contamination risk: medium for general programming benchmarks; screen
+      against code-generation and Go exercise sets.
+
+  rust_book:
+    title: The Rust Programming Language (book)
+    kind: markdown
+    license: MIT OR Apache-2.0
+    homepage: https://doc.rust-lang.org/book/
+    url: https://codeload.github.com/rust-lang/book/tar.gz/5c23042f85595490ad9f7412c4c6f57fe0b330d5
+    filename: rust-book-5c23042.tar.gz
+    enabled: false
+    redistributable: true
+    revision: 5c23042f85595490ad9f7412c4c6f57fe0b330d5
+    license_url: https://github.com/rust-lang/book#license
+    terms_url: https://github.com/rust-lang/book#license
+    attribution_required: true
+    commercial_use: true
+    allowed_uses: [training, research, commercial-use, redistribution]
+    redistribution_notes: >-
+      Dual MIT OR Apache-2.0. Retain the copyright and license notices; do not
+      imply endorsement by the Rust project.
+    unresolved:
+      - General programming and memory-safety text, not a security standard.
+    citation: >-
+      Steve Klabnik, Carol Nichols, and the Rust Community. The Rust
+      Programming Language. https://doc.rust-lang.org/book/
+    notes: >-
+      Licenses verified from LICENSE-MIT and LICENSE-APACHE on 2026-11-25.
+      Contamination risk: medium for programming benchmarks; screen against
+      Rust exercise and code-generation sets.
+
+  cert_c_standard:
+    title: SEI CERT C Coding Standard
+    kind: markdown
+    license: CC-BY-4.0
+    homepage: https://cmu-sei.github.io/secure-coding-standards/
+    url: https://codeload.github.com/cmu-sei/secure-coding-standards/tar.gz/73ee7a0dbe778512ba57a5f5ee0017af0ea09239
+    filename: cert-secure-coding-standards-73ee7a0.tar.gz
+    enabled: false
+    redistributable: true
+    revision: 73ee7a0dbe778512ba57a5f5ee0017af0ea09239
+    license_url: https://github.com/cmu-sei/secure-coding-standards/blob/73ee7a0dbe778512ba57a5f5ee0017af0ea09239/LICENSE
+    terms_url: https://cmu-sei.github.io/secure-coding-standards/
+    attribution_required: true
+    commercial_use: true
+    allowed_uses: [training, research, commercial-use, redistribution]
+    redistribution_notes: >-
+      CC BY 4.0 for the standard; code examples are MIT. Preserve attribution
+      to Carnegie Mellon University and the SEI, and retain the MIT notice for code.
+    unresolved:
+      - The repository is a generated site; ingest the source content, not rendered HTML.
+      - CERT and Carnegie Mellon marks may not be used to endorse derived material.
+    citation: >-
+      Carnegie Mellon University Software Engineering Institute. SEI CERT C
+      Coding Standard. https://cmu-sei.github.io/secure-coding-standards/
+    notes: >-
+      License verified from the raw LICENSE file on 2026-11-25 (CC BY 4.0;
+      code MIT). Contamination risk: medium for secure-coding benchmarks;
+      screen against C/C++ secure-coding evaluation items.
+
+  mdn_web_security:
+    title: MDN Web Security and JavaScript documentation
+    kind: markdown
+    license: CC-BY-SA-2.5
+    homepage: https://developer.mozilla.org/en-US/docs/Web/Security
+    url: https://raw.githubusercontent.com/mdn/content/eeebbb874aeb67641b37122adf7aac42c5b8f45a/files/en-us/web/security/index.md
+    filename: mdn-web-security-index.md
+    enabled: false
+    redistributable: false
+    revision: eeebbb874aeb67641b37122adf7aac42c5b8f45a
+    license_url: https://github.com/mdn/content/blob/eeebbb874aeb67641b37122adf7aac42c5b8f45a/LICENSE.md
+    terms_url: https://developer.mozilla.org/en-US/docs/MDN/Writing_guidelines/Attrib_copyright_license
+    attribution_required: true
+    commercial_use: true
+    allowed_uses: [training, research, commercial-use]
+    redistribution_notes: >-
+      Prose is CC BY-SA 2.5; code samples are CC0 or MIT depending on date.
+      Share-alike applies to adapted prose. CyberLite does not redistribute it.
+    unresolved:
+      - Share-alike scope for a derived corpus is unsettled.
+      - Some code samples have date-dependent licenses.
+    citation: >-
+      Mozilla and MDN contributors. MDN Web Docs: Web security.
+      https://developer.mozilla.org/en-US/docs/Web/Security
+    notes: >-
+      License verified from LICENSE.md and the MDN attribution page on
+      2026-11-25 (CC BY-SA 2.5). Single-page seed; curate additional security
+      and JavaScript pages. Contamination risk: medium for web-security
+      benchmarks; screen.
+
+  sigma_rules:
+    title: SigmaHQ detection rules
+    kind: yaml_rules
+    license: DRL-1.1
+    homepage: https://github.com/SigmaHQ/sigma
+    url: https://codeload.github.com/SigmaHQ/sigma/tar.gz/7228cccddc63a771924ab585e072f4fbb63690fb
+    filename: sigma-7228ccc.tar.gz
+    enabled: false
+    redistributable: false
+    revision: 7228cccddc63a771924ab585e072f4fbb63690fb
+    license_url: https://github.com/SigmaHQ/Detection-Rule-License/blob/main/LICENSE.Detection.Rules.md
+    terms_url: https://github.com/SigmaHQ/Detection-Rule-License/blob/main/LICENSE.Detection.Rules.md
+    attribution_required: true
+    commercial_use: true
+    allowed_uses: [training, research, commercial-use]
+    redistribution_notes: >-
+      DRL 1.1 permits use, modification, and sharing with author attribution.
+      CyberLite keeps redistribution false pending review of rule metadata and
+      third-party references.
+    unresolved:
+      - The Detection Rule License is not an SPDX-listed license.
+      - Whether model training is within the grant is not expressly addressed.
+      - Individual rules may carry third-party references or author metadata.
+    citation: >-
+      SigmaHQ contributors. Sigma detection rules.
+      https://github.com/SigmaHQ/sigma
+    notes: >-
+      License verified from the repository LICENSE and DRL text on 2026-11-25.
+      A new yaml_rules normalizer is required. Contamination risk: low-medium;
+      screen against detection-engineering and SOC benchmarks.
+
+  splunk_security_content:
+    title: Splunk Security Content
+    kind: yaml_rules
+    license: Apache-2.0
+    homepage: https://github.com/splunk/security_content
+    url: https://codeload.github.com/splunk/security_content/tar.gz/689e177da0c31da9154b51d3dbdd2af40462a03c
+    filename: splunk-security-content-689e177.tar.gz
+    enabled: false
+    redistributable: true
+    revision: 689e177da0c31da9154b51d3dbdd2af40462a03c
+    license_url: https://github.com/splunk/security_content/blob/689e177da0c31da9154b51d3dbdd2af40462a03c/LICENSE
+    terms_url: https://github.com/splunk/security_content/blob/689e177da0c31da9154b51d3dbdd2af40462a03c/LICENSE
+    attribution_required: true
+    commercial_use: true
+    allowed_uses: [training, research, commercial-use, redistribution]
+    redistribution_notes: >-
+      Apache 2.0; retain LICENSE/NOTICE and mark modified files. Do not use
+      Splunk marks to endorse derived material.
+    unresolved:
+      - Vendor-specific content may not generalize to other SIEMs.
+      - A new yaml_rules normalizer is required.
+    citation: >-
+      Splunk. Splunk Security Content. https://github.com/splunk/security_content
+    notes: >-
+      License verified from the raw LICENSE file on 2026-11-25 (Apache 2.0).
+      Contamination risk: low; screen against Splunk and SOC detection benchmarks.
+
+  nist_800_61r3:
+    title: NIST SP 800-61 Rev. 3, Incident Response Recommendations
+    kind: pdf_text
+    license: Public-Domain
+    homepage: https://csrc.nist.gov/pubs/sp/800/61/r3/final
+    url: https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-61r3.pdf
+    filename: NIST.SP.800-61r3.pdf
+    enabled: false
+    redistributable: true
+    revision: SP 800-61 Rev. 3 (2025-04-03)
+    license_url: https://www.nist.gov/open/license
+    terms_url: https://www.nist.gov/open/license
+    attribution_required: false
+    commercial_use: true
+    allowed_uses: [training, research, commercial-use, redistribution]
+    redistribution_notes: >-
+      U.S. Government work; not copyrighted in the United States. Acknowledge
+      NIST, note modifications, and do not imply endorsement.
+    unresolved:
+      - A new pdf_text normalizer is required.
+      - The publication is a CSF 2.0 community profile, not a step-by-step playbook.
+    citation: >-
+      National Institute of Standards and Technology. Incident Response
+      Recommendations and Considerations for Cybersecurity Risk Management: A
+      CSF 2.0 Community Profile. NIST SP 800-61 Rev. 3, 2025.
+      https://doi.org/10.6028/NIST.SP.800-61r3
+    notes: >-
+      Public-domain status verified from the NIST copyright and licensing page
+      on 2026-11-25. Contamination risk: low lexical; possible conceptual
+      overlap with incident-response certification items.
+
+  nist_800_86:
+    title: NIST SP 800-86, Guide to Integrating Forensic Techniques into Incident Response
+    kind: pdf_text
+    license: Public-Domain
+    homepage: https://csrc.nist.gov/pubs/sp/800/86/final
+    url: https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-86.pdf
+    filename: NIST.SP.800-86.pdf
+    enabled: false
+    redistributable: true
+    revision: SP 800-86 (2006-09-01)
+    license_url: https://www.nist.gov/open/license
+    terms_url: https://www.nist.gov/open/license
+    attribution_required: false
+    commercial_use: true
+    allowed_uses: [training, research, commercial-use, redistribution]
+    redistribution_notes: >-
+      U.S. Government work; not copyrighted in the United States. Acknowledge
+      NIST, note modifications, and do not imply endorsement.
+    unresolved:
+      - A new pdf_text normalizer is required.
+      - The 2006 guidance predates modern cloud, container, and mobile forensics.
+    citation: >-
+      National Institute of Standards and Technology. Guide to Integrating
+      Forensic Techniques into Incident Response. NIST SP 800-86, 2006.
+      https://doi.org/10.6028/NIST.SP.800-86
+    notes: >-
+      Public-domain status verified from the NIST copyright and licensing page
+      on 2026-11-25. Contamination risk: low; supplement with current forensics
+      guidance.
+
+  capa_rules:
+    title: Mandiant capa rules for malware capability detection
+    kind: yaml_rules
+    license: Apache-2.0
+    homepage: https://github.com/mandiant/capa-rules
+    url: https://codeload.github.com/mandiant/capa-rules/tar.gz/ffd03fc584e87fed57ddf225c8ab3cd0345dc8cf
+    filename: capa-rules-ffd03fc.tar.gz
+    enabled: false
+    redistributable: true
+    revision: ffd03fc584e87fed57ddf225c8ab3cd0345dc8cf
+    license_url: https://github.com/mandiant/capa-rules/blob/ffd03fc584e87fed57ddf225c8ab3cd0345dc8cf/LICENSE.txt
+    terms_url: https://github.com/mandiant/capa-rules/blob/ffd03fc584e87fed57ddf225c8ab3cd0345dc8cf/LICENSE.txt
+    attribution_required: true
+    commercial_use: true
+    allowed_uses: [training, research, commercial-use, redistribution]
+    redistribution_notes: >-
+      Apache 2.0; retain LICENSE/NOTICE and mark modified files. Do not use
+      Mandiant marks to endorse derived material.
+    unresolved:
+      - Rules describe malicious behaviour and may need safety filtering.
+      - A new yaml_rules normalizer is required.
+    citation: >-
+      Mandiant. capa rules. https://github.com/mandiant/capa-rules
+    notes: >-
+      License verified from the GitHub license API and raw LICENSE.txt on
+      2026-11-25 (Apache 2.0). Contamination risk: low; malware-analysis
+      benchmarks may reuse rule names, so screen.
+
+  misp_taxonomies:
+    title: MISP taxonomies
+    kind: json_taxonomy
+    license: CC0-1.0
+    homepage: https://github.com/MISP/misp-taxonomies
+    url: https://codeload.github.com/MISP/misp-taxonomies/tar.gz/bd9d844796c13a12397e645156aeb55e2f1e6192
+    filename: misp-taxonomies-bd9d844.tar.gz
+    enabled: false
+    redistributable: true
+    revision: bd9d844796c13a12397e645156aeb55e2f1e6192
+    license_url: https://github.com/MISP/misp-taxonomies/blob/bd9d844796c13a12397e645156aeb55e2f1e6192/LICENSE.md
+    terms_url: https://github.com/MISP/misp-taxonomies/blob/bd9d844796c13a12397e645156aeb55e2f1e6192/LICENSE.md
+    attribution_required: false
+    commercial_use: true
+    allowed_uses: [training, research, commercial-use, redistribution]
+    redistribution_notes: >-
+      Dual CC0 1.0 or BSD-2-Clause; this entry uses CC0 1.0. No attribution is
+      legally required, but preserve the source URL for provenance.
+    unresolved:
+      - The taxonomies are a controlled vocabulary, not narrative threat intelligence.
+      - A new json_taxonomy normalizer is required.
+    citation: >-
+      MISP Project. MISP taxonomies. https://github.com/MISP/misp-taxonomies
+    notes: >-
+      License verified from LICENSE.md on 2026-11-25 (CC0 1.0 or BSD-2-Clause).
+      Contamination risk: low.
+
+  nist_800_30:
+    title: NIST SP 800-30 Rev. 1, Guide for Conducting Risk Assessments
+    kind: pdf_text
+    license: Public-Domain
+    homepage: https://csrc.nist.gov/pubs/sp/800/30/r1/final
+    url: https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-30r1.pdf
+    filename: NIST.SP.800-30r1.pdf
+    enabled: false
+    redistributable: true
+    revision: SP 800-30 Rev. 1 (2012-09-17)
+    license_url: https://www.nist.gov/open/license
+    terms_url: https://www.nist.gov/open/license
+    attribution_required: false
+    commercial_use: true
+    allowed_uses: [training, research, commercial-use, redistribution]
+    redistribution_notes: >-
+      U.S. Government work; not copyrighted in the United States. Acknowledge
+      NIST, note modifications, and do not imply endorsement.
+    unresolved:
+      - A new pdf_text normalizer is required.
+      - The 2012 guidance should be paired with current CSF 2.0 material.
+    citation: >-
+      National Institute of Standards and Technology. Guide for Conducting
+      Risk Assessments. NIST SP 800-30 Rev. 1, 2012.
+      https://doi.org/10.6028/NIST.SP.800-30r1
+    notes: >-
+      Public-domain status verified from the NIST copyright and licensing page
+      on 2026-11-25. Contamination risk: low; possible conceptual overlap with
+      risk-management certification items.

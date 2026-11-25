@@ -1,0 +1,490 @@
+{
+  "reviewer": "agent-D3",
+  "review_type": "technical",
+  "artifact": "synthesis-production-final",
+  "dataset_version": "cyberlite-syn-2.0.0-37b01792c2d8",
+  "items": [
+    {
+      "record_id": "syn-cloud-container-supply-chain-cloud-azure-diagnostic-settings-command-1",
+      "content_hash": "1c04aca0bf13ed6512b148084efbfe0c32faa9e162fbdf9061e5dcba19a6ea90",
+      "scores": {
+        "technical_accuracy": 7,
+        "source_grounding": 7,
+        "completeness": 4,
+        "relevance": 5,
+        "clarity": 8,
+        "practical_usefulness": 4,
+        "originality_diversity": 3,
+        "small_model_suitability": 6
+      },
+      "findings": [
+        "The answer never explains the command, which is the first half of the prompt: --name, --resource at subscription scope, --workspace and the --logs JSON are not decoded, and the 90-day retention fact is background rather than an explanation of what the invocation does.",
+        "The wrong-assumption risk is not identified. `create` is a PUT that overwrites an existing subscription diagnostic setting with the same name (silently dropping categories the caller did not resend), and the caller needs Monitoring Contributor/Owner on the subscription; neither is mentioned.",
+        "The documented subscription-scope form is `az monitor diagnostic-settings subscription create` with `--location` (verified against the Microsoft Learn Azure CLI reference, 2026-11). The record uses the resource-scoped form with a subscription ID and omits --location, and the answer presents it as correct without caveat.",
+        "'How to verify before acting' is answered with generic 'run in non-production and compare with an independent source' instead of `az monitor diagnostic-settings subscription show -n send-activity-log` plus a query of the AzureActivity table.",
+        "Dataset meta-text leaks into the answer: 'Generated commands in this corpus are examples and are never executed by the project.' That is corpus scaffolding, not security guidance."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": true
+    },
+    {
+      "record_id": "syn-cloud-container-supply-chain-cloud-ci-oidc-federation-config-1",
+      "content_hash": "9586c31458c260559cb3176aa157d022c829a755c8160f5c05dff89bbe6b9756",
+      "scores": {
+        "technical_accuracy": 8,
+        "source_grounding": 7,
+        "completeness": 5,
+        "relevance": 7,
+        "clarity": 8,
+        "practical_usefulness": 6,
+        "originality_diversity": 4,
+        "small_model_suitability": 7
+      },
+      "findings": [
+        "No review of the supplied YAML occurs. The obvious supply-chain weakness in a supply-chain domain is that `aws-actions/configure-aws-credentials@v4` is a mutable tag while `actions/checkout` is pinned to a commit SHA; the response never mentions it.",
+        "The property depends on the role trust policy, which is not in the file: the answer never names the checks that make or break it (issuer, audience `sts.amazonaws.com`, `sub` pinned to `repo:org/repo:ref:refs/heads/main`, account and role scope).",
+        "Verification text is Kubernetes boilerplate ('inspect the effective object after defaults and admission'); GitHub Actions has no admission controller, so that check does not apply. The real checks are the decoded OIDC token claims and a CloudTrail AssumeRoleWithWebIdentity event.",
+        "The 'assumption that could make it unsafe' is generic; concrete ones are a wildcard `sub`, a role assumable by any repository in the org, and `permissions` granted workflow-wide rather than at the deploy job."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": true
+    },
+    {
+      "record_id": "syn-cloud-container-supply-chain-cloud-ci-oidc-federation-diagnose",
+      "content_hash": "24328c9d50609ae9cfb8c16b49cef66684f490bff3e4eed68231beaed5ad9ae3",
+      "scores": {
+        "technical_accuracy": 6,
+        "source_grounding": 6,
+        "completeness": 4,
+        "relevance": 6,
+        "clarity": 8,
+        "practical_usefulness": 4,
+        "originality_diversity": 4,
+        "small_model_suitability": 6
+      },
+      "findings": [
+        "'Granting id-token: write to an entire workflow when only one deploy job needs it' is a least-privilege concern, not a cause of OIDC federation failing to replace stored keys. The prompt asks why the expected property is still not in effect.",
+        "The single 'check the effective state' paragraph does not distinguish the two causes, which is the explicit requirement; it would read identically for either cause.",
+        "No concrete distinguishing test is given: decode the job's OIDC token claims (iss/aud/sub), attempt `aws sts assume-role-with-web-identity` with that token, and read CloudTrail for AssumeRoleWithWebIdentity versus long-lived access-key use.",
+        "A real cause is omitted: the job-level `permissions: id-token: write` is missing, or the IAM OIDC provider / role trust policy does not exist in the target account."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": true
+    },
+    {
+      "record_id": "syn-cloud-container-supply-chain-cloud-azure-diagnostic-settings-explain",
+      "content_hash": "79b5a14c853c9ac9ae19401848ec299443bb76e53415f02429031fee86b3c995",
+      "scores": {
+        "technical_accuracy": 9,
+        "source_grounding": 9,
+        "completeness": 9,
+        "relevance": 9,
+        "clarity": 9,
+        "practical_usefulness": 9,
+        "originality_diversity": 7,
+        "small_model_suitability": 9
+      },
+      "findings": [
+        "Verified against Microsoft Learn: the Activity Log is retained 90 days by default, and a diagnostic setting is the supported way to route Administrative/Security/Policy categories to a Log Analytics workspace, storage account, or event hub.",
+        "The separation of resource logs from the subscription Activity Log, and of Entra sign-in/audit logs from the Activity Log, is correct and is the failure mode that matters in design review.",
+        "Failure modes are concrete (portal visibility mistaken for retention; only Administrative enabled when Security/Policy are needed) rather than generic.",
+        "Minor imprecision: Activity Log ingestion into Log Analytics is free and cost applies to extended retention, so 'control cost' is loose; the answer could also state that the Activity Log is not an authentication/authorization audit log (ARM rejects before an event is written).",
+        "Low originality: the opening paragraph is the shared topic blurb reused verbatim across the diagnostic-settings group."
+      ],
+      "decision": "accept",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": true
+    },
+    {
+      "record_id": "syn-cloud-container-supply-chain-cloud-guardduty-finding-triage-log-1",
+      "content_hash": "968d24e385e964e1c535fad6b3ef558f978e7f9421e081361605dfc77654df93",
+      "scores": {
+        "technical_accuracy": 7,
+        "source_grounding": 7,
+        "completeness": 6,
+        "relevance": 8,
+        "clarity": 9,
+        "practical_usefulness": 7,
+        "originality_diversity": 6,
+        "small_model_suitability": 8
+      },
+      "findings": [
+        "States as fact that the finding is 'the signature of stolen instance credentials' and 'treat the instance as compromised'. The event only shows the key was used from an external IP, which a corporate egress proxy, VPN, or a legitimate off-AWS job can also produce; the prompt explicitly asks what it does not prove.",
+        "'Rotate the role credentials' is not actionable for an EC2 instance profile: the role has no long-term credentials to rotate. The correct actions are to revoke active sessions (aws:TokenIssueTime / AWSRevokeOlderSessions), replace the instance profile or instance, and investigate the metadata path.",
+        "Severity 8.0 is not mapped to GuardDuty's High band (7.0-8.9), and the CloudTrail next step is not tied to the access key ID and the event time window even though the dialogue variant supplies 02:14 UTC.",
+        "Correct and useful: GuardDuty is detective not preventive, and the answer cautions against treating one log line as proof of intent."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": true
+    },
+    {
+      "record_id": "syn-cloud-container-supply-chain-cloud-guardduty-finding-triage-triage-dialogue",
+      "content_hash": "28412636e5352289cc6e22e30906c7be63d2f7fe119fa1cfe0a9324e55f1e44f",
+      "scores": {
+        "technical_accuracy": 7,
+        "source_grounding": 7,
+        "completeness": 6,
+        "relevance": 7,
+        "clarity": 7,
+        "practical_usefulness": 7,
+        "originality_diversity": 5,
+        "small_model_suitability": 7
+      },
+      "findings": [
+        "The final assistant turn appends two bullets ('Treating a GuardDuty finding as a blocked attack...', 'Enabling GuardDuty only in the home region...') that answer no question in the conversation; they are leftover template content and read as non sequiturs.",
+        "The first turn repeats the same over-assertion as the single-turn record ('signature of stolen instance credentials') and prescribes rotating role credentials that do not exist for an instance profile.",
+        "The false-positive guidance is sound: positive evidence means confirming initiator, authorization, change record, and peer-asset behaviour, and escalation triggers are listed.",
+        "Multi-turn coherence is otherwise acceptable: it preserves the raw event and timestamp, but no later turn refers to the specifics established earlier (account, region, access key)."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": true
+    },
+    {
+      "record_id": "syn-cryptography-identity-access-crypto-aead-002-codefix-1",
+      "content_hash": "54a17310fd7fa06192caac64a320d67decac1f672a464cf094cd3ec92578ae31",
+      "scores": {
+        "technical_accuracy": 9,
+        "source_grounding": 9,
+        "completeness": 8,
+        "relevance": 9,
+        "clarity": 9,
+        "practical_usefulness": 9,
+        "originality_diversity": 7,
+        "small_model_suitability": 9
+      },
+      "findings": [
+        "Root cause is correct: CBC with a fixed IV and no MAC gives no integrity and leaks plaintext equality; AES-GCM with a random 96-bit nonce and AAD is an appropriate replacement.",
+        "The original has a second defect the answer omits: `encryptor().update(data)` is called without `finalize()`, so the final block is silently dropped and the vulnerable function is also lossy. The prompt asks for the root cause of the reported vulnerability.",
+        "The replacement lacks a version/algorithm byte and key-length validation; it is correct for the snippet but not a durable storage format for rotation or algorithm agility.",
+        "Correctly states the decryptor must verify the tag and reject before releasing plaintext."
+      ],
+      "decision": "accept",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": false
+    },
+    {
+      "record_id": "syn-cryptography-identity-access-auth-delegation-050-command-1",
+      "content_hash": "3b4653758a76a7a127fd55e1617c8a0f2fc3f231bf9a5ac7724cd5360882e78f",
+      "scores": {
+        "technical_accuracy": 6,
+        "source_grounding": 6,
+        "completeness": 3,
+        "relevance": 4,
+        "clarity": 7,
+        "practical_usefulness": 3,
+        "originality_diversity": 3,
+        "small_model_suitability": 5
+      },
+      "findings": [
+        "Dataset scaffolding leaks into the answer: 'Find synthetic computer accounts configured for unconstrained delegation.' There is no 'synthetic' AD object class; this is corpus vocabulary appearing as domain terminology.",
+        "The command is not explained: -Filter, -Properties, Select-Object, and the fact that the filter is evaluated server-side by AD Web Services are all unmentioned, so the first third of the prompt is unanswered.",
+        "The main wrong-assumption risk is missed: Get-ADComputer returns only computer objects, so user accounts and gMSAs with unconstrained delegation are invisible. The correct sweep uses userAccountControl bit 0x80000 (LDAP 1.2.840.113556.1.4.803:=524288) across object classes, and should also surface msDS-AllowedToDelegateTo for constrained delegation.",
+        "Verification is boilerplate ('compare with the service configuration or audit log') plus the corpus disclaimer, not a re-query or a check in ADUC/`Get-ADObject`."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": true
+    },
+    {
+      "record_id": "syn-cryptography-identity-access-crypto-gcm-nonce-003-diagnose",
+      "content_hash": "63a65dbe177fd60a1f39e667b1a12ec434fcb5ab4a36a189e6be4198e6817472",
+      "scores": {
+        "technical_accuracy": 8,
+        "source_grounding": 8,
+        "completeness": 5,
+        "relevance": 7,
+        "clarity": 9,
+        "practical_usefulness": 5,
+        "originality_diversity": 5,
+        "small_model_suitability": 7
+      },
+      "findings": [
+        "Both 'causes' restate bad practices rather than diagnosing why the expected property is not in effect; the prompt asks for causes plus the check that distinguishes them.",
+        "The check is generic ('confirm the service loaded the configuration, that no more specific rule overrides it') and is structurally identical to other records in the batch; it distinguishes nothing between a random-IV reuse problem and a 128-bit-IV problem.",
+        "A distinguishing check would be a per-key invocation counter, a nonce-source audit (random vs counter, IV length, rekey threshold), and a tag-verification/decrypt-failure test.",
+        "Minor imprecision: 'random IVs carry collision risk well before' 2^32 is loose for a 96-bit random IV, where the 2^32 bound is the standard's own cap; the 2^32 total-invocation cap itself matches NIST SP 800-38D section 8.3."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": true
+    },
+    {
+      "record_id": "syn-cryptography-identity-access-crypto-aead-002-fim-1",
+      "content_hash": "6a7f3e38f553b5327c543e3ebef37cd41d57b76f0bf86b034b0cc4bbf08bd3d0",
+      "scores": {
+        "technical_accuracy": 8,
+        "source_grounding": 8,
+        "completeness": 6,
+        "relevance": 3,
+        "clarity": 7,
+        "practical_usefulness": 2,
+        "originality_diversity": 5,
+        "small_model_suitability": 4
+      },
+      "findings": [
+        "The prefix is a single newline, so the model must emit `import os` with no code context; nothing before the blank implies that `os` is needed (the only use of `os.urandom` is in the suffix, after the blank).",
+        "The blank tests recall of an import line rather than AEAD knowledge; `import os` is not a security-relevant completion.",
+        "The target is ambiguous: `import os`, `import secrets`, or a combined import are all defensible from the visible context, and a FIM item needs one expected completion.",
+        "The surrounding code is a near-duplicate of the crypto-aead-002 codefix record, so this item adds little corpus diversity."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": false
+    },
+    {
+      "record_id": "syn-cryptography-identity-access-auth-gpo-052-log-1",
+      "content_hash": "89b8737a98a2f34130f7f0488c83d59b28d5d7d8be5578225d4aed635a2c7ab4",
+      "scores": {
+        "technical_accuracy": 9,
+        "source_grounding": 9,
+        "completeness": 9,
+        "relevance": 9,
+        "clarity": 9,
+        "practical_usefulness": 8,
+        "originality_diversity": 8,
+        "small_model_suitability": 9
+      },
+      "findings": [
+        "Correct: a 5136 event on the groupPolicyContainer with Attribute versionNumber records a GPO settings edit, not a link. gPLink is an attribute of the scope of management (site, domain, OU), so this event cannot establish where the GPO applies.",
+        "It names the real distinguishing event (5136 on the SOM DN with Attribute gPLink and an LDAP:// value) and explains link options/order, which is the verification step the prompt asks for.",
+        "The MS14-025 cpassword note is accurate and correctly framed as background rather than evidence about this event.",
+        "The observations-vs-inferences instruction is met; only nit is that 'Value Added' on a single-valued versionNumber is normal 5136 behaviour and could have been stated explicitly so it does not look suspicious."
+      ],
+      "decision": "accept",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": true
+    },
+    {
+      "record_id": "syn-cryptography-identity-access-auth-delegation-050-misconception-1",
+      "content_hash": "3667cb10de64f8dbdecd495b63e903792227e383c933ad0ca977669219b3c9aa",
+      "scores": {
+        "technical_accuracy": 8,
+        "source_grounding": 8,
+        "completeness": 5,
+        "relevance": 7,
+        "clarity": 7,
+        "practical_usefulness": 4,
+        "originality_diversity": 3,
+        "small_model_suitability": 6
+      },
+      "findings": [
+        "Core correction is right: protocol transition (TrustedToAuthForDelegation) lets a service obtain tickets for users who did not authenticate to it, so a limited SPN list does not make constrained delegation safe.",
+        "The 'practical consequence' is vacuous template text ('applying this claim to kerberos would leave the condition described above unaddressed'), which names no consequence. A real one: teams leave protocol transition enabled, and one compromised service can impersonate privileged users to the listed SPNs.",
+        "It repeats the unconstrained-delegation paragraph, which is irrelevant to the misconception being corrected, instead of describing the constrained-delegation attack path (S4U2Self then S4U2Proxy).",
+        "No mitigation is given: disable protocol transition unless required, add tier-0 accounts to Protected Users / 'sensitive and cannot be delegated', and audit msDS-AllowedToDelegateTo."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": true
+    },
+    {
+      "record_id": "syn-fundamentals-linux-networking-fund-hash-vs-encrypt-codefix-1",
+      "content_hash": "4eab2d880b093bf666a08a2df69bd4e858ef42f97a22868f7580263ab79b53c4",
+      "scores": {
+        "technical_accuracy": 9,
+        "source_grounding": 9,
+        "completeness": 8,
+        "relevance": 9,
+        "clarity": 9,
+        "practical_usefulness": 8,
+        "originality_diversity": 8,
+        "small_model_suitability": 8
+      },
+      "findings": [
+        "Correct fix: a 16-byte per-password salt plus scrypt; the diagnosis (fast unsalted SHA-256 is enumerable and identical passwords collide across accounts) is accurate.",
+        "The stored format is only `salt:dk`; algorithm ID and n/r/p are not encoded, so parameters cannot be upgraded or verified later, and no verify() with a constant-time compare is provided.",
+        "n=2^14 (16 MiB) is at the low end of current scrypt guidance; the parameter choice and a migration path should be stated.",
+        "Correctly adds that encryption without authentication is also wrong and prefers AEAD constructions."
+      ],
+      "decision": "accept",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": false
+    },
+    {
+      "record_id": "syn-fundamentals-linux-networking-fund-detection-errors-command-1",
+      "content_hash": "802a5bf8a81291d5c28a8ddfba61215459b9d3f1f7300942d589c6f50b2d6856",
+      "scores": {
+        "technical_accuracy": 9,
+        "source_grounding": 7,
+        "completeness": 4,
+        "relevance": 5,
+        "clarity": 8,
+        "practical_usefulness": 5,
+        "originality_diversity": 4,
+        "small_model_suitability": 6
+      },
+      "findings": [
+        "The math is right: tp=0.99, fp=0.01*9999=99.99, precision 0.99/100.98 ~= 0.0098, so about 1% of alerts are real at 1-in-10,000 prevalence; the 1 TP / 100 FP walkthrough is a good base-rate explanation.",
+        "The command itself is never explained: `python3 -c`, the expression `tp/(tp+fp)`, and the fact that `1` positive and `9999` negatives encode the prevalence are all unmentioned.",
+        "The 'what could go wrong / how to verify' answer is nonsensical boilerplate about service configuration and audit logs for a pure arithmetic one-liner. Real risks are float rounding, a changed prevalence assumption, and mistaking lab sensitivity/specificity for production values.",
+        "Dataset meta-text ('Generated commands in this corpus...') again leaks into the answer."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": false
+    },
+    {
+      "record_id": "syn-fundamentals-linux-networking-fund-least-privilege-config-1",
+      "content_hash": "daa459635bdb9b2fe9dce9d4f4296146c7b6fb81134d33bf2c4ad857c4de8d36",
+      "scores": {
+        "technical_accuracy": 7,
+        "source_grounding": 6,
+        "completeness": 4,
+        "relevance": 5,
+        "clarity": 8,
+        "practical_usefulness": 4,
+        "originality_diversity": 3,
+        "small_model_suitability": 6
+      },
+      "findings": [
+        "The supplied directives are never analyzed: User=, Group= and NoNewPrivileges=yes are not mentioned, and NoNewPrivileges is not explained (it blocks setuid/file-capability gains at execve and does not remove capabilities the process already holds).",
+        "The 'assumption that could make it unsafe' is not answered concretely. Real assumptions are a unit file writable by appsvc, SupplementaryGroups/AmbientCapabilities, appsvc in sudo or the docker group, or missing ProtectSystem/ProtectHome hardening.",
+        "Verification is generic; for systemd it should be `systemctl show -p User -p Group -p NoNewPrivileges <unit>` plus a check of unit-file ownership and drop-ins.",
+        "The least-privilege essay is accurate but disconnected from the snippet, and the 'Check' paragraph is reused verbatim from the LDAP and nftables records."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": true
+    },
+    {
+      "record_id": "grnd-ietf-rfcs-ietf-rfcs-004bfcfa7226989d-requirement-1",
+      "content_hash": "9b5b758d23ad3fd09ad9bd2e1ccdf46e1c7f02ae0c242430e47e7f2ccaf8e9a6",
+      "scores": {
+        "technical_accuracy": 9,
+        "source_grounding": 9,
+        "completeness": 6,
+        "relevance": 9,
+        "clarity": 9,
+        "practical_usefulness": 6,
+        "originality_diversity": 6,
+        "small_model_suitability": 8
+      },
+      "findings": [
+        "Verdict and quote are correct: the excerpt says 'Two REQUIRED key exchange methods have been defined', so the proposed OPTIONAL behaviour is not supported, and the quotation is exact.",
+        "The normative-strength explanation is muddled: it equates REQUIRED with MUST without saying so (RFC 2119 treats REQUIRED as synonymous with MUST, an absolute requirement) and then discusses SHOULD, which does not appear in the excerpt.",
+        "The operational consequence is abstract ('changes interoperability or security assumptions'); a concrete one is that a peer implementing only the MTI methods would fail algorithm negotiation, or that an operator could wrongly disable a method still marked REQUIRED in this excerpt.",
+        "The instruction to confirm the keyword in the current source is good, but the item does not acknowledge that RFC 9142 updates RFC 4253 and demotes both methods, which is exactly the staleness risk in the companion record."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": true
+    },
+    {
+      "record_id": "syn-fundamentals-linux-networking-fund-hash-vs-encrypt-fim-1",
+      "content_hash": "f8b7cd95ed339ed0a2adeeaa42f656f59e118cc0efd627c30d53e0ebab1a01db",
+      "scores": {
+        "technical_accuracy": 9,
+        "source_grounding": 8,
+        "completeness": 8,
+        "relevance": 8,
+        "clarity": 8,
+        "practical_usefulness": 7,
+        "originality_diversity": 7,
+        "small_model_suitability": 8
+      },
+      "findings": [
+        "The blank is inferable from the prefix (salt and dk are defined), but the expected output format is underspecified: hex, base64, or bytes-plus-separator are all plausible and ':' is an arbitrary delimiter.",
+        "There is no verify() companion, so the completion teaches a storage format without the constant-time comparison needed to use it.",
+        "The scrypt parameters (n=2^14, r=8, p=1) are fixed in the prefix but not encoded in the stored string, so a later parameter change cannot be detected or migrated.",
+        "It tests recall of one formatting line rather than password-hashing reasoning."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": false
+    },
+    {
+      "record_id": "syn-fundamentals-linux-networking-fund-authn-authz-log-1",
+      "content_hash": "ea1cf08a2b1c963edabd78fd89dd9f6c25f3500e0f9c0b199d1a4bfa9c776895",
+      "scores": {
+        "technical_accuracy": 6,
+        "source_grounding": 5,
+        "completeness": 6,
+        "relevance": 8,
+        "clarity": 9,
+        "practical_usefulness": 6,
+        "originality_diversity": 4,
+        "small_model_suitability": 6
+      },
+      "findings": [
+        "Over-asserts on a 401: the log supports 'unauthenticated', not 'carried no acceptable credentials' (expired/invalid token, missing header, or a 401 by policy all fit), and the excerpt has no WWW-Authenticate header to prove a challenge was issued.",
+        "403 is asserted as 'a valid identity that lacks the admin role', but the log contains no identity and a 403 can come from IP allowlisting, a WAF, CSRF rejection, HTTP method, or a disabled account.",
+        "The prompt asks to distinguish observations from inferences; the first two sentences state inferences as observations, and only the trailing boilerplate cautions against it.",
+        "The core 401-vs-403 principle is correct, and the point that treating both as 'login problems' hides an authorization event is a good teaching line."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": false
+    },
+    {
+      "record_id": "ietf_rfcs-004bfcfa7226989d",
+      "content_hash": "87a1d25fab71e2b46465b2ba00e4de091806e46b7a51e5bece4d2807f93d47e0",
+      "scores": {
+        "technical_accuracy": 7,
+        "source_grounding": 9,
+        "completeness": 3,
+        "relevance": 3,
+        "clarity": 7,
+        "practical_usefulness": 2,
+        "originality_diversity": 2,
+        "small_model_suitability": 4
+      },
+      "findings": [
+        "The prompt asks for operational security implications and forbids added requirements; the response is a verbatim RFC excerpt with zero operational guidance: no deprecation status, no configuration advice, no verification steps.",
+        "Materially misleading as 2026 guidance: it presents `diffie-hellman-group1-sha1 REQUIRED` without noting that RFC 9142 (January 2022, Updates RFC 4253) reclassifies group1-sha1 as SHOULD NOT and group14-sha1 as MAY, and that group1 is a 1024-bit MODP group (~80-bit strength).",
+        "The verbatim copy preserves PDF-style line breaks and broken hyphenation ('diffie-\\nhellman-group14-sha1'), which is poor text for a completion target.",
+        "It omits the key operational distinction: REQUIRED in RFC 4253 means 'MUST implement' for interoperability, not 'MUST enable or negotiate', which is what a defender actually needs to decide."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": true
+    },
+    {
+      "record_id": "grnd-mitre-attack-mitre-attack-00dbb2cb3426ae0c-match",
+      "content_hash": "05a7cf5833635f0832b2b6c8f08d50be7175873967e2a90a7495d6b8e5ce8f07",
+      "scores": {
+        "technical_accuracy": 9,
+        "source_grounding": 9,
+        "completeness": 6,
+        "relevance": 8,
+        "clarity": 9,
+        "practical_usefulness": 6,
+        "originality_diversity": 3,
+        "small_model_suitability": 5
+      },
+      "findings": [
+        "Answer leakage: the 'observed behaviour' is the verbatim ATT&CK description including the phrase 'remove indicators from tools', and option A repeats the technique name, so the item is answerable by string matching without understanding.",
+        "Distractor rationale is absent: the answer only says the other options 'name different techniques' and never explains why PE injection (T1055.002), VDSO hijacking (T1055.014), or Regsvr32 (T1218.010) do not fit.",
+        "The mapping is correct: T1027.005, Stealth tactic, verified against attack.mitre.org v20.1, and the 'analytic judgement, not a detection' caveat is appropriate.",
+        "The stem should paraphrase the behaviour (e.g. recompiling malware after an AV signature quarantine) so the technique name is not present in the prompt."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": true
+    }
+  ]
+}

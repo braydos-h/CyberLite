@@ -1,0 +1,3163 @@
+{
+  "audit": {
+    "name": "CyberLite synthesis-calibration contamination, deduplication and split-integrity audit",
+    "auditor": "Agent G (independent)",
+    "date": "2026-11-25T13:34:16Z",
+    "build_id": "cyberlite-syn-2.0.0-04a21fdaa5ec",
+    "scope": "data/processed/synthesis-calibration/{train,validation,test}.jsonl",
+    "report": "docs/reports/contamination-dedup-audit.md",
+    "status": "no_threshold_violations; one field-level duplication finding and coverage gaps reported",
+    "independence": "Exact hash, SimHash, MinHash/Jaccard, 13-gram and group-split methods were reimplemented standalone and cross-checked against cyberlite.data.cleaning, contamination, semantic and splits; both implementations agree.",
+    "inputs": {
+      "train": {
+        "records": 444,
+        "sha256": "5e9673dc4b354ff20df9f02eeb0fdfa6873311742d48793004cf956849abc971"
+      },
+      "validation": {
+        "records": 33,
+        "sha256": "5a018a4fd645d069f2a9c19111bc43a68d90371c0ca139c5f67e44a77b98343f"
+      },
+      "test": {
+        "records": 23,
+        "sha256": "e131502494c867f5ef19df856c974288300ab5d95228ea5ddfc3a7fc1dcdb059"
+      },
+      "evaluation": {
+        "baseline_probe_v1.jsonl": {
+          "items": 36,
+          "sha256": "f5a7055c5168e77529b52e0d572cf8f987c60d15e6e5c49a0d3099b70857baf4",
+          "license": "Synthetic",
+          "benchmark": "baseline-probe-v1"
+        },
+        "cyberlite_eval_factual_v1.jsonl": {
+          "items": 55,
+          "sha256": "4f098917af536c3cfbcef6e47aa95a8a72433e1977833b92bdf877622ca88ed0",
+          "license": "Synthetic",
+          "benchmark": null
+        },
+        "cyberlite_eval_logs_ir_v1.jsonl": {
+          "items": 55,
+          "sha256": "27f26ed40fc30b1e78a12bc8e08987076bf6cebf44beaf8fb79b6f4671f47b26",
+          "license": "Synthetic",
+          "benchmark": null
+        },
+        "cyberlite_eval_vulnerability_v1.jsonl": {
+          "items": 55,
+          "sha256": "3ce6fd0c14bc0ef42c571beede7e62835df54232e643b143e439939a23803cff",
+          "license": "Synthetic",
+          "benchmark": null
+        },
+        "seceval_v1.jsonl": {
+          "items": 2182,
+          "sha256": "6ae74b2c9c45d1024f99453be00ae82d00567f0b5f1ffa1cc4109a2fa4ef1c03",
+          "license": "CC-BY-NC-SA-4.0",
+          "benchmark": "seceval"
+        },
+        "smoke_eval.jsonl": {
+          "items": 8,
+          "sha256": "111132beb36f65d9bc57bdb42efe9d801d5971d0f355f23b08723e7b6be5fc3d",
+          "license": "Synthetic",
+          "benchmark": "smoke-eval"
+        }
+      }
+    },
+    "files_unchanged_during_audit": true
+  },
+  "measured_counts": {
+    "calibration_records": 500,
+    "split_counts": {
+      "train": 444,
+      "validation": 33,
+      "test": 23
+    },
+    "distinct_groups": 318,
+    "group_split_violations": 0,
+    "exact_duplicate_groups": 0,
+    "exact_duplicate_extra_copies": 0,
+    "prompt_exact_duplicate_groups": 0,
+    "response_exact_duplicate_groups": 1,
+    "response_exact_duplicate_extra_copies": 9,
+    "simhash_pairs_le_3": 0,
+    "simhash_min_distance_any": 4,
+    "simhash_cross_split_pairs_le_3": 0,
+    "simhash_cross_split_min_distance": 6,
+    "minhash_pairs_ge_0_88": 0,
+    "minhash_pairs_ge_0_80": 1,
+    "minhash_pairs_ge_0_70": 5,
+    "minhash_pairs_ge_0_50": 24,
+    "minhash_max_jaccard": 0.8555,
+    "cross_split_exact_pairs": 0,
+    "cross_split_simhash_pairs_le_3": 0,
+    "cross_split_minhash_pairs_ge_0_88": 0,
+    "contamination_records_removed": 0,
+    "contamination_records_ge_0_10": 0,
+    "contamination_max_overlap": 0.0419,
+    "contamination_unscreenable_records": 0,
+    "paraphrase_jaccard_gt_0_5_records": 0,
+    "paraphrase_containment_gt_0_6_records": 36,
+    "distinct_prefix_skeletons": 307,
+    "top_skeleton_count": 42,
+    "top_skeleton_share": 0.0866,
+    "top5_skeleton_share": 0.2784
+  },
+  "thresholds": {
+    "exact": "SHA-256 over lowercased [a-z0-9_] tokens (single-character non-digits dropped)",
+    "simhash": {
+      "bits": 64,
+      "max_hamming": 3,
+      "search": "all 124,750 pairs"
+    },
+    "minhash": {
+      "threshold": 0.88,
+      "shingle_words": 5,
+      "hashes": 128,
+      "verification": "exact Jaccard over 5-word shingle sets for every pair (no LSH sampling)"
+    },
+    "contamination": {
+      "ngram": 13,
+      "threshold": 0.2,
+      "indexes": "per benchmark and combined"
+    },
+    "paraphrase_heuristic": {
+      "jaccard_gt": 0.5,
+      "symmetric_containment_gt": 0.6
+    },
+    "group_split": {
+      "seed": 1337,
+      "ratios": {
+        "train": 0.9,
+        "validation": 0.05,
+        "test": 0.05
+      }
+    }
+  },
+  "corpus": {
+    "records": 500,
+    "splits": {
+      "train": 444,
+      "validation": 33,
+      "test": 23
+    },
+    "build_ids": {
+      "cyberlite-syn-2.0.0-04a21fdaa5ec": 500
+    },
+    "unique_ids": 500,
+    "distinct_groups": 318,
+    "missing_group": 0,
+    "missing_source": 0,
+    "missing_license": 0,
+    "records_with_prompt": 485,
+    "records_with_messages": 12,
+    "human_reviewed": {
+      "false": 500
+    },
+    "dataset_stage": {
+      "calibration": 500
+    },
+    "split_field_mismatch": 0,
+    "file_sha256": {
+      "train": "5e9673dc4b354ff20df9f02eeb0fdfa6873311742d48793004cf956849abc971",
+      "validation": "5a018a4fd645d069f2a9c19111bc43a68d90371c0ca139c5f67e44a77b98343f",
+      "test": "e131502494c867f5ef19df856c974288300ab5d95228ea5ddfc3a7fc1dcdb059"
+    }
+  },
+  "exact_duplicates": {
+    "groups": 0,
+    "pairs": 0,
+    "extra_copies": 0,
+    "examples": []
+  },
+  "field_level_duplicates": {
+    "prompt": {
+      "groups": 0,
+      "extra_copies": 0,
+      "detail": []
+    },
+    "response": {
+      "groups": 1,
+      "extra_copies": 9,
+      "detail": [
+        {
+          "size": 10,
+          "ids": [
+            "grnd-nist-nvd-nist-nvd-008ddf1fa2bb2f34-applicability",
+            "grnd-nist-nvd-nist-nvd-0062b87e4e98743f-applicability",
+            "grnd-nist-nvd-nist-nvd-00515c5c766e67b7-applicability",
+            "grnd-nist-nvd-nist-nvd-00653fbec65f3d68-applicability",
+            "grnd-nist-nvd-nist-nvd-000acc9a82d0be67-applicability",
+            "grnd-nist-nvd-nist-nvd-001f4beaa8f927d0-applicability",
+            "grnd-nist-nvd-nist-nvd-00961af1e44e313b-applicability",
+            "grnd-nist-nvd-nist-nvd-00795ecd6c9525f0-applicability",
+            "grnd-nist-nvd-nist-nvd-00af596c1890db54-applicability",
+            "grnd-nist-nvd-nist-nvd-00b3cc38194e31f8-applicability"
+          ],
+          "splits": [
+            "train",
+            "validation"
+          ],
+          "groups": [
+            "nist_nvd:CVE-2020-29504",
+            "nist_nvd:CVE-2023-34063",
+            "nist_nvd:CVE-2023-51464",
+            "nist_nvd:CVE-2023-52191",
+            "nist_nvd:CVE-2023-6625",
+            "nist_nvd:CVE-2024-0188",
+            "nist_nvd:CVE-2024-0291",
+            "nist_nvd:CVE-2024-20959",
+            "nist_nvd:CVE-2024-21796",
+            "nist_nvd:CVE-2024-22086"
+          ],
+          "chars": 819,
+          "raw_equal": true,
+          "preview": "A CPE is a product-and-version expression, not proof that the asset is affected. Resolve each CPE field against the installed product, vendor, version, update, edition, language, and target software. For a package, compare the installed ver"
+        }
+      ]
+    },
+    "response_cross_split_groups": [
+      {
+        "size": 10,
+        "ids": [
+          "grnd-nist-nvd-nist-nvd-008ddf1fa2bb2f34-applicability",
+          "grnd-nist-nvd-nist-nvd-0062b87e4e98743f-applicability",
+          "grnd-nist-nvd-nist-nvd-00515c5c766e67b7-applicability",
+          "grnd-nist-nvd-nist-nvd-00653fbec65f3d68-applicability",
+          "grnd-nist-nvd-nist-nvd-000acc9a82d0be67-applicability",
+          "grnd-nist-nvd-nist-nvd-001f4beaa8f927d0-applicability",
+          "grnd-nist-nvd-nist-nvd-00961af1e44e313b-applicability",
+          "grnd-nist-nvd-nist-nvd-00795ecd6c9525f0-applicability",
+          "grnd-nist-nvd-nist-nvd-00af596c1890db54-applicability",
+          "grnd-nist-nvd-nist-nvd-00b3cc38194e31f8-applicability"
+        ],
+        "splits": [
+          "train",
+          "validation"
+        ],
+        "groups": [
+          "nist_nvd:CVE-2020-29504",
+          "nist_nvd:CVE-2023-34063",
+          "nist_nvd:CVE-2023-51464",
+          "nist_nvd:CVE-2023-52191",
+          "nist_nvd:CVE-2023-6625",
+          "nist_nvd:CVE-2024-0188",
+          "nist_nvd:CVE-2024-0291",
+          "nist_nvd:CVE-2024-20959",
+          "nist_nvd:CVE-2024-21796",
+          "nist_nvd:CVE-2024-22086"
+        ],
+        "chars": 819,
+        "raw_equal": true,
+        "preview": "A CPE is a product-and-version expression, not proof that the asset is affected. Resolve each CPE field against the installed product, vendor, version, update, edition, language, and target software. For a package, compare the installed ver",
+        "split_counts": {
+          "train": 9,
+          "validation": 1
+        }
+      }
+    ],
+    "significance": "Whole-record hashing does not see identical response text when prompts differ. The 819-character NVD CPE-applicability response is byte-identical in nine train records and one validation record."
+  },
+  "simhash": {
+    "threshold_bits": 3,
+    "pairs_le_3": 0,
+    "distance_histogram": {
+      "4": 6,
+      "5": 13,
+      "6": 17,
+      "7": 35,
+      "8": 73,
+      "9": 151,
+      "10": 291,
+      "11": 530,
+      "12": 844
+    },
+    "minimum_distance_any_pair": 4,
+    "cross_split_pairs_le_3": 0,
+    "cross_split_minimum_distance": 6,
+    "nearest_within_corpus": [
+      {
+        "left": "syn-cloud-container-supply-chain-cont-content-trust-scope-command-1",
+        "right": "syn-cloud-container-supply-chain-cont-content-trust-scope-command-2",
+        "distance": 4,
+        "left_split": "train",
+        "right_split": "train",
+        "same_group": true
+      },
+      {
+        "left": "syn-cloud-container-supply-chain-k8s-admission-policy-engines-diagnose",
+        "right": "syn-cloud-container-supply-chain-k8s-networkpolicy-additive-peers-diagnose",
+        "distance": 4,
+        "left_split": "train",
+        "right_split": "train",
+        "same_group": false
+      },
+      {
+        "left": "syn-incident-response-forensics-threat-intel-forensics-soundness-033-explain",
+        "right": "syn-incident-response-forensics-threat-intel-forensics-soundness-033-mcq-1",
+        "distance": 4,
+        "left_split": "validation",
+        "right_split": "validation",
+        "same_group": true
+      },
+      {
+        "left": "syn-web-api-secure-development-api-oauth-redirect-001-checklist",
+        "right": "syn-web-api-secure-development-api-oauth-redirect-001-explain",
+        "distance": 4,
+        "left_split": "train",
+        "right_split": "train",
+        "same_group": true
+      },
+      {
+        "left": "syn-web-api-secure-development-web-command-injection-001-codefix-1",
+        "right": "syn-web-api-secure-development-web-command-injection-001-codereview-1",
+        "distance": 4,
+        "left_split": "train",
+        "right_split": "train",
+        "same_group": true
+      },
+      {
+        "left": "syn-web-api-secure-development-web-session-fixation-001-codefix-1",
+        "right": "syn-web-api-secure-development-web-session-fixation-001-codereview-1",
+        "distance": 4,
+        "left_split": "train",
+        "right_split": "train",
+        "same_group": true
+      },
+      {
+        "left": "grnd-linux-man-pages-linux-man-pages-5d9c470e8acf6dbe-requirement-1",
+        "right": "syn-language-security-retention-gen-stacktrace-002-multi-answer",
+        "distance": 5,
+        "left_split": "train",
+        "right_split": "train",
+        "same_group": false
+      },
+      {
+        "left": "grnd-nist-nvd-nist-nvd-001f4beaa8f927d0-applicability",
+        "right": "grnd-nist-nvd-nist-nvd-0062b87e4e98743f-applicability",
+        "distance": 5,
+        "left_split": "train",
+        "right_split": "train",
+        "same_group": false
+      }
+    ],
+    "nearest_cross_split": [
+      {
+        "left": "syn-cloud-container-supply-chain-cloud-gcp-iam-condition-binding-diagnose",
+        "right": "syn-monitoring-detection-soc-log-retention-integrity-018-diagnose",
+        "distance": 6,
+        "left_split": "validation",
+        "right_split": "train",
+        "same_group": false
+      },
+      {
+        "left": "syn-language-security-retention-sql-inj-001-multi-answer",
+        "right": "syn-vulnerability-classification-remediation-cwe-330-weak-randomness-codereview-1",
+        "distance": 6,
+        "left_split": "train",
+        "right_split": "test",
+        "same_group": false
+      },
+      {
+        "left": "grnd-nist-nvd-nist-nvd-00653fbec65f3d68-uncertainty",
+        "right": "grnd-nist-nvd-nist-nvd-00b3cc38194e31f8-uncertainty",
+        "distance": 7,
+        "left_split": "train",
+        "right_split": "validation",
+        "same_group": false
+      },
+      {
+        "left": "syn-cloud-container-supply-chain-cloud-gcp-iam-condition-binding-diagnose",
+        "right": "syn-cryptography-identity-access-crypto-gcm-nonce-003-diagnose",
+        "distance": 7,
+        "left_split": "validation",
+        "right_split": "train",
+        "same_group": false
+      },
+      {
+        "left": "syn-cloud-container-supply-chain-cloud-gcp-iam-condition-binding-diagnose",
+        "right": "syn-vulnerability-classification-remediation-cwe-770-allocation-limits-diagnose",
+        "distance": 7,
+        "left_split": "validation",
+        "right_split": "train",
+        "same_group": false
+      }
+    ]
+  },
+  "minhash": {
+    "threshold": 0.88,
+    "shingle_words": 5,
+    "hashes": 128,
+    "pairs_ge_0_88": 0,
+    "pairs_ge_0_80": 1,
+    "pairs_ge_0_70": 5,
+    "pairs_ge_0_60": 10,
+    "pairs_ge_0_50": 24,
+    "max_jaccard": 0.8555,
+    "top_pairs": [
+      {
+        "left": "grnd-openssh-docs-openssh-docs-841d94ec4f1d6d22-requirement-1",
+        "right": "grnd-openssh-docs-openssh-docs-841d94ec4f1d6d22-requirement-2",
+        "jaccard": 0.8555,
+        "minhash_estimate": 0.8516,
+        "left_split": "train",
+        "right_split": "train",
+        "same_group": true
+      },
+      {
+        "left": "syn-fundamentals-linux-networking-lnx-perm-model-command-1",
+        "right": "syn-fundamentals-linux-networking-lnx-perm-model-command-2",
+        "jaccard": 0.7653,
+        "minhash_estimate": 0.7266,
+        "left_split": "train",
+        "right_split": "train",
+        "same_group": true
+      },
+      {
+        "left": "syn-cloud-container-supply-chain-cont-content-trust-scope-command-1",
+        "right": "syn-cloud-container-supply-chain-cont-content-trust-scope-command-2",
+        "jaccard": 0.7474,
+        "minhash_estimate": 0.7109,
+        "left_split": "train",
+        "right_split": "train",
+        "same_group": true
+      },
+      {
+        "left": "syn-incident-response-forensics-threat-intel-forensics-timeline-024-command-1",
+        "right": "syn-incident-response-forensics-threat-intel-forensics-timeline-024-command-2",
+        "jaccard": 0.7321,
+        "minhash_estimate": 0.75,
+        "left_split": "train",
+        "right_split": "train",
+        "same_group": true
+      },
+      {
+        "left": "syn-cryptography-identity-access-cert-chain-024-command-1",
+        "right": "syn-cryptography-identity-access-cert-chain-024-command-2",
+        "jaccard": 0.7113,
+        "minhash_estimate": 0.6641,
+        "left_split": "test",
+        "right_split": "test",
+        "same_group": true
+      },
+      {
+        "left": "syn-cryptography-identity-access-cert-private-ca-034-command-1",
+        "right": "syn-cryptography-identity-access-cert-private-ca-034-command-2",
+        "jaccard": 0.6697,
+        "minhash_estimate": 0.6406,
+        "left_split": "validation",
+        "right_split": "validation",
+        "same_group": true
+      },
+      {
+        "left": "syn-incident-response-forensics-threat-intel-forensics-soundness-033-checklist",
+        "right": "syn-incident-response-forensics-threat-intel-forensics-soundness-033-explain",
+        "jaccard": 0.6348,
+        "minhash_estimate": 0.6562,
+        "left_split": "validation",
+        "right_split": "validation",
+        "same_group": true
+      },
+      {
+        "left": "syn-incident-response-forensics-threat-intel-ir-credtheft-010-checklist",
+        "right": "syn-incident-response-forensics-threat-intel-ir-credtheft-010-explain",
+        "jaccard": 0.6311,
+        "minhash_estimate": 0.6562,
+        "left_split": "train",
+        "right_split": "train",
+        "same_group": true
+      },
+      {
+        "left": "syn-cloud-container-supply-chain-cont-cosign-keyless-verification-checklist",
+        "right": "syn-cloud-container-supply-chain-cont-cosign-keyless-verification-explain",
+        "jaccard": 0.6281,
+        "minhash_estimate": 0.5781,
+        "left_split": "train",
+        "right_split": "train",
+        "same_group": true
+      },
+      {
+        "left": "syn-web-api-secure-development-api-oauth-redirect-001-checklist",
+        "right": "syn-web-api-secure-development-api-oauth-redirect-001-explain",
+        "jaccard": 0.6066,
+        "minhash_estimate": 0.6484,
+        "left_split": "train",
+        "right_split": "train",
+        "same_group": true
+      },
+      {
+        "left": "syn-web-api-secure-development-web-command-injection-001-codefix-1",
+        "right": "syn-web-api-secure-development-web-command-injection-001-codereview-1",
+        "jaccard": 0.5938,
+        "minhash_estimate": 0.6172,
+        "left_split": "train",
+        "right_split": "train",
+        "same_group": true
+      },
+      {
+        "left": "syn-web-api-secure-development-api-bola-001-codefix-1",
+        "right": "syn-web-api-secure-development-api-bola-001-codereview-1",
+        "jaccard": 0.5909,
+        "minhash_estimate": 0.5938,
+        "left_split": "train",
+        "right_split": "train",
+        "same_group": true
+      }
+    ]
+  },
+  "cross_split_leakage": {
+    "exact_pairs": 0,
+    "simhash_pairs_le_3": 0,
+    "minhash_pairs_ge_0_88": 0,
+    "shared_metadata_groups": 0,
+    "closest_full_record_pairs": [
+      {
+        "left": "grnd-nist-nvd-nist-nvd-00795ecd6c9525f0-applicability",
+        "right": "grnd-nist-nvd-nist-nvd-00b3cc38194e31f8-applicability",
+        "jaccard": 0.535,
+        "minhash_estimate": 0.5703,
+        "left_split": "train",
+        "right_split": "validation",
+        "same_group": false
+      },
+      {
+        "left": "grnd-nist-nvd-nist-nvd-00795ecd6c9525f0-uncertainty",
+        "right": "grnd-nist-nvd-nist-nvd-00b3cc38194e31f8-uncertainty",
+        "jaccard": 0.5115,
+        "minhash_estimate": 0.4922,
+        "left_split": "train",
+        "right_split": "validation",
+        "same_group": false
+      }
+    ],
+    "field_level_findings": [
+      {
+        "size": 10,
+        "ids": [
+          "grnd-nist-nvd-nist-nvd-008ddf1fa2bb2f34-applicability",
+          "grnd-nist-nvd-nist-nvd-0062b87e4e98743f-applicability",
+          "grnd-nist-nvd-nist-nvd-00515c5c766e67b7-applicability",
+          "grnd-nist-nvd-nist-nvd-00653fbec65f3d68-applicability",
+          "grnd-nist-nvd-nist-nvd-000acc9a82d0be67-applicability",
+          "grnd-nist-nvd-nist-nvd-001f4beaa8f927d0-applicability",
+          "grnd-nist-nvd-nist-nvd-00961af1e44e313b-applicability",
+          "grnd-nist-nvd-nist-nvd-00795ecd6c9525f0-applicability",
+          "grnd-nist-nvd-nist-nvd-00af596c1890db54-applicability",
+          "grnd-nist-nvd-nist-nvd-00b3cc38194e31f8-applicability"
+        ],
+        "splits": [
+          "train",
+          "validation"
+        ],
+        "groups": [
+          "nist_nvd:CVE-2020-29504",
+          "nist_nvd:CVE-2023-34063",
+          "nist_nvd:CVE-2023-51464",
+          "nist_nvd:CVE-2023-52191",
+          "nist_nvd:CVE-2023-6625",
+          "nist_nvd:CVE-2024-0188",
+          "nist_nvd:CVE-2024-0291",
+          "nist_nvd:CVE-2024-20959",
+          "nist_nvd:CVE-2024-21796",
+          "nist_nvd:CVE-2024-22086"
+        ],
+        "chars": 819,
+        "raw_equal": true,
+        "preview": "A CPE is a product-and-version expression, not proof that the asset is affected. Resolve each CPE field against the installed product, vendor, version, update, edition, language, and target software. For a package, compare the installed ver",
+        "split_counts": {
+          "train": 9,
+          "validation": 1
+        }
+      }
+    ]
+  },
+  "group_split": {
+    "distinct_groups": 318,
+    "size_histogram": {
+      "1": 185,
+      "2": 94,
+      "3": 30,
+      "4": 8,
+      "5": 1
+    },
+    "largest_groups": [
+      {
+        "group": "openssh_docs:ssh_config.5",
+        "size": 5
+      },
+      {
+        "group": "nist_nvd:CVE-2024-21796",
+        "size": 4
+      },
+      {
+        "group": "synthesis:cryptography-identity-access:crypto-gcm-nonce-003",
+        "size": 4
+      },
+      {
+        "group": "synthesis:cloud-container-supply-chain:sc-build-cache-poisoning",
+        "size": 4
+      },
+      {
+        "group": "synthesis:vulnerability-classification-remediation:cwe-22-path-traversal",
+        "size": 4
+      },
+      {
+        "group": "synthesis:incident-response-forensics-threat-intel:ir-credtheft-010",
+        "size": 4
+      },
+      {
+        "group": "synthesis:cloud-container-supply-chain:cloud-guardduty-finding-triage",
+        "size": 4
+      },
+      {
+        "group": "synthesis:web-api-secure-development:api-oauth-redirect-001",
+        "size": 4
+      },
+      {
+        "group": "synthesis:monitoring-detection-soc:log-cloud-storage-access-111",
+        "size": 4
+      },
+      {
+        "group": "nist_nvd:CVE-2024-0188",
+        "size": 3
+      }
+    ],
+    "violations": {},
+    "violation_count": 0,
+    "rederivation": {
+      "seed": 1337,
+      "ratios": {
+        "train": 0.9,
+        "validation": 0.05,
+        "test": 0.05
+      },
+      "mismatched_groups": 0,
+      "mismatch_examples": {},
+      "expected_group_counts": {
+        "train": 284,
+        "validation": 20,
+        "test": 14
+      },
+      "actual_group_counts": {
+        "train": 284,
+        "validation": 20,
+        "test": 14
+      }
+    },
+    "fallback_record_group_matches_metadata_group": true,
+    "library_group_violations": 0
+  },
+  "contamination": {
+    "ngram": 13,
+    "threshold": 0.2,
+    "records_screened": 500,
+    "records_without_13grams": [],
+    "removed": 0,
+    "removed_groups": [],
+    "benchmarks_available": [
+      "baseline_probe_v1.jsonl",
+      "cyberlite_eval_factual_v1.jsonl",
+      "cyberlite_eval_logs_ir_v1.jsonl",
+      "cyberlite_eval_vulnerability_v1.jsonl",
+      "seceval_v1.jsonl",
+      "smoke_eval.jsonl"
+    ],
+    "benchmarks_unavailable": [
+      "CyberSecEval / CyberSecEval 2 (no local JSONL; only benchmarks/cyberseceval/README.md)"
+    ],
+    "unavailable_is_not_a_pass": true,
+    "combined": {
+      "indexed_ngrams": 277879,
+      "max_overlap": 0.0419,
+      "records_ge_0_20": 0,
+      "records_ge_0_10": 0,
+      "removed": 0
+    },
+    "benchmarks": {
+      "baseline_probe_v1.jsonl": {
+        "items": 36,
+        "ngrams": 594,
+        "license": "Synthetic",
+        "max_overlap": 0.0,
+        "ge_0_20": 0,
+        "ge_0_10": 0,
+        "top": []
+      },
+      "cyberlite_eval_factual_v1.jsonl": {
+        "items": 55,
+        "ngrams": 7250,
+        "license": "Synthetic",
+        "max_overlap": 0.0,
+        "ge_0_20": 0,
+        "ge_0_10": 0,
+        "top": []
+      },
+      "cyberlite_eval_logs_ir_v1.jsonl": {
+        "items": 55,
+        "ngrams": 15873,
+        "license": "Synthetic",
+        "max_overlap": 0.0,
+        "ge_0_20": 0,
+        "ge_0_10": 0,
+        "top": []
+      },
+      "cyberlite_eval_vulnerability_v1.jsonl": {
+        "items": 55,
+        "ngrams": 13312,
+        "license": "Synthetic",
+        "max_overlap": 0.0419,
+        "ge_0_20": 0,
+        "ge_0_10": 0,
+        "top": [
+          {
+            "id": "grnd-nist-nvd-nist-nvd-00795ecd6c9525f0-json",
+            "overlap": 0.0419,
+            "split": "train"
+          },
+          {
+            "id": "syn-vulnerability-classification-remediation-cvss-v31-environmental-config-1",
+            "overlap": 0.0376,
+            "split": "train"
+          },
+          {
+            "id": "syn-vulnerability-classification-remediation-cvss-v31-base-metrics-config-complete",
+            "overlap": 0.0354,
+            "split": "train"
+          },
+          {
+            "id": "grnd-nist-nvd-nist-nvd-00795ecd6c9525f0-uncertainty",
+            "overlap": 0.0314,
+            "split": "train"
+          },
+          {
+            "id": "grnd-nist-nvd-nist-nvd-00b3cc38194e31f8-uncertainty",
+            "overlap": 0.0293,
+            "split": "validation"
+          }
+        ]
+      },
+      "seceval_v1.jsonl": {
+        "items": 2182,
+        "ngrams": 240755,
+        "license": "CC-BY-NC-SA-4.0",
+        "max_overlap": 0.0241,
+        "ge_0_20": 0,
+        "ge_0_10": 0,
+        "top": [
+          {
+            "id": "grnd-mitre-attack-mitre-attack-012c208a4d147578-match",
+            "overlap": 0.0241,
+            "split": "train"
+          },
+          {
+            "id": "grnd-mitre-cwe-mitre-cwe-0224f8f94abee99e-requirement-1",
+            "overlap": 0.0171,
+            "split": "train"
+          }
+        ]
+      },
+      "smoke_eval.jsonl": {
+        "items": 8,
+        "ngrams": 166,
+        "license": "Synthetic",
+        "max_overlap": 0.0,
+        "ge_0_20": 0,
+        "ge_0_10": 0,
+        "top": []
+      }
+    },
+    "nonzero_overlap_records": [
+      {
+        "id": "grnd-nist-nvd-nist-nvd-00795ecd6c9525f0-json",
+        "overlap": 0.0419,
+        "split": "train",
+        "source": "nist_nvd",
+        "task_family": "structured-json"
+      },
+      {
+        "id": "syn-vulnerability-classification-remediation-cvss-v31-environmental-config-1",
+        "overlap": 0.0376,
+        "split": "train",
+        "source": "cyberlite_synthesis",
+        "task_family": "configuration-analysis"
+      },
+      {
+        "id": "syn-vulnerability-classification-remediation-cvss-v31-base-metrics-config-complete",
+        "overlap": 0.0354,
+        "split": "train",
+        "source": "cyberlite_synthesis",
+        "task_family": "configuration-completion"
+      },
+      {
+        "id": "grnd-nist-nvd-nist-nvd-00795ecd6c9525f0-uncertainty",
+        "overlap": 0.0314,
+        "split": "train",
+        "source": "nist_nvd",
+        "task_family": "uncertainty-handling"
+      },
+      {
+        "id": "grnd-nist-nvd-nist-nvd-00b3cc38194e31f8-uncertainty",
+        "overlap": 0.0293,
+        "split": "validation",
+        "source": "nist_nvd",
+        "task_family": "uncertainty-handling"
+      },
+      {
+        "id": "grnd-nist-nvd-nist-nvd-00795ecd6c9525f0-applicability",
+        "overlap": 0.0292,
+        "split": "train",
+        "source": "nist_nvd",
+        "task_family": "false-positive-recognition"
+      },
+      {
+        "id": "grnd-nist-nvd-nist-nvd-00b3cc38194e31f8-applicability",
+        "overlap": 0.0262,
+        "split": "validation",
+        "source": "nist_nvd",
+        "task_family": "false-positive-recognition"
+      },
+      {
+        "id": "grnd-mitre-attack-mitre-attack-012c208a4d147578-match",
+        "overlap": 0.0241,
+        "split": "train",
+        "source": "mitre_attack",
+        "task_family": "attack-technique-recognition"
+      },
+      {
+        "id": "grnd-mitre-cwe-mitre-cwe-0224f8f94abee99e-requirement-1",
+        "overlap": 0.0171,
+        "split": "train",
+        "source": "mitre_cwe",
+        "task_family": "evidence-grounded-qa"
+      }
+    ],
+    "shared_ngram_examples": {
+      "grnd-nist-nvd-nist-nvd-00795ecd6c9525f0-json": [
+        "1 av n ac l pr n ui n s u c h",
+        "3 1 av n ac l pr n ui n s u c",
+        "ac l pr n ui n s u c h i h a",
+        "av n ac l pr n ui n s u c h i",
+        "cvss 3 1 av n ac l pr n ui n s u",
+        "l pr n ui n s u c h i h a h",
+        "n ac l pr n ui n s u c h i h"
+      ],
+      "syn-vulnerability-classification-remediation-cvss-v31-environmental-config-1": [
+        "1 av n ac l pr n ui n s u c h",
+        "3 1 av n ac l pr n ui n s u c",
+        "ac l pr n ui n s u c h i h a",
+        "av n ac l pr n ui n s u c h i",
+        "cvss 3 1 av n ac l pr n ui n s u",
+        "l pr n ui n s u c h i h a h",
+        "n ac l pr n ui n s u c h i h"
+      ],
+      "syn-vulnerability-classification-remediation-cvss-v31-base-metrics-config-complete": [
+        "1 av n ac l pr n ui n s u c h",
+        "3 1 av n ac l pr n ui n s u c",
+        "ac l pr n ui n s u c h i h a",
+        "av n ac l pr n ui n s u c h i",
+        "cvss 3 1 av n ac l pr n ui n s u",
+        "l pr n ui n s u c h i h a h",
+        "n ac l pr n ui n s u c h i h"
+      ],
+      "grnd-nist-nvd-nist-nvd-00795ecd6c9525f0-uncertainty": [
+        "1 av n ac l pr n ui n s u c h",
+        "3 1 av n ac l pr n ui n s u c",
+        "ac l pr n ui n s u c h i h a",
+        "av n ac l pr n ui n s u c h i",
+        "cvss 3 1 av n ac l pr n ui n s u",
+        "l pr n ui n s u c h i h a h",
+        "n ac l pr n ui n s u c h i h"
+      ],
+      "grnd-nist-nvd-nist-nvd-00b3cc38194e31f8-uncertainty": [
+        "1 av n ac l pr n ui n s u c h",
+        "3 1 av n ac l pr n ui n s u c",
+        "ac l pr n ui n s u c h i h a",
+        "av n ac l pr n ui n s u c h i",
+        "cvss 3 1 av n ac l pr n ui n s u",
+        "l pr n ui n s u c h i h a h",
+        "n ac l pr n ui n s u c h i h"
+      ],
+      "grnd-nist-nvd-nist-nvd-00795ecd6c9525f0-applicability": [
+        "1 av n ac l pr n ui n s u c h",
+        "3 1 av n ac l pr n ui n s u c",
+        "ac l pr n ui n s u c h i h a",
+        "av n ac l pr n ui n s u c h i",
+        "cvss 3 1 av n ac l pr n ui n s u",
+        "l pr n ui n s u c h i h a h",
+        "n ac l pr n ui n s u c h i h"
+      ],
+      "grnd-nist-nvd-nist-nvd-00b3cc38194e31f8-applicability": [
+        "1 av n ac l pr n ui n s u c h",
+        "3 1 av n ac l pr n ui n s u c",
+        "ac l pr n ui n s u c h i h a",
+        "av n ac l pr n ui n s u c h i",
+        "cvss 3 1 av n ac l pr n ui n s u",
+        "l pr n ui n s u c h i h a h",
+        "n ac l pr n ui n s u c h i h"
+      ],
+      "grnd-mitre-attack-mitre-attack-012c208a4d147578-match": [
+        "attempt to gather information about attached peripheral devices and components connected to a",
+        "gather information about attached peripheral devices and components connected to a computer system",
+        "may attempt to gather information about attached peripheral devices and components connected to",
+        "to gather information about attached peripheral devices and components connected to a computer"
+      ],
+      "grnd-mitre-cwe-mitre-cwe-0224f8f94abee99e-requirement-1": [
+        "a list of acceptable inputs that strictly conform to specifications reject any input",
+        "acceptable inputs that strictly conform to specifications reject any input that does not",
+        "list of acceptable inputs that strictly conform to specifications reject any input that",
+        "of acceptable inputs that strictly conform to specifications reject any input that does"
+      ]
+    },
+    "library_cross_check": {
+      "removed": 0,
+      "removed_groups": [],
+      "sets": [
+        {
+          "name": "baseline-probe-v1",
+          "items": 36,
+          "ngrams": 594,
+          "matched": 0
+        },
+        {
+          "name": "cyberlite_eval_factual_v1",
+          "items": 55,
+          "ngrams": 7250,
+          "matched": 0
+        },
+        {
+          "name": "cyberlite_eval_logs_ir_v1",
+          "items": 55,
+          "ngrams": 15873,
+          "matched": 0
+        },
+        {
+          "name": "cyberlite_eval_vulnerability_v1",
+          "items": 55,
+          "ngrams": 13312,
+          "matched": 0
+        },
+        {
+          "name": "seceval",
+          "items": 2182,
+          "ngrams": 240755,
+          "matched": 0
+        },
+        {
+          "name": "smoke-eval",
+          "items": 8,
+          "ngrams": 166,
+          "matched": 0
+        }
+      ]
+    }
+  },
+  "paraphrase_heuristic": {
+    "flagged_pairs": 49,
+    "flagged_records": 36,
+    "jaccard_gt_0_5_records": 0,
+    "containment_gt_0_6_records": 36,
+    "by_benchmark": {
+      "baseline_probe_v1.jsonl": 15,
+      "seceval_v1.jsonl": 28,
+      "cyberlite_eval_factual_v1.jsonl": 6
+    },
+    "maxima": {
+      "prompt_jaccard": 0.275,
+      "response_jaccard": 0.2609,
+      "prompt_containment": 0.75,
+      "response_containment": 1.0,
+      "prompt_in_eval": 0.44,
+      "eval_in_prompt": 0.75
+    },
+    "all_flags": [
+      {
+        "record": "syn-web-api-secure-development-web-ssti-001-fim-1",
+        "bench": "seceval_v1.jsonl",
+        "eval_id": "seceval-4893133e-2282-4250-be9c-4a6ca1f2a8e7",
+        "prompt_jaccard": 0.0,
+        "response_jaccard": 0.0385,
+        "prompt_containment": 0.0,
+        "response_containment": 1.0,
+        "prompt_tokens": 0,
+        "eval_q_tokens": 50
+      },
+      {
+        "record": "syn-incident-response-forensics-threat-intel-ir-lifecycle-001-diagnose",
+        "bench": "baseline_probe_v1.jsonl",
+        "eval_id": "probe-mcq-05",
+        "prompt_jaccard": 0.0952,
+        "response_jaccard": 0.1221,
+        "prompt_containment": 0.3636,
+        "response_containment": 0.8889,
+        "prompt_tokens": 35,
+        "eval_q_tokens": 11
+      },
+      {
+        "record": "syn-cryptography-identity-access-crypto-pq-migration-018-explain",
+        "bench": "baseline_probe_v1.jsonl",
+        "eval_id": "probe-mcq-08",
+        "prompt_jaccard": 0.025,
+        "response_jaccard": 0.0804,
+        "prompt_containment": 0.1667,
+        "response_containment": 0.8182,
+        "prompt_tokens": 35,
+        "eval_q_tokens": 6
+      },
+      {
+        "record": "syn-web-api-secure-development-web-password-hashing-001-checklist",
+        "bench": "baseline_probe_v1.jsonl",
+        "eval_id": "probe-mcq-21",
+        "prompt_jaccard": 0.0333,
+        "response_jaccard": 0.075,
+        "prompt_containment": 0.375,
+        "response_containment": 0.75,
+        "prompt_tokens": 85,
+        "eval_q_tokens": 8
+      },
+      {
+        "record": "syn-web-api-secure-development-api-oauth-pkce-001-mcq-1",
+        "bench": "cyberlite_eval_factual_v1.jsonl",
+        "eval_id": "eval-e1-knowledge-pkce",
+        "prompt_jaccard": 0.2571,
+        "response_jaccard": 0.2091,
+        "prompt_containment": 0.75,
+        "response_containment": 0.434,
+        "prompt_tokens": 32,
+        "eval_q_tokens": 12
+      },
+      {
+        "record": "grnd-mitre-attack-mitre-attack-64c7522c106e6c64-requirement-1",
+        "bench": "seceval_v1.jsonl",
+        "eval_id": "seceval-1a24e3e9-7abb-4a95-bb13-e9861d435203",
+        "prompt_jaccard": 0.1122,
+        "response_jaccard": 0.051,
+        "prompt_containment": 0.7333,
+        "response_containment": 0.1667,
+        "prompt_tokens": 94,
+        "eval_q_tokens": 15
+      },
+      {
+        "record": "syn-cryptography-identity-access-crypto-pq-migration-018-mcq-1",
+        "bench": "baseline_probe_v1.jsonl",
+        "eval_id": "probe-mcq-08",
+        "prompt_jaccard": 0.0385,
+        "response_jaccard": 0.1013,
+        "prompt_containment": 0.1667,
+        "response_containment": 0.7273,
+        "prompt_tokens": 21,
+        "eval_q_tokens": 6
+      },
+      {
+        "record": "grnd-mitre-cwe-mitre-cwe-00c423fba47e9a8f-match",
+        "bench": "seceval_v1.jsonl",
+        "eval_id": "seceval-6cd7dbac-86c9-4082-9897-1cd7f747bae8",
+        "prompt_jaccard": 0.1099,
+        "response_jaccard": 0.0706,
+        "prompt_containment": 0.7143,
+        "response_containment": 0.1765,
+        "prompt_tokens": 87,
+        "eval_q_tokens": 14
+      },
+      {
+        "record": "grnd-mitre-cwe-mitre-cwe-27d47cc4a4a78cf4-requirement-1",
+        "bench": "seceval_v1.jsonl",
+        "eval_id": "seceval-c1086936-423d-4085-ab11-0b5660c83ba3",
+        "prompt_jaccard": 0.0796,
+        "response_jaccard": 0.0682,
+        "prompt_containment": 0.6923,
+        "response_containment": 0.1364,
+        "prompt_tokens": 109,
+        "eval_q_tokens": 13
+      },
+      {
+        "record": "grnd-mitre-attack-mitre-attack-6e7f1f4c54b6d20e-requirement-1",
+        "bench": "seceval_v1.jsonl",
+        "eval_id": "seceval-34a393a9-dee4-47b0-bdd0-ebda4f64cbd3",
+        "prompt_jaccard": 0.0789,
+        "response_jaccard": 0.0874,
+        "prompt_containment": 0.6923,
+        "response_containment": 0.2308,
+        "prompt_tokens": 110,
+        "eval_q_tokens": 13
+      },
+      {
+        "record": "syn-language-security-retention-gen-http-003-explain",
+        "bench": "baseline_probe_v1.jsonl",
+        "eval_id": "probe-mcq-15",
+        "prompt_jaccard": 0.0952,
+        "response_jaccard": 0.0822,
+        "prompt_containment": 0.2857,
+        "response_containment": 0.6667,
+        "prompt_tokens": 32,
+        "eval_q_tokens": 14
+      },
+      {
+        "record": "syn-fundamentals-linux-networking-fund-cia-triad-mcq-1",
+        "bench": "baseline_probe_v1.jsonl",
+        "eval_id": "probe-mcq-03",
+        "prompt_jaccard": 0.0476,
+        "response_jaccard": 0.0952,
+        "prompt_containment": 0.1818,
+        "response_containment": 0.6667,
+        "prompt_tokens": 33,
+        "eval_q_tokens": 11
+      },
+      {
+        "record": "syn-web-api-secure-development-web-password-hashing-001-misconception-1",
+        "bench": "baseline_probe_v1.jsonl",
+        "eval_id": "probe-mcq-21",
+        "prompt_jaccard": 0.069,
+        "response_jaccard": 0.0721,
+        "prompt_containment": 0.25,
+        "response_containment": 0.6667,
+        "prompt_tokens": 23,
+        "eval_q_tokens": 8
+      },
+      {
+        "record": "syn-fundamentals-linux-networking-fund-cia-triad-misconception-1",
+        "bench": "baseline_probe_v1.jsonl",
+        "eval_id": "probe-mcq-03",
+        "prompt_jaccard": 0.0,
+        "response_jaccard": 0.082,
+        "prompt_containment": 0.0,
+        "response_containment": 0.6667,
+        "prompt_tokens": 22,
+        "eval_q_tokens": 11
+      },
+      {
+        "record": "grnd-mitre-cwe-mitre-cwe-27d47cc4a4a78cf4-requirement-1",
+        "bench": "seceval_v1.jsonl",
+        "eval_id": "seceval-9d40e942-e755-4b39-97e8-caff7711a231",
+        "prompt_jaccard": 0.0877,
+        "response_jaccard": 0.1,
+        "prompt_containment": 0.6667,
+        "response_containment": 0.1912,
+        "prompt_tokens": 109,
+        "eval_q_tokens": 15
+      },
+      {
+        "record": "syn-web-api-secure-development-web-ssti-001-fim-1",
+        "bench": "seceval_v1.jsonl",
+        "eval_id": "seceval-9302fef6-ae80-47cc-8905-14b0419df159",
+        "prompt_jaccard": 0.0,
+        "response_jaccard": 0.0241,
+        "prompt_containment": 0.0,
+        "response_containment": 0.6667,
+        "prompt_tokens": 0,
+        "eval_q_tokens": 45
+      },
+      {
+        "record": "syn-cryptography-identity-access-crypto-kdf-purpose-006-codefix-1",
+        "bench": "baseline_probe_v1.jsonl",
+        "eval_id": "probe-mcq-21",
+        "prompt_jaccard": 0.025,
+        "response_jaccard": 0.0721,
+        "prompt_containment": 0.125,
+        "response_containment": 0.6667,
+        "prompt_tokens": 33,
+        "eval_q_tokens": 8
+      },
+      {
+        "record": "grnd-mitre-attack-mitre-attack-2a68e054c8aa8255-requirement-1",
+        "bench": "seceval_v1.jsonl",
+        "eval_id": "seceval-1a24e3e9-7abb-4a95-bb13-e9861d435203",
+        "prompt_jaccard": 0.0935,
+        "response_jaccard": 0.0481,
+        "prompt_containment": 0.6667,
+        "response_containment": 0.1667,
+        "prompt_tokens": 102,
+        "eval_q_tokens": 15
+      },
+      {
+        "record": "syn-cloud-container-supply-chain-cloud-guardduty-finding-triage-multi-answer",
+        "bench": "baseline_probe_v1.jsonl",
+        "eval_id": "probe-mcq-14",
+        "prompt_jaccard": 0.0519,
+        "response_jaccard": 0.1209,
+        "prompt_containment": 0.3333,
+        "response_containment": 0.6471,
+        "prompt_tokens": 69,
+        "eval_q_tokens": 12
+      },
+      {
+        "record": "syn-cloud-container-supply-chain-cloud-guardduty-finding-triage-mcq-1",
+        "bench": "baseline_probe_v1.jsonl",
+        "eval_id": "probe-mcq-14",
+        "prompt_jaccard": 0.0577,
+        "response_jaccard": 0.1209,
+        "prompt_containment": 0.25,
+        "response_containment": 0.6471,
+        "prompt_tokens": 43,
+        "eval_q_tokens": 12
+      },
+      {
+        "record": "syn-cloud-container-supply-chain-cloud-guardduty-finding-triage-log-1",
+        "bench": "baseline_probe_v1.jsonl",
+        "eval_id": "probe-mcq-14",
+        "prompt_jaccard": 0.0606,
+        "response_jaccard": 0.1068,
+        "prompt_containment": 0.3333,
+        "response_containment": 0.6471,
+        "prompt_tokens": 58,
+        "eval_q_tokens": 12
+      },
+      {
+        "record": "syn-cloud-container-supply-chain-cloud-guardduty-finding-triage-diagnose",
+        "bench": "baseline_probe_v1.jsonl",
+        "eval_id": "probe-mcq-14",
+        "prompt_jaccard": 0.0682,
+        "response_jaccard": 0.094,
+        "prompt_containment": 0.25,
+        "response_containment": 0.6471,
+        "prompt_tokens": 35,
+        "eval_q_tokens": 12
+      },
+      {
+        "record": "grnd-mitre-attack-mitre-attack-6e7f1f4c54b6d20e-requirement-1",
+        "bench": "seceval_v1.jsonl",
+        "eval_id": "seceval-21ffc946-de7a-4bde-9cde-e451dcc07df2",
+        "prompt_jaccard": 0.0783,
+        "response_jaccard": 0.1062,
+        "prompt_containment": 0.6429,
+        "response_containment": 0.2308,
+        "prompt_tokens": 110,
+        "eval_q_tokens": 14
+      },
+      {
+        "record": "grnd-ietf-rfcs-ietf-rfcs-3d080cd7f8692a62-requirement-1",
+        "bench": "seceval_v1.jsonl",
+        "eval_id": "seceval-eb3b8bfd-ec9c-41b4-a10d-730354570b29",
+        "prompt_jaccard": 0.0833,
+        "response_jaccard": 0.0645,
+        "prompt_containment": 0.6429,
+        "response_containment": 0.15,
+        "prompt_tokens": 103,
+        "eval_q_tokens": 14
+      },
+      {
+        "record": "grnd-mitre-cwe-mitre-cwe-016658719a3756ae-match",
+        "bench": "cyberlite_eval_factual_v1.jsonl",
+        "eval_id": "eval-e1-factual-vuln-exploit-payload",
+        "prompt_jaccard": 0.0811,
+        "response_jaccard": 0.0741,
+        "prompt_containment": 0.6429,
+        "response_containment": 0.1765,
+        "prompt_tokens": 106,
+        "eval_q_tokens": 14
+      },
+      {
+        "record": "grnd-mitre-cwe-mitre-cwe-020c75630fcc3e64-match",
+        "bench": "seceval_v1.jsonl",
+        "eval_id": "seceval-f1af1f87-52c8-448e-8944-08ac8948e846",
+        "prompt_jaccard": 0.0714,
+        "response_jaccard": 0.0882,
+        "prompt_containment": 0.6364,
+        "response_containment": 0.1765,
+        "prompt_tokens": 94,
+        "eval_q_tokens": 11
+      },
+      {
+        "record": "grnd-mitre-attack-mitre-attack-0d7808ff12f397fe-requirement-1",
+        "bench": "seceval_v1.jsonl",
+        "eval_id": "seceval-7d53d175-59d3-4002-b8ff-bdfcd5681167",
+        "prompt_jaccard": 0.0636,
+        "response_jaccard": 0.0841,
+        "prompt_containment": 0.6364,
+        "response_containment": 0.2143,
+        "prompt_tokens": 106,
+        "eval_q_tokens": 11
+      },
+      {
+        "record": "syn-cryptography-identity-access-crypto-hash-selection-022-mcq-1",
+        "bench": "baseline_probe_v1.jsonl",
+        "eval_id": "probe-mcq-21",
+        "prompt_jaccard": 0.1923,
+        "response_jaccard": 0.0563,
+        "prompt_containment": 0.625,
+        "response_containment": 0.3333,
+        "prompt_tokens": 23,
+        "eval_q_tokens": 8
+      },
+      {
+        "record": "grnd-mitre-attack-mitre-attack-0d7808ff12f397fe-requirement-1",
+        "bench": "seceval_v1.jsonl",
+        "eval_id": "seceval-5d2edc03-7815-44e7-928b-98081c6345d6",
+        "prompt_jaccard": 0.0893,
+        "response_jaccard": 0.1359,
+        "prompt_containment": 0.625,
+        "response_containment": 0.3256,
+        "prompt_tokens": 106,
+        "eval_q_tokens": 16
+      },
+      {
+        "record": "grnd-mitre-attack-mitre-attack-2a68e054c8aa8255-requirement-1",
+        "bench": "seceval_v1.jsonl",
+        "eval_id": "seceval-a039eb66-5d6b-4353-9dd5-0fb5a901d99e",
+        "prompt_jaccard": 0.0926,
+        "response_jaccard": 0.0678,
+        "prompt_containment": 0.625,
+        "response_containment": 0.1702,
+        "prompt_tokens": 102,
+        "eval_q_tokens": 16
+      },
+      {
+        "record": "grnd-linux-man-pages-linux-man-pages-6ac50485c04094af-requirement-1",
+        "bench": "cyberlite_eval_factual_v1.jsonl",
+        "eval_id": "eval-e1-factual-cap-net-bind",
+        "prompt_jaccard": 0.113,
+        "response_jaccard": 0.096,
+        "prompt_containment": 0.619,
+        "response_containment": 0.1818,
+        "prompt_tokens": 107,
+        "eval_q_tokens": 21
+      },
+      {
+        "record": "grnd-mitre-cwe-mitre-cwe-020c75630fcc3e64-match",
+        "bench": "seceval_v1.jsonl",
+        "eval_id": "seceval-540afbd2-f362-4157-8770-71e34542958c",
+        "prompt_jaccard": 0.1275,
+        "response_jaccard": 0.0667,
+        "prompt_containment": 0.619,
+        "response_containment": 0.1471,
+        "prompt_tokens": 94,
+        "eval_q_tokens": 21
+      },
+      {
+        "record": "syn-cloud-container-supply-chain-k8s-serviceaccount-token-automount-multi-answer",
+        "bench": "seceval_v1.jsonl",
+        "eval_id": "seceval-265c7bfa-e4fc-4da2-9c01-5e7f9d4b58da",
+        "prompt_jaccard": 0.1461,
+        "response_jaccard": 0.075,
+        "prompt_containment": 0.619,
+        "response_containment": 0.1731,
+        "prompt_tokens": 81,
+        "eval_q_tokens": 21
+      },
+      {
+        "record": "grnd-mitre-attack-mitre-attack-0d7808ff12f397fe-requirement-1",
+        "bench": "seceval_v1.jsonl",
+        "eval_id": "seceval-7a1db287-9f9b-4621-ba2c-9667a765bbab",
+        "prompt_jaccard": 0.114,
+        "response_jaccard": 0.1304,
+        "prompt_containment": 0.619,
+        "response_containment": 0.2679,
+        "prompt_tokens": 106,
+        "eval_q_tokens": 21
+      },
+      {
+        "record": "grnd-mitre-cwe-mitre-cwe-27d47cc4a4a78cf4-requirement-1",
+        "bench": "seceval_v1.jsonl",
+        "eval_id": "seceval-1265496f-54b3-471d-baf8-e9d8bd603c06",
+        "prompt_jaccard": 0.0702,
+        "response_jaccard": 0.0818,
+        "prompt_containment": 0.6154,
+        "response_containment": 0.2045,
+        "prompt_tokens": 109,
+        "eval_q_tokens": 13
+      },
+      {
+        "record": "syn-language-security-retention-sql-inj-001-multi-answer",
+        "bench": "seceval_v1.jsonl",
+        "eval_id": "seceval-34a393a9-dee4-47b0-bdd0-ebda4f64cbd3",
+        "prompt_jaccard": 0.1159,
+        "response_jaccard": 0.0645,
+        "prompt_containment": 0.6154,
+        "response_containment": 0.2051,
+        "prompt_tokens": 64,
+        "eval_q_tokens": 13
+      },
+      {
+        "record": "grnd-ietf-rfcs-ietf-rfcs-38d55723e5cd0e19-requirement-1",
+        "bench": "seceval_v1.jsonl",
+        "eval_id": "seceval-c0eb46ce-8669-4298-89c8-b071e95ffddb",
+        "prompt_jaccard": 0.0833,
+        "response_jaccard": 0.1129,
+        "prompt_containment": 0.6154,
+        "response_containment": 0.2059,
+        "prompt_tokens": 91,
+        "eval_q_tokens": 13
+      },
+      {
+        "record": "syn-monitoring-detection-soc-log-sqli-105-multi-answer",
+        "bench": "seceval_v1.jsonl",
+        "eval_id": "seceval-34a393a9-dee4-47b0-bdd0-ebda4f64cbd3",
+        "prompt_jaccard": 0.1194,
+        "response_jaccard": 0.0594,
+        "prompt_containment": 0.6154,
+        "response_containment": 0.1538,
+        "prompt_tokens": 62,
+        "eval_q_tokens": 13
+      },
+      {
+        "record": "syn-monitoring-detection-soc-log-k8s-verb-110-multi-answer",
+        "bench": "seceval_v1.jsonl",
+        "eval_id": "seceval-34a393a9-dee4-47b0-bdd0-ebda4f64cbd3",
+        "prompt_jaccard": 0.1333,
+        "response_jaccard": 0.0833,
+        "prompt_containment": 0.6154,
+        "response_containment": 0.2051,
+        "prompt_tokens": 55,
+        "eval_q_tokens": 13
+      },
+      {
+        "record": "syn-language-security-retention-rust-overflow-002-multi-answer",
+        "bench": "seceval_v1.jsonl",
+        "eval_id": "seceval-c1086936-423d-4085-ab11-0b5660c83ba3",
+        "prompt_jaccard": 0.1311,
+        "response_jaccard": 0.0643,
+        "prompt_containment": 0.6154,
+        "response_containment": 0.1364,
+        "prompt_tokens": 56,
+        "eval_q_tokens": 13
+      },
+      {
+        "record": "syn-cloud-container-supply-chain-k8s-serviceaccount-token-automount-multi-answer",
+        "bench": "seceval_v1.jsonl",
+        "eval_id": "seceval-34a393a9-dee4-47b0-bdd0-ebda4f64cbd3",
+        "prompt_jaccard": 0.093,
+        "response_jaccard": 0.0357,
+        "prompt_containment": 0.6154,
+        "response_containment": 0.1026,
+        "prompt_tokens": 81,
+        "eval_q_tokens": 13
+      },
+      {
+        "record": "syn-language-security-retention-js-proto-001-multi-answer",
+        "bench": "seceval_v1.jsonl",
+        "eval_id": "seceval-34a393a9-dee4-47b0-bdd0-ebda4f64cbd3",
+        "prompt_jaccard": 0.1127,
+        "response_jaccard": 0.0484,
+        "prompt_containment": 0.6154,
+        "response_containment": 0.1538,
+        "prompt_tokens": 66,
+        "eval_q_tokens": 13
+      },
+      {
+        "record": "grnd-mitre-attack-mitre-attack-0d7808ff12f397fe-requirement-1",
+        "bench": "seceval_v1.jsonl",
+        "eval_id": "seceval-c1086936-423d-4085-ab11-0b5660c83ba3",
+        "prompt_jaccard": 0.0721,
+        "response_jaccard": 0.0769,
+        "prompt_containment": 0.6154,
+        "response_containment": 0.1515,
+        "prompt_tokens": 106,
+        "eval_q_tokens": 13
+      },
+      {
+        "record": "syn-fundamentals-linux-networking-proto-http-status-classes-log-1",
+        "bench": "baseline_probe_v1.jsonl",
+        "eval_id": "probe-mcq-15",
+        "prompt_jaccard": 0.0556,
+        "response_jaccard": 0.0909,
+        "prompt_containment": 0.2143,
+        "response_containment": 0.6111,
+        "prompt_tokens": 43,
+        "eval_q_tokens": 14
+      },
+      {
+        "record": "syn-monitoring-detection-soc-log-syslog-header-002-multi-answer",
+        "bench": "cyberlite_eval_factual_v1.jsonl",
+        "eval_id": "eval-e1-knowledge-rfc1918",
+        "prompt_jaccard": 0.1549,
+        "response_jaccard": 0.1042,
+        "prompt_containment": 0.6111,
+        "response_containment": 0.2857,
+        "prompt_tokens": 64,
+        "eval_q_tokens": 18
+      },
+      {
+        "record": "grnd-linux-man-pages-linux-man-pages-690287e3deac2d85-requirement-1",
+        "bench": "seceval_v1.jsonl",
+        "eval_id": "seceval-0f2fe8c2-ddc8-4fb0-b12f-fbcc1e5790d1",
+        "prompt_jaccard": 0.1019,
+        "response_jaccard": 0.0855,
+        "prompt_containment": 0.6111,
+        "response_containment": 0.1754,
+        "prompt_tokens": 101,
+        "eval_q_tokens": 18
+      },
+      {
+        "record": "syn-language-security-retention-rust-overflow-002-multi-answer",
+        "bench": "cyberlite_eval_factual_v1.jsonl",
+        "eval_id": "eval-e1-knowledge-rfc1918",
+        "prompt_jaccard": 0.1746,
+        "response_jaccard": 0.0631,
+        "prompt_containment": 0.6111,
+        "response_containment": 0.2,
+        "prompt_tokens": 56,
+        "eval_q_tokens": 18
+      },
+      {
+        "record": "syn-cloud-container-supply-chain-k8s-serviceaccount-token-automount-multi-answer",
+        "bench": "cyberlite_eval_factual_v1.jsonl",
+        "eval_id": "eval-e1-knowledge-rfc1918",
+        "prompt_jaccard": 0.125,
+        "response_jaccard": 0.0667,
+        "prompt_containment": 0.6111,
+        "response_containment": 0.2,
+        "prompt_tokens": 81,
+        "eval_q_tokens": 18
+      },
+      {
+        "record": "grnd-mitre-cwe-mitre-cwe-016658719a3756ae-match",
+        "bench": "seceval_v1.jsonl",
+        "eval_id": "seceval-268ea10f-2705-4776-bc9c-7876ec0cfd48",
+        "prompt_jaccard": 0.0973,
+        "response_jaccard": 0.0556,
+        "prompt_containment": 0.6111,
+        "response_containment": 0.1471,
+        "prompt_tokens": 106,
+        "eval_q_tokens": 18
+      }
+    ],
+    "method": "token-set Jaccard (prompt vs benchmark question; response vs question+choices+answer) and symmetric containment; no stemming or embeddings",
+    "maxima_note": "Each maximum is taken over benchmark items independently for that field; a prompt maximum and a response maximum may come from different items.",
+    "top_pairs": [
+      {
+        "record": "syn-web-api-secure-development-web-ssti-001-fim-1",
+        "bench": "seceval_v1.jsonl",
+        "eval_id": "seceval-4893133e-2282-4250-be9c-4a6ca1f2a8e7",
+        "prompt_jaccard": 0.0,
+        "response_jaccard": 0.0385,
+        "prompt_containment": 0.0,
+        "response_containment": 1.0,
+        "prompt_tokens": 0,
+        "eval_q_tokens": 50
+      },
+      {
+        "record": "syn-incident-response-forensics-threat-intel-ir-lifecycle-001-diagnose",
+        "bench": "baseline_probe_v1.jsonl",
+        "eval_id": "probe-mcq-05",
+        "prompt_jaccard": 0.0952,
+        "response_jaccard": 0.1221,
+        "prompt_containment": 0.3636,
+        "response_containment": 0.8889,
+        "prompt_tokens": 35,
+        "eval_q_tokens": 11
+      },
+      {
+        "record": "syn-cryptography-identity-access-crypto-pq-migration-018-explain",
+        "bench": "baseline_probe_v1.jsonl",
+        "eval_id": "probe-mcq-08",
+        "prompt_jaccard": 0.025,
+        "response_jaccard": 0.0804,
+        "prompt_containment": 0.1667,
+        "response_containment": 0.8182,
+        "prompt_tokens": 35,
+        "eval_q_tokens": 6
+      },
+      {
+        "record": "syn-web-api-secure-development-web-password-hashing-001-checklist",
+        "bench": "baseline_probe_v1.jsonl",
+        "eval_id": "probe-mcq-21",
+        "prompt_jaccard": 0.0333,
+        "response_jaccard": 0.075,
+        "prompt_containment": 0.375,
+        "response_containment": 0.75,
+        "prompt_tokens": 85,
+        "eval_q_tokens": 8
+      },
+      {
+        "record": "syn-web-api-secure-development-api-oauth-pkce-001-mcq-1",
+        "bench": "cyberlite_eval_factual_v1.jsonl",
+        "eval_id": "eval-e1-knowledge-pkce",
+        "prompt_jaccard": 0.2571,
+        "response_jaccard": 0.2091,
+        "prompt_containment": 0.75,
+        "response_containment": 0.434,
+        "prompt_tokens": 32,
+        "eval_q_tokens": 12
+      },
+      {
+        "record": "grnd-mitre-attack-mitre-attack-64c7522c106e6c64-requirement-1",
+        "bench": "seceval_v1.jsonl",
+        "eval_id": "seceval-1a24e3e9-7abb-4a95-bb13-e9861d435203",
+        "prompt_jaccard": 0.1122,
+        "response_jaccard": 0.051,
+        "prompt_containment": 0.7333,
+        "response_containment": 0.1667,
+        "prompt_tokens": 94,
+        "eval_q_tokens": 15
+      },
+      {
+        "record": "syn-cryptography-identity-access-crypto-pq-migration-018-mcq-1",
+        "bench": "baseline_probe_v1.jsonl",
+        "eval_id": "probe-mcq-08",
+        "prompt_jaccard": 0.0385,
+        "response_jaccard": 0.1013,
+        "prompt_containment": 0.1667,
+        "response_containment": 0.7273,
+        "prompt_tokens": 21,
+        "eval_q_tokens": 6
+      },
+      {
+        "record": "grnd-mitre-cwe-mitre-cwe-00c423fba47e9a8f-match",
+        "bench": "seceval_v1.jsonl",
+        "eval_id": "seceval-6cd7dbac-86c9-4082-9897-1cd7f747bae8",
+        "prompt_jaccard": 0.1099,
+        "response_jaccard": 0.0706,
+        "prompt_containment": 0.7143,
+        "response_containment": 0.1765,
+        "prompt_tokens": 87,
+        "eval_q_tokens": 14
+      },
+      {
+        "record": "grnd-mitre-cwe-mitre-cwe-27d47cc4a4a78cf4-requirement-1",
+        "bench": "seceval_v1.jsonl",
+        "eval_id": "seceval-c1086936-423d-4085-ab11-0b5660c83ba3",
+        "prompt_jaccard": 0.0796,
+        "response_jaccard": 0.0682,
+        "prompt_containment": 0.6923,
+        "response_containment": 0.1364,
+        "prompt_tokens": 109,
+        "eval_q_tokens": 13
+      },
+      {
+        "record": "grnd-mitre-attack-mitre-attack-6e7f1f4c54b6d20e-requirement-1",
+        "bench": "seceval_v1.jsonl",
+        "eval_id": "seceval-34a393a9-dee4-47b0-bdd0-ebda4f64cbd3",
+        "prompt_jaccard": 0.0789,
+        "response_jaccard": 0.0874,
+        "prompt_containment": 0.6923,
+        "response_containment": 0.2308,
+        "prompt_tokens": 110,
+        "eval_q_tokens": 13
+      }
+    ],
+    "all_flagged_pairs": [
+      {
+        "record": "syn-web-api-secure-development-web-ssti-001-fim-1",
+        "bench": "seceval_v1.jsonl",
+        "eval_id": "seceval-4893133e-2282-4250-be9c-4a6ca1f2a8e7",
+        "prompt_jaccard": 0.0,
+        "response_jaccard": 0.0385,
+        "prompt_containment": 0.0,
+        "response_containment": 1.0,
+        "prompt_tokens": 0,
+        "eval_q_tokens": 50
+      },
+      {
+        "record": "syn-incident-response-forensics-threat-intel-ir-lifecycle-001-diagnose",
+        "bench": "baseline_probe_v1.jsonl",
+        "eval_id": "probe-mcq-05",
+        "prompt_jaccard": 0.0952,
+        "response_jaccard": 0.1221,
+        "prompt_containment": 0.3636,
+        "response_containment": 0.8889,
+        "prompt_tokens": 35,
+        "eval_q_tokens": 11
+      },
+      {
+        "record": "syn-cryptography-identity-access-crypto-pq-migration-018-explain",
+        "bench": "baseline_probe_v1.jsonl",
+        "eval_id": "probe-mcq-08",
+        "prompt_jaccard": 0.025,
+        "response_jaccard": 0.0804,
+        "prompt_containment": 0.1667,
+        "response_containment": 0.8182,
+        "prompt_tokens": 35,
+        "eval_q_tokens": 6
+      },
+      {
+        "record": "syn-web-api-secure-development-web-password-hashing-001-checklist",
+        "bench": "baseline_probe_v1.jsonl",
+        "eval_id": "probe-mcq-21",
+        "prompt_jaccard": 0.0333,
+        "response_jaccard": 0.075,
+        "prompt_containment": 0.375,
+        "response_containment": 0.75,
+        "prompt_tokens": 85,
+        "eval_q_tokens": 8
+      },
+      {
+        "record": "syn-web-api-secure-development-api-oauth-pkce-001-mcq-1",
+        "bench": "cyberlite_eval_factual_v1.jsonl",
+        "eval_id": "eval-e1-knowledge-pkce",
+        "prompt_jaccard": 0.2571,
+        "response_jaccard": 0.2091,
+        "prompt_containment": 0.75,
+        "response_containment": 0.434,
+        "prompt_tokens": 32,
+        "eval_q_tokens": 12
+      },
+      {
+        "record": "grnd-mitre-attack-mitre-attack-64c7522c106e6c64-requirement-1",
+        "bench": "seceval_v1.jsonl",
+        "eval_id": "seceval-1a24e3e9-7abb-4a95-bb13-e9861d435203",
+        "prompt_jaccard": 0.1122,
+        "response_jaccard": 0.051,
+        "prompt_containment": 0.7333,
+        "response_containment": 0.1667,
+        "prompt_tokens": 94,
+        "eval_q_tokens": 15
+      },
+      {
+        "record": "syn-cryptography-identity-access-crypto-pq-migration-018-mcq-1",
+        "bench": "baseline_probe_v1.jsonl",
+        "eval_id": "probe-mcq-08",
+        "prompt_jaccard": 0.0385,
+        "response_jaccard": 0.1013,
+        "prompt_containment": 0.1667,
+        "response_containment": 0.7273,
+        "prompt_tokens": 21,
+        "eval_q_tokens": 6
+      },
+      {
+        "record": "grnd-mitre-cwe-mitre-cwe-00c423fba47e9a8f-match",
+        "bench": "seceval_v1.jsonl",
+        "eval_id": "seceval-6cd7dbac-86c9-4082-9897-1cd7f747bae8",
+        "prompt_jaccard": 0.1099,
+        "response_jaccard": 0.0706,
+        "prompt_containment": 0.7143,
+        "response_containment": 0.1765,
+        "prompt_tokens": 87,
+        "eval_q_tokens": 14
+      },
+      {
+        "record": "grnd-mitre-cwe-mitre-cwe-27d47cc4a4a78cf4-requirement-1",
+        "bench": "seceval_v1.jsonl",
+        "eval_id": "seceval-c1086936-423d-4085-ab11-0b5660c83ba3",
+        "prompt_jaccard": 0.0796,
+        "response_jaccard": 0.0682,
+        "prompt_containment": 0.6923,
+        "response_containment": 0.1364,
+        "prompt_tokens": 109,
+        "eval_q_tokens": 13
+      },
+      {
+        "record": "grnd-mitre-attack-mitre-attack-6e7f1f4c54b6d20e-requirement-1",
+        "bench": "seceval_v1.jsonl",
+        "eval_id": "seceval-34a393a9-dee4-47b0-bdd0-ebda4f64cbd3",
+        "prompt_jaccard": 0.0789,
+        "response_jaccard": 0.0874,
+        "prompt_containment": 0.6923,
+        "response_containment": 0.2308,
+        "prompt_tokens": 110,
+        "eval_q_tokens": 13
+      },
+      {
+        "record": "syn-language-security-retention-gen-http-003-explain",
+        "bench": "baseline_probe_v1.jsonl",
+        "eval_id": "probe-mcq-15",
+        "prompt_jaccard": 0.0952,
+        "response_jaccard": 0.0822,
+        "prompt_containment": 0.2857,
+        "response_containment": 0.6667,
+        "prompt_tokens": 32,
+        "eval_q_tokens": 14
+      },
+      {
+        "record": "syn-fundamentals-linux-networking-fund-cia-triad-mcq-1",
+        "bench": "baseline_probe_v1.jsonl",
+        "eval_id": "probe-mcq-03",
+        "prompt_jaccard": 0.0476,
+        "response_jaccard": 0.0952,
+        "prompt_containment": 0.1818,
+        "response_containment": 0.6667,
+        "prompt_tokens": 33,
+        "eval_q_tokens": 11
+      },
+      {
+        "record": "syn-web-api-secure-development-web-password-hashing-001-misconception-1",
+        "bench": "baseline_probe_v1.jsonl",
+        "eval_id": "probe-mcq-21",
+        "prompt_jaccard": 0.069,
+        "response_jaccard": 0.0721,
+        "prompt_containment": 0.25,
+        "response_containment": 0.6667,
+        "prompt_tokens": 23,
+        "eval_q_tokens": 8
+      },
+      {
+        "record": "syn-fundamentals-linux-networking-fund-cia-triad-misconception-1",
+        "bench": "baseline_probe_v1.jsonl",
+        "eval_id": "probe-mcq-03",
+        "prompt_jaccard": 0.0,
+        "response_jaccard": 0.082,
+        "prompt_containment": 0.0,
+        "response_containment": 0.6667,
+        "prompt_tokens": 22,
+        "eval_q_tokens": 11
+      },
+      {
+        "record": "grnd-mitre-cwe-mitre-cwe-27d47cc4a4a78cf4-requirement-1",
+        "bench": "seceval_v1.jsonl",
+        "eval_id": "seceval-9d40e942-e755-4b39-97e8-caff7711a231",
+        "prompt_jaccard": 0.0877,
+        "response_jaccard": 0.1,
+        "prompt_containment": 0.6667,
+        "response_containment": 0.1912,
+        "prompt_tokens": 109,
+        "eval_q_tokens": 15
+      },
+      {
+        "record": "syn-web-api-secure-development-web-ssti-001-fim-1",
+        "bench": "seceval_v1.jsonl",
+        "eval_id": "seceval-9302fef6-ae80-47cc-8905-14b0419df159",
+        "prompt_jaccard": 0.0,
+        "response_jaccard": 0.0241,
+        "prompt_containment": 0.0,
+        "response_containment": 0.6667,
+        "prompt_tokens": 0,
+        "eval_q_tokens": 45
+      },
+      {
+        "record": "syn-cryptography-identity-access-crypto-kdf-purpose-006-codefix-1",
+        "bench": "baseline_probe_v1.jsonl",
+        "eval_id": "probe-mcq-21",
+        "prompt_jaccard": 0.025,
+        "response_jaccard": 0.0721,
+        "prompt_containment": 0.125,
+        "response_containment": 0.6667,
+        "prompt_tokens": 33,
+        "eval_q_tokens": 8
+      },
+      {
+        "record": "grnd-mitre-attack-mitre-attack-2a68e054c8aa8255-requirement-1",
+        "bench": "seceval_v1.jsonl",
+        "eval_id": "seceval-1a24e3e9-7abb-4a95-bb13-e9861d435203",
+        "prompt_jaccard": 0.0935,
+        "response_jaccard": 0.0481,
+        "prompt_containment": 0.6667,
+        "response_containment": 0.1667,
+        "prompt_tokens": 102,
+        "eval_q_tokens": 15
+      },
+      {
+        "record": "syn-cloud-container-supply-chain-cloud-guardduty-finding-triage-multi-answer",
+        "bench": "baseline_probe_v1.jsonl",
+        "eval_id": "probe-mcq-14",
+        "prompt_jaccard": 0.0519,
+        "response_jaccard": 0.1209,
+        "prompt_containment": 0.3333,
+        "response_containment": 0.6471,
+        "prompt_tokens": 69,
+        "eval_q_tokens": 12
+      },
+      {
+        "record": "syn-cloud-container-supply-chain-cloud-guardduty-finding-triage-mcq-1",
+        "bench": "baseline_probe_v1.jsonl",
+        "eval_id": "probe-mcq-14",
+        "prompt_jaccard": 0.0577,
+        "response_jaccard": 0.1209,
+        "prompt_containment": 0.25,
+        "response_containment": 0.6471,
+        "prompt_tokens": 43,
+        "eval_q_tokens": 12
+      },
+      {
+        "record": "syn-cloud-container-supply-chain-cloud-guardduty-finding-triage-log-1",
+        "bench": "baseline_probe_v1.jsonl",
+        "eval_id": "probe-mcq-14",
+        "prompt_jaccard": 0.0606,
+        "response_jaccard": 0.1068,
+        "prompt_containment": 0.3333,
+        "response_containment": 0.6471,
+        "prompt_tokens": 58,
+        "eval_q_tokens": 12
+      },
+      {
+        "record": "syn-cloud-container-supply-chain-cloud-guardduty-finding-triage-diagnose",
+        "bench": "baseline_probe_v1.jsonl",
+        "eval_id": "probe-mcq-14",
+        "prompt_jaccard": 0.0682,
+        "response_jaccard": 0.094,
+        "prompt_containment": 0.25,
+        "response_containment": 0.6471,
+        "prompt_tokens": 35,
+        "eval_q_tokens": 12
+      },
+      {
+        "record": "grnd-mitre-attack-mitre-attack-6e7f1f4c54b6d20e-requirement-1",
+        "bench": "seceval_v1.jsonl",
+        "eval_id": "seceval-21ffc946-de7a-4bde-9cde-e451dcc07df2",
+        "prompt_jaccard": 0.0783,
+        "response_jaccard": 0.1062,
+        "prompt_containment": 0.6429,
+        "response_containment": 0.2308,
+        "prompt_tokens": 110,
+        "eval_q_tokens": 14
+      },
+      {
+        "record": "grnd-ietf-rfcs-ietf-rfcs-3d080cd7f8692a62-requirement-1",
+        "bench": "seceval_v1.jsonl",
+        "eval_id": "seceval-eb3b8bfd-ec9c-41b4-a10d-730354570b29",
+        "prompt_jaccard": 0.0833,
+        "response_jaccard": 0.0645,
+        "prompt_containment": 0.6429,
+        "response_containment": 0.15,
+        "prompt_tokens": 103,
+        "eval_q_tokens": 14
+      },
+      {
+        "record": "grnd-mitre-cwe-mitre-cwe-016658719a3756ae-match",
+        "bench": "cyberlite_eval_factual_v1.jsonl",
+        "eval_id": "eval-e1-factual-vuln-exploit-payload",
+        "prompt_jaccard": 0.0811,
+        "response_jaccard": 0.0741,
+        "prompt_containment": 0.6429,
+        "response_containment": 0.1765,
+        "prompt_tokens": 106,
+        "eval_q_tokens": 14
+      },
+      {
+        "record": "grnd-mitre-cwe-mitre-cwe-020c75630fcc3e64-match",
+        "bench": "seceval_v1.jsonl",
+        "eval_id": "seceval-f1af1f87-52c8-448e-8944-08ac8948e846",
+        "prompt_jaccard": 0.0714,
+        "response_jaccard": 0.0882,
+        "prompt_containment": 0.6364,
+        "response_containment": 0.1765,
+        "prompt_tokens": 94,
+        "eval_q_tokens": 11
+      },
+      {
+        "record": "grnd-mitre-attack-mitre-attack-0d7808ff12f397fe-requirement-1",
+        "bench": "seceval_v1.jsonl",
+        "eval_id": "seceval-7d53d175-59d3-4002-b8ff-bdfcd5681167",
+        "prompt_jaccard": 0.0636,
+        "response_jaccard": 0.0841,
+        "prompt_containment": 0.6364,
+        "response_containment": 0.2143,
+        "prompt_tokens": 106,
+        "eval_q_tokens": 11
+      },
+      {
+        "record": "syn-cryptography-identity-access-crypto-hash-selection-022-mcq-1",
+        "bench": "baseline_probe_v1.jsonl",
+        "eval_id": "probe-mcq-21",
+        "prompt_jaccard": 0.1923,
+        "response_jaccard": 0.0563,
+        "prompt_containment": 0.625,
+        "response_containment": 0.3333,
+        "prompt_tokens": 23,
+        "eval_q_tokens": 8
+      },
+      {
+        "record": "grnd-mitre-attack-mitre-attack-0d7808ff12f397fe-requirement-1",
+        "bench": "seceval_v1.jsonl",
+        "eval_id": "seceval-5d2edc03-7815-44e7-928b-98081c6345d6",
+        "prompt_jaccard": 0.0893,
+        "response_jaccard": 0.1359,
+        "prompt_containment": 0.625,
+        "response_containment": 0.3256,
+        "prompt_tokens": 106,
+        "eval_q_tokens": 16
+      },
+      {
+        "record": "grnd-mitre-attack-mitre-attack-2a68e054c8aa8255-requirement-1",
+        "bench": "seceval_v1.jsonl",
+        "eval_id": "seceval-a039eb66-5d6b-4353-9dd5-0fb5a901d99e",
+        "prompt_jaccard": 0.0926,
+        "response_jaccard": 0.0678,
+        "prompt_containment": 0.625,
+        "response_containment": 0.1702,
+        "prompt_tokens": 102,
+        "eval_q_tokens": 16
+      },
+      {
+        "record": "grnd-linux-man-pages-linux-man-pages-6ac50485c04094af-requirement-1",
+        "bench": "cyberlite_eval_factual_v1.jsonl",
+        "eval_id": "eval-e1-factual-cap-net-bind",
+        "prompt_jaccard": 0.113,
+        "response_jaccard": 0.096,
+        "prompt_containment": 0.619,
+        "response_containment": 0.1818,
+        "prompt_tokens": 107,
+        "eval_q_tokens": 21
+      },
+      {
+        "record": "grnd-mitre-cwe-mitre-cwe-020c75630fcc3e64-match",
+        "bench": "seceval_v1.jsonl",
+        "eval_id": "seceval-540afbd2-f362-4157-8770-71e34542958c",
+        "prompt_jaccard": 0.1275,
+        "response_jaccard": 0.0667,
+        "prompt_containment": 0.619,
+        "response_containment": 0.1471,
+        "prompt_tokens": 94,
+        "eval_q_tokens": 21
+      },
+      {
+        "record": "syn-cloud-container-supply-chain-k8s-serviceaccount-token-automount-multi-answer",
+        "bench": "seceval_v1.jsonl",
+        "eval_id": "seceval-265c7bfa-e4fc-4da2-9c01-5e7f9d4b58da",
+        "prompt_jaccard": 0.1461,
+        "response_jaccard": 0.075,
+        "prompt_containment": 0.619,
+        "response_containment": 0.1731,
+        "prompt_tokens": 81,
+        "eval_q_tokens": 21
+      },
+      {
+        "record": "grnd-mitre-attack-mitre-attack-0d7808ff12f397fe-requirement-1",
+        "bench": "seceval_v1.jsonl",
+        "eval_id": "seceval-7a1db287-9f9b-4621-ba2c-9667a765bbab",
+        "prompt_jaccard": 0.114,
+        "response_jaccard": 0.1304,
+        "prompt_containment": 0.619,
+        "response_containment": 0.2679,
+        "prompt_tokens": 106,
+        "eval_q_tokens": 21
+      },
+      {
+        "record": "grnd-mitre-cwe-mitre-cwe-27d47cc4a4a78cf4-requirement-1",
+        "bench": "seceval_v1.jsonl",
+        "eval_id": "seceval-1265496f-54b3-471d-baf8-e9d8bd603c06",
+        "prompt_jaccard": 0.0702,
+        "response_jaccard": 0.0818,
+        "prompt_containment": 0.6154,
+        "response_containment": 0.2045,
+        "prompt_tokens": 109,
+        "eval_q_tokens": 13
+      },
+      {
+        "record": "syn-language-security-retention-sql-inj-001-multi-answer",
+        "bench": "seceval_v1.jsonl",
+        "eval_id": "seceval-34a393a9-dee4-47b0-bdd0-ebda4f64cbd3",
+        "prompt_jaccard": 0.1159,
+        "response_jaccard": 0.0645,
+        "prompt_containment": 0.6154,
+        "response_containment": 0.2051,
+        "prompt_tokens": 64,
+        "eval_q_tokens": 13
+      },
+      {
+        "record": "grnd-ietf-rfcs-ietf-rfcs-38d55723e5cd0e19-requirement-1",
+        "bench": "seceval_v1.jsonl",
+        "eval_id": "seceval-c0eb46ce-8669-4298-89c8-b071e95ffddb",
+        "prompt_jaccard": 0.0833,
+        "response_jaccard": 0.1129,
+        "prompt_containment": 0.6154,
+        "response_containment": 0.2059,
+        "prompt_tokens": 91,
+        "eval_q_tokens": 13
+      },
+      {
+        "record": "syn-monitoring-detection-soc-log-sqli-105-multi-answer",
+        "bench": "seceval_v1.jsonl",
+        "eval_id": "seceval-34a393a9-dee4-47b0-bdd0-ebda4f64cbd3",
+        "prompt_jaccard": 0.1194,
+        "response_jaccard": 0.0594,
+        "prompt_containment": 0.6154,
+        "response_containment": 0.1538,
+        "prompt_tokens": 62,
+        "eval_q_tokens": 13
+      },
+      {
+        "record": "syn-monitoring-detection-soc-log-k8s-verb-110-multi-answer",
+        "bench": "seceval_v1.jsonl",
+        "eval_id": "seceval-34a393a9-dee4-47b0-bdd0-ebda4f64cbd3",
+        "prompt_jaccard": 0.1333,
+        "response_jaccard": 0.0833,
+        "prompt_containment": 0.6154,
+        "response_containment": 0.2051,
+        "prompt_tokens": 55,
+        "eval_q_tokens": 13
+      },
+      {
+        "record": "syn-language-security-retention-rust-overflow-002-multi-answer",
+        "bench": "seceval_v1.jsonl",
+        "eval_id": "seceval-c1086936-423d-4085-ab11-0b5660c83ba3",
+        "prompt_jaccard": 0.1311,
+        "response_jaccard": 0.0643,
+        "prompt_containment": 0.6154,
+        "response_containment": 0.1364,
+        "prompt_tokens": 56,
+        "eval_q_tokens": 13
+      },
+      {
+        "record": "syn-cloud-container-supply-chain-k8s-serviceaccount-token-automount-multi-answer",
+        "bench": "seceval_v1.jsonl",
+        "eval_id": "seceval-34a393a9-dee4-47b0-bdd0-ebda4f64cbd3",
+        "prompt_jaccard": 0.093,
+        "response_jaccard": 0.0357,
+        "prompt_containment": 0.6154,
+        "response_containment": 0.1026,
+        "prompt_tokens": 81,
+        "eval_q_tokens": 13
+      },
+      {
+        "record": "syn-language-security-retention-js-proto-001-multi-answer",
+        "bench": "seceval_v1.jsonl",
+        "eval_id": "seceval-34a393a9-dee4-47b0-bdd0-ebda4f64cbd3",
+        "prompt_jaccard": 0.1127,
+        "response_jaccard": 0.0484,
+        "prompt_containment": 0.6154,
+        "response_containment": 0.1538,
+        "prompt_tokens": 66,
+        "eval_q_tokens": 13
+      },
+      {
+        "record": "grnd-mitre-attack-mitre-attack-0d7808ff12f397fe-requirement-1",
+        "bench": "seceval_v1.jsonl",
+        "eval_id": "seceval-c1086936-423d-4085-ab11-0b5660c83ba3",
+        "prompt_jaccard": 0.0721,
+        "response_jaccard": 0.0769,
+        "prompt_containment": 0.6154,
+        "response_containment": 0.1515,
+        "prompt_tokens": 106,
+        "eval_q_tokens": 13
+      },
+      {
+        "record": "syn-fundamentals-linux-networking-proto-http-status-classes-log-1",
+        "bench": "baseline_probe_v1.jsonl",
+        "eval_id": "probe-mcq-15",
+        "prompt_jaccard": 0.0556,
+        "response_jaccard": 0.0909,
+        "prompt_containment": 0.2143,
+        "response_containment": 0.6111,
+        "prompt_tokens": 43,
+        "eval_q_tokens": 14
+      },
+      {
+        "record": "syn-monitoring-detection-soc-log-syslog-header-002-multi-answer",
+        "bench": "cyberlite_eval_factual_v1.jsonl",
+        "eval_id": "eval-e1-knowledge-rfc1918",
+        "prompt_jaccard": 0.1549,
+        "response_jaccard": 0.1042,
+        "prompt_containment": 0.6111,
+        "response_containment": 0.2857,
+        "prompt_tokens": 64,
+        "eval_q_tokens": 18
+      },
+      {
+        "record": "grnd-linux-man-pages-linux-man-pages-690287e3deac2d85-requirement-1",
+        "bench": "seceval_v1.jsonl",
+        "eval_id": "seceval-0f2fe8c2-ddc8-4fb0-b12f-fbcc1e5790d1",
+        "prompt_jaccard": 0.1019,
+        "response_jaccard": 0.0855,
+        "prompt_containment": 0.6111,
+        "response_containment": 0.1754,
+        "prompt_tokens": 101,
+        "eval_q_tokens": 18
+      },
+      {
+        "record": "syn-language-security-retention-rust-overflow-002-multi-answer",
+        "bench": "cyberlite_eval_factual_v1.jsonl",
+        "eval_id": "eval-e1-knowledge-rfc1918",
+        "prompt_jaccard": 0.1746,
+        "response_jaccard": 0.0631,
+        "prompt_containment": 0.6111,
+        "response_containment": 0.2,
+        "prompt_tokens": 56,
+        "eval_q_tokens": 18
+      },
+      {
+        "record": "syn-cloud-container-supply-chain-k8s-serviceaccount-token-automount-multi-answer",
+        "bench": "cyberlite_eval_factual_v1.jsonl",
+        "eval_id": "eval-e1-knowledge-rfc1918",
+        "prompt_jaccard": 0.125,
+        "response_jaccard": 0.0667,
+        "prompt_containment": 0.6111,
+        "response_containment": 0.2,
+        "prompt_tokens": 81,
+        "eval_q_tokens": 18
+      },
+      {
+        "record": "grnd-mitre-cwe-mitre-cwe-016658719a3756ae-match",
+        "bench": "seceval_v1.jsonl",
+        "eval_id": "seceval-268ea10f-2705-4776-bc9c-7876ec0cfd48",
+        "prompt_jaccard": 0.0973,
+        "response_jaccard": 0.0556,
+        "prompt_containment": 0.6111,
+        "response_containment": 0.1471,
+        "prompt_tokens": 106,
+        "eval_q_tokens": 18
+      }
+    ],
+    "top_jaccard_records": [
+      {
+        "id": "syn-language-security-retention-rust-zeroize-004-codereview-1",
+        "prompt_jaccard": 0.275,
+        "response_jaccard": 0.131,
+        "prompt_containment": 0.55,
+        "response_containment": 0.303,
+        "prompt_in_eval": 0.3548,
+        "eval_in_prompt": 0.55
+      },
+      {
+        "id": "syn-language-security-retention-gen-regex-004-mcq-1",
+        "prompt_jaccard": 0.1935,
+        "response_jaccard": 0.2609,
+        "prompt_containment": 0.4211,
+        "response_containment": 0.5316,
+        "prompt_in_eval": 0.4211,
+        "eval_in_prompt": 0.4
+      },
+      {
+        "id": "syn-cloud-container-supply-chain-k8s-serviceaccount-token-automount-config-complete",
+        "prompt_jaccard": 0.1613,
+        "response_jaccard": 0.2603,
+        "prompt_containment": 0.35,
+        "response_containment": 0.4471,
+        "prompt_in_eval": 0.2326,
+        "eval_in_prompt": 0.35
+      },
+      {
+        "id": "syn-web-api-secure-development-api-oauth-pkce-001-mcq-1",
+        "prompt_jaccard": 0.2571,
+        "response_jaccard": 0.2091,
+        "prompt_containment": 0.75,
+        "response_containment": 0.434,
+        "prompt_in_eval": 0.2812,
+        "eval_in_prompt": 0.75
+      },
+      {
+        "id": "syn-vulnerability-classification-remediation-cwe-330-weak-randomness-codereview-1",
+        "prompt_jaccard": 0.2564,
+        "response_jaccard": 0.1386,
+        "prompt_containment": 0.5,
+        "response_containment": 0.3333,
+        "prompt_in_eval": 0.3448,
+        "eval_in_prompt": 0.5
+      },
+      {
+        "id": "syn-monitoring-detection-soc-log-rfc3164-gap-004-log-1",
+        "prompt_jaccard": 0.254,
+        "response_jaccard": 0.1308,
+        "prompt_containment": 0.5161,
+        "response_containment": 0.4167,
+        "prompt_in_eval": 0.3333,
+        "eval_in_prompt": 0.5161
+      },
+      {
+        "id": "grnd-nist-nvd-nist-nvd-00b3cc38194e31f8-cvss",
+        "prompt_jaccard": 0.1724,
+        "response_jaccard": 0.2538,
+        "prompt_containment": 0.5833,
+        "response_containment": 0.5333,
+        "prompt_in_eval": 0.2703,
+        "eval_in_prompt": 0.5833
+      },
+      {
+        "id": "syn-language-security-retention-ps-iex-004-codereview-1",
+        "prompt_jaccard": 0.25,
+        "response_jaccard": 0.1709,
+        "prompt_containment": 0.5,
+        "response_containment": 0.3214,
+        "prompt_in_eval": 0.3333,
+        "eval_in_prompt": 0.5
+      },
+      {
+        "id": "syn-web-api-secure-development-web-output-encoding-001-mcq-1",
+        "prompt_jaccard": 0.25,
+        "response_jaccard": 0.1681,
+        "prompt_containment": 0.5,
+        "response_containment": 0.3571,
+        "prompt_in_eval": 0.3636,
+        "eval_in_prompt": 0.5
+      },
+      {
+        "id": "syn-language-security-retention-sh-curl-006-command-1",
+        "prompt_jaccard": 0.1852,
+        "response_jaccard": 0.25,
+        "prompt_containment": 0.4,
+        "response_containment": 0.4333,
+        "prompt_in_eval": 0.3429,
+        "eval_in_prompt": 0.4
+      }
+    ],
+    "interpretation": "No record exceeds Jaccard 0.5. The containment flags come from short benchmark questions or answers being subsets of longer prompts/responses; directed prompt-in-benchmark never exceeds 0.44. This is a heuristic, not proof of no paraphrase leakage."
+  },
+  "template_concentration": {
+    "records_with_prompt": 485,
+    "records_without_prompt_fim": 15,
+    "prefix_skeleton": {
+      "definition": "first 12 tokens after replacing URLs, CVE/CWE/ATT&CK ids, hex ids, files, snake_case identifiers and numbers; punctuation removed",
+      "distinct": 307,
+      "max_share": 0.0866,
+      "top5_share": 0.2784,
+      "entropy_bits": 7.262,
+      "top": [
+        {
+          "skeleton": "explain what this bash command does what could go wrong if it",
+          "count": 42,
+          "share": 0.0866
+        },
+        {
+          "skeleton": "use only the excerpt below a deployment plan states the following behaviour",
+          "count": 41,
+          "share": 0.0845
+        },
+        {
+          "skeleton": "return a json object summarizing this guidance for a runbook use exactly",
+          "count": 27,
+          "share": 0.0557
+        },
+        {
+          "skeleton": "during a design review a colleague asks for a precise explanation of",
+          "count": 15,
+          "share": 0.0309
+        },
+        {
+          "skeleton": "a scanner reports this cve against a production host explain how to",
+          "count": 10,
+          "share": 0.0206
+        },
+        {
+          "skeleton": "a ticket says host host <n> is vulnerable because scanner output lists",
+          "count": 9,
+          "share": 0.0186
+        },
+        {
+          "skeleton": "complete the blanked directive in this yaml configuration so that it achieves",
+          "count": 9,
+          "share": 0.0186
+        },
+        {
+          "skeleton": "the following python function was reported as vulnerable explain the root cause",
+          "count": 6,
+          "share": 0.0124
+        },
+        {
+          "skeleton": "explain what this powershell command does what could go wrong if it",
+          "count": 5,
+          "share": 0.0103
+        },
+        {
+          "skeleton": "the following javascript function was reported as vulnerable explain the root cause",
+          "count": 5,
+          "share": 0.0103
+        },
+        {
+          "skeleton": "which mitre att ck technique does the following observed behaviour most closely",
+          "count": 4,
+          "share": 0.0082
+        },
+        {
+          "skeleton": "review this json configuration snippet for a security review json version <n>",
+          "count": 3,
+          "share": 0.0062
+        },
+        {
+          "skeleton": "interpret this sigma style detection rule for a soc engineer explain what",
+          "count": 3,
+          "share": 0.0062
+        },
+        {
+          "skeleton": "extract a compact triage object from this nvd style json return only",
+          "count": 3,
+          "share": 0.0062
+        },
+        {
+          "skeleton": "a code review identifies the weakness pattern below which cwe class best",
+          "count": 3,
+          "share": 0.0062
+        },
+        {
+          "skeleton": "complete the blanked directive in this http configuration so that it achieves",
+          "count": 2,
+          "share": 0.0041
+        },
+        {
+          "skeleton": "the following c function was reported as vulnerable explain the root cause",
+          "count": 2,
+          "share": 0.0041
+        },
+        {
+          "skeleton": "you are the on call analyst at <n> <n> utc this event",
+          "count": 2,
+          "share": 0.0041
+        },
+        {
+          "skeleton": "review this <file> configuration snippet for a security review <file> w etc",
+          "count": 2,
+          "share": 0.0041
+        },
+        {
+          "skeleton": "an nvd record maps a vulnerability to one or more cwe identifiers",
+          "count": 2,
+          "share": 0.0041
+        }
+      ]
+    },
+    "full_skeleton": {
+      "distinct": 419,
+      "max_share": 0.0845,
+      "top": [
+        {
+          "skeleton": "use only the excerpt below a deployment plan states the following behaviour is that behaviour supported by the excerpt quote the relevant requirement explain the difference in norm",
+          "count": 41,
+          "share": 0.0845
+        },
+        {
+          "skeleton": "a scanner reports this cve against a production host explain how to test whether the cpe applicability actually matches the host and what evidence would justify a false positive de",
+          "count": 10,
+          "share": 0.0206
+        },
+        {
+          "skeleton": "a ticket says host host <n> is vulnerable because scanner output lists <cve> does the nvd record prove that claim explain what is established and what evidence is missing nvd descr",
+          "count": 9,
+          "share": 0.0186
+        },
+        {
+          "skeleton": "explain what this bash command does what could go wrong if it is run with the wrong assumptions and how to verify the result before acting on it bash openssl <ident> connect app ex",
+          "count": 4,
+          "share": 0.0082
+        },
+        {
+          "skeleton": "return a json object summarizing this guidance for a runbook use exactly the keys principle checks and <ident> checks and <ident> must be arrays of short strings guidance <cwe> occ",
+          "count": 3,
+          "share": 0.0062
+        },
+        {
+          "skeleton": "extract a compact triage object from this nvd style json return only a json object with keys <ident> severity <ident> <ident> and weaknesses weaknesses must be an array if a value ",
+          "count": 3,
+          "share": 0.0062
+        },
+        {
+          "skeleton": "an nvd record maps a vulnerability to one or more cwe identifiers explain what the mapping implies for root cause review and why the mapping alone is not a complete diagnosis cve <",
+          "count": 2,
+          "share": 0.0041
+        },
+        {
+          "skeleton": "a vulnerability scanner flags this nvd record on an internet facing service using only the record explain what it establishes and what must be verified before the finding is priori",
+          "count": 2,
+          "share": 0.0041
+        },
+        {
+          "skeleton": "training brief safe idempotent and cacheable are different http method properties explain it to an engineer who will verify the behaviour in a lab and call out the assumptions and ",
+          "count": 1,
+          "share": 0.0021
+        },
+        {
+          "skeleton": "during a design review a colleague asks for a precise explanation of this topic read a traceback from the innermost frame outward and separate cause from symptom give the technical",
+          "count": 1,
+          "share": 0.0021
+        }
+      ]
+    },
+    "by_task_family": {
+      "multiple-choice": {
+        "records": 65,
+        "top_skeleton": "which s3 block public access setting rejects a new bucket policy that",
+        "count": 1,
+        "share": 0.0154,
+        "distinct": 65
+      },
+      "instruction-response": {
+        "records": 50,
+        "top_skeleton": "during a design review a colleague asks for a precise explanation of",
+        "count": 13,
+        "share": 0.26,
+        "distinct": 38
+      },
+      "command-explanation": {
+        "records": 47,
+        "top_skeleton": "explain what this bash command does what could go wrong if it",
+        "count": 42,
+        "share": 0.8936,
+        "distinct": 2
+      },
+      "evidence-grounded-qa": {
+        "records": 41,
+        "top_skeleton": "use only the excerpt below a deployment plan states the following behaviour",
+        "count": 41,
+        "share": 1.0,
+        "distinct": 1
+      },
+      "structured-json": {
+        "records": 30,
+        "top_skeleton": "return a json object summarizing this guidance for a runbook use exactly",
+        "count": 27,
+        "share": 0.9,
+        "distinct": 2
+      },
+      "configuration-analysis": {
+        "records": 30,
+        "top_skeleton": "review this json configuration snippet for a security review json version <n>",
+        "count": 3,
+        "share": 0.1,
+        "distinct": 27
+      },
+      "multiple-choice-multi-answer": {
+        "records": 25,
+        "top_skeleton": "topic guardduty findings describe behaviour and must be routed to a responder",
+        "count": 1,
+        "share": 0.04,
+        "distinct": 25
+      },
+      "log-interpretation": {
+        "records": 25,
+        "top_skeleton": "review this synthetic gateway access log excerpt <n> get api report http",
+        "count": 1,
+        "share": 0.04,
+        "distinct": 25
+      },
+      "secure-code-review": {
+        "records": 21,
+        "top_skeleton": "review this python code for security defects python path tmp report worker",
+        "count": 1,
+        "share": 0.0476,
+        "distinct": 21
+      },
+      "configuration-completion": {
+        "records": 20,
+        "top_skeleton": "complete the blanked directive in this yaml configuration so that it achieves",
+        "count": 9,
+        "share": 0.45,
+        "distinct": 10
+      },
+      "misconception-correction": {
+        "records": 20,
+        "top_skeleton": "a teammate states including the commit sha in a cache key makes",
+        "count": 1,
+        "share": 0.05,
+        "distinct": 20
+      },
+      "error-diagnosis": {
+        "records": 20,
+        "top_skeleton": "an engineer applied the guidance for this topic eval reparses its arguments",
+        "count": 1,
+        "share": 0.05,
+        "distinct": 20
+      },
+      "code-remediation": {
+        "records": 17,
+        "top_skeleton": "the following python function was reported as vulnerable explain the root cause",
+        "count": 6,
+        "share": 0.3529,
+        "distinct": 7
+      },
+      "comparison": {
+        "records": 13,
+        "top_skeleton": "compare these two controls shared build caches are a trust boundary that",
+        "count": 1,
+        "share": 0.0769,
+        "distinct": 13
+      },
+      "multi-turn-troubleshooting": {
+        "records": 12,
+        "top_skeleton": "this same user two hosts clocks disagree event fired at <n> <n>",
+        "count": 1,
+        "share": 0.0833,
+        "distinct": 12
+      },
+      "false-positive-recognition": {
+        "records": 10,
+        "top_skeleton": "a scanner reports this cve against a production host explain how to",
+        "count": 10,
+        "share": 1.0,
+        "distinct": 1
+      },
+      "uncertainty-handling": {
+        "records": 9,
+        "top_skeleton": "a ticket says host host <n> is vulnerable because scanner output lists",
+        "count": 9,
+        "share": 1.0,
+        "distinct": 1
+      },
+      "vulnerability-classification": {
+        "records": 9,
+        "top_skeleton": "a code review identifies the weakness pattern below which cwe class best",
+        "count": 3,
+        "share": 0.3333,
+        "distinct": 4
+      },
+      "general-retention": {
+        "records": 8,
+        "top_skeleton": "during a design review a colleague asks for a precise explanation of",
+        "count": 2,
+        "share": 0.25,
+        "distinct": 7
+      },
+      "attack-technique-recognition": {
+        "records": 4,
+        "top_skeleton": "which mitre att ck technique does the following observed behaviour most closely",
+        "count": 4,
+        "share": 1.0,
+        "distinct": 1
+      },
+      "detection-rule-interpretation": {
+        "records": 4,
+        "top_skeleton": "interpret this sigma style detection rule for a soc engineer explain what",
+        "count": 3,
+        "share": 0.75,
+        "distinct": 2
+      },
+      "vulnerability-remediation": {
+        "records": 3,
+        "top_skeleton": "<cwe> cleartext transmission of sensitive information lists potential mitigations and detection methods",
+        "count": 1,
+        "share": 0.3333,
+        "distinct": 3
+      },
+      "incident-investigation": {
+        "records": 2,
+        "top_skeleton": "you are the on call analyst at <n> <n> utc this event",
+        "count": 2,
+        "share": 1.0,
+        "distinct": 1
+      }
+    },
+    "top_skeleton_families": {
+      "explain what this bash command does what could go wrong if it": {
+        "command-explanation": 42
+      },
+      "use only the excerpt below a deployment plan states the following behaviour": {
+        "evidence-grounded-qa": 41
+      },
+      "return a json object summarizing this guidance for a runbook use exactly": {
+        "structured-json": 27
+      },
+      "during a design review a colleague asks for a precise explanation of": {
+        "instruction-response": 13,
+        "general-retention": 2
+      },
+      "a scanner reports this cve against a production host explain how to": {
+        "false-positive-recognition": 10
+      }
+    },
+    "top_skeleton_split_distribution": {
+      "explain what this bash command does what could go wrong if it": {
+        "train": 32,
+        "validation": 5,
+        "test": 5
+      },
+      "use only the excerpt below a deployment plan states the following behaviour": {
+        "train": 35,
+        "validation": 3,
+        "test": 3
+      },
+      "return a json object summarizing this guidance for a runbook use exactly": {
+        "train": 24,
+        "validation": 2,
+        "test": 1
+      },
+      "during a design review a colleague asks for a precise explanation of": {
+        "train": 13,
+        "validation": 2
+      },
+      "a scanner reports this cve against a production host explain how to": {
+        "train": 9,
+        "validation": 1
+      }
+    }
+  },
+  "top_skeletons": [
+    {
+      "skeleton": "explain what this bash command does what could go wrong if it",
+      "count": 42,
+      "share": 0.0866
+    },
+    {
+      "skeleton": "use only the excerpt below a deployment plan states the following behaviour",
+      "count": 41,
+      "share": 0.0845
+    },
+    {
+      "skeleton": "return a json object summarizing this guidance for a runbook use exactly",
+      "count": 27,
+      "share": 0.0557
+    },
+    {
+      "skeleton": "during a design review a colleague asks for a precise explanation of",
+      "count": 15,
+      "share": 0.0309
+    },
+    {
+      "skeleton": "a scanner reports this cve against a production host explain how to",
+      "count": 10,
+      "share": 0.0206
+    },
+    {
+      "skeleton": "a ticket says host host <n> is vulnerable because scanner output lists",
+      "count": 9,
+      "share": 0.0186
+    },
+    {
+      "skeleton": "complete the blanked directive in this yaml configuration so that it achieves",
+      "count": 9,
+      "share": 0.0186
+    },
+    {
+      "skeleton": "the following python function was reported as vulnerable explain the root cause",
+      "count": 6,
+      "share": 0.0124
+    },
+    {
+      "skeleton": "explain what this powershell command does what could go wrong if it",
+      "count": 5,
+      "share": 0.0103
+    },
+    {
+      "skeleton": "the following javascript function was reported as vulnerable explain the root cause",
+      "count": 5,
+      "share": 0.0103
+    },
+    {
+      "skeleton": "which mitre att ck technique does the following observed behaviour most closely",
+      "count": 4,
+      "share": 0.0082
+    },
+    {
+      "skeleton": "review this json configuration snippet for a security review json version <n>",
+      "count": 3,
+      "share": 0.0062
+    },
+    {
+      "skeleton": "interpret this sigma style detection rule for a soc engineer explain what",
+      "count": 3,
+      "share": 0.0062
+    },
+    {
+      "skeleton": "extract a compact triage object from this nvd style json return only",
+      "count": 3,
+      "share": 0.0062
+    },
+    {
+      "skeleton": "a code review identifies the weakness pattern below which cwe class best",
+      "count": 3,
+      "share": 0.0062
+    },
+    {
+      "skeleton": "complete the blanked directive in this http configuration so that it achieves",
+      "count": 2,
+      "share": 0.0041
+    },
+    {
+      "skeleton": "the following c function was reported as vulnerable explain the root cause",
+      "count": 2,
+      "share": 0.0041
+    },
+    {
+      "skeleton": "you are the on call analyst at <n> <n> utc this event",
+      "count": 2,
+      "share": 0.0041
+    },
+    {
+      "skeleton": "review this <file> configuration snippet for a security review <file> w etc",
+      "count": 2,
+      "share": 0.0041
+    },
+    {
+      "skeleton": "an nvd record maps a vulnerability to one or more cwe identifiers",
+      "count": 2,
+      "share": 0.0041
+    }
+  ],
+  "facet_concentration": {
+    "task_family": {
+      "total": 500,
+      "distinct": 24,
+      "top": [
+        {
+          "value": "multiple-choice",
+          "count": 65,
+          "share": 0.13
+        },
+        {
+          "value": "instruction-response",
+          "count": 50,
+          "share": 0.1
+        },
+        {
+          "value": "command-explanation",
+          "count": 47,
+          "share": 0.094
+        },
+        {
+          "value": "evidence-grounded-qa",
+          "count": 41,
+          "share": 0.082
+        },
+        {
+          "value": "structured-json",
+          "count": 30,
+          "share": 0.06
+        },
+        {
+          "value": "configuration-analysis",
+          "count": 30,
+          "share": 0.06
+        },
+        {
+          "value": "multiple-choice-multi-answer",
+          "count": 25,
+          "share": 0.05
+        },
+        {
+          "value": "log-interpretation",
+          "count": 25,
+          "share": 0.05
+        },
+        {
+          "value": "secure-code-review",
+          "count": 21,
+          "share": 0.042
+        },
+        {
+          "value": "configuration-completion",
+          "count": 20,
+          "share": 0.04
+        },
+        {
+          "value": "misconception-correction",
+          "count": 20,
+          "share": 0.04
+        },
+        {
+          "value": "error-diagnosis",
+          "count": 20,
+          "share": 0.04
+        }
+      ],
+      "max_share": 0.13,
+      "imbalance_ratio": 32.5,
+      "entropy_bits": 4.188
+    },
+    "task": {
+      "total": 500,
+      "distinct": 19,
+      "top": [
+        {
+          "value": "security-knowledge",
+          "count": 208,
+          "share": 0.416
+        },
+        {
+          "value": "system-hardening",
+          "count": 50,
+          "share": 0.1
+        },
+        {
+          "value": "system-administration",
+          "count": 47,
+          "share": 0.094
+        },
+        {
+          "value": "grounded-reasoning",
+          "count": 41,
+          "share": 0.082
+        },
+        {
+          "value": "secure-coding",
+          "count": 37,
+          "share": 0.074
+        },
+        {
+          "value": "log-analysis",
+          "count": 25,
+          "share": 0.05
+        },
+        {
+          "value": "troubleshooting",
+          "count": 20,
+          "share": 0.04
+        },
+        {
+          "value": "secure-autocomplete",
+          "count": 15,
+          "share": 0.03
+        },
+        {
+          "value": "incident-triage",
+          "count": 12,
+          "share": 0.024
+        },
+        {
+          "value": "vulnerability-applicability",
+          "count": 10,
+          "share": 0.02
+        },
+        {
+          "value": "uncertainty",
+          "count": 9,
+          "share": 0.018
+        },
+        {
+          "value": "vulnerability",
+          "count": 6,
+          "share": 0.012
+        }
+      ],
+      "max_share": 0.416,
+      "imbalance_ratio": 208.0,
+      "entropy_bits": 3.024
+    },
+    "domain": {
+      "total": 500,
+      "distinct": 9,
+      "top": [
+        {
+          "value": "<none>",
+          "count": 80,
+          "share": 0.16
+        },
+        {
+          "value": "language-security-retention",
+          "count": 60,
+          "share": 0.12
+        },
+        {
+          "value": "cloud-container-supply-chain",
+          "count": 60,
+          "share": 0.12
+        },
+        {
+          "value": "monitoring-detection-soc",
+          "count": 60,
+          "share": 0.12
+        },
+        {
+          "value": "web-api-secure-development",
+          "count": 55,
+          "share": 0.11
+        },
+        {
+          "value": "fundamentals-linux-networking",
+          "count": 53,
+          "share": 0.106
+        },
+        {
+          "value": "cryptography-identity-access",
+          "count": 50,
+          "share": 0.1
+        },
+        {
+          "value": "vulnerability-classification-remediation",
+          "count": 43,
+          "share": 0.086
+        },
+        {
+          "value": "incident-response-forensics-threat-intel",
+          "count": 39,
+          "share": 0.078
+        }
+      ],
+      "max_share": 0.16,
+      "imbalance_ratio": 2.05,
+      "entropy_bits": 3.141
+    },
+    "source": {
+      "total": 500,
+      "distinct": 9,
+      "top": [
+        {
+          "value": "cyberlite_synthesis",
+          "count": 420,
+          "share": 0.84
+        },
+        {
+          "value": "nist_nvd",
+          "count": 28,
+          "share": 0.056
+        },
+        {
+          "value": "mitre_attack",
+          "count": 14,
+          "share": 0.028
+        },
+        {
+          "value": "mitre_cwe",
+          "count": 11,
+          "share": 0.022
+        },
+        {
+          "value": "ietf_rfcs",
+          "count": 8,
+          "share": 0.016
+        },
+        {
+          "value": "linux_man_pages",
+          "count": 8,
+          "share": 0.016
+        },
+        {
+          "value": "openssh_docs",
+          "count": 5,
+          "share": 0.01
+        },
+        {
+          "value": "owasp_cheatsheets",
+          "count": 4,
+          "share": 0.008
+        },
+        {
+          "value": "netfilter_nftables",
+          "count": 2,
+          "share": 0.004
+        }
+      ],
+      "max_share": 0.84,
+      "imbalance_ratio": 210.0,
+      "entropy_bits": 1.055
+    },
+    "difficulty": {
+      "total": 500,
+      "distinct": 4,
+      "top": [
+        {
+          "value": "intermediate",
+          "count": 200,
+          "share": 0.4
+        },
+        {
+          "value": "foundational",
+          "count": 150,
+          "share": 0.3
+        },
+        {
+          "value": "advanced",
+          "count": 125,
+          "share": 0.25
+        },
+        {
+          "value": "expert",
+          "count": 25,
+          "share": 0.05
+        }
+      ],
+      "max_share": 0.4,
+      "imbalance_ratio": 8.0,
+      "entropy_bits": 1.766
+    },
+    "variant": {
+      "total": 500,
+      "distinct": 12,
+      "top": [
+        {
+          "value": "<none>",
+          "count": 420,
+          "share": 0.84
+        },
+        {
+          "value": "normative-requirement-application",
+          "count": 41,
+          "share": 0.082
+        },
+        {
+          "value": "nvd-cpe-applicability",
+          "count": 10,
+          "share": 0.02
+        },
+        {
+          "value": "nvd-insufficient-evidence",
+          "count": 9,
+          "share": 0.018
+        },
+        {
+          "value": "attack-matching",
+          "count": 4,
+          "share": 0.008
+        },
+        {
+          "value": "cwe-mitigation",
+          "count": 3,
+          "share": 0.006
+        },
+        {
+          "value": "nvd-extraction",
+          "count": 3,
+          "share": 0.006
+        },
+        {
+          "value": "cwe-matching",
+          "count": 3,
+          "share": 0.006
+        },
+        {
+          "value": "nvd-cwe-explanation",
+          "count": 2,
+          "share": 0.004
+        },
+        {
+          "value": "nvd-triage",
+          "count": 2,
+          "share": 0.004
+        },
+        {
+          "value": "nvd-cvss-counterfactual",
+          "count": 2,
+          "share": 0.004
+        },
+        {
+          "value": "cwe-review-questions",
+          "count": 1,
+          "share": 0.002
+        }
+      ],
+      "max_share": 0.84,
+      "imbalance_ratio": 420.0,
+      "entropy_bits": 1.026
+    }
+  },
+  "findings": [
+    {
+      "id": "F1",
+      "severity": "medium",
+      "category": "cross-split field-level duplication",
+      "summary": "One validation record shares an 819-character response byte-for-byte with nine train records in the NVD CPE-applicability family.",
+      "evidence": "grnd-nist-nvd-nist-nvd-00b3cc38194e31f8-applicability (validation, CVE-2020-29504) versus nine train *-applicability records; response-field identity 1.0; whole-record Jaccard 0.535, below the 0.88 threshold, so whole-record dedup did not remove it.",
+      "action": "Deduplicate on the response field, or drop/regenerate the affected validation item, before using validation loss as an early-stopping signal."
+    },
+    {
+      "id": "F2",
+      "severity": "medium",
+      "category": "template overrepresentation",
+      "summary": "Several task families are dominated by a single prompt skeleton.",
+      "evidence": "evidence-grounded-qa 41/41 (100%), false-positive-recognition 10/10 (100%), uncertainty-handling 9/9 (100%), attack-technique-recognition 4/4 (100%), structured-json 27/30 (90%), command-explanation 42/47 (89.4%). Global top skeleton is 8.66% (42/485); top five 27.84%.",
+      "action": "Add paraphrase-diverse prompt variants per family and report per-family results rather than only aggregate scores."
+    },
+    {
+      "id": "F3",
+      "severity": "medium",
+      "category": "benchmark coverage gap",
+      "summary": "CyberSecEval is not available locally, so it was not screened.",
+      "evidence": "Only benchmarks/cyberseceval/README.md exists; no JSONL under data/evaluation and no entry in the build's benchmark index.",
+      "action": "Obtain a license-compliant copy and rerun the screen. Do not describe the corpus as CyberSecEval-clean."
+    },
+    {
+      "id": "F4",
+      "severity": "low",
+      "category": "near-duplicate headroom",
+      "summary": "The closest MinHash pair is 0.8555, only 0.0245 below the 0.88 threshold, and one pair is above 0.80.",
+      "evidence": "grnd-openssh-docs-openssh-docs-841d94ec4f1d6d22-requirement-1 and -requirement-2, both train and same group. No pair reaches 0.88, so the configured threshold passes.",
+      "action": "Keep the threshold; recheck after template or source updates. If the threshold is relaxed to 0.85, this same-group pair would be removed."
+    },
+    {
+      "id": "F5",
+      "severity": "low",
+      "category": "near-duplicate headroom",
+      "summary": "Within-corpus SimHash minimum distance is 4 bits against a 3-bit threshold; cross-split minimum is 6 bits.",
+      "evidence": "Six pairs at distance 4 (five train, one validation), 13 at distance 5, 17 at distance 6; no pair at <=3 and none at <=5 across splits.",
+      "action": "Keep threshold 3; review if the corpus grows substantially."
+    },
+    {
+      "id": "F6",
+      "severity": "info",
+      "category": "manifest scope",
+      "summary": "The committed deduplication_report.json describes the 1,999-record candidate pool (1,960 kept; 5 semantic and 34 SimHash removals), not the final 500-record calibration corpus.",
+      "evidence": "Candidate-stage report versus independent final-corpus recount: 0 exact, 0 SimHash <=3, 0 MinHash >=0.88.",
+      "action": "Label the report's pipeline stage explicitly so readers do not compare it with final-corpus counts."
+    },
+    {
+      "id": "F7",
+      "severity": "info",
+      "category": "documentation",
+      "summary": "The three authored evaluation suites exist both under data/evaluation and data/synthesis/eval_authored with identical content.",
+      "evidence": "e1/e2/e3 SHA-256 values match cyberlite_eval_factual_v1, cyberlite_eval_vulnerability_v1 and cyberlite_eval_logs_ir_v1. The build scanned the data/evaluation copies, so the earlier coverage gap is closed.",
+      "action": "Keep one canonical copy (or add a checksum guard) to prevent drift."
+    }
+  ],
+  "conclusion": {
+    "deduplication": "No exact, SimHash (<=3) or MinHash (>=0.88) duplicates in the 500-record corpus. The closest MinHash pair is 0.8555 (0.0245 below threshold); the closest SimHash pair is 4 bits (1 bit above threshold).",
+    "leakage": "No whole-record cross-split leakage and no metadata.group in more than one split. One validation response is byte-identical to nine train responses (F1). The closest whole-record cross-split pair is 0.535.",
+    "contamination": "0 of 500 records were removed at 13-gram/0.20 across six available evaluation files. Maximum overlap is 4.19%, from shared CVSS vector strings and upstream CWE/ATT&CK definitions. CyberSecEval was not screened.",
+    "templates": "Prompt diversity is the main concentration risk: 307 skeletons for 485 prompts, but seven families use one skeleton for 89-100% of their records."
+  },
+  "limitations": [
+    "All duplicate and contamination checks are lexical. Paraphrase, translation and conceptual overlap are not detected; an empty finding is not proof of absence.",
+    "MinHash used 128 permutations over 5-word shingles and exact Jaccard for all 124,750 pairs, so LSH sampling cannot hide a pair in this corpus. It still cannot recognize semantic equivalence.",
+    "13-gram fingerprints require at least 13 words. All 500 records qualified, but benchmark items shorter than 13 words contribute no fingerprints; paraphrase was screened separately.",
+    "The paraphrase heuristic is token-set Jaccard/containment without stemming, synonyms or embeddings. Symmetric containment over-fires when a short benchmark question or answer is a subset of a long prompt or response.",
+    "The audit covers train/validation/test only; preferences.jsonl, quarantine.jsonl and review batches were not in scope.",
+    "No record has human_reviewed=true; automated screening is not human review.",
+    "CyberSecEval and any other absent benchmark were not screened; absence is not a pass.",
+    "Field-level duplicate detection used the exact response field; it does not detect near-identical responses below the whole-record threshold.",
+    "The candidate-stage deduplication report (1,999 inputs) and the final-corpus recount (500 records) describe different populations.",
+    "Counts describe build cyberlite-syn-2.0.0-04a21fdaa5ec and must be recomputed after any data change."
+  ],
+  "reproduction": {
+    "script": "/tmp/opencode/audit_all.py",
+    "library_cross_check": "/tmp/opencode/verify_lib2.py",
+    "raw_results": "/tmp/opencode/audit_all.json",
+    "note": "Temporary scripts are not committed; the report records methods and counts."
+  }
+}

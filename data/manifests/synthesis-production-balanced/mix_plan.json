@@ -1,0 +1,159 @@
+{
+  "config": "configs/synthesis/mix.yaml",
+  "curriculum": {
+    "phase_1": {
+      "families": [
+        "instruction-response",
+        "evidence-grounded-qa",
+        "multiple-choice",
+        "log-interpretation"
+      ],
+      "name": "foundations-and-evidence"
+    },
+    "phase_2": {
+      "families": [
+        "secure-code-review",
+        "code-remediation",
+        "configuration-analysis",
+        "vulnerability-classification",
+        "attack-technique-recognition",
+        "incident-investigation",
+        "detection-rule-interpretation"
+      ],
+      "name": "applied-defence"
+    }
+  },
+  "domain_shares": {
+    "cloud-container-supply-chain": 0.0222,
+    "cryptography-identity-access": 0.0239,
+    "fundamentals-linux-networking": 0.0319,
+    "ietf_rfcs": 0.0393,
+    "incident-response-forensics-threat-intel": 0.0588,
+    "language-security-retention": 0.0226,
+    "linux_man_pages": 0.0261,
+    "mitre_attack": 0.0586,
+    "mitre_cwe": 0.0525,
+    "monitoring-detection-soc": 0.0264,
+    "netfilter_nftables": 0.0047,
+    "nist_nvd": 0.1555,
+    "openssh_docs": 0.001,
+    "owasp_cheatsheets": 0.1154,
+    "project_examples": 0.0028,
+    "vulnerability-classification-remediation": 0.3379,
+    "web-api-secure-development": 0.0205
+  },
+  "estimated_tokens_by_family": {
+    "attack-technique-recognition": 214321,
+    "code-remediation": 15497,
+    "command-explanation": 44075,
+    "configuration-analysis": 24678,
+    "defensive-control": 26108,
+    "detection-rule-interpretation": 4943,
+    "evidence-grounded-qa": 32210,
+    "false-positive-recognition": 142384,
+    "fill-in-the-middle": 1915,
+    "general-retention": 2794,
+    "incident-investigation": 842,
+    "instruction-response": 471633,
+    "log-interpretation": 28092,
+    "misconception-correction": 19195,
+    "multi-turn-troubleshooting": 15718,
+    "multiple-choice": 68611,
+    "multiple-choice-multi-answer": 180,
+    "secure-code-review": 88509,
+    "structured-json": 310367,
+    "uncertainty-handling": 104290,
+    "vulnerability-classification": 1568586,
+    "vulnerability-remediation": 60507
+  },
+  "family_counts": {
+    "attack-technique-recognition": 672,
+    "code-remediation": 48,
+    "command-explanation": 178,
+    "configuration-analysis": 75,
+    "defensive-control": 127,
+    "detection-rule-interpretation": 20,
+    "evidence-grounded-qa": 92,
+    "false-positive-recognition": 280,
+    "fill-in-the-middle": 22,
+    "general-retention": 8,
+    "incident-investigation": 3,
+    "instruction-response": 1646,
+    "log-interpretation": 78,
+    "misconception-correction": 141,
+    "multi-turn-troubleshooting": 39,
+    "multiple-choice": 304,
+    "multiple-choice-multi-answer": 1,
+    "secure-code-review": 299,
+    "structured-json": 611,
+    "uncertainty-handling": 284,
+    "vulnerability-classification": 3141,
+    "vulnerability-remediation": 218
+  },
+  "family_shares": {
+    "attack-technique-recognition": 0.0811,
+    "code-remediation": 0.0058,
+    "command-explanation": 0.0215,
+    "configuration-analysis": 0.0091,
+    "defensive-control": 0.0153,
+    "detection-rule-interpretation": 0.0024,
+    "evidence-grounded-qa": 0.0111,
+    "false-positive-recognition": 0.0338,
+    "fill-in-the-middle": 0.0027,
+    "general-retention": 0.001,
+    "incident-investigation": 0.0004,
+    "instruction-response": 0.1986,
+    "log-interpretation": 0.0094,
+    "misconception-correction": 0.017,
+    "multi-turn-troubleshooting": 0.0047,
+    "multiple-choice": 0.0367,
+    "multiple-choice-multi-answer": 0.0001,
+    "secure-code-review": 0.0361,
+    "structured-json": 0.0737,
+    "uncertainty-handling": 0.0343,
+    "vulnerability-classification": 0.379,
+    "vulnerability-remediation": 0.0263
+  },
+  "note": "Shares are record shares; caps are policy, not measured quality.",
+  "policy_compliant": false,
+  "records": 8287,
+  "splits_dir": "data/processed/synthesis-production-balanced",
+  "unique_domains": 17,
+  "unique_task_families": 22,
+  "violations": [
+    {
+      "cap": 0.08,
+      "excess_records": 10,
+      "kind": "family_over_cap",
+      "name": "attack-technique-recognition",
+      "share": 0.0811
+    },
+    {
+      "cap": 0.16,
+      "excess_records": 321,
+      "kind": "family_over_cap",
+      "name": "instruction-response",
+      "share": 0.1986
+    },
+    {
+      "cap": 0.25,
+      "excess_records": 1070,
+      "kind": "family_over_cap",
+      "name": "vulnerability-classification",
+      "share": 0.379
+    },
+    {
+      "cap": 0.2,
+      "excess_records": 1143,
+      "kind": "domain_over_cap",
+      "name": "vulnerability-classification-remediation",
+      "share": 0.3379
+    },
+    {
+      "kind": "family_below_minimum",
+      "minimum": 0.01,
+      "name": "general-retention",
+      "share": 0.001
+    }
+  ]
+}

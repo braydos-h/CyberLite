@@ -1,0 +1,3342 @@
+{
+  "schema_version": 1,
+  "domain": "cloud-container-supply-chain",
+  "display_name": "Cloud, container and software supply chain security",
+  "author": "worker:C5",
+  "facts": [
+    {
+      "id": "cloud-shared-responsibility-layers",
+      "subtopic": "shared-responsibility",
+      "difficulty": "foundational",
+      "title": "Where the provider's duty ends and the customer's begins",
+      "fact": "Every major cloud publishes a shared-responsibility model, but the split moves with the service model. In IaaS the provider secures facilities, hardware, the hypervisor and the physical network, while the customer secures the guest OS, its patches, the workload, IAM configuration, data classification and encryption choices. In PaaS the provider also runs the runtime and OS, leaving the customer responsible for application code, configuration and data. In SaaS the customer is largely responsible for identity lifecycle, access decisions and the data it puts in.",
+      "details": [
+        "The provider is responsible for security *of* the cloud; the customer is responsible for security *in* the cloud.",
+        "Managed Kubernetes shifts control-plane patching to the provider but leaves node images, workload configuration, RBAC and network policy to the customer.",
+        "The model is not a liability shield: most public cloud incidents trace to customer-side identity, storage or network misconfiguration."
+      ],
+      "pitfalls": [
+        "Assuming a managed database service removes the need to classify data, restrict network reachability or review IAM.",
+        "Treating the provider's compliance certifications as evidence that the customer's own configuration is compliant."
+      ],
+      "mcqs": [
+        {
+          "question": "A team runs a managed Kubernetes service and argues that the provider now owns all cluster security. Which statement is correct under the shared-responsibility model?",
+          "options": [
+            "The provider owns everything from the API server down to pod RBAC",
+            "The provider owns the control plane; the team still owns node images, workload configuration, RBAC and network policy",
+            "The team owns the physical datacentre but not the control plane",
+            "Responsibility is undefined for managed services"
+          ],
+          "answer": [
+            1
+          ],
+          "rationale": "Managed Kubernetes providers operate and patch the control plane, but the customer remains responsible for worker nodes, workload hardening, identity and authorization configuration, and data protection."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "Using a managed service means the provider is accountable for any breach of data stored in it.",
+          "correction": "Providers secure the underlying infrastructure and service software, but access control, data classification, encryption configuration and client-side network rules stay with the customer. Most breaches of managed services come from customer-side identity or exposure mistakes."
+        }
+      ],
+      "references": [
+        {
+          "title": "NIST SP 800-145: The NIST Definition of Cloud Computing",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/145/final",
+          "license": "Public domain (US Government work)"
+        },
+        {
+          "title": "NIST SP 800-190: Application Container Security Guide",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/190/final",
+          "license": "Public domain (US Government work)"
+        }
+      ],
+      "tags": [
+        "shared-responsibility",
+        "cloud",
+        "governance"
+      ]
+    },
+    {
+      "id": "cloud-iam-explicit-deny-precedence",
+      "subtopic": "iam-evaluation",
+      "difficulty": "intermediate",
+      "title": "Explicit deny wins over every allow in an IAM evaluation",
+      "fact": "AWS IAM evaluates identity-based policies, resource-based policies, permissions boundaries, session policies, service control policies and organization-level controls together. The default is implicit deny; any matching Allow can satisfy the request, but a single applicable explicit Deny overrides all allows. This makes deny statements the reliable way to create guardrails, while allow-only policies cannot express 'never'.",
+      "details": [
+        "For most same-account requests an identity-based allow or a resource-based allow is sufficient, but explicit denies still apply.",
+        "Cross-account access generally requires both a resource-based policy that names the principal and an identity-based allow in the caller's account.",
+        "Conditions such as `aws:RequestedRegion`, `aws:PrincipalOrgID` and `aws:MultiFactorAuthPresent` are evaluated as part of the matching statement."
+      ],
+      "pitfalls": [
+        "Building a guardrail from a NotAction allow instead of an explicit Deny, which fails open when a new action appears.",
+        "Forgetting that a deny in a service control policy cannot be relaxed by an account administrator."
+      ],
+      "configs": [
+        {
+          "language": "json",
+          "snippet": "{\n  \"Version\": \"2012-10-17\",\n  \"Statement\": [\n    {\n      \"Sid\": \"DenyOutsideApprovedRegions\",\n      \"Effect\": \"Deny\",\n      \"Action\": \"*\",\n      \"Resource\": \"*\",\n      \"Condition\": {\n        \"StringNotEquals\": {\n          \"aws:RequestedRegion\": [\"eu-west-1\", \"eu-central-1\"]\n        }\n      }\n    }\n  ]\n}",
+          "purpose": "Deny every action outside two approved regions; the deny is unconditional once the condition matches."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "A role has an identity policy allowing s3:GetObject on a bucket, and a service control policy denies s3:GetObject on that same bucket. What happens?",
+          "options": [
+            "Access is allowed because identity policies are more specific",
+            "Access is allowed if the caller also has MFA",
+            "Access is denied because the explicit deny takes precedence",
+            "Access depends on the bucket ACL"
+          ],
+          "answer": [
+            2
+          ],
+          "rationale": "Explicit deny statements in any applicable policy type override matching allows, including allows from identity-based policies."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "An IAM policy that allows an action is enough unless another policy also allows it.",
+          "correction": "Evaluation is not a vote. A single applicable explicit Deny blocks the request regardless of how many allows exist; absent any allow the request is implicitly denied."
+        }
+      ],
+      "references": [
+        {
+          "title": "AWS Identity and Access Management: Policy evaluation logic",
+          "publisher": "Amazon Web Services",
+          "url": "https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_evaluation-logic.html",
+          "license": "CC-BY-SA-4.0"
+        }
+      ],
+      "tags": [
+        "iam",
+        "aws",
+        "least-privilege"
+      ]
+    },
+    {
+      "id": "cloud-iam-trust-vs-permissions-policy",
+      "subtopic": "iam-roles",
+      "difficulty": "intermediate",
+      "title": "A role has two policies: who may assume it, and what it may do",
+      "fact": "An AWS IAM role carries a trust policy (a resource-based policy that names which principals may call sts:AssumeRole, and under which conditions) and one or more permissions policies (what the resulting session can do). Confusing the two produces either a role nobody can assume or a role that can be assumed too widely. The trust policy should name specific accounts, roles or federated subjects and use conditions such as ExternalId or audience checks.",
+      "details": [
+        "The `Principal` element is valid in trust policies and resource policies, but not in identity-based policies.",
+        "For third-party access, an `sts:ExternalId` condition defends against the confused-deputy problem.",
+        "A trust policy alone grants no API permissions; a permissions policy alone cannot be assumed."
+      ],
+      "pitfalls": [
+        "Setting `\"Principal\": {\"AWS\": \"*\"}` in a trust policy and relying on the permissions policy to limit damage.",
+        "Granting `sts:AssumeRole` on `Resource: \"*\"` to a broad group so any role in the account can be taken."
+      ],
+      "configs": [
+        {
+          "language": "json",
+          "snippet": "{\n  \"Version\": \"2012-10-17\",\n  \"Statement\": [\n    {\n      \"Sid\": \"AllowVendorAssumeWithExternalId\",\n      \"Effect\": \"Allow\",\n      \"Principal\": {\"AWS\": \"arn:aws:iam::111122223333:root\"},\n      \"Action\": \"sts:AssumeRole\",\n      \"Condition\": {\"StringEquals\": {\"sts:ExternalId\": \"example-external-id\"}}\n    }\n  ]\n}",
+          "purpose": "Trust policy for a vendor role: only the named account may assume it, and only when it presents the agreed external ID."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "You edit a role's permissions policy to allow s3:PutObject, but callers still get AccessDenied on AssumeRole. What is the most likely cause?",
+          "options": [
+            "S3 bucket policies override IAM roles",
+            "The trust policy does not allow the caller to assume the role",
+            "Permissions policies must be attached to users, not roles",
+            "STS requires an access key"
+          ],
+          "answer": [
+            1
+          ],
+          "rationale": "AssumeRole is authorized by the role's trust policy. Permissions policies govern what the session can do after assumption, not who can assume it."
+        }
+      ],
+      "references": [
+        {
+          "title": "AWS Identity and Access Management: Granting a user permissions to switch roles",
+          "publisher": "Amazon Web Services",
+          "url": "https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use_permissions-to-switch.html",
+          "license": "CC-BY-SA-4.0"
+        },
+        {
+          "title": "AWS Identity and Access Management: How IAM roles work",
+          "publisher": "Amazon Web Services",
+          "url": "https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles.html",
+          "license": "CC-BY-SA-4.0"
+        }
+      ],
+      "tags": [
+        "iam",
+        "trust-policy",
+        "sts"
+      ]
+    },
+    {
+      "id": "cloud-iam-permission-boundary-intersection",
+      "subtopic": "iam-guardrails",
+      "difficulty": "advanced",
+      "title": "A permissions boundary is a ceiling, not a grant",
+      "fact": "An AWS permissions boundary sets the maximum permissions an IAM entity can have, but it grants nothing by itself. Effective permissions are the intersection of the identity-based policies and the boundary, with service control policies and explicit denies applied on top. Boundaries are typically used to let a platform team delegate role creation while guaranteeing that no delegated role can exceed an approved permission set.",
+      "details": [
+        "A boundary on a role affects the role's session; the caller that creates the role must also hold `iam:PutRolePermissionsBoundary` and `iam:PassRole`.",
+        "Resource-based policies that name the role's ARN can still grant access in the same account, but the boundary continues to cap it.",
+        "Boundaries are not a substitute for SCPs: SCPs apply across an organization and cannot be overridden by account administrators."
+      ],
+      "pitfalls": [
+        "Attaching only a boundary and expecting the role to work; the identity policy must also allow the action.",
+        "Using a boundary that allows `iam:*` on `*`, which defeats the delegation control it was meant to provide."
+      ],
+      "configs": [
+        {
+          "language": "json",
+          "snippet": "{\n  \"Version\": \"2012-10-17\",\n  \"Statement\": [\n    {\n      \"Sid\": \"MaxReadOnlyDataAccess\",\n      \"Effect\": \"Allow\",\n      \"Action\": [\"s3:GetObject\", \"s3:ListBucket\", \"kms:Decrypt\"],\n      \"Resource\": [\n        \"arn:aws:s3:::example-app-data\",\n        \"arn:aws:s3:::example-app-data/*\",\n        \"arn:aws:kms:eu-west-1:111122223333:key/example-key-id\"\n      ]\n    }\n  ]\n}",
+          "purpose": "Policy document intended for use as a permissions boundary; attach it with PutRolePermissionsBoundary and pair it with an identity policy, because a boundary caps but never grants access."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "A developer-created role has an identity policy allowing s3:PutObject, but its permissions boundary allows only s3:GetObject. Can the role write objects?",
+          "options": [
+            "Yes, because the identity policy is explicit",
+            "Yes, unless an SCP denies it",
+            "No, effective permissions are the intersection of both",
+            "Only if the bucket policy also allows it"
+          ],
+          "answer": [
+            2
+          ],
+          "rationale": "The boundary caps permissions. Because the boundary does not include s3:PutObject, the effective permission set excludes it even though the identity policy allows it."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "Attaching a permissions boundary to a role automatically gives the role those permissions.",
+          "correction": "A boundary only limits; it never grants. The entity also needs an identity-based allow, and the effective set is the intersection of the two."
+        }
+      ],
+      "references": [
+        {
+          "title": "AWS Identity and Access Management: Permissions boundaries for IAM entities",
+          "publisher": "Amazon Web Services",
+          "url": "https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_boundaries.html",
+          "license": "CC-BY-SA-4.0"
+        }
+      ],
+      "tags": [
+        "iam",
+        "permissions-boundary",
+        "delegation"
+      ]
+    },
+    {
+      "id": "cloud-scp-deny-region-guardrail",
+      "subtopic": "organization-guardrails",
+      "difficulty": "advanced",
+      "title": "Service control policies filter member-account permissions",
+      "fact": "AWS Organizations service control policies (SCPs) define the maximum permissions for principals in member accounts. They do not grant permissions; they filter what identity and resource policies can allow. SCPs do not affect the management account or service-linked roles, and an explicit deny in an SCP cannot be overridden inside the account. Deny-list SCPs are common for regional restrictions and for protecting logging and security services.",
+      "details": [
+        "Attach SCPs at the organization root, an OU or an account; the effective set is the intersection down the hierarchy.",
+        "A common guardrail denies `cloudtrail:StopLogging`, `guardduty:DeleteDetector` and `config:DeleteConfigurationRecorder`.",
+        "SCPs apply to IAM users and roles in member accounts, including the account root user, but not to the organization's management account."
+      ],
+      "pitfalls": [
+        "Assuming an SCP can grant access to a service that the account's identity policies do not allow.",
+        "Forgetting that SCPs are evaluated in addition to resource policies, so a cross-account resource policy still needs the SCP to permit the action.",
+        "Applying a region deny without accounting for global services, which report a home region and can be blocked unintentionally."
+      ],
+      "configs": [
+        {
+          "language": "json",
+          "snippet": "{\n  \"Version\": \"2012-10-17\",\n  \"Statement\": [\n    {\n      \"Sid\": \"DenyOutsideApprovedRegions\",\n      \"Effect\": \"Deny\",\n      \"Action\": \"*\",\n      \"Resource\": \"*\",\n      \"Condition\": {\n        \"StringNotEquals\": {\"aws:RequestedRegion\": [\"eu-west-1\"]}\n      }\n    },\n    {\n      \"Sid\": \"ProtectSecurityTelemetry\",\n      \"Effect\": \"Deny\",\n      \"Action\": [\n        \"cloudtrail:StopLogging\",\n        \"cloudtrail:DeleteTrail\",\n        \"guardduty:DeleteDetector\"\n      ],\n      \"Resource\": \"*\"\n    }\n  ]\n}",
+          "purpose": "Deny-list SCP that pins workloads to one region and prevents disabling core detection services."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "An OU has an SCP that denies all actions outside eu-west-1. A role in a member account has an identity policy allowing ec2:RunInstances in us-east-1. What is the result?",
+          "options": [
+            "The instance launches because identity policies grant the action",
+            "The call is denied because the SCP filters the permission",
+            "The call succeeds but is logged as non-compliant",
+            "The SCP is ignored for roles with administrator access"
+          ],
+          "answer": [
+            1
+          ],
+          "rationale": "SCPs cap permissions for member accounts. A matching explicit deny in the SCP blocks the action even when an identity policy allows it, and account administrators cannot override it."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "SCPs are just audit rules that report non-compliance.",
+          "correction": "SCPs are preventive authorization controls evaluated by AWS before an API call succeeds. A matching deny causes the request to fail, it does not merely generate a finding."
+        }
+      ],
+      "references": [
+        {
+          "title": "AWS Organizations: Service control policies",
+          "publisher": "Amazon Web Services",
+          "url": "https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_scps.html",
+          "license": "CC-BY-SA-4.0"
+        }
+      ],
+      "tags": [
+        "scp",
+        "guardrails",
+        "aws-organizations"
+      ]
+    },
+    {
+      "id": "cloud-static-key-inventory",
+      "subtopic": "credential-hygiene",
+      "difficulty": "foundational",
+      "title": "Long-lived access keys are inventory items, not background noise",
+      "fact": "IAM user access keys are long-lived bearer credentials: anyone who obtains the pair can act as the user until the key is rotated or disabled. Workloads should use roles or federation so credentials are short-lived and automatically rotated, and any remaining keys should be inventoried, aged and tied to a named owner. The IAM credential report exposes key age, last use and rotation state in a machine-readable form.",
+      "details": [
+        "`aws iam generate-credential-report` then `aws iam get-credential-report` returns CSV fields including access_key_1_active, access_key_1_last_used_date and access_key_1_last_rotated.",
+        "Disable a suspected key before deleting it, so the owner can be identified from the failure.",
+        "IAM Access Analyzer unused-access findings flag permissions and credentials that have not been used in a chosen window."
+      ],
+      "pitfalls": [
+        "Rotating only on a calendar schedule without checking last use, which leaves dormant keys active for years.",
+        "Storing access keys in CI variables because it is simpler than configuring OIDC federation."
+      ],
+      "commands": [
+        {
+          "language": "bash",
+          "code": "aws iam generate-credential-report\naws iam get-credential-report --query Content --output text | base64 -d > credential-report.csv",
+          "purpose": "Download the account credential report for key-age and last-use review."
+        },
+        {
+          "language": "bash",
+          "code": "aws iam list-access-keys --user-name svc-example --query 'AccessKeyMetadata[].[AccessKeyId,Status,CreateDate]' --output table",
+          "purpose": "List access keys and creation dates for one IAM user."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Which credential design removes the need to rotate long-lived cloud keys for a CI job?",
+          "options": [
+            "Storing the key in an encrypted repository secret",
+            "Using OIDC federation so the job exchanges a short-lived identity token for temporary credentials",
+            "Restricting the key with an IP condition",
+            "Rotating the key every 24 hours with a script"
+          ],
+          "answer": [
+            1
+          ],
+          "rationale": "OIDC federation yields temporary credentials scoped to a workload identity, so there is no long-lived secret to store or rotate. Repository secrets and rotation scripts still leave a reusable credential exposed."
+        }
+      ],
+      "references": [
+        {
+          "title": "AWS Identity and Access Management: Getting credential reports for your AWS account",
+          "publisher": "Amazon Web Services",
+          "url": "https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_getting-report.html",
+          "license": "CC-BY-SA-4.0"
+        }
+      ],
+      "tags": [
+        "credentials",
+        "access-keys",
+        "iam"
+      ]
+    },
+    {
+      "id": "cloud-azure-rbac-vs-entra-roles",
+      "subtopic": "azure-authorization",
+      "difficulty": "intermediate",
+      "title": "Azure RBAC and Microsoft Entra roles govern different planes",
+      "fact": "Azure RBAC roles authorize operations on Azure resources (management groups, subscriptions, resource groups, individual resources) and can include data-plane actions such as reading blob data. Microsoft Entra directory roles authorize operations on the directory itself, such as creating users or managing app registrations. A Global Administrator does not automatically have access to subscription resources, but can use the Access management for Azure resources toggle to elevate, which is why that role is treated as highly privileged.",
+      "details": [
+        "Built-in Azure RBAC roles include Owner, Contributor, Reader and service-specific roles such as Storage Blob Data Reader.",
+        "Role assignments are additive; deny assignments exist for managed applications and deployment stacks but are not a general-purpose deny mechanism.",
+        "Entra roles are assigned through the Microsoft Graph API or the Entra admin center, not through `az role assignment create`."
+      ],
+      "pitfalls": [
+        "Assigning Global Administrator to solve a subscription permission problem, granting far more directory control than needed.",
+        "Assuming Contributor can read blob contents; control-plane Contributor does not include data-plane `dataActions`."
+      ],
+      "commands": [
+        {
+          "language": "bash",
+          "code": "az role assignment list --scope \"/subscriptions/00000000-0000-0000-0000-000000000000\" --include-inherited --output table",
+          "purpose": "List Azure RBAC assignments at a subscription scope, including inherited ones."
+        },
+        {
+          "language": "bash",
+          "code": "az rest --method get --url \"https://graph.microsoft.com/v1.0/directoryRoles\" --query \"value[].{name:displayName,id:id}\" --output table",
+          "purpose": "List activated Microsoft Entra directory roles through Microsoft Graph."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "An administrator is a Global Administrator in Microsoft Entra but gets AuthorizationFailed when reading blobs in a storage account. Why?",
+          "options": [
+            "Global Administrator is a directory role and does not grant Azure resource or data-plane permissions by default",
+            "Global Administrator only works for the management group root",
+            "Storage accounts require Entra ID Premium",
+            "The account needs an access key instead"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "Entra directory roles and Azure RBAC roles are separate authorization systems. Reading blob data needs an Azure RBAC role such as Storage Blob Data Reader, or elevation plus assignment."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "The Global Administrator role is the Azure equivalent of subscription Owner.",
+          "correction": "Global Administrator governs the Entra directory. Subscription access comes from Azure RBAC assignments; the elevation toggle can grant it temporarily, but that is an explicit, audited action, not an inherited right."
+        }
+      ],
+      "references": [
+        {
+          "title": "Microsoft Learn: Azure RBAC versus other authorization mechanisms",
+          "publisher": "Microsoft",
+          "url": "https://learn.microsoft.com/en-us/azure/role-based-access-control/rbac-and-directory-admin-roles",
+          "license": "CC-BY-4.0"
+        }
+      ],
+      "tags": [
+        "azure",
+        "rbac",
+        "entra"
+      ]
+    },
+    {
+      "id": "cloud-gcp-iam-condition-binding",
+      "subtopic": "gcp-iam",
+      "difficulty": "intermediate",
+      "title": "GCP IAM conditions narrow a binding with CEL expressions",
+      "fact": "Google Cloud IAM allow policies bind roles to members, and a binding may carry a condition written in Common Expression Language. Conditions can restrict by request time, resource name or resource type, which lets one role be granted narrowly without creating custom roles. Conditions are evaluated per binding; a matching allow still loses to an applicable deny policy, and policy inheritance flows down the resource hierarchy.",
+      "details": [
+        "Common condition attributes include `request.time`, `resource.name`, `resource.type` and `resource.service`.",
+        "IAM deny policies take precedence over allow policies and are evaluated before allows.",
+        "Conditional bindings require the role and API to support conditions; not every role is condition-compatible."
+      ],
+      "pitfalls": [
+        "Using a time condition as the only control for a privileged role, when the role remains usable for the whole window.",
+        "Forgetting that a condition on a folder binding is inherited by every descendant project."
+      ],
+      "configs": [
+        {
+          "language": "json",
+          "snippet": "{\n  \"bindings\": [\n    {\n      \"role\": \"roles/storage.objectViewer\",\n      \"members\": [\"group:analysts@example.com\"],\n      \"condition\": {\n        \"title\": \"BusinessHoursBerlin\",\n        \"description\": \"Read access only during staffed hours\",\n        \"expression\": \"request.time.getHours('Europe/Berlin') >= 8 && request.time.getHours('Europe/Berlin') < 18\"\n      }\n    }\n  ]\n}",
+          "purpose": "Conditional IAM binding that limits object viewing to business hours in a named time zone."
+        }
+      ],
+      "commands": [
+        {
+          "language": "bash",
+          "code": "gcloud projects get-iam-policy example-project --format=json > policy.json",
+          "purpose": "Export a project IAM allow policy for review of bindings and conditions."
+        }
+      ],
+      "references": [
+        {
+          "title": "Google Cloud: IAM conditions overview",
+          "publisher": "Google Cloud",
+          "url": "https://cloud.google.com/iam/docs/conditions-overview",
+          "license": "CC-BY-4.0"
+        },
+        {
+          "title": "Google Cloud: IAM policy evaluation",
+          "publisher": "Google Cloud",
+          "url": "https://cloud.google.com/iam/docs/policy-management",
+          "license": "CC-BY-4.0"
+        }
+      ],
+      "tags": [
+        "gcp",
+        "iam",
+        "conditions"
+      ]
+    },
+    {
+      "id": "cloud-s3-block-public-access",
+      "subtopic": "storage-exposure",
+      "difficulty": "foundational",
+      "title": "Block Public Access has four independent switches",
+      "fact": "Amazon S3 Block Public Access is not one setting but four: BlockPublicAcls, IgnorePublicAcls, BlockPublicPolicy and RestrictPublicBuckets. Applied at the account level, they prevent new public bucket policies and ACLs and ignore existing public grants, while RestrictPublicBuckets limits cross-account access through public policies to service principals the bucket owner trusts. Account-level block is the durable control because a bucket-level override cannot loosen it.",
+      "details": [
+        "BlockPublicPolicy rejects `PutBucketPolicy` calls that would make the bucket public; it does not delete an existing public policy.",
+        "IgnorePublicAcls makes existing public ACLs ineffective without removing them, which can confuse ACL-based audits.",
+        "S3 access points and multi-region access points have their own public-access settings."
+      ],
+      "pitfalls": [
+        "Enabling only BlockPublicAcls and assuming the bucket can no longer be made public through a bucket policy.",
+        "Relying on bucket-level Block Public Access while an account-level setting is absent, leaving new buckets unprotected."
+      ],
+      "configs": [
+        {
+          "language": "json",
+          "snippet": "{\n  \"BlockPublicAcls\": true,\n  \"IgnorePublicAcls\": true,\n  \"BlockPublicPolicy\": true,\n  \"RestrictPublicBuckets\": true\n}",
+          "purpose": "Request body for `put-public-access-block` enabling all four S3 public-access guards on an account or bucket."
+        }
+      ],
+      "commands": [
+        {
+          "language": "bash",
+          "code": "aws s3api get-public-access-block --account-id 111122223333 --query PublicAccessBlockConfiguration",
+          "purpose": "Read the account-level S3 Block Public Access configuration."
+        },
+        {
+          "language": "bash",
+          "code": "aws s3api put-public-access-block --account-id 111122223333 --public-access-block-configuration file://bpa.json",
+          "purpose": "Apply all four public-access guards at account level from a reviewed JSON file."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Which S3 Block Public Access setting rejects a new bucket policy that grants s3:GetObject to Principal \"*\"?",
+          "options": [
+            "BlockPublicAcls",
+            "IgnorePublicAcls",
+            "BlockPublicPolicy",
+            "RestrictPublicBuckets"
+          ],
+          "answer": [
+            2
+          ],
+          "rationale": "BlockPublicPolicy causes S3 to reject PutBucketPolicy requests that would create or allow public access. The other settings address ACLs or restrict existing public policies rather than blocking the policy write."
+        }
+      ],
+      "references": [
+        {
+          "title": "Amazon S3 User Guide: Blocking public access to your Amazon S3 storage",
+          "publisher": "Amazon Web Services",
+          "url": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/access-control-block-public-access.html",
+          "license": "CC-BY-SA-4.0"
+        }
+      ],
+      "tags": [
+        "s3",
+        "public-access",
+        "storage"
+      ]
+    },
+    {
+      "id": "cloud-public-storage-discovery",
+      "subtopic": "storage-exposure",
+      "difficulty": "foundational",
+      "title": "Finding storage that is public today, not just newly public",
+      "fact": "Public storage exposure is a state, so discovery must read effective policy rather than creation settings. In AWS, `get-bucket-policy-status` reports whether the bucket policy makes a bucket public; in Azure, the storage account property `allowBlobPublicAccess` and container access levels control anonymous reads; in GCP, bindings to `allUsers` or `allAuthenticatedUsers` grant public access. Each provider also has an organization-wide control plane that can report or block exposure.",
+      "details": [
+        "AWS IAM Access Analyzer for S3 reports buckets shared with external entities, including public access.",
+        "Azure Defender for Storage and the storage account `publicNetworkAccess` setting cover different exposure paths and are not substitutes.",
+        "GCP Public Access Prevention can be enforced at the organization, folder or project level and overrides bucket IAM that would allow allUsers."
+      ],
+      "pitfalls": [
+        "Auditing only bucket ACLs and missing a public bucket policy or an allUsers IAM binding.",
+        "Assuming a private bucket is safe when an object is shared through a long-lived pre-signed URL."
+      ],
+      "commands": [
+        {
+          "language": "bash",
+          "code": "for b in $(aws s3api list-buckets --query 'Buckets[].Name' --output text); do echo \"$b $(aws s3api get-bucket-policy-status --bucket \"$b\" --query 'PolicyStatus.IsPublic' --output text 2>/dev/null)\"; done",
+          "purpose": "Report IsPublic for each bucket in the account; errors indicate buckets without a policy."
+        },
+        {
+          "language": "bash",
+          "code": "gcloud storage buckets describe gs://example-public-bucket --format=\"json(iamConfiguration,location)\"",
+          "purpose": "Inspect a GCS bucket's public access prevention and uniform access settings."
+        },
+        {
+          "language": "bash",
+          "code": "az storage account show --name examplestorage --query \"{allowBlobPublicAccess:allowBlobPublicAccess,publicNetworkAccess:publicNetworkAccess}\" --output json",
+          "purpose": "Check whether an Azure storage account permits public blob access and public network reachability."
+        }
+      ],
+      "references": [
+        {
+          "title": "Google Cloud: Public access prevention",
+          "publisher": "Google Cloud",
+          "url": "https://cloud.google.com/storage/docs/public-access-prevention",
+          "license": "CC-BY-4.0"
+        },
+        {
+          "title": "Microsoft Learn: Remediate anonymous public read access to blob data",
+          "publisher": "Microsoft",
+          "url": "https://learn.microsoft.com/en-us/azure/storage/blobs/anonymous-read-access-prevent",
+          "license": "CC-BY-4.0"
+        }
+      ],
+      "tags": [
+        "storage",
+        "exposure",
+        "discovery"
+      ]
+    },
+    {
+      "id": "cloud-security-group-vs-nacl",
+      "subtopic": "network-controls",
+      "difficulty": "foundational",
+      "title": "Security groups are stateful allows; NACLs are stateless filters",
+      "fact": "A security group is attached to an elastic network interface and is stateful: return traffic for an allowed connection is automatically permitted. It supports allow rules only, so it cannot express an explicit deny. A network ACL is attached to a subnet, is stateless, evaluates numbered rules from lowest to highest, and supports both allow and deny. Because it is stateless, a NACL must permit the ephemeral return-port range as well as the service port.",
+      "details": [
+        "Security group rule changes apply to new flows; existing connections may persist until they close.",
+        "NACL rules are evaluated in order and the first match wins; a trailing `*` deny is implicit.",
+        "Both controls are necessary for defence in depth but neither inspects application payloads."
+      ],
+      "pitfalls": [
+        "Adding an inbound 443 allow to a NACL and forgetting outbound ephemeral ports 1024-65535, which breaks replies.",
+        "Expecting a security group deny rule to block a specific source; security groups cannot deny."
+      ],
+      "configs": [
+        {
+          "language": "json",
+          "snippet": "{\n  \"GroupName\": \"app-web\",\n  \"Description\": \"HTTPS from the internal load balancer subnet only\",\n  \"VpcId\": \"vpc-0example\",\n  \"IpPermissions\": [\n    {\n      \"IpProtocol\": \"tcp\",\n      \"FromPort\": 443,\n      \"ToPort\": 443,\n      \"IpRanges\": [\n        {\"CidrIp\": \"10.20.30.0/24\", \"Description\": \"internal load balancer subnet\"}\n      ]\n    }\n  ]\n}",
+          "purpose": "Minimal ingress-only security group definition scoped to a documentation subnet."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "A web server in a subnet accepts TCP 443 but replies never reach clients after a NACL was added. What is the most likely omission?",
+          "options": [
+            "The security group is missing an outbound allow",
+            "The NACL does not allow outbound traffic to the ephemeral port range",
+            "The NACL is stateless and therefore cannot allow replies",
+            "Security groups and NACLs cannot be combined"
+          ],
+          "answer": [
+            1
+          ],
+          "rationale": "NACLs are stateless, so reply traffic must be explicitly allowed outbound to the client's ephemeral source port range, typically 1024-65535."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "A security group can be used to explicitly deny traffic from a known malicious CIDR.",
+          "correction": "Security groups support allow rules only; anything not allowed is denied. To block a specific source while allowing a broader range, use a NACL deny rule or a network firewall."
+        }
+      ],
+      "references": [
+        {
+          "title": "Amazon VPC User Guide: Control traffic to resources using security groups",
+          "publisher": "Amazon Web Services",
+          "url": "https://docs.aws.amazon.com/vpc/latest/userguide/vpc-security-groups.html",
+          "license": "CC-BY-SA-4.0"
+        },
+        {
+          "title": "Amazon VPC User Guide: Control subnet traffic with network access control lists",
+          "publisher": "Amazon Web Services",
+          "url": "https://docs.aws.amazon.com/vpc/latest/userguide/vpc-network-acls.html",
+          "license": "CC-BY-SA-4.0"
+        }
+      ],
+      "tags": [
+        "network",
+        "security-groups",
+        "nacl"
+      ]
+    },
+    {
+      "id": "cloud-cloudtrail-data-events-gap",
+      "subtopic": "cloud-logging",
+      "difficulty": "intermediate",
+      "title": "CloudTrail logs management events by default, not data events",
+      "fact": "A CloudTrail trail records management events such as CreateRole or RunInstances, but S3 object-level operations and Lambda invocations are data events and are not logged unless explicitly enabled, at additional cost. A trail that is not multi-region leaves unlogged regions, and without log file validation there is no cryptographic evidence that delivered logs were not altered. CloudTrail event history keeps 90 days of management events, which is useful for triage but not a retention strategy.",
+      "details": [
+        "Log file validation produces digest files that let you verify log integrity after delivery.",
+        "An organization trail created in the management account applies to all member accounts and cannot be stopped by them if an SCP protects it.",
+        "CloudTrail delivers log files in batches, typically within about 5 minutes; it is not a real-time prevention control."
+      ],
+      "pitfalls": [
+        "Enabling a single-region trail and assuming all API activity is captured.",
+        "Enabling data events for every bucket, which can generate very large volumes and significant cost; scope by bucket or prefix."
+      ],
+      "configs": [
+        {
+          "language": "json",
+          "snippet": "{\n  \"Name\": \"org-trail\",\n  \"S3BucketName\": \"example-org-cloudtrail-logs\",\n  \"IsMultiRegionTrail\": true,\n  \"IncludeGlobalServiceEvents\": true,\n  \"EnableLogFileValidation\": true,\n  \"IsOrganizationTrail\": true\n}",
+          "purpose": "Parameters for `aws cloudtrail create-trail` producing a validated, multi-region organization trail."
+        }
+      ],
+      "commands": [
+        {
+          "language": "bash",
+          "code": "aws cloudtrail put-event-selectors --trail-name org-trail --advanced-event-selectors '[{\"Name\":\"S3Objects\",\"FieldSelectors\":[{\"Field\":\"eventCategory\",\"Equals\":[\"Data\"]},{\"Field\":\"resources.type\",\"Equals\":[\"AWS::S3::Object\"]},{\"Field\":\"resources.ARN\",\"StartsWith\":[\"arn:aws:s3:::example-app-data/\"]}]}]'",
+          "purpose": "Add scoped S3 data-event logging for one bucket instead of the whole account."
+        },
+        {
+          "language": "bash",
+          "code": "aws cloudtrail validate-logs --trail-arn arn:aws:cloudtrail:eu-west-1:111122223333:trail/org-trail --start-time 2026-11-01T00:00:00Z",
+          "purpose": "Verify delivered CloudTrail log integrity using digest files."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "An investigation needs to know who read a specific object in an S3 bucket last week. A multi-region CloudTrail trail with log file validation is enabled. What else is required?",
+          "options": [
+            "Nothing, management events include all S3 reads",
+            "Data events must have been enabled for that bucket or prefix",
+            "S3 server access logging must be disabled",
+            "The trail must be recreated in the bucket's region"
+          ],
+          "answer": [
+            1
+          ],
+          "rationale": "S3 GetObject is a data-plane event and is not recorded by default. CloudTrail data events must be enabled for the relevant bucket or prefix, and they are billed separately."
+        }
+      ],
+      "references": [
+        {
+          "title": "AWS CloudTrail User Guide: Logging data events",
+          "publisher": "Amazon Web Services",
+          "url": "https://docs.aws.amazon.com/awscloudtrail/latest/userguide/logging-data-events-with-cloudtrail.html",
+          "license": "CC-BY-SA-4.0"
+        },
+        {
+          "title": "AWS CloudTrail User Guide: Validating CloudTrail log file integrity",
+          "publisher": "Amazon Web Services",
+          "url": "https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-log-file-validation-intro.html",
+          "license": "CC-BY-SA-4.0"
+        }
+      ],
+      "tags": [
+        "cloudtrail",
+        "logging",
+        "forensics"
+      ]
+    },
+    {
+      "id": "cloud-guardduty-finding-triage",
+      "subtopic": "threat-detection",
+      "difficulty": "foundational",
+      "title": "GuardDuty findings describe behaviour and must be routed to a responder",
+      "fact": "Amazon GuardDuty is a managed threat-detection service that consumes VPC flow logs, DNS logs, CloudTrail management events and optional malware or runtime sources, then emits findings with a type, severity and affected resource. It does not block activity. A finding such as instance-credential exfiltration indicates that credentials belonging to an EC2 instance role were used from outside AWS, which usually means the instance was compromised or its metadata was reached through a proxy.",
+      "details": [
+        "Severity is a numeric score in the 1.0 to 8.9 range, grouped into low, medium and high; triage should combine severity with resource criticality.",
+        "Findings are published to EventBridge, which is the usual hook for automated containment such as isolating an instance or disabling a key.",
+        "GuardDuty has no agent for core detection; enabling it in every region and every account is the baseline."
+      ],
+      "pitfalls": [
+        "Treating a GuardDuty finding as a blocked attack and taking no containment action.",
+        "Enabling GuardDuty only in the home region while workloads run elsewhere."
+      ],
+      "logs": [
+        {
+          "context": "GuardDuty finding delivered as JSON to EventBridge",
+          "text": "{\n  \"schemaVersion\": \"2.0\",\n  \"accountId\": \"111122223333\",\n  \"region\": \"eu-west-1\",\n  \"type\": \"UnauthorizedAccess:IAMUser/InstanceCredentialExfiltration.OutsideAWS\",\n  \"severity\": 8.0,\n  \"title\": \"Credentials created exclusively for an EC2 instance are used from an external IP address\",\n  \"resource\": {\n    \"resourceType\": \"AccessKey\",\n    \"accessKeyDetails\": {\"userName\": \"app-instance-role\"}\n  }\n}",
+          "reading": "The finding maps an access key used from outside AWS to an instance role, which is the signature of stolen instance credentials. Treat the instance as compromised, rotate the role credentials, and inspect CloudTrail for the actions taken with the key."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "GuardDuty reports InstanceCredentialExfiltration.OutsideAWS at severity 8. What is the correct first response?",
+          "options": [
+            "Wait for GuardDuty to block the credentials automatically",
+            "Contain the instance and rotate or revoke the instance-role credentials, then investigate CloudTrail activity",
+            "Delete the GuardDuty detector and recreate it",
+            "Disable VPC flow logs to reduce noise"
+          ],
+          "answer": [
+            1
+          ],
+          "rationale": "GuardDuty is detect-only. The credentials are already usable outside AWS, so response requires containment and revocation, followed by investigation of what the key did."
+        }
+      ],
+      "references": [
+        {
+          "title": "Amazon GuardDuty User Guide: What is Amazon GuardDuty?",
+          "publisher": "Amazon Web Services",
+          "url": "https://docs.aws.amazon.com/guardduty/latest/ug/what-is-guardduty.html",
+          "license": "CC-BY-SA-4.0"
+        },
+        {
+          "title": "Amazon GuardDuty User Guide: Finding types",
+          "publisher": "Amazon Web Services",
+          "url": "https://docs.aws.amazon.com/guardduty/latest/ug/guardduty_finding-types-active.html",
+          "license": "CC-BY-SA-4.0"
+        }
+      ],
+      "tags": [
+        "guardduty",
+        "detection",
+        "incident-response"
+      ]
+    },
+    {
+      "id": "cloud-azure-diagnostic-settings",
+      "subtopic": "azure-logging",
+      "difficulty": "intermediate",
+      "title": "Azure activity logs need a diagnostic setting to outlive 90 days",
+      "fact": "The Azure Activity Log records subscription-level control-plane events and is retained for 90 days by default. To retain it longer or query it alongside other telemetry, you create a diagnostic setting that routes categories such as Administrative, Security, Alert and Policy to a Log Analytics workspace, a storage account or an event hub. Resource logs are separate: each resource type needs its own diagnostic setting, and not every resource emits the categories you expect.",
+      "details": [
+        "Microsoft Defender for Cloud generates security alerts and recommendations but does not replace the Activity Log or resource logs.",
+        "Entra sign-in and audit logs are configured in Entra ID diagnostic settings, not in the subscription Activity Log.",
+        "A subscription can have multiple diagnostic settings, but each destination and category combination should be deliberate to control cost."
+      ],
+      "pitfalls": [
+        "Assuming the Activity Log is retained indefinitely because it is visible in the portal.",
+        "Enabling only Administrative while investigations need Security or Policy events."
+      ],
+      "commands": [
+        {
+          "language": "bash",
+          "code": "az monitor diagnostic-settings create --name send-activity-log --resource \"/subscriptions/00000000-0000-0000-0000-000000000000\" --workspace \"/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-ops/providers/Microsoft.OperationalInsights/workspaces/law-ops\" --logs '[{\"category\":\"Administrative\",\"enabled\":true},{\"category\":\"Security\",\"enabled\":true},{\"category\":\"Policy\",\"enabled\":true}]'",
+          "purpose": "Route subscription control-plane log categories to a Log Analytics workspace."
+        },
+        {
+          "language": "bash",
+          "code": "az monitor diagnostic-settings list --resource \"/subscriptions/00000000-0000-0000-0000-000000000000\" --output table",
+          "purpose": "Review which diagnostic settings already exist at subscription scope."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "An investigation needs Azure Activity Log events from eight months ago, but no diagnostic setting was configured. What is available?",
+          "options": [
+            "All events, because the Activity Log is permanent",
+            "Events from the last 90 days only",
+            "Events only if Defender for Cloud was enabled",
+            "Events only in the storage account's region"
+          ],
+          "answer": [
+            1
+          ],
+          "rationale": "The Activity Log has a default retention of 90 days. Longer retention requires a diagnostic setting that exports the categories to a storage account, Log Analytics workspace or event hub."
+        }
+      ],
+      "references": [
+        {
+          "title": "Microsoft Learn: Azure Monitor diagnostic settings",
+          "publisher": "Microsoft",
+          "url": "https://learn.microsoft.com/en-us/azure/azure-monitor/essentials/diagnostic-settings",
+          "license": "CC-BY-4.0"
+        },
+        {
+          "title": "Microsoft Learn: Azure Activity log",
+          "publisher": "Microsoft",
+          "url": "https://learn.microsoft.com/en-us/azure/azure-monitor/essentials/activity-log",
+          "license": "CC-BY-4.0"
+        }
+      ],
+      "tags": [
+        "azure",
+        "logging",
+        "monitor"
+      ]
+    },
+    {
+      "id": "cloud-gcp-audit-log-types",
+      "subtopic": "gcp-logging",
+      "difficulty": "intermediate",
+      "title": "GCP audit log types differ in default enablement and retention",
+      "fact": "Google Cloud Audit Logs comprise Admin Activity, Data Access, System Event and Policy Denied logs. Admin Activity and System Event logs are always enabled and cannot be disabled; Data Access logs are disabled by default except for BigQuery, and Policy Denied logs record denials caused by IAM deny policies or organization policy. The `_Required` bucket retains Admin Activity for 400 days, while the `_Default` bucket retains other audit logs for 30 days unless you create a sink or custom retention.",
+      "details": [
+        "Data Access logs can be enabled per service, and they are often the only record of object reads or secret access.",
+        "Log sinks can route audit logs to Cloud Storage, BigQuery or Pub/Sub for long-term retention and analysis.",
+        "Audit log entries carry a `protoPayload` with authentication info, request metadata and the resource name."
+      ],
+      "pitfalls": [
+        "Assuming all reads are logged; Data Access logging must be explicitly enabled and can be expensive.",
+        "Relying on project-level sinks when organization-level policy requires central retention."
+      ],
+      "commands": [
+        {
+          "language": "bash",
+          "code": "gcloud projects get-iam-policy example-project --format=json | jq '.auditConfigs'",
+          "purpose": "Inspect which Data Access audit log types are explicitly enabled for a project."
+        },
+        {
+          "language": "bash",
+          "code": "gcloud logging sinks create example-audit-sink storage.googleapis.com/example-audit-bucket --log-filter='logName:\"cloudaudit.googleapis.com\"' --project example-project",
+          "purpose": "Create a sink that exports all Cloud Audit Logs to a Cloud Storage bucket."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Which Cloud Audit Log category is always enabled and cannot be disabled?",
+          "options": [
+            "Data Access",
+            "Admin Activity",
+            "Policy Denied",
+            "User Access"
+          ],
+          "answer": [
+            1
+          ],
+          "rationale": "Admin Activity and System Event logs are always enabled. Data Access is off by default except for BigQuery, and Policy Denied logs depend on deny policies or organization policy."
+        }
+      ],
+      "references": [
+        {
+          "title": "Google Cloud: Cloud Audit Logs overview",
+          "publisher": "Google Cloud",
+          "url": "https://cloud.google.com/logging/docs/audit",
+          "license": "CC-BY-4.0"
+        },
+        {
+          "title": "Google Cloud: Configure and view audit logs",
+          "publisher": "Google Cloud",
+          "url": "https://cloud.google.com/logging/docs/audit/configure-data-access",
+          "license": "CC-BY-4.0"
+        }
+      ],
+      "tags": [
+        "gcp",
+        "audit-logs",
+        "logging"
+      ]
+    },
+    {
+      "id": "cloud-kms-key-policy-gate",
+      "subtopic": "key-management",
+      "difficulty": "expert",
+      "title": "An AWS KMS key policy is the gate that IAM must pass through",
+      "fact": "Every AWS KMS key has a key policy, and no principal can use the key unless the key policy enables it. The default policy delegates administration to the account root, which in turn lets IAM policies in that account grant key usage; removing or narrowing that delegation means IAM policies alone stop working. Cross-account use requires both a key policy statement naming the external principal and an identity policy in the caller's account, plus the key's `kms:ViaService` conditions when access should only come through an integrated service.",
+      "details": [
+        "Key policies are the primary access control for KMS; grants are the other mechanism, useful for temporary, narrowly scoped delegated access.",
+        "Automatic annual rotation applies to customer-managed symmetric keys; asymmetric and HMAC keys do not rotate automatically.",
+        "Deleting a KMS key is irreversible after the waiting period and makes data encrypted under it unrecoverable."
+      ],
+      "pitfalls": [
+        "Replacing the default key policy with a policy that omits the account root, locking administrators out of the key.",
+        "Granting `kms:*` on `Resource: \"*\"` to a broad role, which allows both use and key-policy modification."
+      ],
+      "configs": [
+        {
+          "language": "json",
+          "snippet": "{\n  \"Version\": \"2012-10-17\",\n  \"Statement\": [\n    {\n      \"Sid\": \"EnableAccountAdminViaIam\",\n      \"Effect\": \"Allow\",\n      \"Principal\": {\"AWS\": \"arn:aws:iam::111122223333:root\"},\n      \"Action\": \"kms:*\",\n      \"Resource\": \"*\"\n    },\n    {\n      \"Sid\": \"AllowAppDecryptThroughS3Only\",\n      \"Effect\": \"Allow\",\n      \"Principal\": {\"AWS\": \"arn:aws:iam::111122223333:role/app-task-role\"},\n      \"Action\": [\"kms:Decrypt\", \"kms:DescribeKey\"],\n      \"Resource\": \"*\",\n      \"Condition\": {\"StringEquals\": {\"kms:ViaService\": \"s3.eu-west-1.amazonaws.com\"}}\n    }\n  ]\n}",
+          "purpose": "Key policy that delegates account administration to IAM and limits the workload role to decrypt through S3 in one region."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "An IAM role in account A has kms:Decrypt on a key owned by account B, but decryption fails. What is the most likely missing piece?",
+          "options": [
+            "The key must be in the same region as the role",
+            "The key policy in account B does not allow the principal from account A",
+            "KMS keys cannot be used cross-account",
+            "The role needs an access key"
+          ],
+          "answer": [
+            1
+          ],
+          "rationale": "Cross-account KMS use requires the key policy to allow the external principal as well as an identity policy in the caller's account. IAM alone cannot override the key policy."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "Giving a role kms:Decrypt in its IAM policy is sufficient to decrypt any key in the account.",
+          "correction": "The key policy must also permit the principal. If the key policy does not delegate to IAM for that principal, the IAM allow has no effect on that key."
+        }
+      ],
+      "references": [
+        {
+          "title": "AWS Key Management Service Developer Guide: Key policies in AWS KMS",
+          "publisher": "Amazon Web Services",
+          "url": "https://docs.aws.amazon.com/kms/latest/developerguide/key-policies.html",
+          "license": "CC-BY-SA-4.0"
+        },
+        {
+          "title": "AWS Key Management Service Developer Guide: Grants in AWS KMS",
+          "publisher": "Amazon Web Services",
+          "url": "https://docs.aws.amazon.com/kms/latest/developerguide/grants.html",
+          "license": "CC-BY-SA-4.0"
+        }
+      ],
+      "tags": [
+        "kms",
+        "encryption",
+        "key-policy"
+      ]
+    },
+    {
+      "id": "cloud-imdsv2-enforcement",
+      "subtopic": "metadata-service",
+      "difficulty": "advanced",
+      "title": "IMDSv2 raises the cost of SSRF-to-credentials attacks",
+      "fact": "The EC2 instance metadata service is reachable at the link-local address 169.254.169.254 from inside the instance, and in IMDSv1 a simple GET returns temporary role credentials. IMDSv2 requires a PUT to /latest/api/token to obtain a session token, then sends that token in a header for subsequent requests. Because the token requires a PUT with a TTL header and is bound to the instance, naive SSRF that only issues GETs no longer retrieves credentials, but IMDSv2 does not protect against code execution on the instance itself.",
+      "details": [
+        "`httpTokens: required` disables IMDSv1; `httpPutResponseHopLimit: 1` prevents packets from traversing an extra network hop such as a container bridge.",
+        "ECS tasks and EKS pods have separate credential endpoints; blocking the node's IMDS from pods is a complementary control.",
+        "AWS recommends IMDSv2-only for new instance types and provides account-level defaults for new launches."
+      ],
+      "pitfalls": [
+        "Assuming IMDSv2 makes the metadata service safe from a compromised process running on the host.",
+        "Setting the hop limit to 2 to make containers work, which reopens the proxy path the control was meant to close."
+      ],
+      "configs": [
+        {
+          "language": "json",
+          "snippet": "{\n  \"HttpTokens\": \"required\",\n  \"HttpPutResponseHopLimit\": 1,\n  \"HttpEndpoint\": \"enabled\"\n}",
+          "purpose": "Instance metadata options that require IMDSv2 and keep the response hop limit at one."
+        }
+      ],
+      "commands": [
+        {
+          "language": "bash",
+          "code": "TOKEN=$(curl -s -X PUT \"http://169.254.169.254/latest/api/token\" -H \"X-aws-ec2-metadata-token-ttl-seconds: 60\")\ncurl -s -H \"X-aws-ec2-metadata-token: $TOKEN\" http://169.254.169.254/latest/meta-data/iam/security-credentials/",
+          "purpose": "Demonstrate the two-step IMDSv2 token flow against a documentation-only link-local endpoint."
+        },
+        {
+          "language": "bash",
+          "code": "aws ec2 modify-instance-metadata-options --instance-id i-0123456789abcdef0 --http-tokens required --http-put-response-hop-limit 1 --http-endpoint enabled",
+          "purpose": "Enforce IMDSv2 on an existing instance."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "After enforcing IMDSv2, which attack still retrieves instance-role credentials?",
+          "options": [
+            "A server-side request forgery that can only issue GET requests",
+            "A malicious process with code execution on the instance that can issue a PUT and read the response",
+            "A DNS rebinding attack from an external browser",
+            "A GET to /latest/meta-data/ from an external host"
+          ],
+          "answer": [
+            1
+          ],
+          "rationale": "IMDSv2 defeats simple GET-only SSRF, but code running on the instance can perform the PUT/GET token dance. IMDSv2 is not a defence against host compromise; least-privilege instance roles and egress controls still matter."
+        }
+      ],
+      "references": [
+        {
+          "title": "Amazon EC2 User Guide: Configure the instance metadata service",
+          "publisher": "Amazon Web Services",
+          "url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/configuring-instance-metadata-service.html",
+          "license": "CC-BY-SA-4.0"
+        },
+        {
+          "title": "AWS Security Blog: IMDSv2 enforcement",
+          "publisher": "Amazon Web Services",
+          "url": "https://aws.amazon.com/blogs/security/defense-in-depth-open-firewalls-reverse-proxies-ssrf-vulnerabilities-ec2-instance-metadata-service/",
+          "license": "CC-BY-SA-4.0"
+        }
+      ],
+      "tags": [
+        "imdsv2",
+        "ssrf",
+        "instance-metadata"
+      ]
+    },
+    {
+      "id": "cloud-ci-oidc-federation",
+      "subtopic": "ci-identity",
+      "difficulty": "intermediate",
+      "title": "OIDC federation replaces stored cloud keys in CI",
+      "fact": "A CI platform can act as an OpenID Connect identity provider so a pipeline job exchanges a short-lived signed token for temporary cloud credentials. The cloud role's trust policy must restrict the token's issuer, audience and subject claims, such as a specific repository, branch or environment. The job needs permission to request an identity token, typically `id-token: write` in GitHub Actions, and the resulting credentials expire with the job rather than persisting in repository secrets.",
+      "details": [
+        "The subject claim is the strongest constraint: pin it to a repository and ref, not to a wildcard organization.",
+        "For GitHub Actions, the OIDC issuer is `https://token.actions.githubusercontent.com` and the audience is configurable.",
+        "Long-lived keys stored as CI secrets remain readable by any workflow that can access the secret, including malicious pull-request code if workflows are misconfigured."
+      ],
+      "pitfalls": [
+        "Trusting any token from the CI provider's issuer without constraining `sub` and `aud`, which lets any repository in the provider assume the role.",
+        "Granting `id-token: write` to an entire workflow when only one deploy job needs it."
+      ],
+      "configs": [
+        {
+          "language": "yaml",
+          "snippet": "name: deploy\non:\n  push:\n    branches: [main]\npermissions:\n  id-token: write\n  contents: read\njobs:\n  deploy:\n    runs-on: ubuntu-24.04\n    steps:\n      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683\n      - name: Assume deploy role with OIDC\n        uses: aws-actions/configure-aws-credentials@v4\n        with:\n          role-to-assume: arn:aws:iam::111122223333:role/gh-deploy\n          aws-region: eu-west-1\n      - run: aws sts get-caller-identity",
+          "purpose": "Minimal GitHub Actions workflow that requests an OIDC token and assumes a role without storing cloud keys."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Which claim most directly prevents a role intended for one repository from being assumed by another repository using the same CI provider?",
+          "options": [
+            "iss",
+            "aud",
+            "sub",
+            "exp"
+          ],
+          "answer": [
+            2
+          ],
+          "rationale": "The subject claim identifies the workflow context, such as repo and ref. Constraining it to one repository and branch is what scopes the trust; issuer and audience alone are shared across many repositories."
+        }
+      ],
+      "references": [
+        {
+          "title": "GitHub Docs: About security hardening with OpenID Connect",
+          "publisher": "GitHub",
+          "url": "https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/about-security-hardening-with-openid-connect",
+          "license": "CC-BY-4.0"
+        },
+        {
+          "title": "AWS Identity and Access Management: Creating OIDC identity providers",
+          "publisher": "Amazon Web Services",
+          "url": "https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_providers_create_oidc.html",
+          "license": "CC-BY-SA-4.0"
+        }
+      ],
+      "tags": [
+        "oidc",
+        "ci-cd",
+        "federation"
+      ]
+    },
+    {
+      "id": "cont-image-layer-anatomy",
+      "subtopic": "image-format",
+      "difficulty": "foundational",
+      "title": "An image is a stack of immutable layers plus a small config",
+      "fact": "An OCI or Docker image is a manifest that references an image config and an ordered list of layer blobs, each addressed by digest. Most Dockerfile instructions that change the filesystem create a new layer, so the final image is the cumulative result of applying those diffs in order. Because layers are immutable and individually retrievable from a registry, removing a file in a later layer does not remove it from the earlier blob.",
+      "details": [
+        "`docker history --no-trunc` shows the command behind each layer, which is useful for spotting secrets passed as build arguments.",
+        "Layer digests are content-addressed, so identical base layers are shared across images and pulled once per node.",
+        "The image config carries environment variables, entrypoint, user and labels; it is separate from the filesystem layers."
+      ],
+      "pitfalls": [
+        "Believing that a later `RUN rm secret.txt` erases the file from the image.",
+        "Assuming a small final image has few layers or little history; squashing hides layers but not necessarily their content."
+      ],
+      "commands": [
+        {
+          "language": "bash",
+          "code": "docker history --no-trunc example/app:1.4.0",
+          "purpose": "Show the full command and size of each layer in a local image."
+        },
+        {
+          "language": "bash",
+          "code": "docker save example/app:1.4.0 -o app.tar && tar -tf app.tar | head",
+          "purpose": "Export the image and list its layer blobs for offline inspection."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "A Dockerfile adds a private key in one layer and deletes it in the next. What is true about the pushed image?",
+          "options": [
+            "The key is gone because the final filesystem does not contain it",
+            "The key remains recoverable from the earlier layer blob",
+            "The key is encrypted by the registry",
+            "Docker automatically rewrites the earlier layer"
+          ],
+          "answer": [
+            1
+          ],
+          "rationale": "Each layer is a separate immutable blob. A later delete only adds a whiteout entry; the original layer is still in the image and downloadable by anyone with pull access."
+        }
+      ],
+      "references": [
+        {
+          "title": "OCI Image Format Specification",
+          "publisher": "Open Container Initiative",
+          "url": "https://github.com/opencontainers/image-spec/blob/main/spec.md",
+          "license": "Apache-2.0"
+        },
+        {
+          "title": "Docker Docs: About storage drivers (image and layer structure)",
+          "publisher": "Docker",
+          "url": "https://docs.docker.com/engine/storage/drivers/",
+          "license": "Apache-2.0"
+        }
+      ],
+      "tags": [
+        "containers",
+        "layers",
+        "oci"
+      ]
+    },
+    {
+      "id": "cont-dockerfile-nonroot",
+      "subtopic": "dockerfile-hardening",
+      "difficulty": "foundational",
+      "title": "Set a numeric non-root USER and give it only the files it needs",
+      "fact": "A container runs as root by default when the image does not declare a user, and root inside a container is still root for the purposes of mounted volumes, kernel capabilities and many container escapes. A hardened Dockerfile creates an unprivileged account or reuses an existing one, changes ownership of only the application directories, and switches with a numeric `USER`. Kubernetes `runAsNonRoot: true` then fails closed if the image would start as UID 0.",
+      "details": [
+        "Use a numeric UID such as `USER 10001:10001`; a username depends on the image's /etc/passwd and can break at runtime.",
+        "Copy application files with `--chown=10001:10001` instead of running a recursive `chown` over the whole filesystem.",
+        "Some base images already provide a non-root user such as `node` or `nginx`; check before creating another."
+      ],
+      "pitfalls": [
+        "Declaring `USER app` but leaving the entrypoint script to start with `sudo` or to write to a root-owned directory.",
+        "Assuming `runAsNonRoot` verifies the user is unprivileged; it only verifies the UID is not 0."
+      ],
+      "configs": [
+        {
+          "language": "dockerfile",
+          "snippet": "FROM python:3.12-slim\n\nRUN groupadd --gid 10001 app \\\n    && useradd --uid 10001 --gid 10001 --no-create-home app\n\nWORKDIR /app\nCOPY --chown=10001:10001 requirements.txt ./\nRUN pip install --no-cache-dir -r requirements.txt\nCOPY --chown=10001:10001 src/ ./src/\n\nUSER 10001:10001\nEXPOSE 8080\nENTRYPOINT [\"python\", \"-m\", \"app\"]",
+          "purpose": "Create an unprivileged account and run the application as UID 10001."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "An image declares USER app but the container still writes to a root-owned directory and fails. Which change is the most robust?",
+          "options": [
+            "Run the container with --privileged",
+            "Set the directory ownership at build time and use a numeric UID in USER",
+            "Add the app user to the root group",
+            "Set readOnlyRootFilesystem to false"
+          ],
+          "answer": [
+            1
+          ],
+          "rationale": "Ownership must be set at build time for the paths the process writes, and a numeric UID avoids name-resolution surprises. Granting privileges or root-group membership defeats the purpose."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "Running as a non-root user inside the container is unnecessary because containers are isolated.",
+          "correction": "Container isolation is not a security boundary against kernel-level flaws, mounted host paths or misconfigured capabilities. A non-root UID reduces the impact of a breakout and of writes to mounted volumes."
+        }
+      ],
+      "references": [
+        {
+          "title": "Docker Docs: Building best practices",
+          "publisher": "Docker",
+          "url": "https://docs.docker.com/build/building/best-practices/",
+          "license": "Apache-2.0"
+        },
+        {
+          "title": "Kubernetes Documentation: Configure a Security Context for a Pod or Container",
+          "publisher": "Kubernetes Authors",
+          "url": "https://kubernetes.io/docs/tasks/configure-pod-container/security-context/",
+          "license": "CC-BY-4.0"
+        }
+      ],
+      "tags": [
+        "dockerfile",
+        "non-root",
+        "hardening"
+      ]
+    },
+    {
+      "id": "cont-image-digest-pinning",
+      "subtopic": "image-references",
+      "difficulty": "intermediate",
+      "title": "Tags are mutable pointers; digests identify exact content",
+      "fact": "An image reference such as `app:1.4.0` resolves through a tag, and a registry can repoint that tag to different content at any time. A digest reference such as `app@sha256:...` names the manifest by content hash, so the same reference always yields the same bytes. Pinning by digest makes builds reproducible and blocks tag-repointing attacks, but it does not make the image trustworthy and it freezes vulnerability remediation until the pin is updated.",
+      "details": [
+        "Digests can be discovered with `docker inspect --format='{{index .RepoDigests 0}}'` or `crane digest`.",
+        "A manifest list digest resolves to per-platform manifests; pinning the index digest keeps multi-arch behaviour.",
+        "Automated dependency updates should bump digests together with the human-readable tag comment."
+      ],
+      "pitfalls": [
+        "Pinning a digest once and never refreshing it, so the image keeps known vulnerabilities for years.",
+        "Pinning only the application image while the base image in the Dockerfile still uses a floating tag."
+      ],
+      "configs": [
+        {
+          "language": "dockerfile",
+          "snippet": "FROM python:3.12-slim@sha256:ca978112ca1bbdcafac231b39a23dc4da786eff8147c4e72b9807785afee48bb AS runtime\n\nCOPY --from=build /opt/app /opt/app\nUSER 10001:10001\nENTRYPOINT [\"/opt/app/server\"]",
+          "purpose": "Pin the runtime base image by digest so the same content is used regardless of tag movement."
+        }
+      ],
+      "commands": [
+        {
+          "language": "bash",
+          "code": "crane digest registry.example.com/team-alpha/app:1.4.0",
+          "purpose": "Resolve the current digest for a tag before pinning it."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "What security property does pinning an image by digest provide?",
+          "options": [
+            "It proves the image was built from reviewed source",
+            "It guarantees the image has no vulnerabilities",
+            "It ensures the reference always resolves to identical content",
+            "It encrypts the image layers at rest"
+          ],
+          "answer": [
+            2
+          ],
+          "rationale": "A digest is a content hash, so the reference is immutable. It says nothing about provenance or vulnerability status, and it does not encrypt anything."
+        }
+      ],
+      "references": [
+        {
+          "title": "Docker Docs: Image digests",
+          "publisher": "Docker",
+          "url": "https://docs.docker.com/reference/cli/docker/image/pull/#pull-an-image-by-digest-immutable-identifier",
+          "license": "Apache-2.0"
+        },
+        {
+          "title": "Kubernetes Documentation: Images",
+          "publisher": "Kubernetes Authors",
+          "url": "https://kubernetes.io/docs/concepts/containers/images/",
+          "license": "CC-BY-4.0"
+        }
+      ],
+      "tags": [
+        "digest",
+        "immutability",
+        "supply-chain"
+      ]
+    },
+    {
+      "id": "cont-multistage-build",
+      "subtopic": "build-hygiene",
+      "difficulty": "intermediate",
+      "title": "Multi-stage builds keep compilers and build caches out of the runtime image",
+      "fact": "A multi-stage Dockerfile uses one stage with the full toolchain to compile or bundle the application and a separate, minimal stage that copies only the runtime artifacts. The final image therefore excludes compilers, package manager caches, test fixtures and source control metadata, which reduces both size and vulnerability count. The runtime stage should still pin its base and run as a non-root user.",
+      "details": [
+        "`COPY --from=build /out/app /usr/local/bin/app` copies only the named artifacts.",
+        "Distroless or scratch bases remove the shell and package manager, which also removes many post-exploitation conveniences.",
+        "Build arguments used in the build stage do not automatically disappear from the final image unless they are not copied or referenced there."
+      ],
+      "pitfalls": [
+        "Copying the whole build directory into the runtime stage, which reintroduces source and toolchain files.",
+        "Using `scratch` without a CA bundle or timezone data, causing TLS verification failures at runtime."
+      ],
+      "configs": [
+        {
+          "language": "dockerfile",
+          "snippet": "FROM golang:1.23-bookworm AS build\nWORKDIR /src\nCOPY go.mod go.sum ./\nRUN go mod download\nCOPY . .\nRUN CGO_ENABLED=0 go build -trimpath -o /out/server ./cmd/server\n\nFROM gcr.io/distroless/static-debian12:nonroot\nCOPY --from=build /out/server /server\nUSER 65532:65532\nENTRYPOINT [\"/server\"]",
+          "purpose": "Compile in a full toolchain stage and ship only a static binary on a distroless runtime base."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "What is the main security benefit of a multi-stage build?",
+          "options": [
+            "It encrypts the build context",
+            "It removes build-only tools and files from the shipped image",
+            "It makes the image run as root by default",
+            "It eliminates the need for image scanning"
+          ],
+          "answer": [
+            1
+          ],
+          "rationale": "Only the artifacts copied into the final stage ship. Compilers, caches and test data stay in the builder, reducing attack surface and CVE noise."
+        }
+      ],
+      "references": [
+        {
+          "title": "Docker Docs: Multi-stage builds",
+          "publisher": "Docker",
+          "url": "https://docs.docker.com/build/building/multi-stage/",
+          "license": "Apache-2.0"
+        },
+        {
+          "title": "NIST SP 800-190: Application Container Security Guide",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/190/final",
+          "license": "Public domain (US Government work)"
+        }
+      ],
+      "tags": [
+        "multi-stage",
+        "distroless",
+        "dockerfile"
+      ]
+    },
+    {
+      "id": "cont-secrets-in-image-layers",
+      "subtopic": "build-secrets",
+      "difficulty": "intermediate",
+      "title": "Build arguments and copied files leak through image history",
+      "fact": "Secrets passed with `ARG` or `ENV`, or copied into a layer and deleted later, remain in the image history or in earlier layer blobs. Anyone with pull access can extract them, and registries may replicate images to caches and mirrors beyond the original scope. BuildKit secret mounts expose a secret only to a single RUN step and do not persist it in the layer, which is why they are preferred over build arguments for tokens and package credentials.",
+      "details": [
+        "`RUN --mount=type=secret,id=npmrc,target=/root/.npmrc npm ci` requires BuildKit and a `--secret id=npmrc,src=...` build invocation.",
+        "Environment variables set with ENV are visible in `docker inspect` and in the image config, not just to the process.",
+        "Multi-stage builds help only if the stage containing the secret is not the final stage and nothing from it is copied."
+      ],
+      "pitfalls": [
+        "Using `ARG NPM_TOKEN` and believing it is hidden because it is not in the final ENV.",
+        "Committing a `.env` file or a kubeconfig into the build context and relying on `.dockerignore` that was never written."
+      ],
+      "commands": [
+        {
+          "language": "bash",
+          "code": "docker build --secret id=npmrc,src=$HOME/.npmrc -t registry.example.com/team-alpha/app:1.4.0 .",
+          "purpose": "Pass a package registry credential as a BuildKit secret instead of a build argument."
+        },
+        {
+          "language": "bash",
+          "code": "docker history --no-trunc --format '{{.CreatedBy}}' example/app:1.4.0 | grep -i -E 'token|password|secret'",
+          "purpose": "Search layer history for accidentally embedded credential material."
+        }
+      ],
+      "configs": [
+        {
+          "language": "dockerfile",
+          "snippet": "RUN --mount=type=secret,id=npmrc,target=/root/.npmrc \\\n    npm ci --ignore-scripts && rm -f /root/.npmrc",
+          "purpose": "Mount a registry token only for the install step so it is not written into the layer."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Why does deleting a secret file in a later Dockerfile layer fail to remove it from the image?",
+          "options": [
+            "Docker keeps deleted files in a trash directory",
+            "Each layer is an immutable blob and the earlier layer is still part of the image",
+            "The registry re-adds deleted files on push",
+            "Only multi-stage builds can delete files"
+          ],
+          "answer": [
+            1
+          ],
+          "rationale": "A delete creates a whiteout in the new layer, but the original blob remains referenced by the image manifest and can be extracted by anyone who can pull it."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "A secret passed as a build ARG is safe because it does not appear in the container environment.",
+          "correction": "Build arguments are recorded in image history and provenance metadata. They can be read with `docker history` and from registry metadata, so they must not carry credentials."
+        }
+      ],
+      "references": [
+        {
+          "title": "Docker Docs: Build secrets",
+          "publisher": "Docker",
+          "url": "https://docs.docker.com/build/building/secrets/",
+          "license": "Apache-2.0"
+        },
+        {
+          "title": "OWASP Docker Security Cheat Sheet",
+          "publisher": "OWASP Foundation",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/Docker_Security_Cheat_Sheet.html",
+          "license": "CC-BY-SA-4.0"
+        }
+      ],
+      "tags": [
+        "secrets",
+        "buildkit",
+        "layers"
+      ]
+    },
+    {
+      "id": "cont-readonly-rootfs",
+      "subtopic": "runtime-hardening",
+      "difficulty": "intermediate",
+      "title": "A read-only root filesystem turns persistence into a crash",
+      "fact": "Mounting the container root filesystem read-only prevents a compromised process from modifying binaries, dropping scripts or writing persistence into the image filesystem. Applications that need scratch space must be given an explicit writable tmpfs or volume, ideally with `noexec` and `nosuid`. Kubernetes exposes the same control as `securityContext.readOnlyRootFilesystem: true` plus `emptyDir` volumes for writable paths.",
+      "details": [
+        "`docker run --read-only --tmpfs /tmp:rw,noexec,nosuid,size=64m` is a common minimal pattern.",
+        "Writable mounts should be sized and scoped; a large writable /tmp is still useful to an attacker for staging.",
+        "Some applications assume they can write to their own directory; fix the app or mount a specific path rather than disabling the control."
+      ],
+      "pitfalls": [
+        "Enabling read-only root but leaving /tmp writable and executable.",
+        "Assuming read-only root prevents data exfiltration; it only limits local modification and persistence."
+      ],
+      "configs": [
+        {
+          "language": "yaml",
+          "snippet": "apiVersion: v1\nkind: Pod\nmetadata:\n  name: web\n  namespace: team-alpha\nspec:\n  containers:\n    - name: web\n      image: registry.example.com/team-alpha/web@sha256:3e23e8160039594a33894f6564e1b1348bbd7a0088d42c4acb73eeaed59c009d\n      securityContext:\n        readOnlyRootFilesystem: true\n        runAsNonRoot: true\n        allowPrivilegeEscalation: false\n      volumeMounts:\n        - name: tmp\n          mountPath: /tmp\n  volumes:\n    - name: tmp\n      emptyDir:\n        medium: Memory\n        sizeLimit: 64Mi",
+          "purpose": "Pod with a read-only root filesystem and a small in-memory scratch volume."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "An application needs to write a PID file at startup. What is the safest change while keeping a read-only root filesystem?",
+          "options": [
+            "Set readOnlyRootFilesystem to false",
+            "Run the container as privileged",
+            "Mount a dedicated writable emptyDir or tmpfs at the path the application needs",
+            "Bake a world-writable directory into the image"
+          ],
+          "answer": [
+            2
+          ],
+          "rationale": "A scoped writable mount preserves the read-only root while satisfying the application. Disabling the control or adding privilege weakens isolation unnecessarily."
+        }
+      ],
+      "references": [
+        {
+          "title": "Docker Docs: docker run --read-only",
+          "publisher": "Docker",
+          "url": "https://docs.docker.com/reference/cli/docker/container/run/#read-only",
+          "license": "Apache-2.0"
+        },
+        {
+          "title": "Kubernetes Documentation: Pod Security Standards",
+          "publisher": "Kubernetes Authors",
+          "url": "https://kubernetes.io/docs/concepts/security/pod-security-standards/",
+          "license": "CC-BY-4.0"
+        }
+      ],
+      "tags": [
+        "read-only",
+        "runtime",
+        "kubernetes"
+      ]
+    },
+    {
+      "id": "cont-linux-capabilities-drop",
+      "subtopic": "runtime-hardening",
+      "difficulty": "advanced",
+      "title": "Drop all capabilities, then add back the one the service needs",
+      "fact": "Linux capabilities split root's privileges into named units, and Docker grants a default set that includes several capabilities most services never use. Dropping all capabilities and adding back only what is required, such as NET_BIND_SERVICE for a process that must bind port 443, reduces the blast radius of a compromise. CAP_SYS_ADMIN is especially dangerous because it enables mount and namespace operations that are close to full root.",
+      "details": [
+        "`--cap-drop=ALL --cap-add=NET_BIND_SERVICE` is the standard minimal pattern for a web service.",
+        "`--security-opt=no-new-privileges` prevents a setuid binary from gaining privileges beyond the container's set.",
+        "Kubernetes expresses the same control with `securityContext.capabilities.drop: [\"ALL\"]` and a narrow `add` list."
+      ],
+      "pitfalls": [
+        "Adding CAP_SYS_ADMIN to fix a mount or debugging problem, which effectively restores root-level control.",
+        "Dropping capabilities in the container spec but running the image as UID 0 with a privileged entrypoint."
+      ],
+      "configs": [
+        {
+          "language": "yaml",
+          "snippet": "services:\n  web:\n    image: registry.example.com/team-alpha/web@sha256:2e7d2c03a9507ae265ecf5b5356885a53393a2029d241394997265a1a25aefc6\n    read_only: true\n    cap_drop:\n      - ALL\n    cap_add:\n      - NET_BIND_SERVICE\n    security_opt:\n      - no-new-privileges:true\n    tmpfs:\n      - /tmp:rw,noexec,nosuid,size=64m",
+          "purpose": "Compose service with all capabilities dropped except the one needed to bind a low port."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Which capability most closely approximates full root inside a container and should almost never be added?",
+          "options": [
+            "NET_BIND_SERVICE",
+            "CHOWN",
+            "CAP_SYS_ADMIN",
+            "DAC_OVERRIDE"
+          ],
+          "answer": [
+            2
+          ],
+          "rationale": "CAP_SYS_ADMIN allows mount, namespace and many administrative operations, making container escape and host tampering far easier. The others are narrow and often unnecessary but far less powerful."
+        }
+      ],
+      "references": [
+        {
+          "title": "Docker Docs: Runtime privilege and Linux capabilities",
+          "publisher": "Docker",
+          "url": "https://docs.docker.com/engine/containers/run/#runtime-privilege-and-linux-capabilities",
+          "license": "Apache-2.0"
+        },
+        {
+          "title": "NIST SP 800-190: Application Container Security Guide",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/190/final",
+          "license": "Public domain (US Government work)"
+        }
+      ],
+      "tags": [
+        "capabilities",
+        "hardening",
+        "docker"
+      ]
+    },
+    {
+      "id": "cont-seccomp-apparmor-profiles",
+      "subtopic": "runtime-hardening",
+      "difficulty": "advanced",
+      "title": "Seccomp filters syscalls; AppArmor constrains file and network access",
+      "fact": "Seccomp BPF profiles restrict which system calls a process may make, and Docker applies a default profile that blocks dozens of rarely needed and dangerous calls. AppArmor profiles constrain path-based file access, mount operations and network capabilities for the process. Together they reduce kernel attack surface and limit post-exploitation behaviour, but neither replaces a patched kernel or a non-root user.",
+      "details": [
+        "Kubernetes `securityContext.seccompProfile.type: RuntimeDefault` applies the container runtime's default profile; `Unconfined` disables it.",
+        "Kubernetes 1.30 added the beta `securityContext.appArmorProfile` field; older clusters used annotations.",
+        "A custom seccomp profile must be allowlisted per workload and tested, because a missing syscall causes an immediate crash."
+      ],
+      "pitfalls": [
+        "Setting seccomp to Unconfined to fix an application that fails, which removes a broad syscall filter.",
+        "Assuming AppArmor is available on every node and distribution; it must be enabled in the kernel and loaded on the host."
+      ],
+      "configs": [
+        {
+          "language": "yaml",
+          "snippet": "apiVersion: v1\nkind: Pod\nmetadata:\n  name: api\n  namespace: team-alpha\nspec:\n  securityContext:\n    seccompProfile:\n      type: RuntimeDefault\n  containers:\n    - name: api\n      image: registry.example.com/team-alpha/api@sha256:18ac3e7343f016890c510e93f935261169d9e3f565436429830faf0934f4f8e4\n      securityContext:\n        allowPrivilegeEscalation: false\n        capabilities:\n          drop: [\"ALL\"]",
+          "purpose": "Apply the runtime default seccomp profile at pod level and drop capabilities at container level."
+        }
+      ],
+      "commands": [
+        {
+          "language": "bash",
+          "code": "docker run --rm --security-opt seccomp=/etc/docker/seccomp/app.json --security-opt apparmor=docker-default registry.example.com/team-alpha/app:1.4.0",
+          "purpose": "Run a container with an explicit seccomp profile and the default AppArmor profile."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "What does the Kubernetes seccompProfile type RuntimeDefault do?",
+          "options": [
+            "Blocks all syscalls the application does not declare",
+            "Applies the container runtime's default seccomp filter",
+            "Disables seccomp for compatibility",
+            "Enforces an AppArmor profile"
+          ],
+          "answer": [
+            1
+          ],
+          "rationale": "RuntimeDefault delegates to the runtime's built-in profile, which blocks a set of dangerous syscalls while allowing normal workloads. It is not a per-application allowlist and does not involve AppArmor."
+        }
+      ],
+      "references": [
+        {
+          "title": "Kubernetes Documentation: Seccomp",
+          "publisher": "Kubernetes Authors",
+          "url": "https://kubernetes.io/docs/tutorials/security/seccomp/",
+          "license": "CC-BY-4.0"
+        },
+        {
+          "title": "Docker Docs: Seccomp security profiles for Docker",
+          "publisher": "Docker",
+          "url": "https://docs.docker.com/engine/security/seccomp/",
+          "license": "Apache-2.0"
+        },
+        {
+          "title": "Kubernetes Documentation: AppArmor",
+          "publisher": "Kubernetes Authors",
+          "url": "https://kubernetes.io/docs/tutorials/security/apparmor/",
+          "license": "CC-BY-4.0"
+        }
+      ],
+      "tags": [
+        "seccomp",
+        "apparmor",
+        "kernel"
+      ]
+    },
+    {
+      "id": "cont-scanner-detection-limits",
+      "subtopic": "image-scanning",
+      "difficulty": "advanced",
+      "title": "Image scanners see packages, not reachable code paths",
+      "fact": "Most image scanners inventory OS packages and language dependencies, then match them against vulnerability databases. They cannot see whether a vulnerable function is reachable, whether a bundled binary was compiled from the package they identified, or whether a distroless image has no package database at all. Scan results therefore need triage: package origin, fixed version availability, exposure of the component at runtime, and whether the image is actually deployed.",
+      "details": [
+        "Scratch and distroless images may yield no OS packages, so scanners that rely solely on `/var/lib/dpkg` or `rpm` report nothing.",
+        "Go and Rust binaries often embed dependency versions; scanner support for those ecosystems varies by tool and build flags.",
+        "Continuous registry scanning matters because a clean scan at build time says nothing about CVEs published next week."
+      ],
+      "pitfalls": [
+        "Treating a scanner's critical count as the number of exploitable issues.",
+        "Scanning only at build and never re-scanning images already running in production."
+      ],
+      "commands": [
+        {
+          "language": "bash",
+          "code": "trivy image --severity HIGH,CRITICAL --ignore-unfixed registry.example.com/team-alpha/app@sha256:3e23e8160039594a33894f6564e1b1348bbd7a0088d42c4acb73eeaed59c009d",
+          "purpose": "Scan a pinned image for high and critical issues that have fixes available."
+        },
+        {
+          "language": "bash",
+          "code": "grype registry.example.com/team-alpha/app:1.4.0 -o table",
+          "purpose": "Cross-check findings with a second scanner to reduce tool-specific blind spots."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Why can an image scanner report zero findings for a distroless image that still contains a vulnerable Go binary?",
+          "options": [
+            "Distroless images cannot contain vulnerabilities",
+            "The image has no OS package database for the scanner to enumerate, and binary dependency metadata may not be detected",
+            "Go binaries are exempt from CVE matching",
+            "Scanners only scan running containers"
+          ],
+          "answer": [
+            1
+          ],
+          "rationale": "Package-database scanners need package metadata. Distroless images lack it, and embedded Go module information is not always parsed, so absence of findings is not evidence of safety."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "A clean image scan means the workload has no known vulnerabilities.",
+          "correction": "Scans cover what the tool can enumerate, usually OS packages and lockfile dependencies. They miss reachability, vendored or statically linked code, and CVEs published after the scan."
+        }
+      ],
+      "references": [
+        {
+          "title": "Trivy Documentation: Image scanning",
+          "publisher": "Aqua Security",
+          "url": "https://trivy.dev/latest/docs/target/container_image/",
+          "license": "Apache-2.0"
+        },
+        {
+          "title": "NIST SP 800-190: Application Container Security Guide",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/190/final",
+          "license": "Public domain (US Government work)"
+        }
+      ],
+      "tags": [
+        "scanning",
+        "vulnerability-management",
+        "containers"
+      ]
+    },
+    {
+      "id": "cont-cosign-keyless-verification",
+      "subtopic": "image-signing",
+      "difficulty": "intermediate",
+      "title": "Verify a signature against an identity, not just the fact of a signature",
+      "fact": "Sigstore cosign can sign an image with a key pair or keylessly: the signer authenticates with an OIDC identity, Fulcio issues a short-lived certificate binding that identity to a key, and the signature is recorded in the Rekor transparency log. Verification must therefore check the expected certificate identity and issuer; accepting any valid signature lets anyone who can sign an image pass the check. Admission policies should enforce the verification rule at deploy time.",
+      "details": [
+        "A keyless verification command uses `--certificate-identity` and `--certificate-oidc-issuer`; both are required for a meaningful check.",
+        "`cosign verify-attestation` verifies a signed in-toto attestation, such as an SBOM or SLSA provenance predicate.",
+        "Key-pair signing is still supported and is useful where OIDC is unavailable, but the public key becomes a distribution problem."
+      ],
+      "pitfalls": [
+        "Running `cosign verify` without identity constraints and treating a successful signature check as proof of trusted authorship.",
+        "Signing only the tag at release time while deploying by a digest that was never signed."
+      ],
+      "commands": [
+        {
+          "language": "bash",
+          "code": "cosign verify registry.example.com/team-alpha/app@sha256:3e23e8160039594a33894f6564e1b1348bbd7a0088d42c4acb73eeaed59c009d \\\n  --certificate-identity=https://github.com/example-org/app/.github/workflows/release.yml@refs/tags/v1.4.0 \\\n  --certificate-oidc-issuer=https://token.actions.githubusercontent.com",
+          "purpose": "Verify that the image was signed by a specific workflow at a specific tag."
+        },
+        {
+          "language": "bash",
+          "code": "cosign sign --yes registry.example.com/team-alpha/app@sha256:3e23e8160039594a33894f6564e1b1348bbd7a0088d42c4acb73eeaed59c009d",
+          "purpose": "Keyless-sign a digest using the caller's OIDC identity."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "What must a verifier supply to make a keyless cosign verification meaningful?",
+          "options": [
+            "Only the image digest",
+            "The expected certificate identity and OIDC issuer",
+            "The registry password",
+            "The Rekor private key"
+          ],
+          "answer": [
+            1
+          ],
+          "rationale": "Keyless signatures are valid for whoever obtained the certificate. Pinning the expected identity and issuer is what binds the signature to a trusted build workflow."
+        }
+      ],
+      "references": [
+        {
+          "title": "Sigstore Docs: Signing containers",
+          "publisher": "Sigstore project",
+          "url": "https://docs.sigstore.dev/cosign/signing/signing_with_containers/",
+          "license": "Apache-2.0"
+        },
+        {
+          "title": "Sigstore Docs: Verifying signatures",
+          "publisher": "Sigstore project",
+          "url": "https://docs.sigstore.dev/cosign/verifying/verify/",
+          "license": "Apache-2.0"
+        }
+      ],
+      "tags": [
+        "cosign",
+        "sigstore",
+        "signing"
+      ]
+    },
+    {
+      "id": "cont-content-trust-scope",
+      "subtopic": "registry-trust",
+      "difficulty": "foundational",
+      "title": "Docker Content Trust signs tags in the Docker CLI, not at the cluster",
+      "fact": "Docker Content Trust uses Notary (TUF-based) metadata to sign tag-to-digest mappings when `DOCKER_CONTENT_TRUST=1` is set. It protects against a compromised registry serving a different image for a tag, but enforcement happens in the Docker client: Kubernetes, containerd and most managed runtimes do not verify DCT metadata by default. A cluster therefore needs an admission policy based on cosign or an equivalent verifier to enforce image trust.",
+      "details": [
+        "DCT distinguishes the snapshot, targets, timestamp and root keys, and supports delegation roles for multiple signers.",
+        "Signing a tag does not automatically sign every future digest pushed under that tag; each push must be signed.",
+        "Notary v1 is legacy; Sigstore cosign is the common choice for Kubernetes admission verification."
+      ],
+      "pitfalls": [
+        "Enabling DCT in a developer's shell and concluding that the cluster only runs signed images.",
+        "Losing the root key and being unable to rotate or add delegations for the repository."
+      ],
+      "commands": [
+        {
+          "language": "bash",
+          "code": "export DOCKER_CONTENT_TRUST=1\ndocker push registry.example.com/team-alpha/app:1.4.0",
+          "purpose": "Push and sign the tag with Docker Content Trust enabled in the client."
+        },
+        {
+          "language": "bash",
+          "code": "docker trust inspect --pretty registry.example.com/team-alpha/app:1.4.0",
+          "purpose": "Show the signers and keys associated with a trusted tag."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "A team enables Docker Content Trust for pushes. Does a Kubernetes cluster reject an unsigned image pulled from the same registry?",
+          "options": [
+            "Yes, because the registry enforces signatures",
+            "No, DCT enforcement is client-side; the cluster needs its own verification policy",
+            "Yes, containerd verifies DCT metadata by default",
+            "Only if the image is pinned by digest"
+          ],
+          "answer": [
+            1
+          ],
+          "rationale": "DCT protects the Docker client's pull and push operations. Kubernetes and containerd do not enforce Notary metadata by default, so admission control is required for cluster-side enforcement."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "Signing an image in the registry means every runtime will refuse to run it if it is tampered with.",
+          "correction": "A signature is only effective where it is verified. Most orchestrators do not verify signatures by default; you need an admission controller or policy engine that checks the signature and identity before admitting the workload."
+        }
+      ],
+      "references": [
+        {
+          "title": "Docker Docs: Content trust in Docker",
+          "publisher": "Docker",
+          "url": "https://docs.docker.com/engine/security/trust/",
+          "license": "Apache-2.0"
+        },
+        {
+          "title": "NIST SP 800-190: Application Container Security Guide",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/190/final",
+          "license": "Public domain (US Government work)"
+        }
+      ],
+      "tags": [
+        "content-trust",
+        "notary",
+        "registry"
+      ]
+    },
+    {
+      "id": "cont-sbom-generation-consumption",
+      "subtopic": "sbom",
+      "difficulty": "foundational",
+      "title": "An SBOM is an inventory; it does not assert that anything is safe",
+      "fact": "A software bill of materials lists the components and versions in an image, usually as SPDX or CycloneDX JSON. Generating one with a tool such as Syft gives downstream consumers a way to answer 'is this component present' without pulling and unpacking the image. An SBOM is not a vulnerability report and does not include exploitability; it becomes useful when paired with a vulnerability database, VEX statements and an inventory of where the image runs.",
+      "details": [
+        "SPDX and CycloneDX differ in structure but both can express packages, versions and relationships; pick one and record the format version.",
+        "Syft can scan an image, a directory or an archive and can also emit the SBOM as a signed attestation with cosign.",
+        "NTIA's minimum elements for an SBOM include supplier, component name, version, dependency relationships and a unique identifier."
+      ],
+      "pitfalls": [
+        "Treating the presence of an SBOM as proof that the image was scanned or patched.",
+        "Storing SBOMs but never joining them to deployment data, so you cannot answer which running workloads contain a newly disclosed component."
+      ],
+      "commands": [
+        {
+          "language": "bash",
+          "code": "syft registry.example.com/team-alpha/app:1.4.0 -o spdx-json > app.spdx.json",
+          "purpose": "Generate an SPDX JSON SBOM for a container image."
+        },
+        {
+          "language": "bash",
+          "code": "syft registry.example.com/team-alpha/app:1.4.0 -o cyclonedx-json > app.cdx.json",
+          "purpose": "Generate the same inventory in CycloneDX format for a consumer that requires it."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "What can an SBOM directly tell you?",
+          "options": [
+            "Which components and versions are present in the artifact",
+            "Which components are reachable at runtime",
+            "Whether the artifact contains exploitable vulnerabilities",
+            "Whether the build was reproducible"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "An SBOM is a component inventory. Reachability, exploitability and build reproducibility require additional evidence such as call-graph analysis, VEX and provenance."
+        }
+      ],
+      "references": [
+        {
+          "title": "CycloneDX Specification Overview",
+          "publisher": "OWASP Foundation",
+          "url": "https://cyclonedx.org/docs/1.5/",
+          "license": "Apache-2.0"
+        },
+        {
+          "title": "SPDX Specification 2.3",
+          "publisher": "Linux Foundation",
+          "url": "https://spdx.github.io/spdx-spec/v2.3/",
+          "license": "CC-BY-3.0"
+        }
+      ],
+      "tags": [
+        "sbom",
+        "spdx",
+        "cyclonedx"
+      ]
+    },
+    {
+      "id": "cont-base-image-vulnerability-triage",
+      "subtopic": "base-images",
+      "difficulty": "intermediate",
+      "title": "Base image choice drives most of the OS-level CVE count",
+      "fact": "The base image determines which OS packages, shell utilities and TLS libraries ship in every derived image, so a large general-purpose base produces far more vulnerability findings than a minimal or distroless base. Triage should first ask whether the base is still supported, whether a newer digest fixes the finding, and whether the affected package is reachable in the running process. Rebuilding on a regular cadence is required because a pinned digest does not receive fixes automatically.",
+      "details": [
+        "An end-of-life distribution base will not receive security updates even if the image is rebuilt.",
+        "`docker scout cves` and `docker scout recommendations` can suggest a newer base or a smaller alternative.",
+        "Some findings are in packages that are never invoked, such as a shell in an image whose entrypoint runs a static binary; removing the package is better than suppressing the finding."
+      ],
+      "pitfalls": [
+        "Chasing a lower CVE count by switching to `scratch` without providing CA certificates and timezone data.",
+        "Suppressing findings globally instead of fixing the base image or documenting a time-bound exception."
+      ],
+      "commands": [
+        {
+          "language": "bash",
+          "code": "docker scout cves registry.example.com/team-alpha/app:1.4.0 --only-severity critical,high --only-fixed",
+          "purpose": "List fixable high and critical CVEs in an image."
+        },
+        {
+          "language": "bash",
+          "code": "crane config registry.example.com/team-alpha/app:1.4.0 | jq '.config.Labels'",
+          "purpose": "Inspect image labels for base-image and build metadata used in triage."
+        }
+      ],
+      "references": [
+        {
+          "title": "Docker Docs: Image vulnerability scanning",
+          "publisher": "Docker",
+          "url": "https://docs.docker.com/scout/",
+          "license": "Apache-2.0"
+        },
+        {
+          "title": "NIST SP 800-190: Application Container Security Guide",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/190/final",
+          "license": "Public domain (US Government work)"
+        }
+      ],
+      "tags": [
+        "base-image",
+        "triage",
+        "cve"
+      ]
+    },
+    {
+      "id": "k8s-rbac-rolebinding-scope",
+      "subtopic": "rbac",
+      "difficulty": "foundational",
+      "title": "Role and RoleBinding grant namespace-scoped access; ClusterRole does not have to",
+      "fact": "Kubernetes RBAC grants permissions through a rule holder (Role or ClusterRole) and a binding (RoleBinding or ClusterRoleBinding). A Role lives in one namespace and a RoleBinding grants its rules only there, while a ClusterRoleBinding grants cluster-wide. A RoleBinding may also reference a ClusterRole, which is how a shared set of rules is granted in a single namespace without duplicating the rules.",
+      "details": [
+        "Rules specify apiGroups, resources and verbs; `resources: [\"pods/log\"]` is a subresource grant distinct from `pods`.",
+        "`kubectl auth can-i` with `--as` impersonation is the quickest way to test an intended grant without changing credentials.",
+        "The `bind` and `escalate` verbs allow a subject to create bindings or roles that exceed its own permissions and should be tightly restricted."
+      ],
+      "pitfalls": [
+        "Using a ClusterRoleBinding for a namespace-scoped need, granting access in every namespace.",
+        "Granting `create` on pods without considering that a pod can mount any service account token or host path the admission policy allows."
+      ],
+      "configs": [
+        {
+          "language": "yaml",
+          "snippet": "apiVersion: rbac.authorization.k8s.io/v1\nkind: Role\nmetadata:\n  name: pod-reader\n  namespace: team-alpha\nrules:\n  - apiGroups: [\"\"]\n    resources: [\"pods\", \"pods/log\"]\n    verbs: [\"get\", \"list\", \"watch\"]",
+          "purpose": "Read-only Role for pods and pod logs in one namespace."
+        },
+        {
+          "language": "yaml",
+          "snippet": "apiVersion: rbac.authorization.k8s.io/v1\nkind: RoleBinding\nmetadata:\n  name: pod-reader-binding\n  namespace: team-alpha\nsubjects:\n  - kind: ServiceAccount\n    name: report-reader\n    namespace: team-alpha\nroleRef:\n  apiGroup: rbac.authorization.k8s.io\n  kind: Role\n  name: pod-reader",
+          "purpose": "Bind the pod-reader Role to one service account in the same namespace."
+        }
+      ],
+      "commands": [
+        {
+          "language": "bash",
+          "code": "kubectl auth can-i list pods --namespace team-alpha --as=system:serviceaccount:team-alpha:report-reader",
+          "purpose": "Test whether a service account can list pods in a namespace."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "A RoleBinding in namespace team-alpha references a ClusterRole named viewer. What access does it grant?",
+          "options": [
+            "The ClusterRole's rules in every namespace",
+            "The ClusterRole's rules only in team-alpha",
+            "Nothing, because RoleBindings cannot reference ClusterRoles",
+            "Only access to the ClusterRole object itself"
+          ],
+          "answer": [
+            1
+          ],
+          "rationale": "A RoleBinding always grants within its own namespace, even when the referenced ClusterRole is cluster-scoped. Cluster-wide grants require a ClusterRoleBinding."
+        }
+      ],
+      "references": [
+        {
+          "title": "Kubernetes Documentation: Using RBAC Authorization",
+          "publisher": "Kubernetes Authors",
+          "url": "https://kubernetes.io/docs/reference/access-authn-authz/rbac/",
+          "license": "CC-BY-4.0"
+        },
+        {
+          "title": "OWASP Kubernetes Security Cheat Sheet",
+          "publisher": "OWASP Foundation",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/Kubernetes_Security_Cheat_Sheet.html",
+          "license": "CC-BY-SA-4.0"
+        }
+      ],
+      "tags": [
+        "rbac",
+        "kubernetes",
+        "authorization"
+      ]
+    },
+    {
+      "id": "k8s-serviceaccount-token-automount",
+      "subtopic": "service-accounts",
+      "difficulty": "intermediate",
+      "title": "Disable service account token automount where the workload does not call the API",
+      "fact": "Kubernetes mounts a projected service account token into pods by default, and since the bound service account token feature became the norm, that token is time-limited and audience-bound rather than a permanent Secret. Any process in the pod can read the token and use the pod's RBAC, so workloads that never call the Kubernetes API should set `automountServiceAccountToken: false` on the ServiceAccount or the pod. The token is still a credential: audit what its role can do and prefer dedicated, minimal roles.",
+      "details": [
+        "Set the field on the ServiceAccount to cover every pod that uses it, and on the pod spec when a single workload needs an exception.",
+        "Projected tokens default to roughly one hour and are rotated by the kubelet; `expirationSeconds` can shorten or lengthen that within API server limits.",
+        "A pod that can create pods in its namespace can often escalate by launching a pod with a more privileged service account."
+      ],
+      "pitfalls": [
+        "Leaving automount enabled on a workload that only talks to a database, giving an attacker a cluster credential for free.",
+        "Assuming the token is harmless because it is short-lived; it is valid for its whole lifetime and can be exfiltrated."
+      ],
+      "configs": [
+        {
+          "language": "yaml",
+          "snippet": "apiVersion: v1\nkind: ServiceAccount\nmetadata:\n  name: report-reader\n  namespace: team-alpha\nautomountServiceAccountToken: false",
+          "purpose": "Prevent automatic token projection for every pod using this service account."
+        },
+        {
+          "language": "yaml",
+          "snippet": "apiVersion: v1\nkind: Pod\nmetadata:\n  name: batch-job\n  namespace: team-alpha\nspec:\n  automountServiceAccountToken: false\n  containers:\n    - name: job\n      image: registry.example.com/team-alpha/job@sha256:252f10c83610ebca1a059c0bae8255eba2f95be4d1d7bcfa89d7248a82d9f111",
+          "purpose": "Pod-level override that keeps the API token out of a job that does not need it."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Which setting removes the Kubernetes API credential from a pod that does not need it?",
+          "options": [
+            "securityContext.runAsNonRoot: true",
+            "automountServiceAccountToken: false",
+            "readOnlyRootFilesystem: true",
+            "enableServiceLinks: false"
+          ],
+          "answer": [
+            1
+          ],
+          "rationale": "automountServiceAccountToken controls whether the projected token is mounted. The other settings harden the process or environment but do not remove the API credential."
+        }
+      ],
+      "references": [
+        {
+          "title": "Kubernetes Documentation: Managing Service Accounts",
+          "publisher": "Kubernetes Authors",
+          "url": "https://kubernetes.io/docs/reference/access-authn-authz/service-accounts-admin/",
+          "license": "CC-BY-4.0"
+        },
+        {
+          "title": "Kubernetes Documentation: Configure Service Accounts for Pods",
+          "publisher": "Kubernetes Authors",
+          "url": "https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/",
+          "license": "CC-BY-4.0"
+        }
+      ],
+      "tags": [
+        "service-account",
+        "tokens",
+        "least-privilege"
+      ]
+    },
+    {
+      "id": "k8s-networkpolicy-default-deny",
+      "subtopic": "network-policy",
+      "difficulty": "intermediate",
+      "title": "A pod with no NetworkPolicy selecting it accepts all traffic",
+      "fact": "NetworkPolicy is additive and default-allow: traffic is permitted unless at least one policy selects the pod and isolates the direction. A common baseline is a policy with an empty podSelector and an Ingress policyType, which selects every pod in the namespace and denies all ingress not explicitly allowed by another policy. Enforcement depends on the CNI plugin; the API server accepts policies even when the network plugin ignores them.",
+      "details": [
+        "An empty `podSelector: {}` matches every pod in the namespace; the policy has no effect outside that namespace.",
+        "Isolation is per direction: adding an Ingress policy does not restrict egress.",
+        "DNS egress must be allowed explicitly once egress is isolated, usually to kube-system on port 53."
+      ],
+      "pitfalls": [
+        "Applying a default-deny policy on a CNI that does not implement NetworkPolicy and believing traffic is blocked.",
+        "Forgetting that hostNetwork pods and traffic to node-local services can bypass some policy implementations."
+      ],
+      "configs": [
+        {
+          "language": "yaml",
+          "snippet": "apiVersion: networking.k8s.io/v1\nkind: NetworkPolicy\nmetadata:\n  name: default-deny-ingress\n  namespace: team-alpha\nspec:\n  podSelector: {}\n  policyTypes: [\"Ingress\"]",
+          "purpose": "Deny all ingress to every pod in the namespace unless another policy allows it."
+        }
+      ],
+      "commands": [
+        {
+          "language": "bash",
+          "code": "kubectl get networkpolicy -n team-alpha -o wide\nkubectl describe networkpolicy default-deny-ingress -n team-alpha",
+          "purpose": "Review which pods a namespace policy selects and which policy types it declares."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "A namespace contains pods but no NetworkPolicy objects. What is the default traffic behaviour?",
+          "options": [
+            "All pod-to-pod traffic is denied until a policy is created",
+            "All pod-to-pod traffic is allowed because there is no isolation",
+            "Only traffic from the same namespace is allowed",
+            "Traffic depends on the RBAC role of each pod"
+          ],
+          "answer": [
+            1
+          ],
+          "rationale": "NetworkPolicy is default-allow. A pod is isolated only when a policy selects it and lists the direction in policyTypes, so an empty namespace permits all traffic."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "Creating any NetworkPolicy in a namespace blocks all traffic by default.",
+          "correction": "Isolation applies only to pods selected by a policy and only for the directions listed in policyTypes. Pods not selected by any policy remain fully reachable."
+        }
+      ],
+      "references": [
+        {
+          "title": "Kubernetes Documentation: Network Policies",
+          "publisher": "Kubernetes Authors",
+          "url": "https://kubernetes.io/docs/concepts/services-networking/network-policies/",
+          "license": "CC-BY-4.0"
+        }
+      ],
+      "tags": [
+        "networkpolicy",
+        "default-deny",
+        "cni"
+      ]
+    },
+    {
+      "id": "k8s-networkpolicy-additive-peers",
+      "subtopic": "network-policy",
+      "difficulty": "advanced",
+      "title": "NetworkPolicy peers combine with AND inside an element and OR across elements",
+      "fact": "In a NetworkPolicy ingress or egress rule, a single peer element that contains both a namespaceSelector and a podSelector matches pods that satisfy both conditions. Separate elements in the list are alternatives, so the rule allows the union. Multiple policies that select the same pod are also additive: the allowed set is the union of every policy's allows, and there is no way to write an explicit deny rule in the NetworkPolicy API.",
+      "details": [
+        "To allow a namespace's pods plus a specific pod elsewhere, use two separate peer elements rather than one combined element.",
+        "An empty `from: []` or a rule with no peers allows all sources for that direction and port combination.",
+        "Cluster-scoped admin network policies are a separate API (AdminNetworkPolicy, alpha in recent releases) and are not part of networking.k8s.io/v1 NetworkPolicy."
+      ],
+      "pitfalls": [
+        "Combining namespaceSelector and podSelector in one element and expecting either to match.",
+        "Expecting a second policy to restrict what the first allows; policies only add permissions."
+      ],
+      "configs": [
+        {
+          "language": "yaml",
+          "snippet": "apiVersion: networking.k8s.io/v1\nkind: NetworkPolicy\nmetadata:\n  name: api-allow-web\n  namespace: team-alpha\nspec:\n  podSelector:\n    matchLabels:\n      app: api\n  policyTypes: [\"Ingress\", \"Egress\"]\n  ingress:\n    - from:\n        - namespaceSelector:\n            matchLabels:\n              kubernetes.io/metadata.name: frontend\n          podSelector:\n            matchLabels:\n              app: web\n      ports:\n        - protocol: TCP\n          port: 8443\n  egress:\n    - to:\n        - namespaceSelector:\n            matchLabels:\n              kubernetes.io/metadata.name: kube-system\n      ports:\n        - protocol: UDP\n          port: 53\n        - protocol: TCP\n          port: 53",
+          "purpose": "Allow only web pods in the frontend namespace to reach api on 8443, and allow DNS egress to kube-system."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "A policy rule has one peer with namespaceSelector team-alpha and podSelector app=web. Which traffic matches?",
+          "options": [
+            "Any pod in team-alpha or any pod labeled app=web anywhere",
+            "Only pods in team-alpha that also have app=web",
+            "All pods in the cluster",
+            "No traffic, because two selectors cannot be combined"
+          ],
+          "answer": [
+            1
+          ],
+          "rationale": "Selectors within the same peer element are ANDed. OR semantics require separate elements in the from or to list."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "Writing a NetworkPolicy with an empty podSelector and no rules creates a deny-all that overrides other policies.",
+          "correction": "Policies are additive. A policy with no rules denies nothing by itself unless it isolates a direction for the selected pods, and even then other policies can add allows. There is no deny rule in the core NetworkPolicy API."
+        }
+      ],
+      "references": [
+        {
+          "title": "Kubernetes Documentation: Network Policies (behavior of selectors)",
+          "publisher": "Kubernetes Authors",
+          "url": "https://kubernetes.io/docs/concepts/services-networking/network-policies/#the-networkpolicy-resource",
+          "license": "CC-BY-4.0"
+        }
+      ],
+      "tags": [
+        "networkpolicy",
+        "selectors",
+        "egress"
+      ]
+    },
+    {
+      "id": "k8s-psa-restricted-profile",
+      "subtopic": "pod-security",
+      "difficulty": "intermediate",
+      "title": "Pod Security Admission enforces privileged, baseline or restricted per namespace",
+      "fact": "Pod Security Admission, stable since Kubernetes 1.25, replaces PodSecurityPolicy and applies one of three levels to a namespace through labels. Privileged is unrestricted, baseline blocks known privilege escalations, and restricted adds strong controls such as non-root execution, dropped capabilities and a seccomp profile. The labels can enforce, warn or audit independently, and the version label pins the policy semantics so a cluster upgrade does not silently change what is allowed.",
+      "details": [
+        "Restricted requires `allowPrivilegeEscalation: false`, `capabilities.drop: [\"ALL\"]`, `runAsNonRoot: true`, `seccompProfile.type: RuntimeDefault` and disallows hostPath, hostPort, hostNetwork and privileged containers.",
+        "`pod-security.kubernetes.io/enforce-version: v1.29` pins the checks to the 1.29 policy; `latest` follows the cluster version.",
+        "Exemptions for namespaces and users are configured on the admission controller, not in namespace labels, and should be minimal."
+      ],
+      "pitfalls": [
+        "Applying restricted to an existing namespace without a dry run, causing production pods to be rejected on their next rollout.",
+        "Using warn or audit only and assuming workloads are actually being blocked."
+      ],
+      "configs": [
+        {
+          "language": "yaml",
+          "snippet": "apiVersion: v1\nkind: Namespace\nmetadata:\n  name: team-alpha\n  labels:\n    pod-security.kubernetes.io/enforce: restricted\n    pod-security.kubernetes.io/enforce-version: v1.29\n    pod-security.kubernetes.io/warn: restricted\n    pod-security.kubernetes.io/audit: restricted",
+          "purpose": "Enforce the Kubernetes 1.29 restricted profile in a namespace, with warnings and audit records for violations."
+        }
+      ],
+      "commands": [
+        {
+          "language": "bash",
+          "code": "kubectl label --dry-run=server --overwrite namespace team-alpha pod-security.kubernetes.io/enforce=restricted pod-security.kubernetes.io/enforce-version=v1.29",
+          "purpose": "Ask the API server to evaluate the label change without persisting it, surfacing existing violations."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Which control is required by the restricted Pod Security Standard but not by baseline?",
+          "options": [
+            "No privileged containers",
+            "No hostPath volumes",
+            "runAsNonRoot with allowPrivilegeEscalation false and capabilities dropped to ALL",
+            "No hostNetwork"
+          ],
+          "answer": [
+            2
+          ],
+          "rationale": "Baseline already blocks privileged containers, hostPath, hostNetwork and hostPort. Restricted adds the non-root, no-escalation, capability and seccomp requirements."
+        }
+      ],
+      "references": [
+        {
+          "title": "Kubernetes Documentation: Pod Security Standards",
+          "publisher": "Kubernetes Authors",
+          "url": "https://kubernetes.io/docs/concepts/security/pod-security-standards/",
+          "license": "CC-BY-4.0"
+        },
+        {
+          "title": "Kubernetes Documentation: Pod Security Admission",
+          "publisher": "Kubernetes Authors",
+          "url": "https://kubernetes.io/docs/concepts/security/pod-security-admission/",
+          "license": "CC-BY-4.0"
+        }
+      ],
+      "tags": [
+        "pod-security-admission",
+        "restricted",
+        "namespace"
+      ]
+    },
+    {
+      "id": "k8s-admission-policy-engines",
+      "subtopic": "admission-control",
+      "difficulty": "advanced",
+      "title": "Gatekeeper and Kyverno both sit on validating admission webhooks, with different authoring models",
+      "fact": "OPA Gatekeeper deploys a validating webhook and evaluates ConstraintTemplates written in Rego, instantiated as Constraints that select resources and set an enforcement action. Kyverno evaluates YAML-native ClusterPolicies that can validate, mutate, generate or verify image signatures. Both fail closed or open according to the webhook's failurePolicy, so an unavailable policy engine with `failurePolicy: Fail` can block all matching admissions, including repairs.",
+      "details": [
+        "Gatekeeper's `enforcementAction` supports deny, warn and dryrun; the audit controller reports existing violations separately.",
+        "Kyverno `validationFailureAction: Enforce` blocks, while `Audit` only reports; policy reports are produced as custom resources.",
+        "Both engines need exemptions or namespace exclusions for kube-system so a bad policy cannot take down the control plane."
+      ],
+      "pitfalls": [
+        "Setting failurePolicy Fail on a webhook that matches every resource without excluding the policy engine's own namespace.",
+        "Assuming a policy engine replaces Pod Security Admission; PSA is built in and cannot be uninstalled by a misconfigured webhook."
+      ],
+      "configs": [
+        {
+          "language": "yaml",
+          "snippet": "apiVersion: templates.gatekeeper.sh/v1\nkind: ConstraintTemplate\nmetadata:\n  name: k8srequiredlabels\nspec:\n  crd:\n    spec:\n      names:\n        kind: K8sRequiredLabels\n      validation:\n        openAPIV3Schema:\n          type: object\n          properties:\n            labels:\n              type: array\n              items:\n                type: string\n  targets:\n    - target: admission.k8s.gatekeeper.sh\n      rego: |\n        package k8srequiredlabels\n\n        violation[{\"msg\": msg}] {\n          required := input.parameters.labels[_]\n          not input.review.object.metadata.labels[required]\n          msg := sprintf(\"missing required label %v\", [required])\n        }",
+          "purpose": "Gatekeeper ConstraintTemplate that flags objects missing labels listed in the constraint parameters."
+        },
+        {
+          "language": "yaml",
+          "snippet": "apiVersion: kyverno.io/v1\nkind: ClusterPolicy\nmetadata:\n  name: require-nonroot\nspec:\n  validationFailureAction: Enforce\n  background: true\n  rules:\n    - name: check-run-as-nonroot\n      match:\n        any:\n          - resources:\n              kinds: [\"Pod\"]\n      validate:\n        message: \"runAsNonRoot must be true and privilege escalation disabled\"\n        pattern:\n          spec:\n            securityContext:\n              runAsNonRoot: true\n            containers:\n              - securityContext:\n                  allowPrivilegeEscalation: false",
+          "purpose": "Kyverno ClusterPolicy that rejects pods which do not declare the required security context."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "What is the main availability risk of a cluster-wide validating admission webhook with failurePolicy: Fail?",
+          "options": [
+            "It silently allows all traffic when the engine is down",
+            "If the webhook is unavailable, matching API writes fail, potentially blocking workloads and repairs",
+            "It disables RBAC",
+            "It prevents image pulls"
+          ],
+          "answer": [
+            1
+          ],
+          "rationale": "Fail-closed webhooks reject requests when the backend cannot be reached. The blast radius must be limited with scoped matches, namespace exclusions and a highly available policy deployment."
+        }
+      ],
+      "references": [
+        {
+          "title": "Gatekeeper Documentation: Constraint templates",
+          "publisher": "Open Policy Agent",
+          "url": "https://open-policy-agent.github.io/gatekeeper/website/docs/constrainttemplates/",
+          "license": "Apache-2.0"
+        },
+        {
+          "title": "Kyverno Documentation: Policy overview",
+          "publisher": "Kyverno project (CNCF)",
+          "url": "https://kyverno.io/docs/policy-types/",
+          "license": "Apache-2.0"
+        }
+      ],
+      "tags": [
+        "admission",
+        "gatekeeper",
+        "kyverno"
+      ]
+    },
+    {
+      "id": "k8s-etcd-encryption-providers",
+      "subtopic": "secrets-at-rest",
+      "difficulty": "advanced",
+      "title": "EncryptionConfiguration protects Secrets in etcd, and provider order matters",
+      "fact": "The API server encrypts designated resources at rest when started with an EncryptionConfiguration, typically Secrets and sometimes ConfigMaps. Providers are tried in order for writes and any provider in the list can decrypt an existing value; placing `identity` first means new writes are stored in plaintext. A KMS provider keeps the data encryption key wrapped by an external key service, while `aescbc` stores the key in the configuration file and therefore only moves the problem to file protection.",
+      "details": [
+        "After enabling encryption, existing Secrets remain readable but are not re-encrypted until they are written again; rewriting them completes the migration.",
+        "The configuration file contains key material with `aescbc` and must be readable only by the API server process.",
+        "Encryption at rest does not restrict API access; RBAC on Secrets and audit logging remain necessary."
+      ],
+      "pitfalls": [
+        "Leaving `identity` as the first provider after a migration, which silently writes new Secrets unencrypted.",
+        "Backing up etcd without protecting the encryption keys, or storing the keys beside the backup."
+      ],
+      "configs": [
+        {
+          "language": "yaml",
+          "snippet": "apiVersion: apiserver.config.k8s.io/v1\nkind: EncryptionConfiguration\nresources:\n  - resources: [\"secrets\", \"configmaps\"]\n    providers:\n      - kms:\n          apiVersion: v2\n          name: app-kms\n          endpoint: unix:///var/run/kmsplugin/socket.sock\n          timeout: 3s\n      - identity: {}",
+          "purpose": "Encrypt Secrets and ConfigMaps through a KMS v2 provider, with identity only as a read fallback."
+        }
+      ],
+      "commands": [
+        {
+          "language": "bash",
+          "code": "kubectl get secrets -n team-alpha -o json | kubectl replace -f -",
+          "purpose": "Rewrite Secrets so they are stored using the current first encryption provider."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "An EncryptionConfiguration lists identity before the kms provider. What is the effect on newly written Secrets?",
+          "options": [
+            "They are encrypted with KMS because KMS is more secure",
+            "They are stored in plaintext because the first provider is used for writes",
+            "They are encrypted with both providers",
+            "The API server refuses to start"
+          ],
+          "answer": [
+            1
+          ],
+          "rationale": "The first provider performs writes; later providers are only used to decrypt existing data. Identity first means plaintext storage, so order the real provider first."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "Enabling encryption at rest means an attacker with cluster read access can no longer read Secrets.",
+          "correction": "Encryption at rest protects the etcd data files and backups. Anyone authorized to call the API server for Secrets still receives decrypted values, so RBAC and audit logging remain the primary access controls."
+        }
+      ],
+      "references": [
+        {
+          "title": "Kubernetes Documentation: Encrypting Confidential Data at Rest",
+          "publisher": "Kubernetes Authors",
+          "url": "https://kubernetes.io/docs/tasks/administer-cluster/encrypt-data/",
+          "license": "CC-BY-4.0"
+        }
+      ],
+      "tags": [
+        "etcd",
+        "encryption",
+        "kms"
+      ]
+    },
+    {
+      "id": "k8s-external-secrets-operator",
+      "subtopic": "secrets-management",
+      "difficulty": "intermediate",
+      "title": "External secret stores remove secrets from Git, not from the cluster",
+      "fact": "The External Secrets Operator reconciles an ExternalSecret custom resource into a native Kubernetes Secret by fetching values from a store such as AWS Secrets Manager, Vault or GCP Secret Manager. This removes secret material from Git and centralizes rotation, but the synced Secret still exists in etcd and is still readable by anyone with `get secrets` in the namespace. Authentication from the operator to the cloud provider should use workload identity federation rather than a static key.",
+      "details": [
+        "`refreshInterval` controls how often the operator re-reads the upstream value; rotation is only as fast as that interval plus pod restart or reload.",
+        "A ClusterSecretStore is cluster-scoped and needs careful RBAC so one tenant cannot reference another tenant's store.",
+        "`dataFrom` can pull an entire upstream secret into the Kubernetes Secret, which broadens exposure compared with explicit `data` keys."
+      ],
+      "pitfalls": [
+        "Granting the operator a wildcard read on every secret in the cloud account.",
+        "Believing that using External Secrets makes etcd encryption unnecessary."
+      ],
+      "configs": [
+        {
+          "language": "yaml",
+          "snippet": "apiVersion: external-secrets.io/v1beta1\nkind: ExternalSecret\nmetadata:\n  name: db-credentials\n  namespace: team-alpha\nspec:\n  refreshInterval: 1h\n  secretStoreRef:\n    name: aws-secrets-manager\n    kind: ClusterSecretStore\n  target:\n    name: db-credentials\n  data:\n    - secretKey: password\n      remoteRef:\n        key: prod/team-alpha/db\n        property: password",
+          "purpose": "Sync one password from an external store into a namespaced Kubernetes Secret."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "After adopting External Secrets, what still needs to be true for the synced credential to be protected at rest?",
+          "options": [
+            "Nothing, the external store encrypts it end to end",
+            "The Kubernetes Secret still needs etcd encryption and restricted RBAC",
+            "The Secret must be stored in a ConfigMap",
+            "The operator must run as root"
+          ],
+          "answer": [
+            1
+          ],
+          "rationale": "The operator materializes a normal Secret in the cluster. That object persists in etcd and is governed by Kubernetes authorization, so encryption at rest and RBAC still apply."
+        }
+      ],
+      "references": [
+        {
+          "title": "External Secrets Operator Documentation: Introduction",
+          "publisher": "External Secrets Operator project",
+          "url": "https://external-secrets.io/latest/introduction/getting-started/",
+          "license": "Apache-2.0"
+        },
+        {
+          "title": "Kubernetes Documentation: Good practices for Kubernetes Secrets",
+          "publisher": "Kubernetes Authors",
+          "url": "https://kubernetes.io/docs/concepts/security/secrets-good-practices/",
+          "license": "CC-BY-4.0"
+        }
+      ],
+      "tags": [
+        "secrets",
+        "external-secrets",
+        "rotation"
+      ]
+    },
+    {
+      "id": "k8s-apiserver-exposure",
+      "subtopic": "control-plane",
+      "difficulty": "advanced",
+      "title": "The API server is the cluster's front door and should not be on the public internet by default",
+      "fact": "Every Kubernetes API request is authenticated and authorized by the API server, so its network exposure and authentication settings define the cluster's real perimeter. Anonymous authentication should be disabled, authorization should include Node and RBAC, and audit logging should be enabled. Managed clusters often expose a public endpoint by default; restricting it to known CIDRs or switching to private access removes a large brute-force and credential-stuffing surface.",
+      "details": [
+        "`--anonymous-auth=false` removes unauthenticated requests; `--authorization-mode=Node,RBAC` keeps the node authorizer plus RBAC.",
+        "`--enable-admission-plugins=NodeRestriction` limits what a kubelet identity can modify.",
+        "The API server's serving certificate should be signed by a CA the kubelet trusts, and `--kubelet-certificate-authority` enables verification of the kubelet serving certificate."
+      ],
+      "pitfalls": [
+        "Leaving the endpoint public with a permissive CIDR such as 0.0.0.0/0 and relying on authentication alone.",
+        "Disabling the Node authorizer while keeping kubelets able to read Secrets cluster-wide."
+      ],
+      "configs": [
+        {
+          "language": "yaml",
+          "snippet": "apiVersion: v1\nkind: Pod\nmetadata:\n  name: kube-apiserver\n  namespace: kube-system\nspec:\n  containers:\n    - name: kube-apiserver\n      image: registry.k8s.io/kube-apiserver:v1.29.4\n      command:\n        - kube-apiserver\n        - --anonymous-auth=false\n        - --authorization-mode=Node,RBAC\n        - --enable-admission-plugins=NodeRestriction\n        - --audit-policy-file=/etc/kubernetes/audit/policy.yaml\n        - --audit-log-path=/var/log/kubernetes/audit.log\n        - --kubelet-certificate-authority=/etc/kubernetes/pki/ca.crt",
+          "purpose": "Illustrative static pod manifest with anonymous auth disabled, Node plus RBAC authorization and audit logging."
+        }
+      ],
+      "commands": [
+        {
+          "language": "bash",
+          "code": "aws eks update-cluster-config --name example-cluster --resources-vpc-config endpointPublicAccess=false,endpointPrivateAccess=true",
+          "purpose": "Disable the public EKS API endpoint and rely on private access."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Which combination most directly reduces the API server's unauthenticated attack surface?",
+          "options": [
+            "anonymous-auth=false plus a private or CIDR-restricted endpoint",
+            "Enabling the AlwaysPullImages admission plugin",
+            "Setting a longer service account token lifetime",
+            "Disabling audit logging to reduce load"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "Disabling anonymous authentication removes unauthenticated identity, and restricting endpoint reachability removes internet-wide exposure. The other options either do not affect authentication or weaken detection."
+        }
+      ],
+      "references": [
+        {
+          "title": "Kubernetes Documentation: kube-apiserver",
+          "publisher": "Kubernetes Authors",
+          "url": "https://kubernetes.io/docs/reference/command-line-tools-reference/kube-apiserver/",
+          "license": "CC-BY-4.0"
+        },
+        {
+          "title": "Kubernetes Hardening Guidance v1.2",
+          "publisher": "NSA/CISA",
+          "url": "https://media.defense.gov/2022/Aug/29/2003066362/-1/-1/0/CTR_KUBERNETES_HARDENING_GUIDANCE_1.2_20220829.PDF",
+          "license": "Public domain (US Government work)"
+        }
+      ],
+      "tags": [
+        "api-server",
+        "exposure",
+        "control-plane"
+      ]
+    },
+    {
+      "id": "k8s-kubelet-authn-authz",
+      "subtopic": "node-security",
+      "difficulty": "advanced",
+      "title": "The kubelet API can run commands and must use webhook authn and authz",
+      "fact": "The kubelet exposes an HTTPS API on port 10250 that supports exec, logs and pod status, and an unauthenticated read-only endpoint on 10255 in older configurations. Hardening requires disabling anonymous authentication, enabling webhook authentication and authorization so the API server's TokenReview and SubjectAccessReview decide access, and setting `readOnlyPort` to 0. Without this, anyone who can reach the node's kubelet port may be able to execute commands in pods or read their logs.",
+      "details": [
+        "`authentication.webhook.enabled: true` plus `authorization.mode: Webhook` delegates decisions to the API server.",
+        "`authentication.x509.clientCAFile` lets the kubelet validate client certificates from the cluster CA.",
+        "NodeRestriction and the Node authorizer limit a compromised node's ability to read unrelated Secrets."
+      ],
+      "pitfalls": [
+        "Assuming network policy protects the kubelet port; the kubelet is on the node network, outside pod NetworkPolicy scope.",
+        "Leaving anonymous auth enabled because `kubectl logs` worked without noticing why."
+      ],
+      "configs": [
+        {
+          "language": "yaml",
+          "snippet": "apiVersion: kubelet.config.k8s.io/v1beta1\nkind: KubeletConfiguration\nauthentication:\n  anonymous:\n    enabled: false\n  webhook:\n    enabled: true\n  x509:\n    clientCAFile: /etc/kubernetes/pki/ca.crt\nauthorization:\n  mode: Webhook\nreadOnlyPort: 0",
+          "purpose": "Kubelet configuration that disables anonymous access and delegates authorization to the API server."
+        }
+      ],
+      "commands": [
+        {
+          "language": "bash",
+          "code": "curl -sk https://10.20.30.11:10250/healthz\ncurl -sk https://10.20.30.11:10255/pods | head",
+          "purpose": "Check whether the kubelet ports answer without credentials on a documentation address."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "What does kubelet authorization mode Webhook do?",
+          "options": [
+            "Uses a local policy file on each node",
+            "Sends SubjectAccessReview requests to the API server to decide access",
+            "Allows all requests from the node's pod CIDR",
+            "Disables the kubelet API entirely"
+          ],
+          "answer": [
+            1
+          ],
+          "rationale": "Webhook mode delegates authorization decisions to the API server, so cluster RBAC governs kubelet API access. It does not disable the API or rely on a local file."
+        }
+      ],
+      "references": [
+        {
+          "title": "Kubernetes Documentation: Kubelet authentication/authorization",
+          "publisher": "Kubernetes Authors",
+          "url": "https://kubernetes.io/docs/reference/access-authn-authz/kubelet-authn-authz/",
+          "license": "CC-BY-4.0"
+        },
+        {
+          "title": "Kubernetes Documentation: Kubelet configuration API",
+          "publisher": "Kubernetes Authors",
+          "url": "https://kubernetes.io/docs/reference/config-api/kubelet-config.v1beta1/",
+          "license": "CC-BY-4.0"
+        }
+      ],
+      "tags": [
+        "kubelet",
+        "node",
+        "authentication"
+      ]
+    },
+    {
+      "id": "k8s-audit-policy-levels",
+      "subtopic": "audit-logging",
+      "difficulty": "advanced",
+      "title": "Audit rules are first-match, and RequestResponse captures object bodies",
+      "fact": "The API server audit policy is an ordered list of rules; the first rule that matches an event sets its level, and later rules are ignored. Levels are None, Metadata, Request, RequestResponse, with increasing detail and cost. RequestResponse records request and response bodies, which can include Secret data, so it should be scoped to namespaces or resources that need it rather than applied cluster-wide.",
+      "details": [
+        "`omitStages: [\"RequestReceived\"]` avoids duplicate entries for long-running requests.",
+        "Audit backends include log files and webhooks; a webhook backend must be highly available or the API server can block.",
+        "A common pattern is Metadata for most resources, Request for Secrets so bodies are excluded, and RequestResponse for a specific investigation namespace."
+      ],
+      "pitfalls": [
+        "Putting a broad catch-all rule first, which makes every later rule unreachable.",
+        "Enabling RequestResponse for Secrets cluster-wide and shipping the audit log to a lower-trust system."
+      ],
+      "configs": [
+        {
+          "language": "yaml",
+          "snippet": "apiVersion: audit.k8s.io/v1\nkind: Policy\nomitStages: [\"RequestReceived\"]\nrules:\n  - level: None\n    users: [\"system:kube-proxy\"]\n    verbs: [\"watch\"]\n    resources:\n      - group: \"\"\n        resources: [\"endpoints\", \"services\"]\n  - level: Metadata\n    resources:\n      - group: \"\"\n        resources: [\"secrets\", \"configmaps\"]\n  - level: RequestResponse\n    namespaces: [\"team-alpha\"]\n  - level: Metadata",
+          "purpose": "Audit policy that skips proxy watches, records only metadata for Secrets, and captures full bodies in one namespace."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Why is a cluster-wide RequestResponse audit rule risky for Secrets?",
+          "options": [
+            "It disables RBAC",
+            "The audit log records request and response bodies, which can contain Secret data",
+            "It prevents the API server from starting",
+            "It causes Secrets to be stored unencrypted in etcd"
+          ],
+          "answer": [
+            1
+          ],
+          "rationale": "RequestResponse includes object bodies. For Secrets that means credential material in the audit backend, which must then be protected and retained like a secret store."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "Audit rules are evaluated in order and the most specific rule wins regardless of position.",
+          "correction": "Evaluation stops at the first matching rule. Specific rules must be placed before broad catch-alls, otherwise they never take effect."
+        }
+      ],
+      "references": [
+        {
+          "title": "Kubernetes Documentation: Auditing",
+          "publisher": "Kubernetes Authors",
+          "url": "https://kubernetes.io/docs/tasks/debug/debug-cluster/audit/",
+          "license": "CC-BY-4.0"
+        }
+      ],
+      "tags": [
+        "audit",
+        "logging",
+        "api-server"
+      ]
+    },
+    {
+      "id": "k8s-tenant-isolation-boundary",
+      "subtopic": "multi-tenancy",
+      "difficulty": "expert",
+      "title": "A namespace is an API scope, not a security boundary between hostile tenants",
+      "fact": "Namespaces partition names and provide a natural place for RBAC, quotas and network policy, but they do not isolate nodes, the kernel, the container runtime or cluster-scoped resources. A tenant that can create pods can often reach the kubelet, mount host paths if admission allows it, or consume shared resources. Hostile multi-tenancy therefore needs defence in depth: per-tenant RBAC and quotas, default-deny network policy, Pod Security Admission, node pools or separate clusters, and sandboxed runtimes for untrusted code.",
+      "details": [
+        "Cluster-scoped resources such as CustomResourceDefinitions, PersistentVolumes and Nodes are shared and require explicit access control.",
+        "ResourceQuota limits aggregate consumption but does not stop a tenant from exhausting node-level resources such as process IDs.",
+        "Sandboxed runtimes such as gVisor or Kata Containers add a user-space or VM boundary when the kernel is shared."
+      ],
+      "pitfalls": [
+        "Treating separate namespaces as sufficient isolation for customers who run arbitrary code.",
+        "Granting a tenant the ability to create PersistentVolumeClaims without storage class restrictions or quotas."
+      ],
+      "configs": [
+        {
+          "language": "yaml",
+          "snippet": "apiVersion: v1\nkind: ResourceQuota\nmetadata:\n  name: tenant-quota\n  namespace: team-alpha\nspec:\n  hard:\n    requests.cpu: \"8\"\n    requests.memory: 16Gi\n    limits.cpu: \"16\"\n    limits.memory: 32Gi\n    persistentvolumeclaims: \"4\"\n    count/pods: \"40\"",
+          "purpose": "Cap a tenant namespace's aggregate resource consumption and object count."
+        },
+        {
+          "language": "yaml",
+          "snippet": "apiVersion: v1\nkind: LimitRange\nmetadata:\n  name: tenant-defaults\n  namespace: team-alpha\nspec:\n  limits:\n    - type: Container\n      defaultRequest:\n        cpu: 100m\n        memory: 128Mi\n      default:\n        cpu: 500m\n        memory: 512Mi\n      max:\n        cpu: \"2\"\n        memory: 2Gi",
+          "purpose": "Provide default and maximum container resources so unset pods cannot request unbounded capacity."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Two hostile customers run arbitrary code in separate namespaces of one cluster. Which statement is most accurate?",
+          "options": [
+            "Namespaces provide VM-level isolation, so this is safe",
+            "Namespaces alone are insufficient; node isolation, admission control and sandboxed runtimes are needed",
+            "NetworkPolicy alone makes the tenants safe",
+            "ResourceQuota prevents container escapes"
+          ],
+          "answer": [
+            1
+          ],
+          "rationale": "Namespaces scope API objects, not kernel or node resources. Hostile tenants need stronger boundaries such as separate node pools or clusters and sandboxed runtimes, plus RBAC, policy and quotas."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "Because Kubernetes namespaces are a security boundary, a tenant cannot affect another tenant's workloads.",
+          "correction": "Namespaces are an API and policy scope. Tenants share the control plane, nodes and kernel unless you add node isolation, sandboxing and strict admission control, so a kernel or runtime escape crosses tenant boundaries."
+        }
+      ],
+      "references": [
+        {
+          "title": "Kubernetes Documentation: Multi-tenancy",
+          "publisher": "Kubernetes Authors",
+          "url": "https://kubernetes.io/docs/concepts/security/multi-tenancy/",
+          "license": "CC-BY-4.0"
+        },
+        {
+          "title": "NIST SP 800-190: Application Container Security Guide",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/190/final",
+          "license": "Public domain (US Government work)"
+        }
+      ],
+      "tags": [
+        "multi-tenancy",
+        "isolation",
+        "quota"
+      ]
+    },
+    {
+      "id": "k8s-secret-base64-encoding",
+      "subtopic": "secrets-management",
+      "difficulty": "foundational",
+      "title": "Base64 in a Secret manifest is encoding, not protection",
+      "fact": "The `data` field of a Kubernetes Secret holds base64-encoded bytes, and `stringData` accepts plain strings that the API server encodes on write. Base64 is reversible by anyone, so a Secret committed to Git or readable through RBAC is exposed. Protection comes from keeping Secret manifests out of source control, restricting `get`, `list` and `watch` on Secrets, enabling encryption at rest, and rotating credentials when exposure is suspected.",
+      "details": [
+        "`kubectl get secret db-credentials -o jsonpath='{.data.password}' | base64 -d` recovers the value, which is exactly what an attacker with read access does.",
+        "RBAC cannot hide a Secret's contents from a subject allowed to read the object; it can only deny the whole object.",
+        "Sealed Secrets and SOPS encrypt the manifest at rest in Git, but the decrypted Secret still exists in the cluster."
+      ],
+      "pitfalls": [
+        "Committing a Secret manifest and assuming the base64 text is obfuscated enough.",
+        "Granting list or watch on all Secrets for convenience, which exposes every credential in the namespace."
+      ],
+      "commands": [
+        {
+          "language": "bash",
+          "code": "kubectl get secret db-credentials -n team-alpha -o jsonpath='{.data.password}' | base64 -d; echo",
+          "purpose": "Decode a Secret value to demonstrate that base64 is not encryption."
+        },
+        {
+          "language": "bash",
+          "code": "kubectl auth can-i list secrets -n team-alpha --as=system:serviceaccount:team-alpha:report-reader",
+          "purpose": "Check whether a service account can enumerate Secrets in the namespace."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "A Secret manifest is committed to a public repository with base64 data. What is the correct conclusion?",
+          "options": [
+            "The value is safe because it is base64-encoded",
+            "The value is exposed and should be treated as compromised and rotated",
+            "Only cluster administrators can decode it",
+            "The value is protected by etcd encryption"
+          ],
+          "answer": [
+            1
+          ],
+          "rationale": "Base64 is encoding, not encryption. Anyone can decode it, and etcd encryption does not apply to a copy in Git, so the credential must be rotated."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "Kubernetes Secrets are encrypted, which is why they are not stored as plain YAML.",
+          "correction": "By default a Secret is stored as base64-encoded data in etcd. Encryption at rest is a separate opt-in configuration, and neither encoding nor encryption removes the need to control RBAC access."
+        }
+      ],
+      "references": [
+        {
+          "title": "Kubernetes Documentation: Secrets",
+          "publisher": "Kubernetes Authors",
+          "url": "https://kubernetes.io/docs/concepts/configuration/secret/",
+          "license": "CC-BY-4.0"
+        },
+        {
+          "title": "Kubernetes Documentation: Good practices for Kubernetes Secrets",
+          "publisher": "Kubernetes Authors",
+          "url": "https://kubernetes.io/docs/concepts/security/secrets-good-practices/",
+          "license": "CC-BY-4.0"
+        }
+      ],
+      "tags": [
+        "secrets",
+        "base64",
+        "rbac"
+      ]
+    },
+    {
+      "id": "sc-dependency-confusion-scoped-registry",
+      "subtopic": "dependency-confusion",
+      "difficulty": "intermediate",
+      "title": "Private package names must resolve to the private registry first",
+      "fact": "Dependency confusion exploits a resolver that prefers a public registry for a package name an organization also uses internally. An attacker publishes a package with the same name and a higher version to the public registry, and a build that checks both sources installs the attacker's package. Mitigations map each internal scope or index explicitly, make the private registry authoritative for internal names, reserve internal names publicly, and verify the resolved URL in the lockfile.",
+      "details": [
+        "npm scopes (`@acme/...`) can be bound to a registry in `.npmrc`, so the scope never falls through to the public registry.",
+        "pip's `--extra-index-url` does not express priority; pip considers candidates from every configured index and selects the best version, which is exactly the attack condition.",
+        "A package's `resolved` field in a lockfile should point at the internal registry for internal dependencies."
+      ],
+      "pitfalls": [
+        "Using `--extra-index-url` for the private index while leaving PyPI as the default index.",
+        "Assuming an internal package is safe because it is not published publicly; the attacker only needs the name."
+      ],
+      "configs": [
+        {
+          "language": "ini",
+          "snippet": "@acme:registry=https://npm.example.internal/repository/npm-private/\nregistry=https://registry.npmjs.org/\n//npm.example.internal/repository/npm-private/:_authToken=${NPM_TOKEN}",
+          "purpose": "npm configuration that sends every @acme package to the internal registry while other packages use the public one."
+        }
+      ],
+      "commands": [
+        {
+          "language": "bash",
+          "code": "npm config get registry\nnpm view @acme/billing-sdk version --registry=https://npm.example.internal/repository/npm-private/",
+          "purpose": "Confirm the effective registry and that the internal package resolves internally."
+        },
+        {
+          "language": "bash",
+          "code": "jq -r '.packages | to_entries[] | select(.key | test(\"acme\")) | [.key, .value.resolved] | @tsv' package-lock.json",
+          "purpose": "Check that internal packages resolve to the internal registry in the lockfile."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Why does adding a private index with pip's --extra-index-url fail to prevent dependency confusion?",
+          "options": [
+            "pip ignores extra indexes when a private index is present",
+            "pip compares versions across all indexes and can select a higher public version",
+            "pip cannot install from HTTPS",
+            "extra indexes are only used for wheels"
+          ],
+          "answer": [
+            1
+          ],
+          "rationale": "pip does not treat one index as authoritative. It gathers candidates from all indexes and picks the best version, so a higher public version of an internal name wins unless version pinning or hashes prevent it."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "Publishing internal packages under a unique name is enough protection against dependency confusion.",
+          "correction": "Uniqueness is not secrecy: an attacker can still publish the same name if it is unclaimed publicly. You need registry scoping, an authoritative index, name reservation and resolution checks."
+        }
+      ],
+      "references": [
+        {
+          "title": "OWASP Top 10 CI/CD Security Risks (CICD-SEC-3: Dependency Chain Abuse)",
+          "publisher": "OWASP Foundation",
+          "url": "https://owasp.org/www-project-top-10-ci-cd-security-risks/",
+          "license": "CC-BY-SA-4.0"
+        },
+        {
+          "title": "npm Docs: Using npm scopes",
+          "publisher": "npm, Inc.",
+          "url": "https://docs.npmjs.com/cli/v10/using-npm/scope",
+          "license": "CC-BY-4.0"
+        }
+      ],
+      "tags": [
+        "dependency-confusion",
+        "registry",
+        "npm"
+      ]
+    },
+    {
+      "id": "sc-typosquatting-lookalike-packages",
+      "subtopic": "package-trust",
+      "difficulty": "foundational",
+      "title": "Lookalike package names trade on a developer's typo",
+      "fact": "Typosquatting registers names that are one edit away from popular packages, or that use visually similar characters, and waits for a mistyped install. The malicious package may run an install script, exfiltrate environment variables or pull a second-stage payload. Defences include exact-name allowlists for production dependencies, disabling install scripts where possible, checking repository and maintainer metadata for new dependencies, and requiring review for any new package.",
+      "details": [
+        "npm `postinstall` scripts run automatically; `npm ci --ignore-scripts` avoids them at the cost of packages that legitimately need a build step.",
+        "Provenance attestations link a published package to a source repository and build, making an unattributed copy easier to spot.",
+        "Internal mirrors that proxy a public registry still need name review; a proxy does not judge intent."
+      ],
+      "pitfalls": [
+        "Letting an automated tool add the first search result for a package name without checking the repository URL.",
+        "Assuming a package with many downloads is trustworthy; typosquats can inherit download noise or be installed by bots."
+      ],
+      "commands": [
+        {
+          "language": "bash",
+          "code": "npm view reqeusts name version repository.url maintainers time.created",
+          "purpose": "Inspect metadata for a suspected lookalike package before installing it."
+        },
+        {
+          "language": "bash",
+          "code": "npm ci --ignore-scripts",
+          "purpose": "Install from the lockfile without running lifecycle scripts."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Which control most directly reduces the risk of a mistyped package name entering production?",
+          "options": [
+            "Running the container as non-root",
+            "Requiring an explicit reviewed allowlist of dependency names and versions",
+            "Enabling read-only root filesystems",
+            "Rotating registry credentials"
+          ],
+          "answer": [
+            1
+          ],
+          "rationale": "An allowlist prevents an unapproved name from being installed at all, which addresses the typo before code runs. The other controls reduce impact but do not stop the wrong package from being fetched."
+        }
+      ],
+      "references": [
+        {
+          "title": "OWASP Top 10 CI/CD Security Risks (CICD-SEC-3: Dependency Chain Abuse)",
+          "publisher": "OWASP Foundation",
+          "url": "https://owasp.org/www-project-top-10-ci-cd-security-risks/",
+          "license": "CC-BY-SA-4.0"
+        },
+        {
+          "title": "npm Docs: Generating provenance statements",
+          "publisher": "npm, Inc.",
+          "url": "https://docs.npmjs.com/generating-provenance-statements",
+          "license": "CC-BY-4.0"
+        }
+      ],
+      "tags": [
+        "typosquatting",
+        "dependencies",
+        "review"
+      ]
+    },
+    {
+      "id": "sc-lockfile-integrity-hashes",
+      "subtopic": "dependency-integrity",
+      "difficulty": "intermediate",
+      "title": "Lockfiles and hash pinning make installs deterministic, not automatically safe",
+      "fact": "A lockfile records the exact resolved version and, for npm, an integrity hash and resolved URL for each package; `npm ci` installs strictly from it instead of re-resolving ranges. For Python, `pip install --require-hashes` refuses any requirement without a matching hash, which also forces every transitive dependency to be pinned. These controls prevent silent version drift and registry substitution, but they do not help if the compromised version was already recorded in the lockfile.",
+      "details": [
+        "Lockfile changes should be reviewed like code changes, especially new `resolved` hosts and unexpected transitive additions.",
+        "Hash pinning requires pinning transitive dependencies too, which is why constraints files and lock generators are commonly used.",
+        "A lockfile is only as trustworthy as the review of the diff that introduced it."
+      ],
+      "pitfalls": [
+        "Running `npm install` in CI, which can rewrite the lockfile and resolve versions the review never saw.",
+        "Adding hashes for direct dependencies only and leaving transitive packages unhashed."
+      ],
+      "configs": [
+        {
+          "language": "json",
+          "snippet": "{\n  \"name\": \"example-app\",\n  \"version\": \"1.4.0\",\n  \"lockfileVersion\": 3,\n  \"packages\": {\n    \"node_modules/lodash\": {\n      \"version\": \"4.17.21\",\n      \"resolved\": \"https://registry.npmjs.org/lodash/-/lodash-4.17.21.tgz\",\n      \"integrity\": \"sha512-0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+/=\"\n    }\n  }\n}",
+          "purpose": "Excerpt showing the version, resolved URL and integrity hash that a lockfile records per package."
+        },
+        {
+          "language": "text",
+          "snippet": "requests==2.32.3 \\\n    --hash=sha256:ca978112ca1bbdcafac231b39a23dc4da786eff8147c4e72b9807785afee48bb",
+          "purpose": "Requirements entry with a hash for use with pip --require-hashes, which rejects unhashed requirements."
+        }
+      ],
+      "commands": [
+        {
+          "language": "bash",
+          "code": "npm ci --audit=false\npip install --require-hashes --no-deps -r requirements.txt",
+          "purpose": "Install strictly from the lockfile and from hash-pinned requirements."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "What does `npm ci` do differently from `npm install`?",
+          "options": [
+            "It ignores the lockfile and resolves the newest versions",
+            "It installs exactly what the lockfile specifies and fails if the lockfile and package.json disagree",
+            "It runs install scripts twice",
+            "It only installs production dependencies"
+          ],
+          "answer": [
+            1
+          ],
+          "rationale": "npm ci is intended for automation: it removes node_modules, installs from the lockfile without rewriting it, and errors when the manifest and lockfile are inconsistent."
+        }
+      ],
+      "references": [
+        {
+          "title": "npm Docs: package-lock.json",
+          "publisher": "npm, Inc.",
+          "url": "https://docs.npmjs.com/cli/v10/configuring-npm/package-lock-json",
+          "license": "CC-BY-4.0"
+        },
+        {
+          "title": "pip documentation: Secure installs",
+          "publisher": "Python Packaging Authority",
+          "url": "https://pip.pypa.io/en/stable/topics/secure-installs/",
+          "license": "MIT"
+        }
+      ],
+      "tags": [
+        "lockfile",
+        "integrity",
+        "pip"
+      ]
+    },
+    {
+      "id": "sc-reproducible-builds",
+      "subtopic": "build-integrity",
+      "difficulty": "advanced",
+      "title": "A reproducible build lets an independent party confirm the artifact matches the source",
+      "fact": "A build is reproducible when rebuilding the same source with the same inputs yields bit-identical output. That property lets a third party rebuild from source and compare hashes, which detects a compromised build service or a tampered artifact. Achieving it requires removing nondeterminism such as timestamps, absolute paths, randomized map ordering and unstable archive metadata, and pinning the toolchain and dependency versions.",
+      "details": [
+        "`SOURCE_DATE_EPOCH` is the standard convention for clamping embedded timestamps.",
+        "Go builds benefit from `-trimpath` and a fixed build ID; many ecosystems need normalization of file modes and ordering in archives.",
+        "Reproducibility is a property to measure, not a claim: publish the rebuild instructions and compare hashes for each release."
+      ],
+      "pitfalls": [
+        "Assuming a hermetic CI system automatically produces reproducible artifacts; embedded timestamps and paths still vary.",
+        "Comparing container image tags instead of digests, which hides differences behind a mutable reference."
+      ],
+      "commands": [
+        {
+          "language": "bash",
+          "code": "SOURCE_DATE_EPOCH=1700000000 ./ci/build.sh\nsha256sum dist/app-linux-amd64.tar.gz",
+          "purpose": "Build with a fixed epoch and record the artifact hash for a second independent build."
+        },
+        {
+          "language": "bash",
+          "code": "diffoscope dist/app-a.tar.gz dist/app-b.tar.gz --text report.txt",
+          "purpose": "Explain remaining byte differences between two builds."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Two builds of the same commit produce artifacts with different hashes. Which cause is most consistent with a reproducibility problem rather than a source change?",
+          "options": [
+            "An embedded build timestamp and absolute build path",
+            "A different commit SHA in the source",
+            "A different dependency version in the lockfile",
+            "A changed compiler major version"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "Timestamps and paths vary between otherwise identical builds. The other options change the inputs, so different output would be expected and is not a reproducibility defect."
+        }
+      ],
+      "references": [
+        {
+          "title": "reproducible-builds.org: Reproducible Builds documentation",
+          "publisher": "Reproducible Builds project",
+          "url": "https://reproducible-builds.org/docs/",
+          "license": "CC-BY-4.0"
+        },
+        {
+          "title": "SLSA Specification v1.0: Build levels",
+          "publisher": "OpenSSF",
+          "url": "https://slsa.dev/spec/v1.0/levels",
+          "license": "Apache-2.0"
+        }
+      ],
+      "tags": [
+        "reproducible-builds",
+        "supply-chain",
+        "provenance"
+      ]
+    },
+    {
+      "id": "sc-slsa-levels",
+      "subtopic": "slsa",
+      "difficulty": "intermediate",
+      "title": "SLSA v1.0 separates build levels from source levels",
+      "fact": "SLSA v1.0 defines Build levels 1 through 3 and Source levels 1 through 4, rather than a single ladder. Build L1 means provenance exists and describes the build; L2 requires signed provenance generated by a hosted build service; L3 requires a hardened build platform with strong isolation and non-falsifiable provenance. Source levels address source review, history integrity and provenance of the source itself, so an artifact can be Build L3 while the source controls remain weak.",
+      "details": [
+        "Provenance is an in-toto attestation with a subject digest and a predicate describing the build.",
+        "Earlier SLSA v0.1 used four build levels; v1.0 reduced the build track to three and added a separate source track.",
+        "SLSA levels describe the integrity of the build process, not the absence of vulnerabilities in the code."
+      ],
+      "pitfalls": [
+        "Claiming SLSA L3 from a CI job that signs its own provenance on a shared, mutable runner.",
+        "Treating a level as a compliance badge without checking which track and which threats it covers."
+      ],
+      "configs": [
+        {
+          "language": "json",
+          "snippet": "{\n  \"_type\": \"https://in-toto.io/Statement/v1\",\n  \"subject\": [\n    {\n      \"name\": \"registry.example.com/team-alpha/app\",\n      \"digest\": {\"sha256\": \"3e23e8160039594a33894f6564e1b1348bbd7a0088d42c4acb73eeaed59c009d\"}\n    }\n  ],\n  \"predicateType\": \"https://slsa.dev/provenance/v1\",\n  \"predicate\": {\n    \"buildDefinition\": {\n      \"buildType\": \"https://example.internal/build-types/ci@v1\",\n      \"externalParameters\": {\"source\": \"https://github.com/example-org/app\"}\n    },\n    \"runDetails\": {\n      \"builder\": {\"id\": \"https://ci.example.internal/builders/runner-01\"},\n      \"metadata\": {\"invocationId\": \"run-2026-11-25-001\"}\n    }\n  }\n}",
+          "purpose": "Minimal SLSA v1 provenance attestation binding an image digest to a builder and source URI."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "In SLSA v1.0, what distinguishes Build level 3 from Build level 2?",
+          "options": [
+            "L3 requires source code review; L2 does not",
+            "L3 requires a hardened, isolated build platform and non-falsifiable provenance",
+            "L3 requires a signed commit for every change",
+            "L3 requires reproducible builds by definition"
+          ],
+          "answer": [
+            1
+          ],
+          "rationale": "L2 requires signed provenance from a hosted build service. L3 adds a hardened build environment whose provenance cannot be forged by the build itself. Source review is on the separate Source track, and reproducibility is not a level requirement."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "SLSA level 3 proves the software contains no known vulnerabilities.",
+          "correction": "SLSA measures build integrity and provenance. It says nothing about the security of the code or its dependencies; vulnerability management and review are separate controls."
+        }
+      ],
+      "references": [
+        {
+          "title": "SLSA Specification v1.0: Levels",
+          "publisher": "OpenSSF",
+          "url": "https://slsa.dev/spec/v1.0/levels",
+          "license": "Apache-2.0"
+        },
+        {
+          "title": "SLSA Specification v1.0: Provenance",
+          "publisher": "OpenSSF",
+          "url": "https://slsa.dev/spec/v1.0/provenance",
+          "license": "Apache-2.0"
+        }
+      ],
+      "tags": [
+        "slsa",
+        "provenance",
+        "build-integrity"
+      ]
+    },
+    {
+      "id": "sc-provenance-verification-policy",
+      "subtopic": "provenance",
+      "difficulty": "advanced",
+      "title": "Verification must pin the expected builder and source, not just check a signature",
+      "fact": "Verifying provenance means checking that the attestation is signed by a trusted builder, that its subject digest matches the artifact being deployed, and that its source URI and build parameters match expectations. A signature check alone proves only that some key signed some statement. Deployment gates should encode the trusted builder identity and the allowed source repository, and reject artifacts whose provenance is missing or describes a different digest.",
+      "details": [
+        "`slsa-verifier verify-image` checks the subject digest, source URI and builder identity against expected values.",
+        "`cosign verify-attestation --type slsaprovenance` verifies the attestation signature and certificate identity.",
+        "Pinning a builder identity is what prevents an attacker who controls a different CI project from producing a validly signed but untrusted artifact."
+      ],
+      "pitfalls": [
+        "Accepting any attestation whose signature validates, including one from a forked repository's workflow.",
+        "Verifying provenance at build time only, while the deployment path pulls by tag with no verification."
+      ],
+      "commands": [
+        {
+          "language": "bash",
+          "code": "slsa-verifier verify-image registry.example.com/team-alpha/app@sha256:3e23e8160039594a33894f6564e1b1348bbd7a0088d42c4acb73eeaed59c009d --source-uri github.com/example-org/app --source-tag v1.4.0",
+          "purpose": "Verify that the image digest was built from the expected repository and tag."
+        },
+        {
+          "language": "bash",
+          "code": "cosign verify-attestation --type slsaprovenance \\\n  --certificate-identity=https://github.com/example-org/app/.github/workflows/release.yml@refs/tags/v1.4.0 \\\n  --certificate-oidc-issuer=https://token.actions.githubusercontent.com \\\n  registry.example.com/team-alpha/app@sha256:3e23e8160039594a33894f6564e1b1348bbd7a0088d42c4acb73eeaed59c009d",
+          "purpose": "Verify the provenance attestation signature and the exact workflow identity that produced it."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "An admission policy accepts any validly signed SLSA provenance. What is the main gap?",
+          "options": [
+            "It does not check the artifact digest",
+            "It does not constrain the builder or source, so untrusted producers can satisfy it",
+            "It requires too much CPU",
+            "It verifies the SBOM instead of the image"
+          ],
+          "answer": [
+            1
+          ],
+          "rationale": "A valid signature only proves control of a signing identity. Without pinning the expected builder and source, any producer with a trusted issuer can create acceptable provenance."
+        }
+      ],
+      "references": [
+        {
+          "title": "slsa-verifier: Verify artifact provenance",
+          "publisher": "OpenSSF",
+          "url": "https://github.com/slsa-framework/slsa-verifier",
+          "license": "Apache-2.0"
+        },
+        {
+          "title": "Sigstore Docs: Verifying attestations",
+          "publisher": "Sigstore project",
+          "url": "https://docs.sigstore.dev/cosign/verifying/attestation/",
+          "license": "Apache-2.0"
+        }
+      ],
+      "tags": [
+        "provenance",
+        "verification",
+        "slsa"
+      ]
+    },
+    {
+      "id": "sc-github-action-pinning",
+      "subtopic": "ci-dependencies",
+      "difficulty": "foundational",
+      "title": "Pin third-party CI actions to a commit SHA, not a tag",
+      "fact": "A GitHub Actions reference such as `owner/action@v3` is a mutable tag, and the tag owner or a compromised account can repoint it to different code. Referencing a full 40-character commit SHA binds the workflow to exact content, and Dependabot or Renovate can still propose updates. Pinning should be combined with least-privilege workflow permissions, because a pinned action still runs with whatever token and secrets the job exposes.",
+      "details": [
+        "The `uses` value is the primary supply-chain control for actions; `@main` and major-version tags are both mutable.",
+        "Review the diff when a bot bumps a pinned SHA; the pin moves trust from a tag to a reviewed commit.",
+        "Container actions and reusable workflows have the same pinning concern, and reusable workflows should also be referenced by commit."
+      ],
+      "pitfalls": [
+        "Pinning actions but leaving `permissions: write-all` on the workflow.",
+        "Using `pull_request_target` and checking out the fork's head, which runs untrusted code with a privileged token and secrets."
+      ],
+      "configs": [
+        {
+          "language": "yaml",
+          "snippet": "name: test\non: [pull_request]\npermissions:\n  contents: read\njobs:\n  test:\n    runs-on: ubuntu-24.04\n    steps:\n      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683\n      - run: make test",
+          "purpose": "Workflow pinned to a full checkout commit SHA with read-only token permissions."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Why is `uses: example/action@v2` weaker than `uses: example/action@<full-commit-sha>`?",
+          "options": [
+            "Tags cannot be resolved by GitHub Actions",
+            "The tag is mutable and can be repointed to different code",
+            "The SHA reference disables caching",
+            "Tags do not support inputs"
+          ],
+          "answer": [
+            1
+          ],
+          "rationale": "Version tags are movable references. A commit SHA identifies exact content, so a changed tag or compromised maintainer cannot silently alter what the workflow runs."
+        }
+      ],
+      "references": [
+        {
+          "title": "GitHub Docs: Security hardening for GitHub Actions",
+          "publisher": "GitHub",
+          "url": "https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions",
+          "license": "CC-BY-4.0"
+        }
+      ],
+      "tags": [
+        "github-actions",
+        "pinning",
+        "ci-cd"
+      ]
+    },
+    {
+      "id": "sc-cicd-least-privilege-permissions",
+      "subtopic": "ci-cd",
+      "difficulty": "intermediate",
+      "title": "Each CI job should hold only the permissions that job needs",
+      "fact": "CI workflows commonly inherit a broad default token and access to every repository secret. Least privilege means declaring permissions explicitly, ideally denying by default at the workflow level and granting per job, separating build from deploy, and scoping cloud access with OIDC and environment protections. Secrets available to a job are available to every step in it, including third-party actions and any code the job checks out and executes.",
+      "details": [
+        "GitHub Actions supports `permissions: {}` at workflow level and a narrower `permissions` block per job.",
+        "Environment protection rules can require approval and restrict which branches may deploy.",
+        "Build jobs should not hold production credentials; the deploy job should assume a separate role after an approval gate."
+      ],
+      "pitfalls": [
+        "Assuming secret masking prevents exfiltration; masking only redacts log output.",
+        "Reusing one long-lived deploy credential for every environment and every branch."
+      ],
+      "configs": [
+        {
+          "language": "yaml",
+          "snippet": "name: build\non:\n  pull_request:\npermissions: {}\njobs:\n  build:\n    runs-on: ubuntu-24.04\n    permissions:\n      contents: read\n    steps:\n      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683\n      - run: ./ci/build.sh",
+          "purpose": "Workflow that starts with no token permissions and grants only contents: read to the build job."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "A pull-request workflow needs to compile code but not publish anything. Which permission set is closest to least privilege?",
+          "options": [
+            "contents: write, packages: write, id-token: write",
+            "contents: read only",
+            "No permissions block, using the repository default",
+            "actions: write and deployments: write"
+          ],
+          "answer": [
+            1
+          ],
+          "rationale": "Compiling needs to read the repository. Write scopes, OIDC tokens and deployment permissions should be absent unless the job actually publishes or deploys."
+        }
+      ],
+      "references": [
+        {
+          "title": "GitHub Docs: Workflow syntax for GitHub Actions (permissions)",
+          "publisher": "GitHub",
+          "url": "https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#permissions",
+          "license": "CC-BY-4.0"
+        },
+        {
+          "title": "OWASP Top 10 CI/CD Security Risks",
+          "publisher": "OWASP Foundation",
+          "url": "https://owasp.org/www-project-top-10-ci-cd-security-risks/",
+          "license": "CC-BY-SA-4.0"
+        }
+      ],
+      "tags": [
+        "ci-cd",
+        "least-privilege",
+        "github-actions"
+      ]
+    },
+    {
+      "id": "sc-build-cache-poisoning",
+      "subtopic": "build-integrity",
+      "difficulty": "expert",
+      "title": "Shared build caches are a trust boundary that untrusted jobs must not write to",
+      "fact": "Compiler caches, remote Bazel caches, container layer caches and CI dependency caches can return artifacts produced by a different job. If an untrusted pull request or branch can write to a cache that a trusted build later restores, it can substitute a compiled object, a package or a layer without touching source. Cache keys derived from untrusted input make targeted poisoning easier. The safe design separates caches by trust domain, makes caches read-only for untrusted jobs, and verifies artifact digests after restore.",
+      "details": [
+        "GitHub Actions caches are scoped so a pull request cannot overwrite the base branch cache, but self-hosted and externally shared caches often lack that scoping.",
+        "Cache keys should include a hash of the trusted inputs and a trust-domain identifier, not a branch name supplied by the contributor.",
+        "A cache hit is an optimization, not an integrity check; verify hashes or signatures before using restored outputs."
+      ],
+      "pitfalls": [
+        "Letting fork pull requests populate a cache consumed by release builds.",
+        "Assuming a cache is safe because the key includes a commit SHA, when the attacker can choose the commit and the key.",
+        "Restoring a container layer cache across projects that do not share a trust level."
+      ],
+      "configs": [
+        {
+          "language": "yaml",
+          "snippet": "- uses: actions/cache@v4\n  with:\n    path: ~/.cache/go-build\n    key: go-${{ runner.os }}-${{ hashFiles('**/go.sum') }}\n    restore-keys: |\n      go-${{ runner.os }}-",
+          "purpose": "Illustrative cache step; in a shared-runner design the same cache must not be writable by untrusted jobs."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Why is a shared remote build cache dangerous when untrusted pull requests can write to it?",
+          "options": [
+            "It increases storage cost",
+            "A later trusted build may restore attacker-produced objects instead of compiling from reviewed source",
+            "It disables compiler warnings",
+            "It prevents reproducible builds"
+          ],
+          "answer": [
+            1
+          ],
+          "rationale": "A cache lookup can return content the trusted build did not produce. Without separation or verification, that content is incorporated into the release artifact."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "Including the commit SHA in a cache key makes cache poisoning impossible.",
+          "correction": "An attacker who controls a branch or pull request also controls the commit, and can shape the key. Isolation by trust domain and read-only caches for untrusted jobs are the controls, not key uniqueness."
+        }
+      ],
+      "references": [
+        {
+          "title": "GitHub Docs: Caching dependencies to speed up workflows",
+          "publisher": "GitHub",
+          "url": "https://docs.github.com/en/actions/using-workflows/caching-dependencies-to-speed-up-workflows",
+          "license": "CC-BY-4.0"
+        },
+        {
+          "title": "SLSA Specification v1.0: Threats and mitigations",
+          "publisher": "OpenSSF",
+          "url": "https://slsa.dev/spec/v1.0/threats",
+          "license": "Apache-2.0"
+        }
+      ],
+      "tags": [
+        "cache-poisoning",
+        "build-integrity",
+        "ci-cd"
+      ]
+    },
+    {
+      "id": "sc-signed-commits",
+      "subtopic": "source-integrity",
+      "difficulty": "foundational",
+      "title": "A signed commit proves key possession, not review or safety",
+      "fact": "Git commit signing with GPG or SSH keys produces a signature over the commit object, and `git verify-commit` checks it against a trusted key. Platforms can display a verified badge and enforce that protected branches require signed commits. Signing binds a commit to whoever held the key at signing time; it does not prove the code was reviewed, that the author understood it, or that the key was not stolen.",
+      "details": [
+        "SSH signing requires Git 2.34 or later and an `ssh` signing format configured with `gpg.format`.",
+        "Signed tags are more relevant for releases than individual commits; verify the tag before building from it.",
+        "Key revocation and rotation are part of the control: a compromised signing key must be revoked and its signatures re-examined."
+      ],
+      "pitfalls": [
+        "Treating a verified badge as evidence of code review.",
+        "Requiring signed commits on a branch without protecting the branch from force pushes or direct writes."
+      ],
+      "commands": [
+        {
+          "language": "bash",
+          "code": "git config --global commit.gpgsign true\ngit commit -S -m \"harden: drop all capabilities\"\ngit verify-commit HEAD",
+          "purpose": "Sign a commit and verify its signature against the configured trust store."
+        },
+        {
+          "language": "bash",
+          "code": "git log --show-signature -1",
+          "purpose": "Display the signature status and signer for the latest commit."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "What does a valid commit signature prove?",
+          "options": [
+            "The code was reviewed by a maintainer",
+            "The commit content matches what the holder of the signing key signed",
+            "The commit contains no vulnerabilities",
+            "The commit was built reproducibly"
+          ],
+          "answer": [
+            1
+          ],
+          "rationale": "A signature binds the commit object to a key. Review, vulnerability status and build reproducibility are separate properties not established by signing."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "Enforcing signed commits on the main branch secures the supply chain end to end.",
+          "correction": "Signed commits only attest authorship of commit objects. You still need protected branches, review, signed tags or artifacts, build provenance and deployment verification to cover the rest of the chain."
+        }
+      ],
+      "references": [
+        {
+          "title": "Git Documentation: Signing your work",
+          "publisher": "Git project",
+          "url": "https://git-scm.com/book/en/v2/Git-Tools-Signing-Your-Work",
+          "license": "CC-BY-NC-SA-3.0"
+        },
+        {
+          "title": "GitHub Docs: About commit signature verification",
+          "publisher": "GitHub",
+          "url": "https://docs.github.com/en/authentication/managing-commit-signature-verification/about-commit-signature-verification",
+          "license": "CC-BY-4.0"
+        }
+      ],
+      "tags": [
+        "signing",
+        "git",
+        "source-integrity"
+      ]
+    }
+  ]
+}

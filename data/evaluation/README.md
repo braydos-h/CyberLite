@@ -19,6 +19,14 @@ Bundled files:
   Answer positions and labels are balanced and interleaved. It is a regression
   signal, not a validated or standardized benchmark, and must not be cited as
   one.
+- `cyberlite_eval_factual_v1.jsonl`, `cyberlite_eval_vulnerability_v1.jsonl`,
+  and `cyberlite_eval_logs_ir_v1.jsonl` — 55 items each, authored by evaluation
+  agents isolated from the training knowledge packs. They cover factual and
+  knowledge questions, vulnerability classification and secure code/config,
+  logs, grounded QA, incident response, false positives, uncertainty, and
+  general retention. Each has a frozen `.meta.json` with a SHA-256 and counts.
+  They are evaluation-only and are never training sources. Do not modify them
+  after a model comparison; a change requires a new versioned file.
 
 Locally generated files (ignored by Git, never redistributed):
 

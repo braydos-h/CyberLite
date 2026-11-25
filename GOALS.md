@@ -47,6 +47,27 @@ without redistributing restricted text.
   [`data/manifests/pilot-v2/`](data/manifests/pilot-v2/). The original
   ATT&CK + CWE slice remains frozen under
   [`data/manifests/pilot-attack-cwe-v1/`](data/manifests/pilot-attack-cwe-v1/).
+- [x] A deterministic synthesis pipeline expands the corpus from committed knowledge packs and the frozen pilot training split, with per-record provenance, grouping, exact/SimHash/MinHash deduplication, contamination screening, token gating, and staged manifests.
+
+  `scripts/synthesize_dataset.py` builds calibration and production corpora
+  from `data/synthesis/knowledge/` (439 curated facts), a source-grounded
+  derivation layer, and a detection-rule teaching library. The pipeline
+  never uses validation, test, or evaluation material as generation seeds.
+  The expansion build screened 277,950 per-file n-grams across six local
+  evaluation files; the pilot-v2 figure above (241,515) covers its earlier
+  three-file screen and remains accurate for that frozen build.
+- [x] Held-out evaluation sets are authored independently of the training packs and frozen with SHA-256 metadata.
+
+  Three 55-item sets cover factual/knowledge, vulnerability/secure code, and
+  logs/incident response/false positives/uncertainty/retention. They live in
+  `data/evaluation/cyberlite_eval_*_v1.jsonl` and are screened against every
+  training build.
+- [ ] Every synthetic record has an independent technical and quality review.
+
+  The review ledger and rubric are implemented, and calibration samples have
+  been reviewed by independent AI agents. Coverage is sampled, not complete;
+  most accepted records remain `automated-screened`. No human review has been
+  recorded.
 - [x] The source-license report is published without redistributing restricted text.
 
   `license_report.json` and `license_report.md` record permitted uses,
@@ -112,6 +133,11 @@ The numeric thresholds and the analysis plan are fixed in
 [docs/preregistration.md](docs/preregistration.md) before training; the project
 probe is a regression signal, not a benchmark.
 
+- [x] Frozen held-out evaluation sets exist for factual, vulnerability, secure-code, log, grounded-QA, incident-response, false-positive, configuration, uncertainty, and retention suites.
+
+  The sets are evaluation-only and were authored by agents isolated from the
+  training knowledge packs. They are not a validated public benchmark and no
+  trained-model performance is claimed.
 - [x] Evaluation harness, metrics, bootstrap intervals, and report schema are implemented.
 - [x] CyberSecEval, SecEval (evaluation-only), and held-out MCQ adapters exist behind license gates.
 - [ ] Base/instruct reference numbers replace the placeholders in the benchmark table.
