@@ -42,6 +42,9 @@ Move entries into a versioned section only when a release is tagged.
 
 ### Changed
 
+- The `web/` site is rebuilt around verified material: the E0 baseline run, the 6–8 GB memory budget, the 13 autocomplete profiles, the safety contract, and the 14/39 milestone snapshot, with a responsive triptych hero and a dark forest palette.
+- The `web/` page now loads Instrument Sans and DM Mono from Google Fonts; the Cloudflare `_headers` content policy permits that stylesheet and the font files.
+
 - `FUNDING.md`, `GOVERNANCE.md`, `README.md`, and `docs/compute-budget.md` now state the single-maintainer, hardware-only scope explicitly; the budget does not assume cloud credits, rentals, salaries, contractors, or a second engineer, and Tier 2 is sized as a conditional scale check.
 - `README.md` gains a Funding and compute section linking the ask, budget, bring-up protocol, pre-registration, and governance; the repository layout lists the new documents.
 - `GOALS.md` links G3 to the pre-registration thresholds and G6 to the funding and bring-up documents.
@@ -63,6 +66,7 @@ Move entries into a versioned section only when a release is tagged.
 
 ### Docs
 
+- `web/README.md` now describes the rebuilt asset layout, the Google Fonts dependency, the E0 and milestone snapshot, and the `share.jpg` social image.
 - `README.md` documents the conditional scaling path from the 0.8B Qwen3.5 target to a 26B Inkling-2-mini follow-on, so the larger-model ambition is stated as a plan rather than left implied.
 - Documented the planning estimates as estimates in every new page; no new measurement or benchmark claim is introduced.
 - `docs/dataset.md` now lists what is committed (manifests, the project probe, and small baseline artifacts) instead of claiming only synthetic seed data is tracked.
