@@ -21,6 +21,9 @@ from cyberlite.data.cleaning import find_secrets  # noqa: E402
 
 REQUIRED = [
     "README.md",
+    "GOALS.md",
+    "CHANGELOG.md",
+    "AGENTS.md",
     "LICENSE",
     "NOTICE",
     "CONTRIBUTING.md",
@@ -42,6 +45,7 @@ REQUIRED = [
     "scripts/evaluate.py",
     "scripts/quantize.py",
     "scripts/benchmark.py",
+    "scripts/update_progress.py",
     "cyberlite/__init__.py",
     "paper/main.tex",
     "paper/references.bib",

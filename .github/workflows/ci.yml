@@ -51,6 +51,9 @@ jobs:
       - name: Repository validation
         run: python scripts/validate_repo.py
 
+      - name: Progress freshness
+        run: python scripts/update_progress.py --check
+
       - name: Unit tests
         run: pytest -m "not integration" --cov=cyberlite --cov-report=term-missing
 

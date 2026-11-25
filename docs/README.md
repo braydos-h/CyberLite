@@ -14,4 +14,12 @@
 | [roadmap.md](roadmap.md) | Phased plan and non-goals |
 | [testing.md](testing.md) | Unit, integration, static checks, CI |
 
+Project-wide documents at the repository root:
+
+| Document | Contents |
+|---|---|
+| [GOALS.md](../GOALS.md) | Goals, success criteria, and the live milestone tracker |
+| [CHANGELOG.md](../CHANGELOG.md) | Every notable change, newest first |
+| [AGENTS.md](../AGENTS.md) | Working rules for contributors and AI agents |
+
 Start with the [README](../README.md) for installation and quick-start commands.
