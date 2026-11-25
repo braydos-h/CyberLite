@@ -49,6 +49,34 @@ git rev-parse HEAD
 Attach these to a result archive. Do not commit environment locks containing
 credentials or local paths.
 
+## Expanded pilot workflow (pilot-v2)
+
+```bash
+# First run: fetch pinned public inputs into data/cache and data/raw.
+python scripts/prepare_dataset.py --config configs/dataset_pilot.yaml --force
+
+# Offline rebuild from the same cache and pinned local files.
+python scripts/prepare_dataset.py --config configs/dataset_pilot.yaml --offline --force
+
+# Audit the produced splits and generate a deterministic review sample.
+python scripts/audit_dataset.py \
+  --dataset data/processed/pilot-v2 \
+  --out data/manifests/pilot-v2/audit \
+  --review-out data/processed/pilot-v2/review_samples.jsonl \
+  --tokenizer Qwen/Qwen3.5-0.8B --max-seq-len 1024
+```
+
+The frozen manifest is `data/manifests/pilot-v2/manifest.json`. It records the
+configuration SHA-256, source registry SHA-256, per-source revisions and input
+hashes, split hashes, seed, pipeline version, quality/contamination/rejection
+statistics, and the reproduction command. Identical pinned inputs and
+configurations produce identical dataset content and split hashes. The timestamp
+and report-generation time are not part of the dataset version.
+
+NVD pages are cached one file per request under `data/cache/nvd/`; a rerun with
+`--offline` reads only those cached pages and fails loudly if a required page is
+missing. The cache and raw downloads are Git-ignored.
+
 ## Exact smoke workflow
 
 ```bash
@@ -71,7 +99,9 @@ benchmark results and should not be cited as model capabilities.
 | 2026-11-25 | Two-step smoke training | 26--29 s training after load, ~6.3 GiB peak RSS, adapter and metadata saved |
 | 2026-11-25 | Adapter reload + generation | Adapter loaded; chat and FIM code paths executed on CPU |
 | 2026-11-25 | Evaluation harness | Eight synthetic smoke items processed end to end; outputs kept outside the repository |
-| 2026-11-25 | Pilot corpus build | ATT&CK + CWE: 2,102 records in, 2,006 out, 96 near-duplicates removed, 241,515 evaluation n-grams screened, zero 13-gram findings |
+| 2026-11-25 | Pilot v1 build | ATT&CK + CWE: 2,102 records in, 2,006 out, 96 near-duplicates removed, 241,515 evaluation n-grams screened, zero 13-gram findings |
+| 2026-11-25 | Pilot v2 build | Nine sources: 7,724 records in, 7,188 accepted, 536 rejected; 241,515 evaluation n-grams screened, zero 13-gram findings; Qwen3.5-0.8B tokenizer p50 373 / p95 798 / p99 1,539, max 3,474; 216 records over 1,024 tokens |
+| 2026-11-25 | Pilot v2 audit | 200 deterministic stratified samples generated; no human review recorded; cross-split leakage and group violations zero |
 | 2026-11-25 | SecEval baseline | Full 2,182 items, 59 min, 1.63 s/item, 34.65% accuracy (59.11% single-answer, 1.41% multi-answer), 5.45 GB peak RSS |
 | 2026-11-25 | Test suite | Unit tests pass without downloading model weights |
 

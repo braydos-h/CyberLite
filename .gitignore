@@ -41,6 +41,7 @@ data/evaluation/*
 !data/evaluation/README.md
 !data/evaluation/smoke_eval.jsonl
 !data/evaluation/baseline_probe_v1.jsonl
+!data/evaluation/*.meta.json
 
 # Third-party benchmark items: local only, never redistributed
 benchmarks/*/*.json
@@ -105,3 +106,8 @@ paper/*.run.xml
 paper/*.synctex.gz
 paper/*.toc
 paper/sections/*.aux
+
+# Dataset acquisition cache and local review artifacts (never commit raw text)
+data/cache/
+**/review_samples.jsonl
+**/review_summary.json

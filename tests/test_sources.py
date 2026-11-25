@@ -138,3 +138,23 @@ def test_markdown_directory_normalization(tmp_path: Path, registry: SourceRegist
     assert records
     assert all(record.source == "owasp_cheatsheets" for record in records)
     assert all(record.license == "CC-BY-SA-4.0" for record in records)
+
+
+def test_manpage_without_spdx_is_quarantined(tmp_path: Path, registry: SourceRegistry) -> None:
+    page = tmp_path / "unknown.5"
+    page.write_text(
+        ".TH unknown 5\n.SH DESCRIPTION\n"
+        + "An operational description without an explicit license. " * 8
+        + "\n",
+        encoding="utf-8",
+    )
+    from dataclasses import replace
+
+    spec = replace(
+        registry.get("linux_man_pages"),
+        options={"min_section_chars": 20},
+    )
+    from cyberlite.data.sources import normalize_source_outcome
+
+    outcome = normalize_source_outcome(page, spec)
+    assert outcome.records == []

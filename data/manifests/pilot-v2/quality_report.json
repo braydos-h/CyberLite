@@ -1,0 +1,387 @@
+{
+  "accepted": 7188,
+  "contamination": {
+    "findings": [],
+    "group_removed_ids": [],
+    "ngram": 13,
+    "records_after": 7188,
+    "records_before": 7188,
+    "removed": 0,
+    "removed_groups": [],
+    "sets": [
+      {
+        "items": 36,
+        "license": "Synthetic",
+        "matched_ids": [],
+        "matched_records": 0,
+        "metadata": {
+          "benchmark": "baseline-probe-v1",
+          "evaluation_only": true,
+          "items": 36,
+          "license": "Synthetic",
+          "note": "36 project-authored capability-probe items; a regression signal, not a validated benchmark.",
+          "redistribution": "project-authored; may be redistributed with attribution",
+          "sha256": "f5a7055c5168e77529b52e0d572cf8f987c60d15e6e5c49a0d3099b70857baf4",
+          "version": "v1"
+        },
+        "name": "baseline-probe-v1",
+        "ngrams": 594,
+        "path": "data/evaluation/baseline_probe_v1.jsonl",
+        "populated": true,
+        "sha256": "f5a7055c5168e77529b52e0d572cf8f987c60d15e6e5c49a0d3099b70857baf4",
+        "version": "v1"
+      },
+      {
+        "items": 2182,
+        "license": "CC-BY-NC-SA-4.0",
+        "matched_ids": [],
+        "matched_records": 0,
+        "metadata": {
+          "benchmark": "seceval",
+          "converted_items": 2182,
+          "converted_sha256": "6ae74b2c9c45d1024f99453be00ae82d00567f0b5f1ffa1cc4109a2fa4ef1c03",
+          "downloaded_at": "2026-11-25T04:02:40.001947+00:00",
+          "evaluation_only": true,
+          "license": "CC-BY-NC-SA-4.0",
+          "multi_answer_items": 925,
+          "redistribution": "not permitted",
+          "single_answer_items": 1257,
+          "skipped": {
+            "unusable_or_empty_answer": 7
+          },
+          "topics": {
+            "ApplicationSecurity": 807,
+            "Cryptography": 14,
+            "MemorySafety": 48,
+            "NetworkSecurity": 228,
+            "PenTest": 473,
+            "SoftwareSecurity": 232,
+            "SystemSecurity": 1062,
+            "Vulnerability": 334,
+            "WebSecurity": 771
+          },
+          "upstream_items": 2189,
+          "upstream_revision": "205dab7b0888a06f4b53ca7d9c7093e1326683e1",
+          "upstream_sha256": "194c3a511104be422a678675a71d44315d0c0392b040745155aeebc321e692e0",
+          "upstream_url": "https://huggingface.co/datasets/XuanwuAI/SecEval"
+        },
+        "name": "seceval",
+        "ngrams": 240755,
+        "path": "data/evaluation/seceval_v1.jsonl",
+        "populated": true,
+        "sha256": "6ae74b2c9c45d1024f99453be00ae82d00567f0b5f1ffa1cc4109a2fa4ef1c03",
+        "version": "205dab7b0888a06f4b53ca7d9c7093e1326683e1"
+      },
+      {
+        "items": 8,
+        "license": "Synthetic",
+        "matched_ids": [],
+        "matched_records": 0,
+        "metadata": {
+          "benchmark": "smoke-eval",
+          "evaluation_only": true,
+          "items": 8,
+          "license": "Synthetic",
+          "note": "Eight original synthetic harness-validation items; not a benchmark.",
+          "redistribution": "project-authored; may be redistributed with attribution",
+          "sha256": "111132beb36f65d9bc57bdb42efe9d801d5971d0f355f23b08723e7b6be5fc3d",
+          "version": "v1"
+        },
+        "name": "smoke-eval",
+        "ngrams": 166,
+        "path": "data/evaluation/smoke_eval.jsonl",
+        "populated": true,
+        "sha256": "111132beb36f65d9bc57bdb42efe9d801d5971d0f355f23b08723e7b6be5fc3d",
+        "version": "v1"
+      }
+    ],
+    "status": "screened",
+    "threshold": 0.2,
+    "total_indexed_ngrams": 241515
+  },
+  "counts": {
+    "accepted_records": 7188,
+    "input_records": 7724,
+    "rejected_records": 536,
+    "splits": {
+      "test": 421,
+      "train": 6351,
+      "validation": 416
+    }
+  },
+  "cross_split_leakage": [],
+  "dataset_name": "pilot-v2",
+  "dataset_version": "cyberlite-data-2.0.0-04b01b437805",
+  "duplicate_rates": {
+    "cross_source_duplicates": 0,
+    "dedup": {
+      "exact_duplicates": 0,
+      "kept": 7188,
+      "near_duplicates": 417
+    },
+    "duplicates": 417,
+    "rate": 0.05398757120662869,
+    "redacted_secrets": 8
+  },
+  "files": {
+    "quarantine": {
+      "bytes": 65026,
+      "path": "data/processed/pilot-v2/quarantine.jsonl",
+      "records": 536,
+      "sha256": "e0aa8f574d2f76f15bdcb2095eeffa2e92018db6ae0e3e6f42bd4c213b929696"
+    },
+    "test": {
+      "bytes": 1225139,
+      "path": "data/processed/pilot-v2/test.jsonl",
+      "records": 421,
+      "sha256": "9145f39a766c13e97961acb3c586caa610eda5babc7edd831957894401a0c2c1"
+    },
+    "train": {
+      "bytes": 18536037,
+      "path": "data/processed/pilot-v2/train.jsonl",
+      "records": 6351,
+      "sha256": "db008cf7d50f3fc2b98387d07069aed36375833072df80bf75c048a0935c95e5"
+    },
+    "validation": {
+      "bytes": 1315091,
+      "path": "data/processed/pilot-v2/validation.jsonl",
+      "records": 416,
+      "sha256": "22ac9d49b92b55ea685dd3afebd6aad2e4950bb3e44ebcc27503692fcf42e91b"
+    }
+  },
+  "group_split_violations": [],
+  "license_distribution": {
+    "CC-BY-SA-4.0": 1967,
+    "GPL-1.0-or-later": 6,
+    "GPL-2.0-only": 40,
+    "GPL-2.0-or-later": 10,
+    "GPL-3.0-or-later": 8,
+    "IETF-Trust": 395,
+    "Linux-man-pages-1-para": 67,
+    "Linux-man-pages-copyleft": 156,
+    "MITRE-ATTACK": 977,
+    "MITRE-CWE": 954,
+    "OpenSSH": 28,
+    "Public-Domain": 2961,
+    "Synthetic": 36
+  },
+  "limitations": [
+    "Quality gates are heuristics and can reject useful text or accept questionable text.",
+    "The 13-gram screen does not detect paraphrase, translation, or conceptual overlap.",
+    "Token counts are a length signal, not a quality or factuality measure.",
+    "Manual review is pending; no record is described as human-verified."
+  ],
+  "manual_review": {
+    "completed": false,
+    "note": "No human review has been recorded. Generate a review sample with scripts/audit_dataset.py; do not mark this complete until reviewers have actually assessed the sample.",
+    "required": true,
+    "reviewed_records": 0,
+    "target_records": 200
+  },
+  "missing_provenance": {
+    "license": 0,
+    "source_version": 0,
+    "task": 0,
+    "upstream_id": 0,
+    "url": 0
+  },
+  "pipeline_version": "2.0.0",
+  "quality_rejection_reasons": {
+    "excessive_repeated_lines": 77,
+    "link_heavy": 14,
+    "pii_detected": 28
+  },
+  "quality_rejections": 119,
+  "quality_warnings": {
+    "accepted": 7605,
+    "assessed": 7724,
+    "rejected": 119,
+    "rejection_reasons": {
+      "excessive_repeated_lines": 77,
+      "link_heavy": 14,
+      "pii_detected": 28
+    },
+    "token_lengths": {
+      "limitations": "Token counts are a length signal, not a quality measure. Truncation risk assumes the configured maximum sequence length and does not model the training collator or packing.",
+      "max_sequence_tokens": 1024,
+      "records": 7188,
+      "tokenizer": "Qwen/Qwen3.5-0.8B",
+      "tokenizer_info": {
+        "estimated": false,
+        "kind": "transformers",
+        "local_only": true,
+        "name": "Qwen/Qwen3.5-0.8B",
+        "revision": ""
+      },
+      "tokens": {
+        "max": 3474,
+        "mean": 395.26,
+        "min": 53,
+        "p50": 373,
+        "p90": 616,
+        "p95": 798,
+        "p99": 1539
+      },
+      "truncation": {
+        "over_limit": 216,
+        "ratio": 0.0301,
+        "risk": "low"
+      },
+      "truncation_by_limit": {
+        "1024": {
+          "over_limit": 216,
+          "ratio": 0.0301
+        },
+        "2048": {
+          "over_limit": 31,
+          "ratio": 0.0043
+        },
+        "4096": {
+          "over_limit": 0,
+          "ratio": 0.0
+        },
+        "512": {
+          "over_limit": 1495,
+          "ratio": 0.208
+        },
+        "8192": {
+          "over_limit": 0,
+          "ratio": 0.0
+        }
+      }
+    },
+    "warning_counts": {
+      "pii_detected": 287,
+      "unsupported_absolute_claim": 505
+    },
+    "warnings_by_source": {
+      "ietf_rfcs": {
+        "pii_detected": 15,
+        "unsupported_absolute_claim": 63
+      },
+      "linux_man_pages": {
+        "unsupported_absolute_claim": 46
+      },
+      "mitre_attack": {
+        "unsupported_absolute_claim": 10
+      },
+      "mitre_cwe": {
+        "unsupported_absolute_claim": 98
+      },
+      "netfilter_nftables": {
+        "unsupported_absolute_claim": 6
+      },
+      "nist_nvd": {
+        "pii_detected": 255,
+        "unsupported_absolute_claim": 6
+      },
+      "openssh_docs": {
+        "pii_detected": 13,
+        "unsupported_absolute_claim": 9
+      },
+      "owasp_cheatsheets": {
+        "pii_detected": 4,
+        "unsupported_absolute_claim": 262
+      },
+      "project_examples": {
+        "unsupported_absolute_claim": 5
+      }
+    }
+  },
+  "rejected": 536,
+  "rejection_reasons": {
+    "duplicate": 417,
+    "quality": 119
+  },
+  "report": "quality-and-audit",
+  "schema_version": 1,
+  "source_distribution": {
+    "ietf_rfcs": 393,
+    "linux_man_pages": 246,
+    "mitre_attack": 959,
+    "mitre_cwe": 906,
+    "netfilter_nftables": 40,
+    "nist_nvd": 2615,
+    "openssh_docs": 28,
+    "owasp_cheatsheets": 1965,
+    "project_examples": 36
+  },
+  "source_errors": [],
+  "task_distribution": {
+    "attack-technique": 712,
+    "cryptography": 4,
+    "defensive-control": 247,
+    "detection-engineering": 6,
+    "dns": 109,
+    "documentation": 1467,
+    "incident-response": 6,
+    "log-analysis": 6,
+    "logging-monitoring": 73,
+    "networking": 95,
+    "permissions": 93,
+    "secure-coding": 504,
+    "ssh": 82,
+    "system-administration": 48,
+    "system-hardening": 68,
+    "tls": 141,
+    "vulnerability": 2615,
+    "vulnerability-remediation": 6,
+    "weakness": 906
+  },
+  "task_imbalance": {
+    "balanced": false,
+    "max_count": 2615,
+    "min_count": 4,
+    "note": "A ratio above 10 indicates a task category with very little coverage; it is a review prompt, not an automatic rejection.",
+    "ratio": 653.75
+  },
+  "token_lengths": {
+    "limitations": "Token counts are a length signal, not a quality measure. Truncation risk assumes the configured maximum sequence length and does not model the training collator or packing.",
+    "max_sequence_tokens": 1024,
+    "records": 7188,
+    "tokenizer": "Qwen/Qwen3.5-0.8B",
+    "tokenizer_info": {
+      "estimated": false,
+      "kind": "transformers",
+      "local_only": true,
+      "name": "Qwen/Qwen3.5-0.8B",
+      "revision": ""
+    },
+    "tokens": {
+      "max": 3474,
+      "mean": 395.26,
+      "min": 53,
+      "p50": 373,
+      "p90": 616,
+      "p95": 798,
+      "p99": 1539
+    },
+    "truncation": {
+      "over_limit": 216,
+      "ratio": 0.0301,
+      "risk": "low"
+    },
+    "truncation_by_limit": {
+      "1024": {
+        "over_limit": 216,
+        "ratio": 0.0301
+      },
+      "2048": {
+        "over_limit": 31,
+        "ratio": 0.0043
+      },
+      "4096": {
+        "over_limit": 0,
+        "ratio": 0.0
+      },
+      "512": {
+        "over_limit": 1495,
+        "ratio": 0.208
+      },
+      "8192": {
+        "over_limit": 0,
+        "ratio": 0.0
+      }
+    }
+  }
+}

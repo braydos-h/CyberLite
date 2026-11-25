@@ -1,0 +1,190 @@
+schema_version: 1
+# Expanded CyberLite pilot build (pilot-v2).
+#
+# This file describes *what this build consumes*. Source identity, license, and
+# normalizer kind remain in data/sources.yaml. Acquisition is explicitly enabled
+# here for the pinned public inputs; use `--offline` to rebuild from the cache.
+name: pilot-v2
+version: "2.0.0"
+seed: 42
+out_dir: data/processed/pilot-v2
+raw_dir: data/raw
+cache_dir: data/cache
+eval_dir: data/evaluation
+manifest_dir: data/manifests/pilot-v2
+registry: data/sources.yaml
+offline: false
+download: true
+tokenizer: Qwen/Qwen3.5-0.8B
+tokenizer_local_only: true
+split:
+  train: 0.90
+  validation: 0.05
+  test: 0.05
+min_chars: 120
+max_chars: 200000
+dedup_threshold: 3
+contamination_n: 13
+contamination_threshold: 0.20
+contamination_group_quarantine: true
+group_splits: true
+verify_split_leakage: true
+allowed_licenses:
+  - Apache-2.0
+  - BSD-2-Clause
+  - BSD-3-Clause
+  - BSD-4-Clause-UC
+  - CC-BY-4.0
+  - CC-BY-SA-4.0
+  - CC0-1.0
+  - GPL-1.0-or-later
+  - GPL-2.0-only
+  - GPL-2.0-or-later
+  - GPL-3.0-or-later
+  - IETF-Trust
+  - Linux-man-pages-1-para
+  - Linux-man-pages-copyleft
+  - MIT
+  - MITRE-ATTACK
+  - MITRE-CWE
+  - Mixed-SPDX
+  - OpenSSH
+  - Public-Domain
+  - Synthetic
+quality:
+  min_prompt_chars: 10
+  min_response_chars: 120
+  max_response_chars: 20000
+  min_total_chars: 120
+  max_total_chars: 200000
+  max_repeated_line_ratio: 0.35
+  min_unique_token_ratio: 0.20
+  max_url_ratio: 0.45
+  max_boilerplate_ratio: 0.50
+  max_navigation_line_ratio: 0.25
+  reject_pii: true
+  reject_unsupported_absolute_claims: false
+  max_sequence_tokens: 1024
+sources:
+  - name: mitre_attack
+    include: true
+    paths:
+      - data/raw/mitre_attack/enterprise-attack.json
+    revision: v20.1
+    group: mitre_attack
+  - name: mitre_cwe
+    include: true
+    paths:
+      - data/raw/mitre_cwe/cwec_latest.xml.zip
+    revision: "5.0"
+    group: mitre_cwe
+  - name: nist_nvd
+    include: true
+    max_records: 3000
+    group: nist_nvd
+    options:
+      mode: api
+      date_start: "2024-01-01"
+      date_end: "2024-03-31"
+      page_size: 2000
+  - name: owasp_cheatsheets
+    include: true
+    archive_url: https://codeload.github.com/OWASP/CheatSheetSeries/tar.gz/05861f28ed88269db390afeb67486abc0adfc076
+    revision: 05861f28ed88269db390afeb67486abc0adfc076
+    max_records: 2500
+    group: owasp_cheatsheets
+    options:
+      subdir: cheatsheets
+      min_section_chars: 200
+      max_section_chars: 6000
+      max_heading_level: 3
+  - name: linux_man_pages
+    include: true
+    archive_url: https://mirrors.edge.kernel.org/pub/linux/docs/man-pages/man-pages-6.9.tar.xz
+    revision: man-pages-6.9
+    max_records: 1500
+    group: linux_man_pages
+    options:
+      subdir: man
+      min_section_chars: 200
+      max_section_chars: 6000
+      files:
+        - chmod.2
+        - chown.2
+        - umask.2
+        - access.2
+        - capabilities.7
+        - credentials.7
+        - proc.5
+        - ip.7
+        - tcp.7
+        - udp.7
+        - resolv.conf.5
+        - hosts.5
+        - syslog.3
+        - syslog.2
+        - namespaces.7
+        - user_namespaces.7
+        - network_namespaces.7
+        - cgroups.7
+        - sysctl.2
+        - signal.7
+        - socket.7
+        - unix.7
+        - nsswitch.conf.5
+        - group.5
+        - passwd.5
+        - random.7
+        - arp.7
+        - netlink.7
+        - proc_sys_proc.5
+        - proc_sys_kernel.5
+  - name: openssh_docs
+    include: true
+    archive_url: https://codeload.github.com/openssh/openssh-portable/tar.gz/d449e662b6b8b8cb20e852d8084c269af1c5e8f1
+    revision: V_10_6_P2
+    max_records: 300
+    group: openssh_docs
+    options:
+      min_section_chars: 200
+      max_section_chars: 6000
+      files:
+        - sshd_config.5
+        - ssh_config.5
+  - name: netfilter_nftables
+    include: true
+    archive_url: https://www.netfilter.org/projects/nftables/files/nftables-1.1.1.tar.xz
+    revision: "1.1.1"
+    max_records: 100
+    group: netfilter_nftables
+    options:
+      subdir: doc
+      min_section_chars: 200
+      max_section_chars: 6000
+      files:
+        - nft.8
+  - name: ietf_rfcs
+    include: true
+    max_records: 600
+    group: ietf_rfcs
+    options:
+      min_section_chars: 200
+      max_section_chars: 6000
+      urls:
+        - https://www.rfc-editor.org/rfc/rfc8446.txt
+        - https://www.rfc-editor.org/rfc/rfc9325.txt
+        - https://www.rfc-editor.org/rfc/rfc1034.txt
+        - https://www.rfc-editor.org/rfc/rfc1035.txt
+        - https://www.rfc-editor.org/rfc/rfc4251.txt
+        - https://www.rfc-editor.org/rfc/rfc4252.txt
+        - https://www.rfc-editor.org/rfc/rfc4253.txt
+        - https://www.rfc-editor.org/rfc/rfc5424.txt
+        - https://www.rfc-editor.org/rfc/rfc1918.txt
+        - https://www.rfc-editor.org/rfc/rfc5735.txt
+  - name: project_examples
+    include: true
+    paths:
+      - data/seed/project_examples_v1.jsonl
+    revision: v1
+    max_records: 200
+    group: project_examples

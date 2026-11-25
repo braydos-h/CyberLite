@@ -35,14 +35,33 @@ without redistributing restricted text.
 - [x] Source and license registry with quarantine for unknown licenses is implemented.
 - [x] Cleaning, secret redaction, exact/SimHash dedup, and 13-gram contamination screening are implemented and smoke-tested.
 - [x] Deterministic content-hash splits and manifest hashing are implemented.
-- [ ] A licensed, versioned pilot corpus (ATT&CK, CWE, NVD, OWASP, Linux/networking docs) is published as a manifest.
+- [x] Config-driven multi-source ingestion supports per-source paths and limits, explicit include/exclude, archive and NVD API acquisition, a local cache, and offline rebuilding.
+- [x] A CPU-only audit utility produces JSON and Markdown reports, token-length percentiles, file hashes, and a deterministic stratified review sample with a human-review template.
+- [x] A licensed, versioned pilot corpus (ATT&CK, CWE, NVD, OWASP, Linux/networking docs, and project-authored examples) is published as a manifest.
 
-  Current slice: ATT&CK + CWE, 2,006 records, manifest committed under
+  Expanded pilot `pilot-v2` (dataset version
+  `cyberlite-data-2.0.0-04b01b437805`): 7,724 normalized inputs, 7,188 accepted
+  records, 536 rejected (417 near-duplicates, 119 quality), split 6,351 / 416 /
+  421 across train / validation / test. The frozen manifest, quality,
+  contamination, license, and audit reports are committed under
+  [`data/manifests/pilot-v2/`](data/manifests/pilot-v2/). The original
+  ATT&CK + CWE slice remains frozen under
   [`data/manifests/pilot-attack-cwe-v1/`](data/manifests/pilot-attack-cwe-v1/).
-  NVD, OWASP, and the system/networking docs remain open.
-- [ ] The source-license report is published without redistributing restricted text.
+- [x] The source-license report is published without redistributing restricted text.
+
+  `license_report.json` and `license_report.md` record permitted uses,
+  attribution, redistribution obligations, and unresolved questions for every
+  observed license.
+- [x] Contamination is measured against each available held-out benchmark subset.
+
+  The 13-gram screen indexed 241,515 n-grams from SecEval, the project baseline
+  probe, and the smoke evaluation set, with zero removals. CyberSecEval is
+  registered but not locally available; that remains an open benchmark-access
+  blocker, not a measured zero.
 - [ ] A stratified manual quality and safety review of the pilot corpus is complete.
-- [ ] Contamination is measured against each selected benchmark subset.
+
+  The auditor generated 200 deterministic stratified samples and a review
+  template. **No human review has been recorded**, so this milestone stays open.
 
 ## G2 — Post-training on consumer hardware
 

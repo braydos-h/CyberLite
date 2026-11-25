@@ -1,0 +1,10 @@
+{
+  "benchmark": "baseline-probe-v1",
+  "evaluation_only": true,
+  "items": 36,
+  "license": "Synthetic",
+  "note": "36 project-authored capability-probe items; a regression signal, not a validated benchmark.",
+  "redistribution": "project-authored; may be redistributed with attribution",
+  "sha256": "f5a7055c5168e77529b52e0d572cf8f987c60d15e6e5c49a0d3099b70857baf4",
+  "version": "v1"
+}

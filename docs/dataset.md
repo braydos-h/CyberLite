@@ -3,15 +3,21 @@
 ## Principles
 
 1. **Provenance is mandatory.** Every record carries `source`, `license`, and
-   optionally `url`.
-2. **Nothing downloads by default.** The pipeline reads local files. Downloading
-   requires an explicit `--download`.
-3. **Licenses are checked.** Unknown licenses are quarantined; allowed licenses
-   are recorded in the manifest.
+   usually `url`, `source_version`, and an upstream identifier.
+2. **Acquisition is explicit.** The pipeline reads local files by default. It
+   downloads only when `--download` is passed or a dataset configuration
+   explicitly opts into pinned acquisition. `--offline` forbids network I/O.
+3. **Licenses are checked.** Unknown licenses are quarantined. Per-document SPDX
+   identifiers override a source-level default where the source is mixed.
 4. **Benchmarks are separate.** Evaluation data is never mixed into training.
-   A lexical contamination screen removes overlaps before splitting.
-5. **Secrets are removed.** Credential-like strings are detected and redacted.
-6. **No bulk data in Git.** Only the tiny synthetic smoke set is committed.
+   A 13-gram lexical screen removes overlaps before splitting and records
+   per-benchmark statistics.
+5. **Secrets and personal data are screened.** Credential-like strings are
+   redacted; high-confidence PII and unredacted secrets are rejected.
+6. **Quality is global.** Cleaning, quality gates, deduplication, contamination
+   screening, and splitting run once over the combined corpus, never per source.
+7. **No bulk data in Git.** Only the tiny synthetic smoke set, project-authored
+   examples, manifests, and text-free reports are committed.
 
 ## Record schema
 
@@ -21,128 +27,195 @@ Chat SFT:
 
 ```json
 {
-  "id": "optional-stable-id",
-  "source": "mitre_attack",
-  "license": "MITRE-ATTACK",
-  "task": "attack-technique",
-  "url": "https://attack.mitre.org/techniques/T1059/",
+  "id": "project-ir-001",
+  "source": "project_examples",
+  "license": "Synthetic",
+  "task": "incident-response",
+  "url": "https://github.com/braydos-h/CyberLite",
   "messages": [
-    {"role": "user", "content": "How should a defender detect interpreter abuse?"},
-    {"role": "assistant", "content": "Correlate process creation with ..."}
+    {"role": "user", "content": "What should the first hour of triage cover?"},
+    {"role": "assistant", "content": "Preserve evidence before changing the system ..."}
   ],
-  "metadata": {"attack_id": "T1059"}
+  "metadata": {
+    "group": "project_examples:ir-001",
+    "source_version": "v1",
+    "upstream_id": "project-ir-001",
+    "review_status": "pending-human-review"
+  }
 }
 ```
 
-Completion:
+Completion and fill-in-the-middle records use `prompt`/`response` or
+`prefix`/`suffix`/`middle`. Chat records must end with an assistant turn.
+Assistant tokens are supervised; system and user tokens are masked with `-100`.
 
-```json
-{
-  "source": "cyberlite_smoke",
-  "license": "Synthetic",
-  "task": "secure-coding",
-  "prompt": "Explain parameterized queries.",
-  "response": "Parameterized queries separate SQL structure from data."
-}
-```
+`metadata.group` is the leakage-control unit. The pipeline falls back to the
+document, CVE/CWE/ATT&CK/RFC identifier, then the content ID when a normalizer
+does not set a group explicitly.
 
-Fill-in-the-middle:
+## Source registry and build configuration
 
-```json
-{
-  "source": "cyberlite_smoke",
-  "license": "Synthetic",
-  "task": "autocomplete-bash",
-  "prefix": "grep -R \"failed password\" ",
-  "suffix": " /var/log",
-  "middle": "| awk '{print $1}'"
-}
-```
+Two files have different jobs:
 
-Chat records must end with an assistant turn. Assistant tokens are supervised;
-system and user tokens are masked with `-100`.
+- `data/sources.yaml` describes **what a source is**: title, kind, license,
+  homepage, pinned URL, revision, redistribution status, attribution, and notes.
+- `configs/dataset_pilot.yaml` describes **what a build consumes**: source
+  inclusion/exclusion, local paths or pinned archive URLs, per-source limits,
+  NVD date ranges, cache/output directories, quality thresholds, and split ratios.
 
-## Source registry
+Supported normalizers:
 
-`data/sources.yaml` defines source names, kinds, licenses, URLs, filenames, and
-redistribution status. Supported normalizers:
-
-| Kind | Input | Derived task |
+| Kind | Input | Derived records |
 |---|---|---|
-| `stix_attack` | MITRE ATT&CK STIX 2.1 bundle | technique/control explanation |
-| `cwe_xml` | CWE XML or ZIP | weakness, mitigation, detection |
-| `nvd_json` | NVD API 2.0 page(s) | vulnerability summary with severity/CWE |
-| `markdown` | file or directory | documentation explanations |
-| `jsonl` | CyberLite schema | as provided |
+| `stix_attack` | MITRE ATT&CK STIX 2.1 bundle | technique and defensive-control explanations; revoked/deprecated objects skipped |
+| `cwe_xml` | CWE XML or ZIP | weakness, mitigation, detection, consequences, relationships; deprecated/obsolete skipped |
+| `nvd_json` | NVD API 2.0 page(s) | factual vulnerability summaries with CVSS, CWE, CPE, dates, references |
+| `markdown` | file or recursive directory | heading-aware documentation sections with fenced code preserved |
+| `manpage` / `roff` | roff or mdoc manual page | section-level administrative documentation with per-page SPDX license |
+| `rfc_text` | plain-text IETF RFC | numbered section-level networking standards |
+| `jsonl` | CyberLite schema | project-authored or external records as provided |
 
-ZIP archives are extracted to a temporary directory and normalized; Markdown
-directories are processed file by file. Add new sources only with a verified
-license and a documented normalizer.
+ZIP/TAR archives are cached, safely extracted, and normalized. A directory is
+processed recursively in sorted order. Per-file errors are collected and
+reported without discarding successful files from the same source.
 
-### Licenses in the starter registry
+### Enabled sources in the expanded pilot
 
-| Source | Identifier | Notes |
-|---|---|---|
-| MITRE ATT&CK | `MITRE-ATTACK` | Royalty-free use with terms/attribution; not redistributed by CyberLite |
-| MITRE CWE | `MITRE-CWE` | Free for research/development/commercial use with CWE terms |
-| NIST NVD | `Public-Domain` | U.S. Government work; NVD requests attribution |
-| OWASP Cheat Sheets | `CC-BY-SA-4.0` | Share-alike; review redistribution obligations |
-| Linux documentation | `GPL-2.0-or-later` | Copyleft; training use and redistribution are distinct questions |
-| IETF RFCs | `IETF-Trust` | IETF Trust legal provisions |
-| Project-authored | `Synthetic` | Apache-2.0-compatible repository content |
-| Tool docs | `See-source` | Quarantined until an explicit license is supplied |
+| Source | Kind | License | Input |
+|---|---|---|---|
+| MITRE ATT&CK | `stix_attack` | `MITRE-ATTACK` | STIX bundle, pinned `v20.1` |
+| MITRE CWE | `cwe_xml` | `MITRE-CWE` | CWE 5.0 XML/ZIP |
+| NIST NVD | `nvd_json` | `Public-Domain` | API 2.0, 2024-01-01 to 2024-03-31 |
+| OWASP Cheat Sheets | `markdown` | `CC-BY-SA-4.0` | pinned commit `05861f28…` |
+| Linux man-pages | `manpage` | per-page SPDX (`Mixed-SPDX` default) | man-pages 6.9, explicit page allowlist |
+| OpenSSH manual | `manpage` | `OpenSSH` | pinned `V_10_6_P2`, only `sshd_config(5)` and `ssh_config(5)` |
+| nftables manual | `manpage` | `GPL-2.0-only` | nftables 1.1.1, `nft(8)` |
+| IETF RFCs | `rfc_text` | `IETF-Trust` | ten pinned RFCs covering TLS, DNS, SSH, syslog, and addressing |
+| Project examples | `jsonl` | `Synthetic` | original AI-assisted drafts, explicitly **not human-reviewed** |
 
-This table is a research aid, not legal advice. Verify upstream terms and the
-licenses of any model trained on derived data.
+Tool documentation with `See-source` licensing remains disabled and would be
+quarantined. Missing or unrecognized licenses are rejected by the license gate.
+
+### NVD collection
+
+`cyberlite/data/nvd.py` implements API 2.0 collection with:
+
+- publication-date ranges and automatic 120-day chunking;
+- pagination and a per-range `state.json` for resumable downloads;
+- request timeouts, retries, exponential backoff, and `Retry-After`;
+- a configurable rate limit (conservative without an API key);
+- optional `NVD_API_KEY` from the environment;
+- one cache file per page with SHA-256 metadata;
+- offline replay from cache;
+- rejection of malformed pages and `Rejected` CVE entries.
+
+Normalization uses only facts present in the NVD record. It does not add
+remediation steps that the source does not state.
 
 ## Pipeline stages
 
 ```bash
-# Tiny offline validation set
+# Legacy single-source path (unchanged)
 python scripts/prepare_dataset.py --smoke
-
-# Explicit download of one source
 python scripts/prepare_dataset.py --download mitre_attack --out data/processed/attack
-
-# Normalize a local Markdown file under a registered source
-python scripts/prepare_dataset.py \
-  --source owasp_cheatsheets \
+python scripts/prepare_dataset.py --source owasp_cheatsheets \
   --input /path/to/Cross_Site_Scripting_Prevention_Cheat_Sheet.md \
   --out data/processed/owasp
+
+# Multi-source, configuration-driven build
+python scripts/prepare_dataset.py --config configs/dataset_pilot.yaml --force
+
+# Rebuild without network from the same cache and pinned local files
+python scripts/prepare_dataset.py --config configs/dataset_pilot.yaml --offline --force
+
+# Audit and generate a deterministic review sample
+python scripts/audit_dataset.py \
+  --dataset data/processed/pilot-v2 \
+  --out data/manifests/pilot-v2/audit \
+  --review-out data/processed/pilot-v2/review_samples.jsonl \
+  --tokenizer Qwen/Qwen3.5-0.8B --max-seq-len 1024
 ```
 
 Stages:
 
-1. **Normalize** source-specific formats into records.
-2. **Clean** Unicode, line endings, trailing whitespace; preserve code
-   indentation.
-3. **Redact** private keys, cloud keys, tokens, JWTs, connection-string
-   passwords, and contextually high-entropy blobs.
-4. **Filter** by license, minimum length, and structural validity.
-5. **Deduplicate** exact normalized hashes plus banded 64-bit SimHash with a
-   conservative Hamming threshold (default 3 bits). Set threshold 0 for exact
-   matching only.
-6. **Screen contamination** using 13-gram hashes against every `*.jsonl` file in
-   `data/evaluation/`. Records with ≥20% candidate n-gram overlap are removed.
-7. **Split** deterministically by content ID: 90/5/5 by default, 75/12.5/12.5 for
-   the smoke set. IDs are the leakage-control unit.
-8. **Write** splits, `quarantine.jsonl`, and `manifest.json`.
-
-The manifest includes input/output counts, source/task/license counts, dataset
-version, SHA-256 of every split, cleaning and contamination statistics, and the
-source registry hash. Identical inputs and options produce identical split
-hashes and dataset versions.
+1. **Acquire** pinned inputs from local paths or the cache; download only when
+   the config enables it.
+2. **Normalize** each source into the common schema with provenance metadata.
+3. **Clean** Unicode and line endings without destroying code indentation.
+4. **Redact** private keys, cloud keys, tokens, JWTs, connection-string
+   passwords, and contextual high-entropy blobs.
+5. **Quality gate** for empty/short/long responses, repeated lines, boilerplate,
+   link-heavy text, low information, PII, unredacted secrets, broken source
+   metadata, and missing provenance. Absolute-claim wording is reported as a
+   warning unless configured as a rejection.
+6. **License gate** against the configured allowlist.
+7. **Deduplicate globally** with exact normalized hashes plus banded 64-bit
+   SimHash (default Hamming distance 3). Cross-source duplicates are counted.
+8. **Screen contamination** with 13-gram hashes against every evaluation JSONL,
+   with per-benchmark version, license, SHA-256, item, and n-gram counts.
+9. **Split globally** with group-aware deterministic buckets (90/5/5 by default).
+   All sections of a document or all views of a security identifier stay in one
+   split. Exact and SimHash-near cross-split leakage is checked; colliding
+   records are quarantined.
+10. **Report** token-length percentiles with the Qwen tokenizer when available,
+    truncation risk at 512/1024/2048/4096/8192 tokens, rejection reasons,
+    license obligations, and file hashes.
+11. **Write** splits, `quarantine.jsonl`, `manifest.json`, and text-free reports.
 
 ## Contamination limits
 
 The 13-gram screen catches verbatim and near-verbatim leakage. It does **not**
-catch paraphrases, translations, or conceptual overlap. Before publishing:
+catch paraphrase, translation, or conceptual overlap. Before publishing:
 
 - exclude all benchmark test items from training;
-- record benchmark versions and access dates;
+- record benchmark versions and hashes;
 - manually inspect high-overlap candidates;
-- run the screen again after any data change;
+- re-run the screen after any data change;
 - state the limitation in the paper.
+
+The expanded pilot screened 241,515 n-grams from SecEval (2,182 items), the
+project baseline probe (36 items), and the smoke evaluation set (8 items) with
+zero removals. CyberSecEval is registered but is not locally available; this is
+an access blocker, not evidence of absence. Restricted benchmark content is not
+committed.
+
+## Auditing and manual review
+
+`scripts/audit_dataset.py` is CPU-only and writes:
+
+- `audit.json` and `audit.md`;
+- `quality_report.json`, `contamination_report.json`, and `license_report.json`
+  derived from the produced splits;
+- `review_plan.json` with deterministic sample IDs and stratum counts;
+- `review_template.md` with accuracy, relevance, completeness, provenance,
+  safety, and overall-quality fields;
+- `review_samples.jsonl` at the caller-specified local path, containing source
+  text and therefore never committed.
+
+The auditor never marks review complete. The expanded pilot's 200 samples have
+**not** been reviewed; `manual_review.completed` remains `false`.
+
+## Versioning and reproducibility
+
+The expanded pilot is frozen under
+[`data/manifests/pilot-v2/`](../data/manifests/pilot-v2/README.md). The manifest
+records the dataset version, configuration hash, source registry hash, seed,
+pipeline version, source revisions and file hashes, split hashes, quality and
+contamination statistics, rejection reasons, and the exact reproduction command.
+Identical pinned inputs and configurations produce identical dataset content and
+split hashes; report timestamps are not part of the dataset version.
+
+## Limits of this pilot
+
+- 7,188 accepted records is a pilot, not a research-scale corpus.
+- Manual review is pending; project-authored examples are AI-assisted drafts.
+- NVD coverage is a three-month publication window, not the full database.
+- OWASP and man-page coverage is limited by explicit allowlists and per-page
+  licenses.
+- The lexical contamination screen cannot detect paraphrase or conceptual
+  overlap.
+- Upstream documentation can be outdated or incorrect. Records preserve upstream
+  claims; they are not independently verified.
 
 ## Distillation data
 
@@ -164,10 +237,9 @@ Only small, license-safe artifacts are committed:
 - tiny, original synthetic examples under `data/seed/` and
   `data/evaluation/smoke_eval.jsonl`;
 - the project-authored `data/evaluation/baseline_probe_v1.jsonl`;
-- corpus manifests under `data/manifests/`, which carry the version, counts,
-  split hashes, license counts, and cleaning statistics but no source text;
+- corpus manifests and reports under `data/manifests/`, which carry counts,
+  hashes, licenses, and statistics but no source text;
 - small baseline result artifacts under `results/baseline/`.
 
-Bulk corpora, raw downloads, model weights, credentials, and third-party
-benchmark items are ignored by Git. The first committed manifest is
-[`data/manifests/pilot-attack-cwe-v1/`](../data/manifests/pilot-attack-cwe-v1/README.md).
+Bulk corpora, raw downloads, the acquisition cache, review samples, model
+weights, credentials, and third-party benchmark items are ignored by Git.

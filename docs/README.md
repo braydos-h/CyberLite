@@ -4,7 +4,7 @@
 |---|---|
 | [architecture.md](architecture.md) | Qwen3.5 hybrid/multimodal checkpoint, loading path, LoRA targets, FIM |
 | [hardware.md](hardware.md) | 4/6/8/12/16 GB targets, CPU/MPS, memory estimates, measurement protocol |
-| [dataset.md](dataset.md) | Source registry, record schema, cleaning, dedup, contamination, splits |
+| [dataset.md](dataset.md) | Source registry, build config, NVD/normalizers, quality, dedup, contamination, audit, splits |
 | [evaluation.md](evaluation.md) | Task schema, metrics, benchmark licenses, reporting checklist |
 | [autocomplete.md](autocomplete.md) | FIM/prefix modes, languages, API, editor integration, acceptance metrics |
 | [inference.md](inference.md) | Engine, OpenAI-compatible API, streaming, quantization, offline mode |

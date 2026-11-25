@@ -11,7 +11,13 @@ from cyberlite.config import (
 
 
 def test_every_config_loads(repo_root: Path) -> None:
-    paths = sorted((repo_root / "configs").glob("*.yaml"))
+    # Dataset build configurations use a different schema and are validated
+    # by tests/test_dataset_config.py.
+    paths = sorted(
+        path
+        for path in (repo_root / "configs").glob("*.yaml")
+        if not path.name.startswith("dataset_")
+    )
     assert len(paths) >= 5
     for path in paths:
         config = load_config(path)

@@ -1,0 +1,10 @@
+{
+  "benchmark": "smoke-eval",
+  "evaluation_only": true,
+  "items": 8,
+  "license": "Synthetic",
+  "note": "Eight original synthetic harness-validation items; not a benchmark.",
+  "redistribution": "project-authored; may be redistributed with attribution",
+  "sha256": "111132beb36f65d9bc57bdb42efe9d801d5971d0f355f23b08723e7b6be5fc3d",
+  "version": "v1"
+}
