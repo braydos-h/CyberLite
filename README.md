@@ -14,6 +14,8 @@
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue.svg)](pyproject.toml)
 [![Status: research preview](https://img.shields.io/badge/status-research%20preview-orange.svg)](#experimental-status)
+[![CI](https://github.com/braydos-h/CyberLite/actions/workflows/ci.yml/badge.svg)](https://github.com/braydos-h/CyberLite/actions/workflows/ci.yml)
+[![Paper](https://github.com/braydos-h/CyberLite/actions/workflows/paper.yml/badge.svg)](https://github.com/braydos-h/CyberLite/actions/workflows/paper.yml)
 [![Model: Qwen3.5-0.8B](https://img.shields.io/badge/base-Qwen3.5--0.8B-purple.svg)](https://huggingface.co/Qwen/Qwen3.5-0.8B)
 
 > **Research preview.** CyberLite is an active research project, not a released
