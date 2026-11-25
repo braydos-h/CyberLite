@@ -42,6 +42,9 @@ data/evaluation/*
 !data/evaluation/smoke_eval.jsonl
 !data/evaluation/baseline_probe_v1.jsonl
 !data/evaluation/*.meta.json
+# Frozen held-out sets authored independently of the training packs.
+!data/evaluation/cyberlite_eval_*_v1.jsonl
+!data/evaluation/cyberlite_eval_*_v1.meta.json
 
 # Third-party benchmark items: local only, never redistributed
 benchmarks/*/*.json

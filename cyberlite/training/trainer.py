@@ -18,7 +18,13 @@ import torch
 from transformers import TrainerCallback
 
 from cyberlite import __version__
-from cyberlite.config import ExperimentConfig, dump_effective_config
+from cyberlite.config import ExperimentConfig, dump_effective_config, load_config
+from cyberlite.data.integrity import (
+    DatasetIntegrityError,
+    DatasetIntegrityReport,
+    evaluation_ids_from_directory,
+    verify_dataset,
+)
 from cyberlite.hardware import (
     HardwareInfo,
     detect_hardware,
@@ -30,10 +36,15 @@ from cyberlite.hardware import (
 )
 from cyberlite.logging_utils import configure_logging, get_logger, log_event
 from cyberlite.training.dataset import DataCollatorForCausalLM, build_datasets
+from cyberlite.training.licensing import (
+    LicenseValidationError,
+    validate_training_licenses,
+)
 from cyberlite.training.lora import apply_lora, count_trainable, prepare_for_training
 from cyberlite.training.model import (
     freeze_vision_tower,
     load_base_model,
+    model_revision_info,
     model_summary,
     parse_parameters_b,
     resolve_device,
@@ -156,6 +167,151 @@ def _package_versions() -> dict[str, str]:
 def _write_json(path: Path, payload: Any) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(payload, indent=2, default=str) + "\n", encoding="utf-8")
+
+
+def _resolve_config_path(value: str | Path) -> Path:
+    path = Path(value).expanduser()
+    return path if path.is_absolute() else (Path.cwd() / path)
+
+
+def _dataset_profile(config: ExperimentConfig) -> str:
+    return "smoke" if config.training.smoke else "research"
+
+
+def verify_training_data(config: ExperimentConfig) -> tuple[DatasetIntegrityReport, dict[str, Any]]:
+    """Verify integrity and licensing before any model or GPU allocation."""
+
+    profile = _dataset_profile(config)
+    eval_dir = _resolve_config_path("data/evaluation")
+    report = verify_dataset(
+        train_file=_resolve_config_path(config.data.train_file),
+        validation_file=(
+            _resolve_config_path(config.data.validation_file)
+            if config.data.validation_file
+            else None
+        ),
+        test_file=(_resolve_config_path(config.data.test_file) if config.data.test_file else None),
+        manifest_file=(
+            _resolve_config_path(config.data.manifest_file) if config.data.manifest_file else None
+        ),
+        expected_version=config.data.dataset_version,
+        expected_split_counts=config.data.expected_split_counts,
+        profile=profile,  # type: ignore[arg-type]
+        require_manifest=config.data.require_manifest,
+        require_provenance=config.data.require_provenance,
+        require_contamination_screen=config.data.require_contamination_screen,
+        eval_dir=eval_dir,
+        contamination_n=13,
+        contamination_threshold=0.2,
+        dedup_threshold=3,
+        base_dir=Path.cwd(),
+    )
+    if not config.data.verify_integrity and profile == "research":
+        report.add(
+            "integrity_disabled",
+            "data.verify_integrity=false is not permitted for research training; "
+            "manifest verification was still enforced",
+            severity="warning",
+        )
+    if not report.ok:
+        raise DatasetIntegrityError(report)
+
+    evaluation_ids = evaluation_ids_from_directory(eval_dir)
+    license_payload: dict[str, Any] = {}
+    for split, records in report.records.items():
+        if split not in {"train", "validation"}:
+            continue
+        result = validate_training_licenses(
+            records,
+            split=split,
+            allowed_licenses=config.data.allowed_licenses,
+            require_license=config.data.require_license,
+            require_resolved_licenses=(
+                config.data.require_resolved_licenses and profile != "smoke"
+            ),
+            allow_unresolved_licenses=config.data.allow_unresolved_licenses,
+            profile=profile,  # type: ignore[arg-type]
+            evaluation_ids=evaluation_ids,
+        )
+        license_payload[split] = result.to_dict()
+        if not result.ok:
+            raise LicenseValidationError(result)
+    return report, license_payload
+
+
+def _resolve_resume_checkpoint(config: ExperimentConfig, output_dir: Path) -> str | None:
+    resume = config.training.resume_from_checkpoint
+    if not resume:
+        return None
+    if resume == "auto":
+        candidates = sorted(
+            (path for path in output_dir.glob("checkpoint-*") if path.is_dir()),
+            key=lambda path: (
+                int(path.name.rsplit("-", 1)[-1]) if path.name.rsplit("-", 1)[-1].isdigit() else -1
+            ),
+        )
+        if not candidates:
+            raise FileNotFoundError(
+                f"training.resume_from_checkpoint=auto but no checkpoint-* directories "
+                f"exist in {output_dir}"
+            )
+        resume_path = candidates[-1]
+    else:
+        resume_path = Path(resume).expanduser()
+        if not resume_path.is_absolute():
+            resume_path = Path.cwd() / resume_path
+        if not resume_path.exists():
+            raise FileNotFoundError(f"resume checkpoint not found: {resume_path}")
+    if not resume_path.is_dir():
+        raise ValueError(f"resume checkpoint is not a directory: {resume_path}")
+    trainer_state = resume_path / "trainer_state.json"
+    if not trainer_state.is_file():
+        raise ValueError(
+            f"resume checkpoint has no trainer_state.json: {resume_path}; "
+            "refusing to resume from an incomplete checkpoint"
+        )
+    try:
+        json.loads(trainer_state.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise ValueError(f"resume checkpoint state is unreadable: {trainer_state}: {exc}") from exc
+
+    fingerprint = config.training_fingerprint()
+    metadata_path = output_dir / "run_metadata.json"
+    effective_path = output_dir / "config.effective.yaml"
+    recorded_fingerprint: str | None = None
+    recorded_config_hash: str | None = None
+    if metadata_path.is_file():
+        try:
+            payload = json.loads(metadata_path.read_text(encoding="utf-8"))
+            recorded_fingerprint = payload.get("config_fingerprint")
+            recorded_config_hash = payload.get("config_sha256")
+        except (OSError, json.JSONDecodeError) as exc:
+            raise ValueError(
+                f"cannot verify resume integrity: {metadata_path} is unreadable: {exc}"
+            ) from exc
+    if recorded_fingerprint is None and effective_path.is_file():
+        try:
+            previous = load_config(effective_path)
+            recorded_fingerprint = previous.training_fingerprint()
+        except (OSError, ValueError) as exc:
+            raise ValueError(
+                f"cannot verify resume integrity: {effective_path} is unreadable: {exc}"
+            ) from exc
+    if recorded_fingerprint and recorded_fingerprint != fingerprint:
+        raise ValueError(
+            "resume configuration does not match the original run "
+            f"(recorded fingerprint {recorded_fingerprint}, current {fingerprint}); "
+            "refusing to mix experiment definitions"
+        )
+    if (
+        not recorded_fingerprint
+        and recorded_config_hash
+        and recorded_config_hash != config.sha256()
+    ):
+        raise ValueError(
+            "resume configuration hash does not match the original run; refusing to resume"
+        )
+    return str(resume_path)
 
 
 class RunMetricsCallback(TrainerCallback):
@@ -363,7 +519,6 @@ def run_training(
     plan = build_plan(config, hardware)
     output_dir = Path(config.run.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
-    dump_effective_config(config, output_dir / "config.effective.yaml")
 
     log_event(
         logger,
@@ -375,9 +530,12 @@ def run_training(
         estimated_peak_gb=plan.training_memory["estimated_peak_gb"],
     )
     if estimate_only:
+        dump_effective_config(config, output_dir / "config.effective.yaml")
         plan_payload = {
             "config_sha256": config.sha256(),
+            "config_fingerprint": config.training_fingerprint(),
             "model_id": config.model.id,
+            "model_revision": config.model.revision,
             "plan": plan.to_dict(),
             "hardware": hardware.to_dict(),
             "note": "Planning estimate only. No model was downloaded and no training ran.",
@@ -396,12 +554,14 @@ def run_training(
                 "training.resume_from_checkpoint to continue."
             )
 
-    train_path = Path(config.data.train_file)
-    if not train_path.is_file():
-        raise FileNotFoundError(
-            f"training data not found: {train_path}. Run "
-            "`python scripts/prepare_dataset.py --smoke` for the tiny validation set."
-        )
+    resume_path = _resolve_resume_checkpoint(config, output_dir)
+    # Integrity, schema, leakage, and licensing are checked before any model
+    # weights are downloaded or a GPU is allocated.
+    integrity_report, license_payload = verify_training_data(config)
+    if resume_path and (output_dir / "config.effective.yaml").is_file():
+        dump_effective_config(config, output_dir / "config.resume.effective.yaml")
+    else:
+        dump_effective_config(config, output_dir / "config.effective.yaml")
 
     from transformers import Trainer, set_seed
 
@@ -410,9 +570,14 @@ def run_training(
     if device == "cuda":
         torch.cuda.reset_peak_memory_stats()
 
+    train_path = _resolve_config_path(config.data.train_file)
+    validation_path = (
+        _resolve_config_path(config.data.validation_file) if config.data.validation_file else None
+    )
     model, tokenizer, auto_class = load_base_model(
         config, for_training=True, device=device, hardware=hardware
     )
+    revision_info = model_revision_info(config, model, tokenizer)
     model_class = type(model).__name__
     if config.quantization.enabled:
         from peft import prepare_model_for_kbit_training
@@ -429,16 +594,28 @@ def run_training(
     model = prepare_for_training(model, config)
     total_params, trainable_params = count_trainable(model)
 
+    evaluation_ids = evaluation_ids_from_directory(_resolve_config_path("data/evaluation"))
     train_dataset, validation_dataset = build_datasets(
         tokenizer,
         train_file=train_path,
-        validation_file=config.data.validation_file,
+        validation_file=validation_path,
         max_seq_length=config.training.max_seq_length,
         format=config.data.format,
         system_prompt=config.data.system_prompt,
         template_kwargs=config.data.chat_template_kwargs,
         max_train_samples=config.data.max_train_samples,
         max_eval_samples=config.data.max_eval_samples,
+        require_validation=config.data.require_validation,
+        require_license=config.data.require_license,
+        allowed_licenses=config.data.allowed_licenses,
+        require_resolved_licenses=(
+            config.data.require_resolved_licenses and not config.training.smoke
+        ),
+        allow_unresolved_licenses=config.data.allow_unresolved_licenses,
+        license_profile=_dataset_profile(config),  # type: ignore[arg-type]
+        evaluation_ids=evaluation_ids,
+        truncation_policy=config.data.truncation_policy,
+        min_supervised_tokens=config.data.min_supervised_tokens,
     )
     collator = DataCollatorForCausalLM(tokenizer)
     total_steps = estimate_steps(config, len(train_dataset))
@@ -462,6 +639,7 @@ def run_training(
         if total_params
         else 0.0,
         "quantized": config.quantization.enabled,
+        "revision": revision_info,
     }
     dataset_stats = {
         "train": train_dataset.stats.to_dict(),
@@ -481,28 +659,32 @@ def run_training(
         "created_at": datetime.now(tz=UTC).isoformat(),
         "config": config.model_dump(mode="json"),
         "config_sha256": config.sha256(),
+        "config_fingerprint": config.training_fingerprint(),
         "config_source": getattr(config, "_source_path", None),
         "model": model_stats,
+        "model_revision": revision_info,
         "dataset": dataset_stats,
+        "dataset_manifest": {
+            "path": integrity_report.manifest_path,
+            "sha256": integrity_report.manifest_sha256,
+            "dataset_name": integrity_report.dataset_name,
+            "dataset_version": integrity_report.dataset_version,
+            "split_counts": integrity_report.split_counts,
+            "files": integrity_report.files,
+        },
+        "dataset_integrity": integrity_report.to_dict(),
+        "license_validation": license_payload,
         "hardware": hardware.to_dict(),
         "packages": _package_versions(),
         "git": _git_metadata(),
         "python": platform.python_version(),
         "command": " ".join(sys.argv),
         "plan": plan.to_dict(),
+        "resume": {
+            "requested": config.training.resume_from_checkpoint,
+            "resolved": resume_path,
+        },
     }
-    dataset_manifest = train_path.parent / "manifest.json"
-    if dataset_manifest.is_file():
-        try:
-            manifest_data = json.loads(dataset_manifest.read_text(encoding="utf-8"))
-            metadata["dataset_manifest"] = {
-                "path": str(dataset_manifest),
-                "dataset_version": manifest_data.get("dataset_version"),
-                "split_counts": manifest_data.get("split_counts"),
-                "files": manifest_data.get("files", {}).get("train"),
-            }
-        except json.JSONDecodeError:
-            metadata["dataset_manifest"] = {"path": str(dataset_manifest), "error": "invalid JSON"}
     _write_json(output_dir / "run_metadata.json", metadata)
 
     trainer = Trainer(
@@ -514,7 +696,6 @@ def run_training(
         callbacks=[callback],
     )
     resume = config.training.resume_from_checkpoint
-    resume_arg: str | bool | None = True if resume == "auto" else resume
     log_event(
         logger,
         "training_start",
@@ -522,8 +703,9 @@ def run_training(
         steps=total_steps,
         trainable_parameters=trainable_params,
         resume=resume,
+        resolved_resume=resume_path,
     )
-    trainer.train(resume_from_checkpoint=resume_arg)
+    trainer.train(resume_from_checkpoint=resume_path)
     trainer.save_model(str(output_dir))
     tokenizer.save_pretrained(str(output_dir))
     from cyberlite.data.schema import sha256_file
@@ -544,6 +726,9 @@ def run_training(
         "dataset": dataset_stats,
         "duration_file": str(output_dir / "training_metrics.json"),
         "config_sha256": config.sha256(),
+        "config_fingerprint": config.training_fingerprint(),
+        "model_revision": revision_info,
+        "dataset_version": integrity_report.dataset_version,
         "plan": plan.to_dict(),
     }
     log_event(logger, "run_finished", output_dir=str(output_dir))

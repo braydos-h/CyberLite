@@ -20,6 +20,7 @@ from transformers import StoppingCriteria, StoppingCriteriaList
 
 from cyberlite.hardware import peak_memory_report
 from cyberlite.logging_utils import get_logger
+from cyberlite.training.model import checkpoint_revision, looks_like_commit
 
 logger = get_logger(__name__)
 
@@ -117,6 +118,8 @@ class InferenceEngine:
         self.device = self._resolve_device(device)
         self.dtype = self._resolve_dtype(dtype, self.device)
         self.quantized = load_in_4bit or load_in_8bit
+        self.resolved_revision: str | None = None
+        self.tokenizer_revision: str | None = None
         self.model, self.tokenizer, self.auto_class = self._load(
             load_in_4bit=load_in_4bit,
             load_in_8bit=load_in_8bit,
@@ -243,6 +246,19 @@ class InferenceEngine:
         )
         if tokenizer.pad_token_id is None:
             tokenizer.pad_token = tokenizer.eos_token
+        self.resolved_revision = checkpoint_revision(model.config) or checkpoint_revision(model)
+        self.tokenizer_revision = checkpoint_revision(tokenizer)
+        if looks_like_commit(self.revision):
+            if self.resolved_revision and self.resolved_revision != self.revision:
+                raise RuntimeError(
+                    f"model checkpoint resolved to revision {self.resolved_revision}, but "
+                    f"{self.revision} was requested; refuse a silently changed base model"
+                )
+            if self.tokenizer_revision and self.tokenizer_revision != self.revision:
+                raise RuntimeError(
+                    f"tokenizer resolved to revision {self.tokenizer_revision}, but "
+                    f"{self.revision} was requested; model and tokenizer revisions must match"
+                )
         return model, tokenizer, auto_class.__name__
 
     def format_chat(self, messages: list[dict[str, str]]) -> str:
@@ -405,6 +421,14 @@ class InferenceEngine:
         text_config = getattr(self.model.config, "text_config", self.model.config)
         return {
             "model_id": self.model_id,
+            "revision": self.revision,
+            "resolved_revision": self.resolved_revision,
+            "tokenizer_revision": self.tokenizer_revision,
+            "revision_verified": bool(
+                looks_like_commit(self.revision)
+                and self.resolved_revision == self.revision
+                and (self.tokenizer_revision is None or self.tokenizer_revision == self.revision)
+            ),
             "adapter_path": self.adapter_path,
             "adapter_sha256": self.adapter_sha256,
             "auto_class": self.auto_class,

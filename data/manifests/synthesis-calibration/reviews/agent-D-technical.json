@@ -1,0 +1,1115 @@
+{
+  "reviewer": "agent-D",
+  "review_type": "technical",
+  "artifact": "synthesis-calibration",
+  "dataset_version": "cyberlite-syn-2.0.0-913298850f3e",
+  "items": [
+    {
+      "record_id": "grnd-nist-nvd-nist-nvd-000acc9a82d0be67-applicability",
+      "scores": {
+        "technical_accuracy": 9,
+        "source_grounding": 9,
+        "completeness": 7,
+        "relevance": 9,
+        "clarity": 9,
+        "practical_usefulness": 8,
+        "originality_diversity": 5,
+        "small_model_suitability": 8
+      },
+      "findings": [
+        "CPE procedure is correct but generic: it never decodes this record's two CPEs (`version=*` means any version, and the `target_sw` values `construction`/`design_&_survey` encode the two editions named in the description), so the CPE-to-host test is not demonstrated for CVE-2023-51464.",
+        "Response is verbatim identical to the CVE-2024-21796 applicability record in the same batch; template reuse lowers diversity.",
+        "No AEM-specific check (package/bundle version, `/libs` version) or fixed-version boundary (6.5.19 / AEM Cloud) is given."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": true
+    },
+    {
+      "record_id": "grnd-nist-nvd-nist-nvd-0062b87e4e98743f-json",
+      "scores": {
+        "technical_accuracy": 9,
+        "source_grounding": 9,
+        "completeness": 9,
+        "relevance": 9,
+        "clarity": 10,
+        "practical_usefulness": 8,
+        "originality_diversity": 6,
+        "small_model_suitability": 9
+      },
+      "findings": [
+        "Extraction matches the supplied JSON exactly; CVSS v3.1 vector AV:N/AC:H/PR:L/UI:N/S:U/C:L/I:N/A:N computes to 3.1 LOW, and CWE-521 is 'Weak Password Requirements'.",
+        "Corpus note: the record metadata carries a conflicting NVD primary metric (8.1 HIGH, AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:H) that the prompt omits; the item is only unambiguous because the prompt's JSON contains one metric.",
+        "Lowercase `low` for severity is acceptable because no casing was specified."
+      ],
+      "decision": "accept",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": true
+    },
+    {
+      "record_id": "grnd-nist-nvd-nist-nvd-000acc9a82d0be67-uncertainty",
+      "scores": {
+        "technical_accuracy": 9,
+        "source_grounding": 9,
+        "completeness": 8,
+        "relevance": 9,
+        "clarity": 9,
+        "practical_usefulness": 8,
+        "originality_diversity": 5,
+        "small_model_suitability": 9
+      },
+      "findings": [
+        "Correctly separates the NVD record from host evidence and recommends an authenticated version check.",
+        "Does not exploit the record's own signal that both CPEs use `version=*`/`-`, which cannot by itself exclude any host version.",
+        "Verbatim duplicate of the CVE-2024-21796 uncertainty response."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": true
+    },
+    {
+      "record_id": "grnd-nist-nvd-nist-nvd-000acc9a82d0be67-cvss",
+      "scores": {
+        "technical_accuracy": 8,
+        "source_grounding": 9,
+        "completeness": 7,
+        "relevance": 8,
+        "clarity": 9,
+        "practical_usefulness": 8,
+        "originality_diversity": 6,
+        "small_model_suitability": 8
+      },
+      "findings": [
+        "5.4 MEDIUM is correct for CVSS:3.1/AV:N/AC:L/PR:L/UI:R/S:C/C:L/I:L/A:N (verified by the v3.1 base formula).",
+        "Picks PR:L as 'most affects' interpretation but never discusses S:C, even though scope change is the metric that makes the impact cross a security boundary; that omission weakens the answer.",
+        "'Losing that prerequisite ... the base score would not change' is misleading: the published base score is fixed by the CVE vector, but recalculating with PR:N would change it; environmental modified metrics are the correct mechanism."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": true
+    },
+    {
+      "record_id": "grnd-nist-nvd-nist-nvd-001f4beaa8f927d0-applicability",
+      "scores": {
+        "technical_accuracy": 9,
+        "source_grounding": 9,
+        "completeness": 7,
+        "relevance": 9,
+        "clarity": 9,
+        "practical_usefulness": 8,
+        "originality_diversity": 5,
+        "small_model_suitability": 8
+      },
+      "findings": [
+        "Verbatim duplicate of the other CPE applicability record.",
+        "Fails to map the two target_sw values (`construction`, `design_&_survey`) to the Construction Edition and Design & Survey Edition; `design_\\&_survey` is the correctly escaped CPE 2.3 form and the answer should decode it.",
+        "No concrete XXE applicability check (XML parser/feature, product build) is given."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": true
+    },
+    {
+      "record_id": "grnd-nist-nvd-nist-nvd-00795ecd6c9525f0-json",
+      "scores": {
+        "technical_accuracy": 10,
+        "source_grounding": 9,
+        "completeness": 9,
+        "relevance": 9,
+        "clarity": 10,
+        "practical_usefulness": 9,
+        "originality_diversity": 6,
+        "small_model_suitability": 9
+      },
+      "findings": [
+        "CVSS 9.8 CRITICAL is correct for AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H; CWE-787 ('Out-of-bounds Write') matches the sscanf stack buffer overflow.",
+        "All required keys present, `weaknesses` is an array, no extra keys.",
+        "Prompt description duplicates the metric sentence, but the extraction is unaffected."
+      ],
+      "decision": "accept",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": true
+    },
+    {
+      "record_id": "grnd-nist-nvd-nist-nvd-001f4beaa8f927d0-uncertainty",
+      "scores": {
+        "technical_accuracy": 9,
+        "source_grounding": 9,
+        "completeness": 8,
+        "relevance": 9,
+        "clarity": 9,
+        "practical_usefulness": 8,
+        "originality_diversity": 5,
+        "small_model_suitability": 9
+      },
+      "findings": [
+        "Correct: the NVD description does not establish host product/version.",
+        "Verbatim duplicate of the other uncertainty record; does not note the `prior to Ver1.0.4` boundary or the two editions as the specific version test.",
+        "No guidance on checking the vendor advisory for the fixed build."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": true
+    },
+    {
+      "record_id": "grnd-nist-nvd-nist-nvd-001f4beaa8f927d0-cwe",
+      "scores": {
+        "technical_accuracy": 9,
+        "source_grounding": 9,
+        "completeness": 8,
+        "relevance": 9,
+        "clarity": 9,
+        "practical_usefulness": 7,
+        "originality_diversity": 6,
+        "small_model_suitability": 9
+      },
+      "findings": [
+        "CWE-611 name is correct: 'Improper Restriction of XML External Entity Reference'.",
+        "Says the mapping should be used to choose code-review questions but supplies none; a concrete check (parser factory features, `disallow-doctype-decl`, external entity settings) is missing.",
+        "Does not distinguish CWE-611 from the broader CWE-20 input-validation family or mention NVD mapping status."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": true
+    },
+    {
+      "record_id": "grnd-mitre-cwe-mitre-cwe-013eec0b6577f655-claim-1",
+      "scores": {
+        "technical_accuracy": 9,
+        "source_grounding": 8,
+        "completeness": 7,
+        "relevance": 7,
+        "clarity": 9,
+        "practical_usefulness": 4,
+        "originality_diversity": 3,
+        "small_model_suitability": 8
+      },
+      "findings": [
+        "Option C is verbatim correct; A removes a negation and B changes 'may' to 'SHALL'.",
+        "The rationale calls lowercase 'may' a normative keyword; in the CWE-289 text it is ordinary prose, not RFC 2119. The distinction is right in effect but the justification is technically wrong.",
+        "Pure copy-selection: no reasoning about CWE-289's authentication-bypass root cause; low practical value and low originality."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": true
+    },
+    {
+      "record_id": "grnd-mitre-cwe-mitre-cwe-00650c6f2dd854a0-review",
+      "scores": {
+        "technical_accuracy": 6,
+        "source_grounding": 7,
+        "completeness": 4,
+        "relevance": 6,
+        "clarity": 8,
+        "practical_usefulness": 4,
+        "originality_diversity": 3,
+        "small_model_suitability": 6
+      },
+      "findings": [
+        "CWE-1253 is 'Incorrect Selection of Fuse Values': its description is about a fuse being left unblown so secure-boot logic is bypassed, and its only listed mitigation is a hardware/architecture one (design so a blown fuse cannot put the product in an insecure state). The response never mentions fuses, boot ROM, secure boot, or hardware review.",
+        "The three 'code-review' questions are generic templates that would fit any CWE and do not expose fuse-value selection.",
+        "The negative test ('send a benign reproduction ... assert it is rejected') is a web/API test pattern and is not applicable to fuse programming; it would not fail on the vulnerable hardware revision.",
+        "A code review is the wrong instrument for this weakness; the answer should say the review is of the fuse map/secure-boot design, not application source."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": true
+    },
+    {
+      "record_id": "grnd-mitre-cwe-mitre-cwe-00c423fba47e9a8f-match",
+      "scores": {
+        "technical_accuracy": 9,
+        "source_grounding": 9,
+        "completeness": 7,
+        "relevance": 8,
+        "clarity": 9,
+        "practical_usefulness": 6,
+        "originality_diversity": 4,
+        "small_model_suitability": 9
+      },
+      "findings": [
+        "A/CWE-319 'Cleartext Transmission of Sensitive Information' is correct; the description matches CWE-319, not CWE-916/328 (weak hash).",
+        "Prompt contains a malformed prefix 'Pattern: : the weakness.' \u2014 a template/extraction artifact that should be removed.",
+        "No discrimination from adjacent CWE-311/312/319 distinctions; explanation is one line plus boilerplate."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": true
+    },
+    {
+      "record_id": "grnd-mitre-cwe-mitre-cwe-0071d6414ec0bad7-mitigation",
+      "scores": {
+        "technical_accuracy": 8,
+        "source_grounding": 9,
+        "completeness": 7,
+        "relevance": 8,
+        "clarity": 8,
+        "practical_usefulness": 7,
+        "originality_diversity": 5,
+        "small_model_suitability": 8
+      },
+      "findings": [
+        "The quoted mitigation ('Very carefully manage the setting, management, and handling of privileges. Explicitly manage trust zones') and the SAST detection method match the CWE-282 entry.",
+        "The closing advice 'for example, parameterization or a safer API' is inapplicable to ownership management and is copied from a different weakness family.",
+        "The response does not clearly name which listed control addresses root cause (the privilege/trust-zone control) and prints the phase as 'Architecture and Design Operation' instead of the two phases."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": true
+    },
+    {
+      "record_id": "grnd-mitre-cwe-mitre-cwe-020c75630fcc3e64-claim-1",
+      "scores": {
+        "technical_accuracy": 8,
+        "source_grounding": 7,
+        "completeness": 6,
+        "relevance": 6,
+        "clarity": 9,
+        "practical_usefulness": 4,
+        "originality_diversity": 3,
+        "small_model_suitability": 8
+      },
+      "findings": [
+        "Option B is verbatim correct.",
+        "The excerpt says lowercase 'should', not 'SHOULD'; the answer invents a normative-keyword change and calls it an RFC 2119 violation.",
+        "No explanation of the hardware root-of-trust concept; the item is string matching."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": true
+    },
+    {
+      "record_id": "grnd-mitre-cwe-mitre-cwe-016658719a3756ae-match",
+      "scores": {
+        "technical_accuracy": 9,
+        "source_grounding": 9,
+        "completeness": 7,
+        "relevance": 8,
+        "clarity": 9,
+        "practical_usefulness": 6,
+        "originality_diversity": 4,
+        "small_model_suitability": 9
+      },
+      "findings": [
+        "D/CWE-681 'Incorrect Conversion between Numeric Types' is correct; name and ID verified against the CWE 5.0 entry.",
+        "Prompt has the same 'Pattern: : the weakness.' artifact.",
+        "No discussion of the security-relevant consequence (e.g., truncation feeding an allocation or authorization decision) beyond the generic 'classify by flaw' line."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": true
+    },
+    {
+      "record_id": "grnd-mitre-cwe-mitre-cwe-00c423fba47e9a8f-mitigation",
+      "scores": {
+        "technical_accuracy": 8,
+        "source_grounding": 9,
+        "completeness": 7,
+        "relevance": 8,
+        "clarity": 8,
+        "practical_usefulness": 7,
+        "originality_diversity": 5,
+        "small_model_suitability": 8
+      },
+      "findings": [
+        "The mitigation and detection text is consistent with the CWE-319 entry (encrypt in transit, SSL for the whole session, encrypted server channels, black-box monitoring).",
+        "Same inapplicable boilerplate as the CWE-282 item: 'parameterization or a safer API' does not remediate cleartext transmission.",
+        "Does not explicitly identify the root-cause control (encrypt with a confidentiality-protecting protocol) versus the testing/operations controls."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": true
+    },
+    {
+      "record_id": "grnd-mitre-attack-mitre-attack-012c208a4d147578-match",
+      "scores": {
+        "technical_accuracy": 10,
+        "source_grounding": 9,
+        "completeness": 8,
+        "relevance": 9,
+        "clarity": 9,
+        "practical_usefulness": 8,
+        "originality_diversity": 6,
+        "small_model_suitability": 9
+      },
+      "findings": [
+        "D/T1120 'Peripheral Device Discovery' is correct; ATT&CK v20.1 lists its tactic as Discovery (verified on attack.mitre.org/techniques/T1120).",
+        "Distractors are real ATT&CK techniques; no ID is misattributed.",
+        "Could add procedure examples/telemetry, but the matching judgement is sound."
+      ],
+      "decision": "accept",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": true
+    },
+    {
+      "record_id": "grnd-mitre-attack-mitre-attack-01d4a8ba2e991f0d-match",
+      "scores": {
+        "technical_accuracy": 10,
+        "source_grounding": 9,
+        "completeness": 8,
+        "relevance": 9,
+        "clarity": 9,
+        "practical_usefulness": 8,
+        "originality_diversity": 6,
+        "small_model_suitability": 9
+      },
+      "findings": [
+        "B/T1218.003 'CMSTP' is correct; ATT&CK v20.1 lists the tactic as Stealth (the current name for the former Defense Evasion), so 'stealth phase' is accurate for this corpus version.",
+        "The behaviour text is a near-verbatim ATT&CK description; distractors are real techniques.",
+        "No detection data source is suggested, but the item only asks for the technique match."
+      ],
+      "decision": "accept",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": true
+    },
+    {
+      "record_id": "grnd-mitre-attack-mitre-attack-41717b2b24b91882-claim-1",
+      "scores": {
+        "technical_accuracy": 8,
+        "source_grounding": 8,
+        "completeness": 6,
+        "relevance": 6,
+        "clarity": 9,
+        "practical_usefulness": 4,
+        "originality_diversity": 3,
+        "small_model_suitability": 8
+      },
+      "findings": [
+        "Option C is verbatim correct; B changes 2017 to 4034.",
+        "The excerpt says lowercase 'may'; the answer's 'MAY -> SHALL' framing imports RFC 2119 semantics that ATT&CK prose does not use.",
+        "Pure copy-selection with no detection reasoning about domain fronting."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": true
+    },
+    {
+      "record_id": "grnd-owasp-cheatsheets-owasp-cheatsheets-00e26e6ee9da5281-claim-1",
+      "scores": {
+        "technical_accuracy": 10,
+        "source_grounding": 9,
+        "completeness": 6,
+        "relevance": 6,
+        "clarity": 9,
+        "practical_usefulness": 4,
+        "originality_diversity": 3,
+        "small_model_suitability": 8
+      },
+      "findings": [
+        "A is verbatim correct; React 19's javascript: URL blocking and the caveat that it does not replace application URL validation match the cited OWASP XSS cheat sheet section.",
+        "B changes 19 to 38 and C removes the negation; both are trivially detectable.",
+        "No explanation of the actual bypass classes (dangerouslySetInnerHTML, bypassSecurityTrustAs*, unsafeHTML); low training value."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": true
+    },
+    {
+      "record_id": "grnd-openssh-docs-openssh-docs-0c5faec983b98400-claim-1",
+      "scores": {
+        "technical_accuracy": 9,
+        "source_grounding": 8,
+        "completeness": 6,
+        "relevance": 6,
+        "clarity": 9,
+        "practical_usefulness": 4,
+        "originality_diversity": 3,
+        "small_model_suitability": 8
+      },
+      "findings": [
+        "C is the verbatim excerpt; `IdentitiesOnly` default `no` and the ssh-agent interaction are correctly described by the source.",
+        "The excerpt/options/answer contain 'ssh 1'/'ssh 2' instead of the man-page reference `ssh(1)`; a source-rendering artifact that makes the distractor trivial and the text look corrupted.",
+        "No operational context for why IdentitiesOnly matters (agent key selection/least privilege)."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": true
+    },
+    {
+      "record_id": "grnd-ietf-rfcs-ietf-rfcs-14da927e6c5964db-claim-1",
+      "scores": {
+        "technical_accuracy": 10,
+        "source_grounding": 9,
+        "completeness": 6,
+        "relevance": 6,
+        "clarity": 9,
+        "practical_usefulness": 4,
+        "originality_diversity": 3,
+        "small_model_suitability": 8
+      },
+      "findings": [
+        "C is verbatim from RFC 4251 section 9.4.1 ('Weak Transport'); 'SHOULD' is genuinely a normative RFC 2119 keyword here.",
+        "The item does not identify the RFC/section in the prompt or answer, so a reader cannot trace the claim.",
+        "Copy-selection only; no SSH threat-model reasoning."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": true
+    },
+    {
+      "record_id": "grnd-linux-man-pages-linux-man-pages-10426f0e9c0ebc37-claim-1",
+      "scores": {
+        "technical_accuracy": 10,
+        "source_grounding": 9,
+        "completeness": 6,
+        "relevance": 6,
+        "clarity": 9,
+        "practical_usefulness": 4,
+        "originality_diversity": 3,
+        "small_model_suitability": 8
+      },
+      "findings": [
+        "B is verbatim from access(2); the glibc 2.33/faccessat2 and fstatat(2) history is correct.",
+        "The distractor set is number/negation substitution; this tests transcription, not knowledge.",
+        "No explanation of why the ACL gap matters or how to verify the glibc/kernel pair."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": true
+    },
+    {
+      "record_id": "syn-vulnerability-classification-remediation-cwe-1321-prototype-pollution-codefix-1",
+      "scores": {
+        "technical_accuracy": 9,
+        "source_grounding": 9,
+        "completeness": 8,
+        "relevance": 9,
+        "clarity": 9,
+        "practical_usefulness": 8,
+        "originality_diversity": 7,
+        "small_model_suitability": 9
+      },
+      "findings": [
+        "The corrected merge filters `__proto__`, `constructor`, and `prototype` at every recursion level and uses `Object.hasOwn`, which blocks the classic `constructor.prototype` path; it does not rely on JSON parsing.",
+        "`Object.hasOwn` requires ES2022 (Node 16.9+); a null-prototype target or an allowlist would be stronger than a three-key blocklist.",
+        "No mention that `target[k]` may be a non-object inherited value; the fix still assumes object targets."
+      ],
+      "decision": "accept",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": false
+    },
+    {
+      "record_id": "syn-vulnerability-classification-remediation-cwe-770-allocation-limits-diagnose",
+      "scores": {
+        "technical_accuracy": 8,
+        "source_grounding": 9,
+        "completeness": 6,
+        "relevance": 8,
+        "clarity": 8,
+        "practical_usefulness": 7,
+        "originality_diversity": 6,
+        "small_model_suitability": 8
+      },
+      "findings": [
+        "CWE-770 is correctly identified as a child of CWE-400; the admission-control/backpressure framing is right.",
+        "The prompt asks for 'the check that distinguishes them', but the answer gives a generic 'confirm the service loaded the configuration' check that does not distinguish the two causes; it should name a measurement (per-key request rate, queue depth, allocator RSS, rejection counters).",
+        "'quota-shaped subset' is undefined jargon."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": false
+    },
+    {
+      "record_id": "syn-vulnerability-classification-remediation-rem-verify-patch-log-1",
+      "scores": {
+        "technical_accuracy": 4,
+        "source_grounding": 6,
+        "completeness": 5,
+        "relevance": 7,
+        "clarity": 8,
+        "practical_usefulness": 4,
+        "originality_diversity": 5,
+        "small_model_suitability": 6
+      },
+      "findings": [
+        "Fabricated inference: 'The package revision matches the fixed build' \u2014 the excerpt gives version 4.2.3-0ubuntu1 but never states the fixed version or advisory baseline, so there is nothing to match against.",
+        "Fabricated inference: 'the previously successful traversal pattern now returns a client error' \u2014 the excerpt shows only one 400 response; no prior success is shown.",
+        "A 400 on `?path=../../etc/passwd` does not prove traversal is blocked: it could be a WAF, a different route, parameter rejection, or a generic 400. The prompt explicitly asks to distinguish observations from inferences and the answer instead states inferences as facts.",
+        "The 'single log line' caution is boilerplate unrelated to patch verification; the next step should be to obtain the fixed-version boundary, confirm the binary/package provenance (hash/signature), and run an authorized negative test against the exact handler."
+      ],
+      "decision": "quarantine",
+      "critical": true,
+      "revision": 0,
+      "source_dependent": false
+    },
+    {
+      "record_id": "syn-vulnerability-classification-remediation-cwe-22-path-traversal-codereview-1",
+      "scores": {
+        "technical_accuracy": 10,
+        "source_grounding": 9,
+        "completeness": 9,
+        "relevance": 9,
+        "clarity": 9,
+        "practical_usefulness": 9,
+        "originality_diversity": 7,
+        "small_model_suitability": 9
+      },
+      "findings": [
+        "Correct root cause: `os.path.join` does not prevent `../`; `realpath` + `commonpath` containment is the right control, and it resolves symlinks.",
+        "Returning 404 for a failed containment check avoids leaking path existence.",
+        "Minor: `abort` is assumed to be Flask's; `commonpath` raises ValueError if the two paths are on different drives (not applicable to POSIX)."
+      ],
+      "decision": "accept",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": false
+    },
+    {
+      "record_id": "syn-vulnerability-classification-remediation-cwe-611-xxe-codefix-1",
+      "scores": {
+        "technical_accuracy": 9,
+        "source_grounding": 9,
+        "completeness": 8,
+        "relevance": 9,
+        "clarity": 9,
+        "practical_usefulness": 8,
+        "originality_diversity": 7,
+        "small_model_suitability": 9
+      },
+      "findings": [
+        "`disallow-doctype-decl=true` does block classic XXE, and setting it before `newDocumentBuilder()` is the correct order.",
+        "Defense-in-depth is incomplete: OWASP also recommends `external-general-entities=false`, `external-parameter-entities=false`, `XMLConstants.ACCESS_EXTERNAL_DTD=\"\"`, and `FEATURE_SECURE_PROCESSING`; some parsers do not support the Apache feature and will throw `ParserConfigurationException`.",
+        "The code drops `newDocumentBuilder()` from the corrected snippet, so it is a factory-configuration fragment rather than a complete function."
+      ],
+      "decision": "accept",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": false
+    },
+    {
+      "record_id": "syn-vulnerability-classification-remediation-cwe-434-unrestricted-upload-mcq-1",
+      "scores": {
+        "technical_accuracy": 10,
+        "source_grounding": 9,
+        "completeness": 8,
+        "relevance": 9,
+        "clarity": 9,
+        "practical_usefulness": 8,
+        "originality_diversity": 6,
+        "small_model_suitability": 9
+      },
+      "findings": [
+        "B and D are correct; A (client Content-Type) and C (browser extension check) are attacker-controlled.",
+        "CWE-434 name/description are used correctly; storing outside the web root and disabling execution are the material controls.",
+        "Could add server-side magic-byte/content validation by an allowlist, but the selected options imply it."
+      ],
+      "decision": "accept",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": false
+    },
+    {
+      "record_id": "syn-web-api-secure-development-api-versioning-001-config-complete",
+      "scores": {
+        "technical_accuracy": 9,
+        "source_grounding": 8,
+        "completeness": 8,
+        "relevance": 8,
+        "clarity": 9,
+        "practical_usefulness": 7,
+        "originality_diversity": 7,
+        "small_model_suitability": 8
+      },
+      "findings": [
+        "The completed request line `GET /v1/orders HTTP/1.1` is syntactically correct, and the visible `Deprecation: @1767225600` (= 2026-01-01) / `Sunset: Wed, 01 Jul 2026` headers are mutually consistent.",
+        "The blank is the request line, not a directive that achieves the stated deprecation purpose; the Deprecation/Sunset/Link headers already do that. The item does not test the concept it names.",
+        "No citation to RFC 9745 (Deprecation) or RFC 8594 (Sunset), and the answer treats the header syntax as incidental."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": true
+    },
+    {
+      "record_id": "syn-web-api-secure-development-api-bola-001-codereview-1",
+      "scores": {
+        "technical_accuracy": 10,
+        "source_grounding": 9,
+        "completeness": 9,
+        "relevance": 9,
+        "clarity": 9,
+        "practical_usefulness": 9,
+        "originality_diversity": 7,
+        "small_model_suitability": 9
+      },
+      "findings": [
+        "Correct BOLA/IDOR diagnosis; the fix puts `ownerId` in the query and uses `findFirst`, which is valid Prisma usage.",
+        "404-on-not-visible is consistent with OWASP API Security Top 10 API1:2023 guidance to avoid object-existence disclosure.",
+        "Authentication is distinguished from authorization correctly."
+      ],
+      "decision": "accept",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": false
+    },
+    {
+      "record_id": "syn-web-api-secure-development-api-jwt-kid-001-codefix-1",
+      "scores": {
+        "technical_accuracy": 10,
+        "source_grounding": 9,
+        "completeness": 9,
+        "relevance": 9,
+        "clarity": 9,
+        "practical_usefulness": 9,
+        "originality_diversity": 7,
+        "small_model_suitability": 9
+      },
+      "findings": [
+        "Correct root cause: `kid` is attacker-controlled and used in a path; replacing it with a fixed key map removes traversal and attacker-key selection.",
+        "`jwt.get_unverified_header` is the correct PyJWT API for reading `kid` before verification; rejecting unknown values is right.",
+        "Minor operational gap: `KEYS` is built at import time, so key rotation requires a reload; a key-id allowlist with a rotation path would be stronger."
+      ],
+      "decision": "accept",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": false
+    },
+    {
+      "record_id": "syn-web-api-secure-development-api-jwt-claims-001-explain",
+      "scores": {
+        "technical_accuracy": 10,
+        "source_grounding": 9,
+        "completeness": 8,
+        "relevance": 9,
+        "clarity": 9,
+        "practical_usefulness": 9,
+        "originality_diversity": 7,
+        "small_model_suitability": 9
+      },
+      "findings": [
+        "PyJWT behavior is stated correctly: `exp`/`nbf` are validated when present, and `aud`/`iss` are checked only when the corresponding arguments are supplied; `options={'require': [...]}` is the way to reject missing claims.",
+        "Clock-skew and short-lifetime/revocation guidance is sound.",
+        "Could mention pinning `algorithms` and rejecting `none`/algorithm confusion, which is the other half of JWT verification."
+      ],
+      "decision": "accept",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": false
+    },
+    {
+      "record_id": "syn-web-api-secure-development-api-oauth-redirect-001-checklist",
+      "scores": {
+        "technical_accuracy": 7,
+        "source_grounding": 8,
+        "completeness": 5,
+        "relevance": 7,
+        "clarity": 8,
+        "practical_usefulness": 6,
+        "originality_diversity": 6,
+        "small_model_suitability": 8
+      },
+      "findings": [
+        "`failure_modes` is empty even though the guidance explicitly names prefix matching, wildcard subdomains, path-suffix matching, fragments, and userinfo as failure modes; the required array is present but semantically unfilled.",
+        "The `checks` array contains notes, not checks; e.g., 'Loopback redirects are appropriate for native apps' is context, not an action to verify.",
+        "Exact-match redirect URI validation (scheme/host/port/path), rejection of fragments/userinfo, and `state` binding are the core controls but are not turned into concrete runbook checks.",
+        "The open-redirect sentence is muddled: a registered URI that itself redirects can leak a code, but exact matching normally prevents arbitrary open redirects from being registered."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": true
+    },
+    {
+      "record_id": "syn-monitoring-detection-soc-det-sigma-modifiers-302-config-complete",
+      "scores": {
+        "technical_accuracy": 10,
+        "source_grounding": 9,
+        "completeness": 9,
+        "relevance": 9,
+        "clarity": 9,
+        "practical_usefulness": 9,
+        "originality_diversity": 7,
+        "small_model_suitability": 9
+      },
+      "findings": [
+        "`condition: selection_img and selection_flags and selection_payload` is correct; `contains|all` turns the list into an AND, while a bare list is OR.",
+        "Modifier descriptions (contains/startswith/endswith, all, re, cidr, base64offset, windash, fieldref) match the Sigma specification.",
+        "The single-quoted Windows paths are YAML-literal, so the backslashes are preserved."
+      ],
+      "decision": "accept",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": false
+    },
+    {
+      "record_id": "det-det-dns-long-query-interpret",
+      "scores": {
+        "technical_accuracy": 8,
+        "source_grounding": 8,
+        "completeness": 7,
+        "relevance": 8,
+        "clarity": 9,
+        "practical_usefulness": 8,
+        "originality_diversity": 7,
+        "small_model_suitability": 8
+      },
+      "findings": [
+        "The rule is a per-event regex (`query|re: '^.{80,}$'`) with no aggregation, so the statement 'The condition is evaluated over the events in the stated window' invents a window that the rule does not have.",
+        "Telemetry mapping is only partly right: Sigma `category: dns` maps to Zeek `dns.log` and Sysmon Event ID 22, but the field name differs (Zeek `query`, Sysmon `QueryName`); the answer says 'confirm the SIEM field mapping' but does not give the mapping.",
+        "Does not name ATT&CK T1071.004 (DNS) or explain that length alone is a weak tunneling signal; the false-positive examples are plausible."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": true
+    },
+    {
+      "record_id": "det-det-k8s-privileged-pod-gap",
+      "scores": {
+        "technical_accuracy": 6,
+        "source_grounding": 7,
+        "completeness": 4,
+        "relevance": 6,
+        "clarity": 8,
+        "practical_usefulness": 5,
+        "originality_diversity": 5,
+        "small_model_suitability": 7
+      },
+      "findings": [
+        "The response names neither a concrete evasion nor an additional data source, which are the two explicit asks. The generic 'changes any field ... or uses a host whose telemetry is not collected' is not an evasion of this rule.",
+        "The rule's `requestObject.spec.containers.securityContext.privileged` treats `containers` as a scalar; in Kubernetes audit events `containers` is an array, and Sigma dotted paths do not index array elements, so the selection as written is unlikely to match.",
+        "Creating a Deployment/ReplicaSet/DaemonSet produces `objectRef.resource` of `deployments`/`replicasets`/`daemonsets`, not `pods`; a privileged pod created indirectly bypasses `objectRef.resource: pods`.",
+        "`attack.t1610` (Deploy Container) is a plausible ATT&CK mapping, but the placeholder phrase 'the fields in det-k8s-privileged-pod' is not an explanation. A better data source is admission-controller/OPA or Falco runtime events."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": true
+    },
+    {
+      "record_id": "syn-monitoring-detection-soc-det-kql-basics-303-log-1",
+      "scores": {
+        "technical_accuracy": 8,
+        "source_grounding": 8,
+        "completeness": 7,
+        "relevance": 7,
+        "clarity": 8,
+        "practical_usefulness": 7,
+        "originality_diversity": 5,
+        "small_model_suitability": 8
+      },
+      "findings": [
+        "The row restatement is observationally correct (41/3 then 37/2 from 203.0.113.77), but calling 10.20.30.40 an 'internal management address' is an unsupported inference; RFC 1918 only says it is private, not that it is management.",
+        "The body is a generic KQL pipeline tutorial and is not applied to the query/result; the prompt asks what the rows support and what the next verification step is.",
+        "203.0.113.0/24 is TEST-NET-3 (RFC 5737), so the 'external' address is documentation-reserved; this is fine for a synthetic excerpt but should be stated.",
+        "The ten-minute bucket width is inferred from two timestamps ten minutes apart; the excerpt does not state the bin size."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": true
+    },
+    {
+      "record_id": "syn-monitoring-detection-soc-log-ssh-bruteforce-101-misconception-1",
+      "scores": {
+        "technical_accuracy": 9,
+        "source_grounding": 9,
+        "completeness": 8,
+        "relevance": 9,
+        "clarity": 9,
+        "practical_usefulness": 8,
+        "originality_diversity": 7,
+        "small_model_suitability": 9
+      },
+      "findings": [
+        "Correctly rejects the absolute claim: failed-login bursts can be automation, and the discriminating features (username diversity, source ownership, cadence, auth method, success) are appropriate.",
+        "Nuance worth adding: an expired/rotated key typically produces `Failed publickey`/`Permission denied (publickey)`, not `Failed password`, so the log event and field set differ from password brute force.",
+        "The 'practical consequence' is stated generically but adequately."
+      ],
+      "decision": "accept",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": true
+    },
+    {
+      "record_id": "syn-monitoring-detection-soc-det-threshold-correlation-305-checklist",
+      "scores": {
+        "technical_accuracy": 10,
+        "source_grounding": 9,
+        "completeness": 9,
+        "relevance": 9,
+        "clarity": 9,
+        "practical_usefulness": 9,
+        "originality_diversity": 7,
+        "small_model_suitability": 9
+      },
+      "findings": [
+        "Tumbling vs sliding window semantics, late-arriving events, entity-key normalization, and duplicate ingestion are all correctly identified.",
+        "The failure modes are concrete and actionable ('failure then success' cannot be expressed by volume alone; duplicate ingestion inflates counts).",
+        "JSON uses exactly the required keys and arrays of short strings."
+      ],
+      "decision": "accept",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": false
+    },
+    {
+      "record_id": "syn-language-security-retention-c-buffer-001-codefix-1",
+      "scores": {
+        "technical_accuracy": 10,
+        "source_grounding": 9,
+        "completeness": 9,
+        "relevance": 9,
+        "clarity": 9,
+        "practical_usefulness": 9,
+        "originality_diversity": 7,
+        "small_model_suitability": 9
+      },
+      "findings": [
+        "`snprintf` with `sizeof message` and the `written < 0 || (size_t)written >= sizeof message` check is the correct truncation-safe replacement for `strcpy`/`strcat`.",
+        "The explanation of `strncpy` non-termination and `snprintf`'s would-have-written return value is accurate.",
+        "Minor: the corrected version no longer includes `<string.h>`, which is correct because no string functions remain."
+      ],
+      "decision": "accept",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": false
+    },
+    {
+      "record_id": "syn-language-security-retention-c-offbyone-002-codefix-1",
+      "scores": {
+        "technical_accuracy": 7,
+        "source_grounding": 9,
+        "completeness": 7,
+        "relevance": 8,
+        "clarity": 9,
+        "practical_usefulness": 7,
+        "originality_diversity": 7,
+        "small_model_suitability": 8
+      },
+      "findings": [
+        "The `i <= rows` loop is not generally 'one byte past the allocation': with width >= 2, `size = rows*width` and index `rows` is in bounds, so the loop corrupts the copied data rather than overflowing. It is out of bounds only when `width == 1` or `rows == 0` (and malloc(0) returns non-NULL). The response states the OOB as unconditional.",
+        "The fix silently removes the zeroing loop, changing behavior; if the loop was intended to NUL-terminate or initialize rows, the corrected version no longer does it. The response should either preserve the intended effect or justify removal.",
+        "The signed `rows * width` overflow point is correct, and the `SIZE_MAX / width` check is right. `memcpy(buf, src, 0)` with a NULL `src` is technically UB, which the zero-size branch does not address."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": false
+    },
+    {
+      "record_id": "syn-language-security-retention-go-exec-004-codereview-1",
+      "scores": {
+        "technical_accuracy": 8,
+        "source_grounding": 9,
+        "completeness": 7,
+        "relevance": 8,
+        "clarity": 8,
+        "practical_usefulness": 7,
+        "originality_diversity": 6,
+        "small_model_suitability": 8
+      },
+      "findings": [
+        "The shell-injection root cause and the `exec.Command` argv fix are correct, but the answer calls the prompt 'the first version' and refers to a 'second' version that does not exist in the item \u2014 a template artifact.",
+        "The fix still passes attacker-controlled `name` as an argument to ImageMagick `convert`; `-...` options, `https:`/`msl:`/`label:@file` pseudo-protocols, and delegate handling can cause file read or SSRF. The answer recommends `--` but does not use it, and ImageMagick's option parsing is not a reliable `--` boundary.",
+        "It never names CWE-78 (OS Command Injection), which the prompt's 'identify the weakness class' asks for."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": false
+    },
+    {
+      "record_id": "syn-language-security-retention-gen-bigo-001-codereview-1",
+      "scores": {
+        "technical_accuracy": 6,
+        "source_grounding": 7,
+        "completeness": 7,
+        "relevance": 4,
+        "clarity": 9,
+        "practical_usefulness": 3,
+        "originality_diversity": 3,
+        "small_model_suitability": 6
+      },
+      "findings": [
+        "`has_duplicates` has no security defect: it is a pure function over a list of ints with no trust boundary, I/O, memory unsafety, or authorization. The response's 'secure version' is a performance rewrite (O(n^2) to O(n)), not a security fix.",
+        "The boilerplate 'Verify the fix with a test that exercises the malicious input ... A fix that only blocks one payload string is not a root-cause remediation' is meaningless here; there is no malicious input or payload.",
+        "Sources are Wikipedia Big O/time-complexity pages, not a security reference; the metadata subtopic is algorithmic-complexity, confirming the record is off-domain for a secure-code-review family.",
+        "Quarantine: the item teaches a false equivalence between algorithmic complexity and a security vulnerability."
+      ],
+      "decision": "quarantine",
+      "critical": true,
+      "revision": 0,
+      "source_dependent": true
+    },
+    {
+      "record_id": "syn-cloud-container-supply-chain-cloud-iam-permission-boundary-intersection-config-1",
+      "scores": {
+        "technical_accuracy": 9,
+        "source_grounding": 9,
+        "completeness": 8,
+        "relevance": 9,
+        "clarity": 9,
+        "practical_usefulness": 8,
+        "originality_diversity": 6,
+        "small_model_suitability": 8
+      },
+      "findings": [
+        "The boundary/identity-policy intersection and SCP/explicit-deny layering are correct; the policy's resource split (bucket ARN for ListBucket, object ARN for GetObject, key ARN for Decrypt) is correct.",
+        "The snippet is an IAM policy statement, not an attached permissions boundary; the answer should say what the boundary is attached to and what identity policy must exist.",
+        "The verification advice 'confirm the file is loaded by the running service' is inapplicable to IAM; use `iam:GetRolePolicy`/`GetRole` and `iam:SimulatePrincipalPolicy`."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": true
+    },
+    {
+      "record_id": "syn-cloud-container-supply-chain-cloud-guardduty-finding-triage-log-1",
+      "scores": {
+        "technical_accuracy": 8,
+        "source_grounding": 8,
+        "completeness": 8,
+        "relevance": 9,
+        "clarity": 9,
+        "practical_usefulness": 8,
+        "originality_diversity": 6,
+        "small_model_suitability": 8
+      },
+      "findings": [
+        "The finding type is real and severity 8.0 is High on GuardDuty's 1.0-10.0 scale (High band 7.0-8.9); the answer never states the severity band.",
+        "It asserts 'the signature of stolen instance credentials' and 'Treat the instance as compromised' as fact; the finding supports credential use from outside AWS, but legitimate off-AWS use of instance credentials (or a proxy) can produce it. The prompt asks what it does not prove.",
+        "The response does not distinguish observations from inferences, despite the explicit instruction; 'inspect CloudTrail for the actions taken' is the right next step but should name the access key ID and time window."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": true
+    },
+    {
+      "record_id": "syn-cryptography-identity-access-crypto-aead-002-codereview-1",
+      "scores": {
+        "technical_accuracy": 9,
+        "source_grounding": 9,
+        "completeness": 8,
+        "relevance": 9,
+        "clarity": 9,
+        "practical_usefulness": 8,
+        "originality_diversity": 7,
+        "small_model_suitability": 9
+      },
+      "findings": [
+        "Correct diagnosis: CBC with a fixed IV and no MAC gives no integrity and leaks plaintext equality; AES-GCM with a random 96-bit nonce and AAD is an appropriate replacement.",
+        "The original also calls `update()` without `finalize()`, so it silently drops the final block; the answer does not mention this second defect.",
+        "The fix returns `nonce + ciphertext` but gives no key-length check; AESGCM accepts 128/192/256-bit keys, so a short key is rejected by the library rather than silently used."
+      ],
+      "decision": "accept",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": false
+    },
+    {
+      "record_id": "syn-cryptography-identity-access-crypto-gcm-nonce-003-diagnose",
+      "scores": {
+        "technical_accuracy": 8,
+        "source_grounding": 8,
+        "completeness": 7,
+        "relevance": 8,
+        "clarity": 9,
+        "practical_usefulness": 7,
+        "originality_diversity": 6,
+        "small_model_suitability": 8
+      },
+      "findings": [
+        "The 96-bit native IV and the 2^32 invocation budget are broadly consistent with NIST SP 800-38D, and the statement that an IV repeat destroys confidentiality and authenticity is correct.",
+        "The prompt asks for 'the check that distinguishes' the two causes; the answer gives generic 'confirm the service loaded the configuration' text, not a nonce-source instrumentation or per-key encryption-count check.",
+        "The claim that random IVs 'carry collision risk well before' 2^32 is imprecise for a 96-bit random IV; the dominant reason for the 2^32 cap is the standard's bound, not an imminent birthday collision at that point.",
+        "A 128-bit IV is not inherently unsafe in GCM if unique; the second cause should be framed as a profile/interoperability risk, not a direct vulnerability."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": true
+    },
+    {
+      "record_id": "syn-cryptography-identity-access-auth-gpo-052-log-1",
+      "scores": {
+        "technical_accuracy": 7,
+        "source_grounding": 8,
+        "completeness": 7,
+        "relevance": 8,
+        "clarity": 8,
+        "practical_usefulness": 7,
+        "originality_diversity": 6,
+        "small_model_suitability": 8
+      },
+      "findings": [
+        "The response interprets `gPLink` `Value Added` as 'A GPO link was added', but the object DN is the Group Policy container `CN={GUID},CN=Policies,CN=System,...`. `gPLink` is an attribute of the scope of management (domain, OU, or site), not of the GPO object; a link is recorded on the SOM object, not on the GPO container.",
+        "5136 is a directory-service object modification event, and the excerpt does not include the Attribute Value (the linked GPO path), so 'a GPO link was added' is not established; it could be a link modification or a synthetic/inconsistent event.",
+        "The MS14-025 cpassword note is accurate (Group Policy Preferences cpassword, fixed in 2014), but it is background, not evidence about this event."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": true
+    },
+    {
+      "record_id": "syn-incident-response-forensics-threat-intel-ir-bec-009-log-1",
+      "scores": {
+        "technical_accuracy": 9,
+        "source_grounding": 9,
+        "completeness": 8,
+        "relevance": 9,
+        "clarity": 9,
+        "practical_usefulness": 9,
+        "originality_diversity": 7,
+        "small_model_suitability": 8
+      },
+      "findings": [
+        "New-InboxRule and Set-Mailbox parameters (`SubjectContainsWords`, `MoveToFolder`, `MarkAsRead`, `ForwardingSmtpAddress`, `DeliverToMailboxAndForward`) are correct for Exchange Online audit records.",
+        "The response correctly treats the sequence as a high-confidence BEC pattern while noting identity/mail-flow telemetry; containment steps (revoke sessions, remove rule/forwarding, review MFA) are appropriate.",
+        "198.51.100.0/24 is TEST-NET-2 (RFC 5737); the 'single unfamiliar IP' is asserted without a baseline. Add that the IP's unfamiliarity must be established from sign-in history."
+      ],
+      "decision": "accept",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": true
+    },
+    {
+      "record_id": "syn-incident-response-forensics-threat-intel-ti-stix-048-config-1",
+      "scores": {
+        "technical_accuracy": 9,
+        "source_grounding": 9,
+        "completeness": 7,
+        "relevance": 7,
+        "clarity": 9,
+        "practical_usefulness": 7,
+        "originality_diversity": 6,
+        "small_model_suitability": 8
+      },
+      "findings": [
+        "STIX 2.1 facts are correct: bundle/indicator, `spec_version`, patterning syntax, `valid_from`/`valid_until`, and TAXII as transport.",
+        "The item is data, not configuration; the closing 'confirm the file is loaded by the running service ... overridden by a more specific scope' is inapplicable.",
+        "It never answers 'what assumption could make it unsafe': e.g., an unauthenticated/untrusted feed, missing STIX/TAXII TLS or signing, indicator poisoning, or acting on an expired indicator without checking `valid_until`."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "revision": 0,
+      "source_dependent": true
+    }
+  ]
+}

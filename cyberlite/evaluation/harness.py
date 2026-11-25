@@ -22,6 +22,7 @@ from typing import Any
 
 from cyberlite import __version__
 from cyberlite.autocomplete.engine import AutocompleteEngine
+from cyberlite.config import PINNED_QWEN35_MODEL_ID, PINNED_QWEN35_REVISION
 from cyberlite.evaluation import metrics
 from cyberlite.evaluation.benchmarks import list_benchmarks
 from cyberlite.hardware import detect_hardware, estimate_cost, peak_memory_report
@@ -335,6 +336,7 @@ class EvaluationHarness:
     cost_per_hour_usd: float | None = None
     protocol: str = "default"
     group_by: str | None = None
+    bootstrap_resamples: int = 10_000
 
     def __post_init__(self) -> None:
         self.autocomplete = (
@@ -481,7 +483,9 @@ class EvaluationHarness:
                 "examples": len(rows),
                 "accuracy": metrics.accuracy(preds, refs),
                 "invalid_rate": sum(row["score"]["invalid"] for row in rows) / len(rows),
-                "accuracy_95ci": metrics.bootstrap_accuracy_ci(preds, refs, seed=self.seed),
+                "accuracy_95ci": metrics.bootstrap_accuracy_ci(
+                    preds, refs, seed=self.seed, n_bootstrap=self.bootstrap_resamples
+                ),
             }
             subsets = {
                 "single_answer": [(row, ex) for row, ex in pairs if len(ex.answer_indices) == 1],
@@ -489,7 +493,10 @@ class EvaluationHarness:
             }
             metrics_payload["mcq"]["by_answer_count"] = {
                 name: _mcq_accuracy(
-                    [row for row, _ in subset], [ex for _, ex in subset], seed=self.seed
+                    [row for row, _ in subset],
+                    [ex for _, ex in subset],
+                    seed=self.seed,
+                    n_bootstrap=self.bootstrap_resamples,
                 )
                 for name, subset in subsets.items()
                 if subset
@@ -614,6 +621,7 @@ class EvaluationHarness:
                 "prompt_style": self.prompt_style,
                 "protocol": self.protocol,
                 "group_by": self.group_by,
+                "bootstrap_resamples": self.bootstrap_resamples,
                 "max_new_tokens": self.max_new_tokens,
                 "examples": len(self.examples),
                 "wall_clock_seconds": round(time.perf_counter() - started, 3),
@@ -645,7 +653,10 @@ class EvaluationHarness:
         if group_rows:
             summary["groups"] = {
                 name: _mcq_accuracy(
-                    [row for row, _ in rows], [ex for _, ex in rows], seed=self.seed
+                    [row for row, _ in rows],
+                    [ex for _, ex in rows],
+                    seed=self.seed,
+                    n_bootstrap=self.bootstrap_resamples,
                 )
                 for name, rows in sorted(group_rows.items())
             }
@@ -654,7 +665,11 @@ class EvaluationHarness:
 
 
 def _mcq_accuracy(
-    rows: Sequence[dict[str, Any]], examples: Sequence[EvalExample], *, seed: int
+    rows: Sequence[dict[str, Any]],
+    examples: Sequence[EvalExample],
+    *,
+    seed: int,
+    n_bootstrap: int = 10_000,
 ) -> dict[str, Any]:
     predictions = [row["score"]["predicted_indices"] for row in rows]
     references = [sorted(example.answer_indices) for example in examples]
@@ -662,7 +677,9 @@ def _mcq_accuracy(
         "examples": len(rows),
         "accuracy": metrics.accuracy(predictions, references),
         "invalid_rate": (sum(row["score"]["invalid"] for row in rows) / len(rows) if rows else 0.0),
-        "accuracy_95ci": metrics.bootstrap_accuracy_ci(predictions, references, seed=seed),
+        "accuracy_95ci": metrics.bootstrap_accuracy_ci(
+            predictions, references, seed=seed, n_bootstrap=n_bootstrap
+        ),
     }
 
 
@@ -680,7 +697,15 @@ def _dataset_hash(examples: list[EvalExample]) -> str:
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Evaluate a local CyberLite checkpoint.")
-    parser.add_argument("--model", default="Qwen/Qwen3.5-0.8B")
+    parser.add_argument("--model", default=PINNED_QWEN35_MODEL_ID)
+    parser.add_argument(
+        "--revision",
+        default=None,
+        help=(
+            "model/tokenizer revision. Defaults to the registered baseline revision for "
+            "Qwen/Qwen3.5-0.8B; pass explicitly for another checkpoint."
+        ),
+    )
     parser.add_argument("--adapter", default=None)
     parser.add_argument("--dataset", required=True, help="JSONL evaluation file")
     parser.add_argument("--out", default=None, help="output directory")
@@ -701,6 +726,12 @@ def build_parser() -> argparse.ArgumentParser:
         help="metadata key (for example topics) for grouped MCQ metrics",
     )
     parser.add_argument("--positive-label", default=None)
+    parser.add_argument(
+        "--bootstrap-resamples",
+        type=int,
+        default=10_000,
+        help="bootstrap resamples for accuracy intervals (pre-registration: 10,000)",
+    )
     parser.add_argument("--cost-per-hour-usd", type=float, default=None)
     parser.add_argument("--device", default="auto", choices=["auto", "cpu", "cuda", "mps"])
     parser.add_argument(
@@ -738,6 +769,9 @@ def main(argv: list[str] | None = None) -> int:
     if args.protocol == "seceval" and style != "chat":
         print("error: the seceval protocol requires chat prompt style", file=sys.stderr)
         return 2
+    revision = args.revision
+    if revision is None and args.model == PINNED_QWEN35_MODEL_ID:
+        revision = PINNED_QWEN35_REVISION
     try:
         engine = InferenceEngine(
             args.model,
@@ -746,6 +780,7 @@ def main(argv: list[str] | None = None) -> int:
             dtype=args.dtype,
             load_in_4bit=args.load_in_4bit,
             load_in_8bit=args.load_in_8bit,
+            revision=revision,
         )
     except (RuntimeError, OSError, ValueError) as exc:
         print(f"error: could not load model: {exc}", file=sys.stderr)
@@ -761,6 +796,7 @@ def main(argv: list[str] | None = None) -> int:
         cost_per_hour_usd=args.cost_per_hour_usd,
         protocol=args.protocol,
         group_by=args.group_by,
+        bootstrap_resamples=args.bootstrap_resamples,
     )
     summary = harness.run()
     summary["dataset"] = {

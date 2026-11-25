@@ -10,7 +10,10 @@ run:
 
 model:
   id: Qwen/Qwen3.5-0.8B
-  revision: null
+  revision: 2fc06364715b967f1860aea9cf38778875588b17
+  require_pinned_revision: true
+  # E3 uses the same student checkpoint as the matched E1/E2 conditions.
+  matched_baseline: true
   dtype: bfloat16
   device: auto
   attn_implementation: sdpa
@@ -60,9 +63,19 @@ training:
   smoke: false
 
 data:
+  # Teacher-generated student corpus. It must be produced and versioned before
+  # training; this config intentionally has no fallback to the pilot dataset.
   train_file: data/processed/distill/train.jsonl
   validation_file: data/processed/distill/validation.jsonl
   test_file: data/processed/distill/test.jsonl
+  manifest_file: data/processed/distill/manifest.json
+  dataset_version: null
+  expected_split_counts: {}
+  require_manifest: true
+  verify_integrity: true
+  require_provenance: true
+  require_validation: true
+  require_contamination_screen: true
   format: auto
   system_prompt: >-
     You are CyberLite, a defensive cybersecurity assistant. Prefer verifiable,
@@ -84,9 +97,18 @@ data:
     - Synthetic
     - MITRE-ATTACK
     - MITRE-CWE
+    - GPL-1.0-or-later
     - GPL-2.0-only
     - GPL-2.0-or-later
+    - GPL-3.0-or-later
     - IETF-Trust
+    - Linux-man-pages-1-para
+    - Linux-man-pages-copyleft
+    - OpenSSH
+  require_resolved_licenses: true
+  allow_unresolved_licenses: []
+  truncation_policy: truncate
+  min_supervised_tokens: 1
 
 distillation:
   enabled: true

@@ -271,7 +271,7 @@ def bootstrap_accuracy_ci(
     predictions: Sequence[Any],
     references: Sequence[Any],
     *,
-    n_bootstrap: int = 1000,
+    n_bootstrap: int = 10_000,
     confidence: float = 0.95,
     seed: int = 42,
 ) -> tuple[float, float]:

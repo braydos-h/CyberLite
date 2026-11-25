@@ -1,0 +1,133 @@
+[
+  {
+    "difficulties": {
+      "advanced": 14,
+      "expert": 3,
+      "foundational": 16,
+      "intermediate": 22
+    },
+    "domains": {
+      "application-security": 8,
+      "cryptography": 1,
+      "email": 4,
+      "identity": 7,
+      "incident-response": 5,
+      "linux": 9,
+      "logging": 1,
+      "networking": 4,
+      "tls": 3,
+      "vulnerability-management": 4,
+      "web": 5,
+      "windows": 4
+    },
+    "duplicates": [],
+    "issues": [],
+    "items": 55,
+    "ok": true,
+    "path": "data/evaluation/cyberlite_eval_factual_v1.jsonl",
+    "sha256": "4f098917af536c3cfbcef6e47aa95a8a72433e1977833b92bdf877622ca88ed0",
+    "suites": {
+      "factual": 25,
+      "knowledge": 20,
+      "uncertainty": 10
+    },
+    "training_overlap": {
+      "contaminated_items": 0,
+      "method": "13-gram lexical overlap",
+      "threshold": 0.2,
+      "training_texts": 9588,
+      "worst": []
+    }
+  },
+  {
+    "difficulties": {
+      "advanced": 14,
+      "expert": 3,
+      "foundational": 16,
+      "intermediate": 22
+    },
+    "domains": {
+      "application-security": 2,
+      "data-structures": 3,
+      "dns": 2,
+      "encoding": 3,
+      "endpoint": 1,
+      "forensic-timeline": 2,
+      "forensics": 2,
+      "http": 3,
+      "identity": 1,
+      "incident-response": 7,
+      "kubernetes": 4,
+      "linux-audit": 4,
+      "linux-authentication": 3,
+      "log-pipeline": 1,
+      "network-proxy": 2,
+      "network-security": 1,
+      "programming": 1,
+      "syslog": 2,
+      "threat-intelligence": 1,
+      "web-access": 3,
+      "web-application": 1,
+      "windows-security": 6
+    },
+    "duplicates": [],
+    "issues": [],
+    "items": 55,
+    "ok": true,
+    "path": "data/evaluation/cyberlite_eval_logs_ir_v1.jsonl",
+    "sha256": "27f26ed40fc30b1e78a12bc8e08987076bf6cebf44beaf8fb79b6f4671f47b26",
+    "suites": {
+      "false-positive": 8,
+      "grounded-qa": 10,
+      "incident-response": 12,
+      "logs": 15,
+      "retention": 10
+    },
+    "training_overlap": {
+      "contaminated_items": 0,
+      "method": "13-gram lexical overlap",
+      "threshold": 0.2,
+      "training_texts": 9588,
+      "worst": []
+    }
+  },
+  {
+    "difficulties": {
+      "advanced": 14,
+      "expert": 3,
+      "foundational": 16,
+      "intermediate": 22
+    },
+    "domains": {
+      "application-security": 9,
+      "cloud-security": 3,
+      "container-security": 4,
+      "endpoint-security": 3,
+      "identity": 3,
+      "memory-safety": 1,
+      "network-security": 6,
+      "secure-coding": 20,
+      "vulnerability-management": 5,
+      "web-security": 1
+    },
+    "duplicates": [],
+    "issues": [],
+    "items": 55,
+    "ok": true,
+    "path": "data/evaluation/cyberlite_eval_vulnerability_v1.jsonl",
+    "sha256": "3ce6fd0c14bc0ef42c571beede7e62835df54232e643b143e439939a23803cff",
+    "suites": {
+      "configuration": 10,
+      "false-positive": 10,
+      "secure-code": 20,
+      "vulnerability": 15
+    },
+    "training_overlap": {
+      "contaminated_items": 0,
+      "method": "13-gram lexical overlap",
+      "threshold": 0.2,
+      "training_texts": 9588,
+      "worst": []
+    }
+  }
+]

@@ -13,7 +13,10 @@ been established. Outcome-level progress is tracked in
 - [x] Typed configuration, validation, effective-config hashing
 - [x] Dataset schema, provenance, secret redaction, dedup, contamination screen
 - [x] Deterministic splitting and manifest generation
-- [x] LoRA/QLoRA SFT pipeline with checkpoint resumption and memory logging
+- [x] Frozen-manifest integrity, license, and evaluation-only gates before
+      training, including a CPU-only preflight
+- [x] LoRA/QLoRA SFT pipeline with checkpoint resumption, resumption-fingerprint
+      verification, and memory logging
 - [x] Local inference engine, streaming, OpenAI-compatible API
 - [x] FIM/prefix autocomplete engine and local API
 - [x] BM25 retrieval and citation-aware RAG
@@ -33,8 +36,15 @@ been established. Outcome-level progress is tracked in
 - [x] Measure contamination against every locally available held-out benchmark
       (SecEval, project baseline probe, smoke evaluation); CyberSecEval access
       remains an open blocker
-- [ ] Manually review a stratified sample for quality, safety, and duplication
-      (200 samples generated, none reviewed)
+- [x] Build a deterministic, staged synthesis expansion from committed
+      knowledge packs and the frozen pilot train split, with task-family
+      adapters, group-aware splits, exact/SimHash/MinHash dedup, contamination
+      screening, token gating, and a review/quarantine ledger
+- [x] Author and freeze held-out evaluation sets independently of the training
+      packs, with schema validation and SHA-256 metadata
+- [ ] Complete independent review of every accepted synthetic record and a
+      human-reviewed sample (calibration samples are reviewed; most accepted
+      records remain automated-screened)
 
 ## Phase 2 — Core post-training comparison
 

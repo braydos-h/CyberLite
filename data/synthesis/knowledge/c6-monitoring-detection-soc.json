@@ -1,0 +1,3087 @@
+{
+  "schema_version": 1,
+  "domain": "monitoring-detection-soc",
+  "display_name": "Monitoring, detection and SOC operations",
+  "author": "worker:C6",
+  "facts": [
+    {
+      "id": "log-syslog-pri-001",
+      "subtopic": "syslog-format",
+      "difficulty": "foundational",
+      "title": "Decoding the RFC 5424 priority value",
+      "fact": "An RFC 5424 message starts with a priority value in angle brackets, computed as facility multiplied by eight plus severity. Facility names the subsystem that produced the message, for example 4 for auth and 16 for local0, while severity runs from 0 (emergency) to 7 (debug). A receiver must decode the integer before it can route, filter, or compare the message with events from other facilities.",
+      "references": [
+        {
+          "title": "RFC 5424: The Syslog Protocol",
+          "publisher": "IETF",
+          "url": "https://www.rfc-editor.org/rfc/rfc5424.html",
+          "license": "IETF-Trust"
+        }
+      ],
+      "details": [
+        "PRI 38 decodes to facility 4 (auth) and severity 6 (informational), because 4 x 8 + 6 = 38.",
+        "PRI 134 decodes to facility 16 (local0) and severity 6 (informational), because 16 x 8 + 6 = 134.",
+        "A relay may re-emit a message under its own facility, so the PRI seen at the collector is not always the PRI the originator wrote."
+      ],
+      "pitfalls": [
+        "Ranking messages by the numeric PRI: local1.debug (135) is larger than kern.emerg (0) even though it is far less urgent.",
+        "Treating facility as a severity signal; facility only says which subsystem spoke."
+      ],
+      "logs": [
+        {
+          "context": "RFC 5424 line from an SSH daemon",
+          "text": "<38>1 2026-11-18T08:14:22.631Z bastion-01 sshd 2411 ID47 - Accepted publickey for jdoe from 192.0.2.44 port 51234 ssh2",
+          "reading": "The leading <38> is facility 4 (auth) and severity 6 (informational). The event is therefore an ordinary auth-subsystem informational record, not an emergency, even though 38 is numerically larger than many low-severity PRI values."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "A syslog record begins with <134>. Which facility and severity does the value encode?",
+          "options": [
+            "local0.info",
+            "auth.info",
+            "local0.debug",
+            "kern.notice"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "134 = 16 x 8 + 6, so facility 16 (local0) and severity 6 (informational). auth is facility 4 and would give values from 32 to 39."
+        }
+      ],
+      "tags": [
+        "syslog",
+        "rfc5424",
+        "pri"
+      ]
+    },
+    {
+      "id": "log-syslog-header-002",
+      "subtopic": "syslog-format",
+      "difficulty": "foundational",
+      "title": "The RFC 5424 header fields and NILVALUE",
+      "fact": "After the priority and version, RFC 5424 defines TIMESTAMP, HOSTNAME, APP-NAME, PROCID, MSGID, STRUCTURED-DATA and then an optional free-form MSG. Any header field that has no value is written as a single hyphen, called NILVALUE. The fields are space-delimited, so a parser must respect the hyphen convention instead of assuming every position is populated.",
+      "references": [
+        {
+          "title": "RFC 5424: The Syslog Protocol",
+          "publisher": "IETF",
+          "url": "https://www.rfc-editor.org/rfc/rfc5424.html",
+          "license": "IETF-Trust"
+        }
+      ],
+      "details": [
+        "TIMESTAMP is an RFC 3339 timestamp with an explicit offset or Z, and may carry up to six fractional-second digits.",
+        "HOSTNAME, APP-NAME, PROCID and MSGID are originator-supplied strings; none of them is authenticated by the protocol.",
+        "MSGID is meant to identify the type of message, for example a vendor event code, and is not the same thing as a sequence number."
+      ],
+      "pitfalls": [
+        "Assuming PROCID is always a numeric process ID; the field may be NILVALUE or a vendor string.",
+        "Trusting HOSTNAME as an authenticated identity. Any sender can claim any hostname."
+      ],
+      "logs": [
+        {
+          "context": "Header field walk-through of one syslog record",
+          "text": "<38>1 2026-11-18T08:14:22.631Z bastion-01 sshd 2411 ID47 - Accepted publickey for jdoe from 192.0.2.44 port 51234 ssh2",
+          "reading": "VERSION is 1, TIMESTAMP is 2026-11-18T08:14:22.631Z, HOSTNAME is bastion-01, APP-NAME is sshd, PROCID is 2411, MSGID is ID47, STRUCTURED-DATA is the NILVALUE hyphen, and MSG is the remainder starting with 'Accepted publickey'."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Which RFC 5424 header field names the application or process that generated the message?",
+          "options": [
+            "APP-NAME",
+            "MSGID",
+            "PROCID",
+            "HOSTNAME"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "APP-NAME carries the application name such as sshd or nginx. MSGID identifies the message type, PROCID is a process identifier, and HOSTNAME is the originator's claimed host name."
+        }
+      ],
+      "tags": [
+        "syslog",
+        "rfc5424",
+        "parsing"
+      ]
+    },
+    {
+      "id": "log-syslog-sd-003",
+      "subtopic": "syslog-format",
+      "difficulty": "intermediate",
+      "title": "Structured data is not a replacement for parsing MSG",
+      "fact": "RFC 5424 structured data is a sequence of bracketed SD-ELEMENTs, each with an SD-ID and optional space-separated name=value parameters. A private SD-ID conventionally ends in an @ followed by an enterprise number, which keeps vendor fields from colliding. Parameters are quoted, and the characters double quote, backslash and closing bracket must be escaped inside a value.",
+      "references": [
+        {
+          "title": "RFC 5424: The Syslog Protocol",
+          "publisher": "IETF",
+          "url": "https://www.rfc-editor.org/rfc/rfc5424.html",
+          "license": "IETF-Trust"
+        }
+      ],
+      "details": [
+        "A record may carry several SD-ELEMENTs; each starts with a fresh bracketed SD-ID.",
+        "Structured data is optional, and many real deployments still emit the NILVALUE hyphen.",
+        "Values remain strings; the protocol does not define types or units for them."
+      ],
+      "pitfalls": [
+        "Assuming structured data makes MSG unnecessary. Only fields the sender chose to declare appear there.",
+        "Writing a naive splitter on spaces or quotes; escaped characters and the closing bracket rule break simple parsers."
+      ],
+      "logs": [
+        {
+          "context": "RFC 5424 record with a vendor structured-data element",
+          "text": "<165>1 2026-11-18T08:14:22.631Z app-01 cron 2211 ID47 [exampleSDID@32473 iut=\"3\" eventSource=\"Application\" eventID=\"1011\"] job=nightly-backup status=started",
+          "reading": "PRI 165 is local4.notice. The sender declares three parameters in a private enterprise SD-ELEMENT, then repeats similar context in free-form MSG. A parser should take the declared parameters as authoritative and avoid re-parsing the MSG for the same values."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "Once a syslog sender emits structured data, the message body no longer needs to be parsed.",
+          "correction": "Structured data only contains parameters the sender explicitly declared. The MSG field remains free-form and often carries the only copy of the event detail, so pipelines still need a message parser or a documented format contract."
+        }
+      ],
+      "tags": [
+        "syslog",
+        "structured-data",
+        "rfc5424"
+      ]
+    },
+    {
+      "id": "log-rfc3164-gap-004",
+      "subtopic": "syslog-format",
+      "difficulty": "foundational",
+      "title": "Why RFC 3164 timestamps need external context",
+      "fact": "The older BSD syslog format, documented in RFC 3164, writes a timestamp as 'Mmm dd hh:mm:ss' with no year and no time zone. A collector must infer the year from its own clock and assume a local time zone that is rarely stated in the message. Around a year boundary or after a time-zone change, that inference can place events in the wrong day or the wrong order.",
+      "references": [
+        {
+          "title": "RFC 3164: The BSD Syslog Protocol",
+          "publisher": "IETF",
+          "url": "https://www.rfc-editor.org/rfc/rfc3164.html",
+          "license": "IETF-Trust"
+        },
+        {
+          "title": "RFC 5424: The Syslog Protocol",
+          "publisher": "IETF",
+          "url": "https://www.rfc-editor.org/rfc/rfc5424.html",
+          "license": "IETF-Trust"
+        }
+      ],
+      "details": [
+        "Single-digit days are commonly space-padded, so 'Nov  8' and 'Nov 18' differ by one character in a fixed-width position.",
+        "RFC 3164 has no structured-data field, so everything after the hostname is free-form text.",
+        "RFC 5424 was designed to remove these ambiguities, but many appliances still default to the older format."
+      ],
+      "pitfalls": [
+        "Sorting mixed RFC 3164 and RFC 5424 streams by their raw timestamp strings; the formats are not lexicographically comparable.",
+        "Letting each collector infer the year independently, which produces different dates for the same message after a replay."
+      ],
+      "logs": [
+        {
+          "context": "BSD-format syslog line from an SSH daemon",
+          "text": "<38>Nov 18 08:14:22 bastion-01 sshd[2411]: Failed password for invalid user admin from 203.0.113.77 port 51001 ssh2",
+          "reading": "The line records no year and no offset. A collector in UTC would store 2026-11-18T08:14:22Z only if its own clock says 2026 and its configured zone is UTC; the same bytes replayed in a different zone become a different instant."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Why can an RFC 3164 log line be assigned the wrong date around New Year?",
+          "options": [
+            "The timestamp omits the year, so the collector must infer it",
+            "The timestamp uses a 64-bit nanosecond counter",
+            "The hostname field contains the date",
+            "The priority value changes at midnight"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "RFC 3164 timestamps contain month, day and time but no year or zone. Collectors infer both, and the inference can be wrong when clocks roll over or streams are replayed."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "RFC 3164 timestamps include the year and time zone, so they are directly sortable.",
+          "correction": "They include neither. The format is 'Mmm dd hh:mm:ss'; year and zone come from collector configuration or inference, which is exactly the ambiguity RFC 5424 set out to fix."
+        }
+      ],
+      "tags": [
+        "syslog",
+        "rfc3164",
+        "timestamps"
+      ]
+    },
+    {
+      "id": "log-json-ecs-005",
+      "subtopic": "structured-logs",
+      "difficulty": "intermediate",
+      "title": "JSON logs and the Elastic Common Schema",
+      "fact": "JSON log lines preserve nesting and types that plain text loses, but they do not by themselves agree on field names. The Elastic Common Schema gives shared names to common concepts, for example event.category, event.outcome, source.ip, user.name and host.name, so one query can span products. Adopting a schema is a mapping project, not a property of JSON.",
+      "references": [
+        {
+          "title": "Elastic Common Schema (ECS) Reference",
+          "publisher": "Elastic",
+          "url": "https://www.elastic.co/guide/en/ecs/current/index.html",
+          "license": "Apache-2.0"
+        },
+        {
+          "title": "Logging Cheat Sheet",
+          "publisher": "OWASP",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/Logging_Cheat_Sheet.html",
+          "license": "CC-BY-SA-4.0"
+        }
+      ],
+      "details": [
+        "event.category is an array, for example authentication or process, and event.type describes start, end or change.",
+        "Nested objects such as source.ip avoid ambiguous flat names like src, sip or client_addr.",
+        "A schema reduces guesswork but still needs a documented mapping per log source and a version pin."
+      ],
+      "pitfalls": [
+        "Assuming every JSON log uses ECS; @timestamp, time, ts and timestamp can all appear in one estate.",
+        "Flattening nested objects without recording the original path, which makes later re-mapping impossible."
+      ],
+      "logs": [
+        {
+          "context": "ECS-shaped authentication event",
+          "text": "{\"@timestamp\":\"2026-11-18T08:14:22.631Z\",\"event\":{\"category\":[\"authentication\"],\"outcome\":\"failure\",\"dataset\":\"linux.auth\"},\"host\":{\"name\":\"bastion-01\"},\"user\":{\"name\":\"jdoe\"},\"source\":{\"ip\":\"203.0.113.77\"},\"message\":\"Failed password for jdoe\"}",
+          "reading": "The fields are typed and nested: source.ip is a single value, event.category is an array, and the timestamp is explicitly UTC. A query can group by source.ip without knowing which product produced the line, provided every source was mapped to the same schema version."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Which ECS field holds the source IP address of a network event?",
+          "options": [
+            "source.ip",
+            "client.ip",
+            "network.src",
+            "host.ip"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "ECS uses source.ip for the initiator and destination.ip for the target. host.ip describes addresses assigned to the monitored host, not the remote peer."
+        }
+      ],
+      "tags": [
+        "json",
+        "ecs",
+        "schema"
+      ]
+    },
+    {
+      "id": "log-cef-leef-006",
+      "subtopic": "structured-logs",
+      "difficulty": "intermediate",
+      "title": "CEF and LEEF: pipe headers with vendor-defined extensions",
+      "fact": "CEF and LEEF are line-oriented formats built for security event collectors. CEF starts with a fixed pipe-delimited header that ends in a severity value, then an extension of key=value pairs; LEEF uses a similar header and a delimiter, commonly a caret in version 1.0, before its key=value pairs. The headers are standardized, but the extension keys are only partly standardized, so a parser needs the vendor's dictionary.",
+      "references": [
+        {
+          "title": "Common Event Format (CEF) Implementation Standard",
+          "publisher": "Micro Focus",
+          "url": "https://www.microfocus.com/documentation/arcsight/arcsight-smartconnectors-8.3/cef-implementation-standard/",
+          "license": "Micro-Focus-Docs"
+        },
+        {
+          "title": "Logging Vocabulary Cheat Sheet",
+          "publisher": "OWASP",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/Logging_Vocabulary_Cheat_Sheet.html",
+          "license": "CC-BY-SA-4.0"
+        }
+      ],
+      "details": [
+        "A CEF header carries version, device vendor, device product, device version, signature ID, name and severity, in that order.",
+        "Escaping matters: a literal pipe or equals sign inside a value is normally protected with a backslash.",
+        "Many products reuse generic slots such as cs1 with a companion cs1Label, which means the meaning lives in the label, not the key."
+      ],
+      "pitfalls": [
+        "Assuming a key such as suser or outcome means the same thing in every product; verify the vendor extension dictionary.",
+        "Splitting on every pipe without honouring escapes, which truncates values that contain the delimiter."
+      ],
+      "logs": [
+        {
+          "context": "CEF authentication failure",
+          "text": "CEF:0|Example Corp|SSO Gateway|2.4.1|AUTH-1102|Failed login|5|src=203.0.113.77 suser=jdoe outcome=failure cs1Label=TenantId cs1=tenant-0042",
+          "reading": "The header identifies vendor, product, version, signature AUTH-1102, human name and severity 5. The extension supplies source address, subject user, outcome and a vendor-labelled tenant slot. The numeric severity is device-defined; it is not the same scale as syslog severity."
+        },
+        {
+          "context": "LEEF 1.0 authentication event",
+          "text": "LEEF:1.0|Example Corp|SSO Gateway|2.4.1|AUTH-1102|src=203.0.113.77^usrName=jdoe^cat=Authentication",
+          "reading": "The caret separates extension pairs. usrName is an IBM QRadar-style key rather than the CEF suser key, which shows why a normalizer must map per format instead of assuming one shared dictionary."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "In a CEF record, where do product-specific fields such as a tenant identifier appear?",
+          "options": [
+            "In the extension after the final header pipe",
+            "Inside the device product name",
+            "In the severity field",
+            "Before the CEF:0 prefix"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "The CEF header ends with severity, and everything after the next pipe is the extension of key=value pairs. Vendor-specific values are usually placed in labelled generic slots such as cs1 with cs1Label."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "CEF and LEEF are interchangeable standards with one fixed field dictionary.",
+          "correction": "Their headers are similar but not identical, and their extension vocabularies differ and are partly vendor-defined. A CEF suser and a LEEF usrName may describe the same concept, but a parser must map each format explicitly."
+        }
+      ],
+      "tags": [
+        "cef",
+        "leef",
+        "normalization"
+      ]
+    },
+    {
+      "id": "log-eventlog-xml-007",
+      "subtopic": "windows-event-log",
+      "difficulty": "intermediate",
+      "title": "The Windows Event Log XML envelope",
+      "fact": "A rendered Windows event has a System section owned by the logging service and an EventData or UserData section owned by the provider. System carries Provider Name, EventID, Level, Task, Opcode, Keywords, TimeCreated SystemTime, EventRecordID, Channel and Computer. EventData is a list of Data elements whose Name attributes define the payload, and their order is not a stable contract.",
+      "references": [
+        {
+          "title": "Event Schema (Windows Event Log)",
+          "publisher": "Microsoft Learn",
+          "url": "https://learn.microsoft.com/en-us/windows/win32/wes/eventschema-schema",
+          "license": "CC-BY-4.0"
+        },
+        {
+          "title": "Windows Event Log Reference",
+          "publisher": "Microsoft Learn",
+          "url": "https://learn.microsoft.com/en-us/windows/win32/wes/windows-event-log-reference",
+          "license": "CC-BY-4.0"
+        }
+      ],
+      "details": [
+        "TimeCreated SystemTime is written in UTC with a Z suffix, independent of the machine's display time zone.",
+        "EventRecordID is a per-channel sequence number that helps prove ordering and detect gaps or cleared logs.",
+        "The same EventID can mean different things under different Provider and Channel combinations."
+      ],
+      "pitfalls": [
+        "Reading EventData by position instead of by the Data Name attribute; providers can add or reorder fields between versions.",
+        "Assuming EventID alone is globally meaningful; always qualify it with Provider and Channel."
+      ],
+      "logs": [
+        {
+          "context": "Rendered Security channel event, fields abridged",
+          "text": "<Event xmlns=\"http://schemas.microsoft.com/win/2004/08/events/event\">\n  <System>\n    <Provider Name=\"Microsoft-Windows-Security-Auditing\"/>\n    <EventID>4625</EventID>\n    <Level>0</Level>\n    <TimeCreated SystemTime=\"2026-11-18T08:14:22.631Z\"/>\n    <EventRecordID>884213</EventRecordID>\n    <Channel>Security</Channel>\n    <Computer>ws-014.example.internal</Computer>\n  </System>\n  <EventData>\n    <Data Name=\"TargetUserName\">jdoe</Data>\n    <Data Name=\"LogonType\">3</Data>\n    <Data Name=\"IpAddress\">203.0.113.77</Data>\n    <Data Name=\"Status\">0xc000006d</Data>\n    <Data Name=\"SubStatus\">0xc000006a</Data>\n  </EventData>\n</Event>",
+          "reading": "The provider plus EventID 4625 identifies a failed logon. LogonType 3 says the attempt arrived over the network, and SubStatus 0xc000006a means the password was wrong for an existing account. The SystemTime is UTC, while the computer's local display might show a different hour."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "In Windows event XML, where does the provider-specific payload normally appear?",
+          "options": [
+            "In EventData Data elements identified by Name",
+            "In the EventRecordID element",
+            "In the Provider Name attribute only",
+            "In the Channel element"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "EventData holds Data elements whose Name attributes identify the fields. UserData is the alternative shape for some providers. EventRecordID and Channel are System metadata, not the payload."
+        }
+      ],
+      "tags": [
+        "windows",
+        "event-log",
+        "xml"
+      ]
+    },
+    {
+      "id": "log-eventlog-channels-008",
+      "subtopic": "windows-event-log",
+      "difficulty": "foundational",
+      "title": "Windows channels, audit policy and event forwarding",
+      "fact": "Windows Event Log organises records into channels. Security, System and Application are the classic channels, while providers such as Sysmon write to their own operational channels. What appears in Security is decided by audit policy, so a missing event can mean the action did not happen or that the subcategory was never enabled. Windows Event Forwarding can ship selected channels to a collector, where they are stored in the ForwardedEvents log.",
+      "references": [
+        {
+          "title": "Windows Event Log Reference",
+          "publisher": "Microsoft Learn",
+          "url": "https://learn.microsoft.com/en-us/windows/win32/wes/windows-event-log-reference",
+          "license": "CC-BY-4.0"
+        },
+        {
+          "title": "4688(S): A new process has been created",
+          "publisher": "Microsoft Learn",
+          "url": "https://learn.microsoft.com/en-us/windows/security/threat-protection/auditing/event-4688",
+          "license": "CC-BY-4.0"
+        }
+      ],
+      "details": [
+        "Advanced audit policy is configured per subcategory, for example Process Creation or Logon.",
+        "A source-initiated WEF subscription lets many hosts push to one collector without inbound connections to each host.",
+        "Forwarded records retain the original Computer and Provider values and add forwarding metadata."
+      ],
+      "pitfalls": [
+        "Concluding that no 4688 events means no process ran; process creation auditing may simply be off.",
+        "Assuming the Security channel is complete because the service is running."
+      ],
+      "logs": [
+        {
+          "context": "Collector view of forwarded Security events",
+          "text": "TimeCreated            ProviderName                            Id    LogName          Computer\n18/11/2026 08:14:22    Microsoft-Windows-Security-Auditing     4625  ForwardedEvents  ws-014.example.internal\n18/11/2026 08:14:25    Microsoft-Windows-Security-Auditing     4624  ForwardedEvents  ws-014.example.internal",
+          "reading": "The records were read from the ForwardedEvents log, while Computer still names the origin host. A query that reads only the Security log on the collector would miss these copies; use ForwardedEvents or the normalized original channel in the query."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "If the Security log does not show an event, the activity did not occur.",
+          "correction": "The Security channel only contains what audit policy recorded. Process creation, for example, requires the relevant audit subcategory to be enabled; without it the activity can occur with no 4688 record at all."
+        }
+      ],
+      "tags": [
+        "windows",
+        "event-log",
+        "wef",
+        "audit-policy"
+      ]
+    },
+    {
+      "id": "log-auditd-records-009",
+      "subtopic": "linux-audit",
+      "difficulty": "intermediate",
+      "title": "Linux audit events are multi-record and carry auid",
+      "fact": "The Linux audit subsystem writes a kernel event as several records that share a msg=audit(timestamp:serial) identifier. Typical types are SYSCALL, EXECVE, PATH, CWD and PROCTITLE, while the USER_* records report user-space authentication and command activity, and tools such as ausearch reassemble records by serial. The auid field is the audit UID, or loginuid, captured at login; it normally survives su and sudo, while uid and euid describe the process's current credentials.",
+      "references": [
+        {
+          "title": "auditd(8) - Linux system audit logging daemon",
+          "publisher": "Linux man-pages project",
+          "url": "https://man7.org/linux/man-pages/man8/auditd.8.html",
+          "license": "Linux-man-pages-copyleft"
+        },
+        {
+          "title": "Linux Audit Documentation Project",
+          "publisher": "linux-audit project",
+          "url": "https://github.com/linux-audit/audit-documentation",
+          "license": "CC-BY-4.0"
+        }
+      ],
+      "details": [
+        "auid is set from the login session and is intended to answer who originally logged in, even after privilege change.",
+        "The value 4294967295 (0xFFFFFFFF) means the loginuid was never set, which is common for daemons and containers.",
+        "User-space records such as USER_AUTH and USER_CMD can carry their own serials; the session ID and timestamp link them to the same action.",
+        "EXECVE arguments may be hex-encoded when they contain spaces or special characters, so a reading tool is safer than string splitting.",
+        "The key field echoes the -k label from the rule that matched, which is often more useful than the syscall number."
+      ],
+      "pitfalls": [
+        "Reading uid=0 as the human operator while auid holds a different, non-root login identity.",
+        "Interpreting auid 4294967295 as a user ID; it is the unset sentinel."
+      ],
+      "logs": [
+        {
+          "context": "sudo command recorded by auditd, records abridged",
+          "text": "type=USER_AUTH msg=audit(1794989662.631:4412): pid=2211 uid=0 auid=1000 ses=3 msg='op=PAM:authentication grantors=pam_unix acct=\"jdoe\" exe=\"/usr/bin/sudo\" terminal=/dev/pts/0 res=success'\ntype=USER_CMD msg=audit(1794989662.631:4413): pid=2211 uid=0 auid=1000 ses=3 msg='cwd=\"/home/jdoe\" cmd=73797374656D63746C2072657374617274206E67696E78 exe=\"/usr/bin/sudo\" terminal=/dev/pts/0 res=success'",
+          "reading": "uid=0 shows the command ran with root credentials, but auid=1000 preserves the login identity jdoe and ses=3 ties both records to one session. The cmd value is hex and decodes to 'systemctl restart nginx', the argument passed to sudo rather than the wrapper itself."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "In an auditd record, what does the auid field represent?",
+          "options": [
+            "The login UID of the session, normally preserved across privilege changes",
+            "The effective UID of the running process",
+            "The filesystem UID used for access checks",
+            "The audit rule key that matched"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "auid is the audit UID, also called loginuid, captured from the login session. euid and uid describe current process credentials, and the rule key appears in the key field."
+        }
+      ],
+      "tags": [
+        "linux",
+        "auditd",
+        "auid"
+      ]
+    },
+    {
+      "id": "log-auditd-rules-010",
+      "subtopic": "linux-audit",
+      "difficulty": "advanced",
+      "title": "Writing audit rules that survive tampering",
+      "fact": "audit rules attach watches to paths or filters to syscalls and tag matches with a key. A file watch uses -w with a permission filter such as -p wa for write and attribute change, while a syscall rule uses -a always,exit with -F filters and optionally -S to select the syscall. Setting -e 2 makes the configuration immutable until reboot, so an intruder cannot quietly add exclusions or disable auditing.",
+      "references": [
+        {
+          "title": "audit.rules(7) - Linux audit system rules",
+          "publisher": "Linux man-pages project",
+          "url": "https://man7.org/linux/man-pages/man7/audit.rules.7.html",
+          "license": "Linux-man-pages-copyleft"
+        },
+        {
+          "title": "auditctl(8) - control the behavior of the audit daemon",
+          "publisher": "Linux man-pages project",
+          "url": "https://man7.org/linux/man-pages/man8/auditctl.8.html",
+          "license": "Linux-man-pages-copyleft"
+        },
+        {
+          "title": "Linux Audit Documentation Project",
+          "publisher": "linux-audit project",
+          "url": "https://github.com/linux-audit/audit-documentation",
+          "license": "CC-BY-4.0"
+        }
+      ],
+      "details": [
+        "Rules are loaded in order and watches can overlap; exclude filters are evaluated before ordinary rules and can suppress the events a later rule was meant to catch.",
+        "A path watch is attached to the inode present when the rule loads, so replacing the file with a new inode can leave the watch on the old file.",
+        "High-volume syscall rules, especially execve across a busy fleet, need sizing and testing before production."
+      ],
+      "pitfalls": [
+        "Using -p w alone when owner or mode changes also matter; -p wa covers write and attribute changes.",
+        "Assuming -e 2 can be undone without a reboot; it is designed to prevent exactly that."
+      ],
+      "configs": [
+        {
+          "language": "audit.rules",
+          "snippet": "-w /etc/passwd -p wa -k identity\n-w /etc/sudoers -p wa -k privilege\n-a always,exit -F arch=b64 -S execve -F auid>=1000 -F auid!=4294967295 -k exec\n-e 2",
+          "purpose": "Watch identity and sudoers files, log interactive execve calls, then lock the ruleset until reboot."
+        }
+      ],
+      "logs": [
+        {
+          "context": "auditd configuration change record",
+          "text": "type=CONFIG_CHANGE msg=audit(1794989662.631:99): op=set audit_enabled=2 old=1 auid=4294967295 ses=4294967295 res=1",
+          "reading": "This record shows the audit subsystem being switched from enabled (1) to immutable (2). After this point, rule changes are refused until reboot, which is why the change should be planned and monitored rather than treated as routine."
+        }
+      ],
+      "tags": [
+        "linux",
+        "auditd",
+        "immutable",
+        "rules"
+      ]
+    },
+    {
+      "id": "log-http-access-011",
+      "subtopic": "web-logs",
+      "difficulty": "foundational",
+      "title": "Reading the web server combined access log",
+      "fact": "The combined access log appends referer and user agent to the common log format. Its fields are client address, remote identity, authenticated user, request time, request line, status code, response bytes, referer and user agent. Status tells you how the server answered, while bytes tells you how large the response body was, which is often more useful for judging whether an attack returned data.",
+      "references": [
+        {
+          "title": "Logging Cheat Sheet",
+          "publisher": "OWASP",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/Logging_Cheat_Sheet.html",
+          "license": "CC-BY-SA-4.0"
+        }
+      ],
+      "details": [
+        "A dash means the field was unavailable, not zero; bytes may be '-' for a 304 or a streamed response.",
+        "The client address can be a proxy or load balancer unless the deployment records a trusted forwarding header.",
+        "User agent and referer are client-controlled strings and are trivially spoofed."
+      ],
+      "pitfalls": [
+        "Treating a 200 response as proof that an injection succeeded; many applications return 200 with a generic error page.",
+        "Ignoring response size, which can separate a normal page from a dump of many records."
+      ],
+      "logs": [
+        {
+          "context": "Combined access log, normal request and scanner probe",
+          "text": "192.0.2.80 - - [18/Nov/2026:08:14:22 +0000] \"GET /product?id=42 HTTP/1.1\" 200 8421 \"https://example.internal/catalog\" \"Mozilla/5.0\"\n198.51.100.10 - - [18/Nov/2026:08:15:01 +0000] \"GET /.git/config HTTP/1.1\" 404 153 \"-\" \"Mozilla/5.0 (compatible; Nuclei - Open-source project)\"",
+          "reading": "The first line is an ordinary catalogue request with a normal 8 KB body. The second is a probe for a version-control file, answered with 404 and a small error page. Neither line alone proves intent, but the path and disclosed scanner user agent are consistent with authorised enumeration rather than exploitation."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "In the common or combined access log format, what does the number after the status code represent?",
+          "options": [
+            "The number of bytes in the response body",
+            "The request duration in milliseconds",
+            "The number of requests from that client",
+            "The HTTP protocol version"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "The field is the response size in bytes, or a dash when the server did not record one. Duration is not part of the standard format and is usually added as an extra field or in a separate log."
+        }
+      ],
+      "tags": [
+        "web",
+        "access-log",
+        "http"
+      ]
+    },
+    {
+      "id": "log-network-layers-012",
+      "subtopic": "network-telemetry",
+      "difficulty": "foundational",
+      "title": "What firewall, proxy and DNS logs can each prove",
+      "fact": "Firewall, proxy and DNS telemetry answer different questions and none of them sees inside an encrypted session. A firewall record shows that a flow was permitted or denied for a five-tuple, a proxy record shows request metadata and often the authenticated user, and a DNS record shows which name a client queried. Correlating the three narrows activity, but each layer leaves a different blind spot.",
+      "references": [
+        {
+          "title": "NIST SP 800-92: Guide to Computer Security Log Management",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/92/final",
+          "license": "Public-Domain"
+        },
+        {
+          "title": "Logging Cheat Sheet",
+          "publisher": "OWASP",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/Logging_Cheat_Sheet.html",
+          "license": "CC-BY-SA-4.0"
+        }
+      ],
+      "details": [
+        "A firewall allow entry does not show whether the connection succeeded or what was transferred.",
+        "A proxy can log full URLs for plain HTTP, but for HTTPS it typically records only host, SNI, certificate metadata and byte counts.",
+        "DNS over HTTPS to an external resolver can bypass local DNS logging entirely."
+      ],
+      "pitfalls": [
+        "Claiming data was exfiltrated from a DNS query alone; the query shows resolution, not payload delivery.",
+        "Assuming proxy logs cover all egress traffic when applications can connect directly to the internet."
+      ],
+      "logs": [
+        {
+          "context": "Firewall, DNS and proxy views of one client",
+          "text": "2026-11-18T08:14:19Z fw-01 filterlog: 8,,,1000000103,em0,match,block,in,4,0x0,,64,41231,0,DF,6,tcp,60,10.20.30.55,203.0.113.90,51422,443,0,S\n2026-11-18T08:14:21Z dns-01 named[712]: client 10.20.30.55#51422: query: updates.example-vendor.test IN A + (52)\n2026-11-18T08:14:22Z proxy-01 squid[912]: 1794989662.631 41 10.20.30.55 TCP_TUNNEL/200 8123 CONNECT cdn.example-vendor.test:443 - HIER_DIRECT/203.0.113.91 -",
+          "reading": "The firewall line shows one blocked flow to 203.0.113.90, the resolver shows a name lookup, and the proxy shows an allowed CONNECT to a different address. The three records describe related but distinct actions: a blocked attempt, a resolution, and a permitted tunnel whose content is not visible."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "A DNS resolver log shows a query for updates.example.net, but no record of the HTTPS upload that followed. What does this illustrate?",
+          "options": [
+            "DNS telemetry shows name resolution, not the content or size of the later transfer",
+            "The upload definitely did not happen",
+            "Resolver logs contain full HTTP request bodies",
+            "TLS encrypts the DNS query itself"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "DNS logs record the query and response metadata. They do not show whether a connection followed, how many bytes were sent, or what the payload contained; those require proxy, flow or endpoint telemetry."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "A firewall allow entry proves that data left the network.",
+          "correction": "It proves a flow was permitted, not that the handshake completed, that the application sent anything, or what the bytes contained. Confirming transfer needs proxy byte counts, endpoint telemetry or server-side evidence."
+        }
+      ],
+      "tags": [
+        "firewall",
+        "dns",
+        "proxy"
+      ]
+    },
+    {
+      "id": "log-cloudtrail-013",
+      "subtopic": "cloud-audit",
+      "difficulty": "advanced",
+      "title": "CloudTrail records and the management versus data event split",
+      "fact": "CloudTrail writes JSON records with eventTime, eventSource, eventName, awsRegion, sourceIPAddress, userAgent, userIdentity and optional requestParameters, responseElements and errorCode. Management events cover control-plane actions such as creating a user or changing a bucket policy; data events cover object-level actions such as GetObject and are not collected by default. A trail that only records management events will not show reads of individual objects.",
+      "references": [
+        {
+          "title": "CloudTrail record contents for management, data, and network activity events",
+          "publisher": "AWS",
+          "url": "https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-event-reference.html",
+          "license": "CC-BY-SA-4.0"
+        },
+        {
+          "title": "Logging Amazon S3 API calls using AWS CloudTrail",
+          "publisher": "AWS",
+          "url": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/cloudtrail-logging.html",
+          "license": "CC-BY-SA-4.0"
+        }
+      ],
+      "details": [
+        "userIdentity.type distinguishes IAMUser, AssumedRole, Root and AWS service principals, and the ARN identifies the exact principal.",
+        "sourceIPAddress can be an AWS service address when the call was made on the account's behalf, so it is not always the human's address.",
+        "Delivery is asynchronous; records commonly appear minutes after the API call, so a live alert cannot rely on CloudTrail alone."
+      ],
+      "pitfalls": [
+        "Assuming every S3 object read is logged; object-level data events must be enabled and add cost.",
+        "Treating a missing record as proof the API was never called, when the event type may simply not be selected."
+      ],
+      "logs": [
+        {
+          "context": "S3 data event from a scheduled backup role",
+          "text": "{\"eventTime\":\"2026-11-18T08:14:22Z\",\"eventSource\":\"s3.amazonaws.com\",\"eventName\":\"GetObject\",\"awsRegion\":\"eu-west-1\",\"sourceIPAddress\":\"203.0.113.50\",\"userAgent\":\"aws-cli/2.15.0\",\"userIdentity\":{\"type\":\"AssumedRole\",\"arn\":\"arn:aws:sts::111122223333:assumed-role/backup-runner/backup-20261118\"},\"requestParameters\":{\"bucketName\":\"example-backups\",\"key\":\"db/2026/11/18/full.tar.gz\"}}",
+          "reading": "The identity is an assumed role named backup-runner with a session name containing the date, the object key matches the nightly full-backup prefix, and the user agent is the AWS CLI. This is consistent with the documented backup job rather than interactive access."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Which CloudTrail event category is normally off by default and must be enabled per trail?",
+          "options": [
+            "Data events such as S3 GetObject",
+            "Management events such as CreateUser",
+            "Sign-in events",
+            "Trail status events"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "Management events are recorded by default. Data events, which include object-level S3 and Lambda invoke activity, have to be enabled and are billed separately because of their volume."
+        }
+      ],
+      "tags": [
+        "cloudtrail",
+        "aws",
+        "cloud-audit"
+      ]
+    },
+    {
+      "id": "log-k8s-audit-014",
+      "subtopic": "cloud-audit",
+      "difficulty": "advanced",
+      "title": "Kubernetes audit levels and what they retain",
+      "fact": "Kubernetes API server audit events record who called which API, from where, with what result. The audit policy assigns a level per request: None records nothing, Metadata records request metadata but not bodies, Request records the body without the response, and RequestResponse records both. Events also carry a stage such as RequestReceived or ResponseComplete, so the same request can produce more than one record.",
+      "references": [
+        {
+          "title": "Auditing - Kubernetes Documentation",
+          "publisher": "Kubernetes project",
+          "url": "https://kubernetes.io/docs/tasks/debug/debug-cluster/audit/",
+          "license": "CC-BY-4.0"
+        },
+        {
+          "title": "Kubernetes API server audit configuration v1",
+          "publisher": "Kubernetes project",
+          "url": "https://kubernetes.io/docs/reference/config-api/apiserver-audit.v1/",
+          "license": "CC-BY-4.0"
+        }
+      ],
+      "details": [
+        "objectRef identifies the resource, namespace, name and subresource, which is how exec into a pod appears as a subresource action.",
+        "user.username often starts with system: for controllers and system:serviceaccount: for workload identities.",
+        "A policy can omit entire namespaces or reduce noisy read-only requests to Metadata, so absence of a body does not imply a failed call."
+      ],
+      "pitfalls": [
+        "Assuming RequestResponse is the default; many clusters ship a policy that logs only metadata for high-volume reads.",
+        "Confusing the audit log with application logs, which live in containers and are not part of the API server record."
+      ],
+      "logs": [
+        {
+          "context": "Kubernetes audit event for a secret read",
+          "text": "{\"kind\":\"Event\",\"apiVersion\":\"audit.k8s.io/v1\",\"level\":\"RequestResponse\",\"stage\":\"ResponseComplete\",\"requestURI\":\"/api/v1/namespaces/payments/secrets/db-creds\",\"verb\":\"get\",\"user\":{\"username\":\"system:serviceaccount:reporting:etl-runner\",\"groups\":[\"system:serviceaccounts\",\"system:authenticated\"]},\"sourceIPs\":[\"10.20.30.77\"],\"objectRef\":{\"resource\":\"secrets\",\"namespace\":\"payments\",\"name\":\"db-creds\",\"apiVersion\":\"v1\"},\"responseStatus\":{\"code\":200},\"requestReceivedTimestamp\":\"2026-11-18T08:14:22.631Z\",\"stageTimestamp\":\"2026-11-18T08:14:22.640Z\"}",
+          "reading": "A workload identity in the reporting namespace read a secret in the payments namespace and received HTTP 200. That crosses a namespace boundary between a reporting job and payment credentials, which is exactly the kind of access to verify against RBAC and the job's stated purpose."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Which Kubernetes audit level records both the request body and the response body?",
+          "options": [
+            "RequestResponse",
+            "Request",
+            "Metadata",
+            "None"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "RequestResponse captures both bodies. Request captures only the request body, Metadata captures neither, and None suppresses the event entirely."
+        }
+      ],
+      "tags": [
+        "kubernetes",
+        "audit",
+        "cloud-native"
+      ]
+    },
+    {
+      "id": "log-edr-telemetry-015",
+      "subtopic": "endpoint-telemetry",
+      "difficulty": "intermediate",
+      "title": "What endpoint telemetry adds beyond process names",
+      "fact": "Endpoint detection and response sensors record process creation with the full command line, parent process, image path and often image hash, plus network connections, file writes, registry changes and loaded modules. That context lets an analyst reconstruct a process tree instead of matching a filename. Sysmon provides a comparable subset on Windows through its own event IDs, with event 1 for process creation and event 3 for network connection.",
+      "references": [
+        {
+          "title": "Sysmon v15",
+          "publisher": "Microsoft Sysinternals",
+          "url": "https://learn.microsoft.com/en-us/sysinternals/downloads/sysmon",
+          "license": "Microsoft-Sysinternals"
+        },
+        {
+          "title": "4688(S): A new process has been created",
+          "publisher": "Microsoft Learn",
+          "url": "https://learn.microsoft.com/en-us/windows/security/threat-protection/auditing/event-4688",
+          "license": "CC-BY-4.0"
+        }
+      ],
+      "details": [
+        "A process tree with parent-child relationships is stronger evidence than a lone process name, which is easy to reuse.",
+        "Image hashes distinguish a legitimate signed binary from a renamed copy with the same filename.",
+        "Sensor health matters: a host that stopped reporting has a coverage gap, not a clean bill of health."
+      ],
+      "pitfalls": [
+        "Treating a familiar filename such as powershell.exe as benign without checking path, signature and parent.",
+        "Ignoring parent PID reuse; verify parent start time rather than trusting the PID alone."
+      ],
+      "logs": [
+        {
+          "context": "Sysmon process creation event, fields abridged",
+          "text": "UtcTime: 2026-11-18 08:14:22.631\nEventID: 1\nComputer: ws-014.example.internal\nUser: EXAMPLE\\jdoe\nImage: C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe\nCommandLine: powershell.exe -NoProfile -EncodedCommand <base64 omitted>\nParentImage: C:\\Program Files\\Microsoft Office\\root\\Office16\\WINWORD.EXE\nParentCommandLine: \"C:\\Program Files\\Microsoft Office\\root\\Office16\\WINWORD.EXE\" /n report.docx",
+          "reading": "The command line is encoded, but the parent is WINWORD.EXE opening a document, which is not a normal parent for PowerShell. That parent-child pair, not the string powershell.exe by itself, is the high-value observation; the next step is to decode the command and check for a network connection."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Sysmon event ID 1 records which activity?",
+          "options": [
+            "Process creation",
+            "Network connection",
+            "DNS query",
+            "File creation"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "Event 1 is Process Create, event 3 is Network Connect, event 11 is File Create, and event 22 is DNS Query. The command line and parent fields in event 1 are what make it useful for behavioural detection."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "If the process name is a known Windows binary, the process is legitimate.",
+          "correction": "Names and paths are trivially copied. Analysts should check the image path, digital signature, hash and parent process. A renamed attacker binary can present the same filename as a system tool."
+        }
+      ],
+      "tags": [
+        "edr",
+        "sysmon",
+        "process-tree"
+      ]
+    },
+    {
+      "id": "log-time-normalize-016",
+      "subtopic": "timestamps",
+      "difficulty": "foundational",
+      "title": "Normalising timestamps before correlation",
+      "fact": "Logs arrive as RFC 3339 strings, local-time strings, epoch seconds, epoch milliseconds and Windows FILETIME values. Correlation requires one canonical representation, normally UTC in RFC 3339 with a fixed fractional precision. The original string and its offset should be retained alongside the normalized value so a later dispute can be resolved without re-ingesting the source.",
+      "references": [
+        {
+          "title": "RFC 3339: Date and Time on the Internet: Timestamps",
+          "publisher": "IETF",
+          "url": "https://www.rfc-editor.org/rfc/rfc3339.html",
+          "license": "IETF-Trust"
+        },
+        {
+          "title": "NIST SP 800-92: Guide to Computer Security Log Management",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/92/final",
+          "license": "Public-Domain"
+        }
+      ],
+      "details": [
+        "2026-11-18T08:14:22.631Z and 2026-11-18T09:14:22.631+01:00 denote the same instant.",
+        "Epoch seconds, epoch milliseconds and 100-nanosecond FILETIME ticks are different units and cannot be compared directly.",
+        "Sub-second precision differs by source; mixing millisecond and second precision can reorder events that occurred in the same second."
+      ],
+      "pitfalls": [
+        "Storing a timestamp without its offset and later assuming UTC.",
+        "Letting a dashboard apply the browser's local zone to a field that was already converted, shifting it twice."
+      ],
+      "logs": [
+        {
+          "context": "Four encodings of the same instant",
+          "text": "2026-11-18T08:14:22.631Z\n2026-11-18 09:14:22.631 +01:00\n2026-11-18 08:14:22\n1794989662.631",
+          "reading": "The first two are unambiguous and equal. The third has no offset and is only 08:14:22 UTC if the source zone is known to be UTC. The fourth is epoch seconds and matches the same instant; treating it as milliseconds would place the event in 1970."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Which timestamp is unambiguous without any additional context?",
+          "options": [
+            "2026-11-18T08:14:22.631Z",
+            "2026-11-18 08:14:22",
+            "1794989662.631",
+            "11/18/2026 08:14:22"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "The Z suffix states UTC and the ISO 8601 layout is unambiguous. The second lacks an offset, the third lacks a unit, and the fourth is ambiguous between day-first and month-first conventions."
+        }
+      ],
+      "tags": [
+        "timestamps",
+        "utc",
+        "normalization"
+      ]
+    },
+    {
+      "id": "log-clock-skew-017",
+      "subtopic": "timestamps",
+      "difficulty": "intermediate",
+      "title": "Clock skew breaks ordering even when every host uses UTC",
+      "fact": "Time zones and clock accuracy are different problems. Converting every host to UTC removes offset ambiguity, but a host whose clock is minutes off still writes the wrong instant. Skew distorts event ordering, blows through correlation windows, and can produce authentication failures when Kerberos ticket validation or certificate validity checks disagree with the host clock.",
+      "references": [
+        {
+          "title": "RFC 5905: Network Time Protocol Version 4",
+          "publisher": "IETF",
+          "url": "https://www.rfc-editor.org/rfc/rfc5905.html",
+          "license": "IETF-Trust"
+        },
+        {
+          "title": "NIST SP 800-92: Guide to Computer Security Log Management",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/92/final",
+          "license": "Public-Domain"
+        }
+      ],
+      "details": [
+        "NTP or a similar service should keep hosts within a small fraction of a second; the acceptable bound is an operational decision.",
+        "On Linux, timedatectl and chronyc tracking expose the current offset; on Windows, w32tm /query /status reports the source and last sync.",
+        "A collector can flag skew by comparing event time with receipt time and with the host's known offset."
+      ],
+      "pitfalls": [
+        "Assuming UTC timestamps are accurate; UTC is a label, not a guarantee that the clock is correct.",
+        "Correlating with a window narrower than the observed skew."
+      ],
+      "logs": [
+        {
+          "context": "Same user, two hosts, clocks disagree",
+          "text": "2026-11-18T08:14:20Z ws-014.example.internal Security 4624 LogonType=10 TargetUserName=jdoe\n2026-11-18T08:18:28Z dc-01.example.internal Security 4771 TargetUserName=jdoe Status=0x18\n2026-11-18T08:18:32Z dc-01.example.internal Security 4768 TargetUserName=jdoe",
+          "reading": "The workstation records the RDP logon at 08:14:20. The domain controller records the Kerberos pre-authentication failure and the TGT request for the same activity at 08:18:28 and 08:18:32. The consistent four-minute offset between the two hosts is clock skew, not a four-minute user delay, and it explains why the failure that preceded the logon appears later in a naive sort."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Why can clock skew break incident reconstruction even when all logs are stored in UTC?",
+          "options": [
+            "UTC removes offset ambiguity but not the error in each host's clock",
+            "UTC cannot represent sub-second precision",
+            "UTC timestamps are always written by the collector, not the host",
+            "UTC is only valid for Windows hosts"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "A UTC label says which zone the time is expressed in, not that the underlying clock is correct. A host that is four minutes fast still writes a UTC timestamp that is four minutes wrong."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "If every source logs in UTC, events can always be sorted into the correct order.",
+          "correction": "UTC normalises the offset, but each host's clock can still drift. Ordering also depends on sub-second precision and on whether the timestamp was taken at event time or at ingestion time."
+        }
+      ],
+      "tags": [
+        "ntp",
+        "clock-skew",
+        "correlation"
+      ]
+    },
+    {
+      "id": "log-retention-integrity-018",
+      "subtopic": "log-management",
+      "difficulty": "advanced",
+      "title": "Retention and tamper resistance are separate controls",
+      "fact": "Retention decides how far back an investigation can look; integrity decides whether the retained record can be trusted. NIST SP 800-92 treats log retention as a policy decision driven by operational, legal and regulatory needs rather than a single universal period. Integrity comes from shipping records off the host promptly, restricting who can delete them, using append-only or write-once storage, and enabling controls such as auditd immutable mode.",
+      "references": [
+        {
+          "title": "NIST SP 800-92: Guide to Computer Security Log Management",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/92/final",
+          "license": "Public-Domain"
+        },
+        {
+          "title": "NIST SP 800-61 Rev. 3: Incident Response Recommendations and Considerations for Cybersecurity Risk Management",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/61/r3/final",
+          "license": "Public-Domain"
+        },
+        {
+          "title": "T1070: Indicator Removal",
+          "publisher": "MITRE ATT&CK",
+          "url": "https://attack.mitre.org/techniques/T1070/",
+          "license": "MITRE-ATTACK"
+        }
+      ],
+      "details": [
+        "Central collection shortens the window in which an attacker who owns a host can delete its evidence.",
+        "Hashing batches of records or using write-once storage makes later modification detectable.",
+        "Retention schedules should distinguish raw events, parsed events and case evidence, which often have different lifetimes."
+      ],
+      "pitfalls": [
+        "Treating a long retention period as proof of integrity; a long but editable log is still editable.",
+        "Keeping the only copy on the monitored host."
+      ],
+      "logs": [
+        {
+          "context": "auditd switched to immutable mode",
+          "text": "type=CONFIG_CHANGE msg=audit(1794989662.631:99): op=set audit_enabled=2 old=1 auid=4294967295 ses=4294967295 res=1",
+          "reading": "The audit configuration is now locked until reboot, so rules cannot be silently weakened. This is an integrity control, but it does not by itself preserve the records; shipping them to a separate collector is still required against an attacker with root."
+        }
+      ],
+      "tags": [
+        "retention",
+        "integrity",
+        "log-management"
+      ]
+    },
+    {
+      "id": "log-ssh-bruteforce-101",
+      "subtopic": "auth-logs",
+      "difficulty": "foundational",
+      "title": "SSH brute force versus failing automation",
+      "fact": "SSH logs distinguish brute force from automation through pattern rather than any single line. Brute force typically shows many attempts from one source, a rotating list of account names including invalid users, and few or no successes. Automation shows a stable account, a predictable cadence, a public-key or known credential, and often a single retry after a key rotation.",
+      "references": [
+        {
+          "title": "RFC 4252: The Secure Shell (SSH) Authentication Protocol",
+          "publisher": "IETF",
+          "url": "https://www.rfc-editor.org/rfc/rfc4252.html",
+          "license": "IETF-Trust"
+        },
+        {
+          "title": "T1110: Brute Force",
+          "publisher": "MITRE ATT&CK",
+          "url": "https://attack.mitre.org/techniques/T1110/",
+          "license": "MITRE-ATTACK"
+        }
+      ],
+      "details": [
+        "'Failed password for invalid user admin' means the account name itself does not exist, which is a strong sign of guessing.",
+        "A successful public-key login from a known management subnet on an hourly schedule is usually a deployment or backup job.",
+        "Source reputation and whether the source is inside the organisation's own address plan change the interpretation."
+      ],
+      "pitfalls": [
+        "Alerting on failure count alone; a stale automation key can produce a steady stream of failures.",
+        "Ignoring a success that follows many failures, which is the outcome that matters most."
+      ],
+      "logs": [
+        {
+          "context": "SSH password guessing against one bastion",
+          "text": "Nov 18 03:00:01 bastion-01 sshd[2211]: Failed password for invalid user admin from 203.0.113.77 port 51001 ssh2\nNov 18 03:00:02 bastion-01 sshd[2211]: Invalid user test from 203.0.113.77 port 51002\nNov 18 03:00:04 bastion-01 sshd[2211]: Failed password for invalid user oracle from 203.0.113.77 port 51003 ssh2\nNov 18 03:00:06 bastion-01 sshd[2211]: error: maximum authentication attempts exceeded for invalid user root from 203.0.113.77 port 51004 ssh2 [preauth]",
+          "reading": "Four attempts in five seconds, four different account names, all of which do not exist, and a maximum-attempts error. The source 203.0.113.77 is outside the organisation's address plan, and there is no success. This pattern is consistent with automated password guessing."
+        },
+        {
+          "context": "Benign hourly deployment login",
+          "text": "Nov 18 02:00:02 bastion-01 sshd[3301]: Failed publickey for svc-deploy from 10.20.30.40 port 40122 ssh2: ED25519 SHA256:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\nNov 18 02:00:03 bastion-01 sshd[3301]: Accepted publickey for svc-deploy from 10.20.30.40 port 40122 ssh2: ED25519 SHA256:BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+          "reading": "Benign: one failure followed by one success, same service account, same management subnet, public-key authentication, and the pair repeats at 02:00 every hour. The failure is the agent trying the previous key during a rotation, not a password guess. The absence of username diversity and the successful key auth clear it."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Which observation most strongly separates brute force from a failing automation job in SSH logs?",
+          "options": [
+            "Many different account names, including invalid users, from one external source",
+            "A single failed attempt followed by a successful public-key login from a management subnet",
+            "A login at an unusual hour",
+            "A connection that closes before authentication"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "Username diversity plus invalid accounts plus external origin is the classic guessing pattern. A single retry with a known key from a management network, a login at an odd hour, and a pre-auth disconnect are all individually weak signals."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "Any burst of failed SSH logins is an attack.",
+          "correction": "Automation with an expired or rotated key produces repeated failures from a stable account and source on a regular schedule. The discriminating features are username diversity, source ownership, cadence, authentication method and whether a success follows."
+        }
+      ],
+      "tags": [
+        "ssh",
+        "brute-force",
+        "false-positive"
+      ]
+    },
+    {
+      "id": "log-password-spray-102",
+      "subtopic": "auth-logs",
+      "difficulty": "advanced",
+      "title": "Password spraying looks different from brute force",
+      "fact": "Password spraying tries one or a few common passwords across many accounts to stay under per-account lockout thresholds. The signature is a high count of distinct target accounts from one source with a low number of failures per account, often followed by a success on an account that then behaves unusually. It is easy to miss if the detection groups only by target account.",
+      "references": [
+        {
+          "title": "T1110.003: Password Spraying",
+          "publisher": "MITRE ATT&CK",
+          "url": "https://attack.mitre.org/techniques/T1110/003/",
+          "license": "MITRE-ATTACK"
+        },
+        {
+          "title": "4625(F): An account failed to log on",
+          "publisher": "Microsoft Learn",
+          "url": "https://learn.microsoft.com/en-us/windows/security/threat-protection/auditing/event-4625",
+          "license": "CC-BY-4.0"
+        }
+      ],
+      "details": [
+        "Grouping by source address and counting distinct TargetUserName values exposes the pattern.",
+        "Failures are spread over time precisely to avoid lockout, so a per-account threshold may never fire.",
+        "The successful account often shows a new source, a new user agent or immediate access to mail or VPN resources."
+      ],
+      "pitfalls": [
+        "Tuning only on failures per account, which is the dimension the attacker deliberately keeps low.",
+        "Ignoring successful logons from the same source during the spray window."
+      ],
+      "logs": [
+        {
+          "context": "Windows failed logons from one address across many accounts",
+          "text": "08:01:02 4625 TargetUserName=ajones    IpAddress=198.51.100.23 LogonType=3 SubStatus=0xc000006a\n08:01:09 4625 TargetUserName=bgarcia  IpAddress=198.51.100.23 LogonType=3 SubStatus=0xc000006a\n08:01:17 4625 TargetUserName=cmiller  IpAddress=198.51.100.23 LogonType=3 SubStatus=0xc000006a\n08:01:25 4625 TargetUserName=dsingh   IpAddress=198.51.100.23 LogonType=3 SubStatus=0xc000006a\n08:02:40 4624 TargetUserName=cmiller  IpAddress=198.51.100.23 LogonType=3",
+          "reading": "Four different accounts fail once each from the same address within 23 seconds, then one of them succeeds. No single account crosses a lockout threshold, but the distinct-account count from one source is the signal. The success on cmiller is the event to scope next."
+        }
+      ],
+      "tags": [
+        "password-spray",
+        "windows",
+        "detection"
+      ]
+    },
+    {
+      "id": "log-sudo-escalation-103",
+      "subtopic": "auth-logs",
+      "difficulty": "intermediate",
+      "title": "Reading sudo lines: who asked, for what, and as whom",
+      "fact": "A sudo log line names the invoking user, the terminal, the working directory, the target user and the exact command. The invoking user appears before the colon, while USER= is the account whose privileges were requested. Session open and close lines bracket the command, and auditd's USER_CMD record captures the same action independently when audit rules are in place.",
+      "references": [
+        {
+          "title": "sudoers(5) manual",
+          "publisher": "sudo project",
+          "url": "https://www.sudo.ws/docs/man/sudoers.man/",
+          "license": "ISC"
+        },
+        {
+          "title": "T1548.003: Sudo and Sudo Caching",
+          "publisher": "MITRE ATT&CK",
+          "url": "https://attack.mitre.org/techniques/T1548/003/",
+          "license": "MITRE-ATTACK"
+        }
+      ],
+      "details": [
+        "TTY=pts/0 indicates an interactive terminal; TTY=? often means a cron job, service or non-interactive session.",
+        "A specific command such as /usr/bin/systemctl restart nginx is narrower than /bin/bash or sudo -i.",
+        "PWD shows where the command ran, which can reveal a script or a suspicious working directory."
+      ],
+      "pitfalls": [
+        "Reading USER=root as the person who ran the command; the invoking identity is the field before the colon.",
+        "Treating every sudo to a shell as malicious; maintenance and break-glass procedures legitimately do this."
+      ],
+      "logs": [
+        {
+          "context": "sudo command tied to a change window",
+          "text": "2026-11-18T09:10:00Z change-api[441]: CHG-2291 approved implementer=jdoe window=09:10-09:30 target=app-01\nNov 18 09:15:02 app-01 sudo:   jdoe : TTY=pts/0 ; PWD=/home/jdoe ; USER=root ; COMMAND=/usr/bin/systemctl restart nginx\nNov 18 09:15:03 app-01 sudo: pam_unix(sudo:session): session opened for user root by jdoe(uid=1000)",
+          "reading": "Benign: change CHG-2291 approves jdoe to work on app-01 between 09:10 and 09:30, and at 09:15 jdoe interactively ran one specific service restart as root. The implementing account, the target host and the command all match the approved change, so the sudo event is expected."
+        },
+        {
+          "context": "Non-interactive root shell by a service account",
+          "text": "Nov 18 03:12:44 app-01 sudo: svc-backup : TTY=? ; PWD=/var/lib/backup ; USER=root ; COMMAND=/bin/bash -c 'tar czf /tmp/b.tgz /etc /home'\nNov 18 03:12:44 app-01 sudo: pam_unix(sudo:session): session opened for user root by svc-backup(uid=998)",
+          "reading": "The invoking account is a backup service, there is no terminal, and the command opens a shell that archives /etc and /home into /tmp. Backups normally read a defined data path, not system configuration and user homes. The combination of service identity, no TTY and broad collection is what makes this worth escalation."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "In a sudo log line, which field identifies the command that was authorised?",
+          "options": [
+            "COMMAND=",
+            "USER=",
+            "PWD=",
+            "TTY="
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "COMMAND= holds the executed command and its arguments. USER= is the target account whose privileges were requested, PWD= is the working directory, and TTY= is the terminal."
+        }
+      ],
+      "tags": [
+        "sudo",
+        "privilege-escalation",
+        "false-positive"
+      ]
+    },
+    {
+      "id": "log-web-scan-vs-exploit-104",
+      "subtopic": "web-logs",
+      "difficulty": "foundational",
+      "title": "Web scanning versus exploitation in access logs",
+      "fact": "Scanning produces breadth: many paths, mostly missing, with a consistent client and a short interval. Exploitation produces depth: a small number of requests carrying syntax aimed at one parameter, often followed by a response that differs from the baseline. The distinction matters because scanning is noisy but often authorised, while a single successful exploitation request can be quiet.",
+      "references": [
+        {
+          "title": "T1595: Active Scanning",
+          "publisher": "MITRE ATT&CK",
+          "url": "https://attack.mitre.org/techniques/T1595/",
+          "license": "MITRE-ATTACK"
+        },
+        {
+          "title": "T1190: Exploit Public-Facing Application",
+          "publisher": "MITRE ATT&CK",
+          "url": "https://attack.mitre.org/techniques/T1190/",
+          "license": "MITRE-ATTACK"
+        }
+      ],
+      "details": [
+        "Requests for /.env, /.git/config, /wp-login.php and /actuator/env are enumeration, not exploitation by themselves.",
+        "A scanner often identifies itself in the user agent; that string is still client-controlled and must be checked against an allowlist.",
+        "Look for a change in response size or status after a payload, not just the presence of the payload."
+      ],
+      "pitfalls": [
+        "Calling every 404 storm an incident while missing the one 200 that returned data.",
+        "Trusting a scanner user agent without confirming the source address belongs to the scanner."
+      ],
+      "logs": [
+        {
+          "context": "Benign scheduled scanner from an allowlisted address",
+          "text": "198.51.100.10 - - [18/Nov/2026:08:15:01 +0000] \"GET /.env HTTP/1.1\" 404 153 \"-\" \"Mozilla/5.0 (compatible; Nuclei - Open-source project)\"\n198.51.100.10 - - [18/Nov/2026:08:15:02 +0000] \"GET /.git/config HTTP/1.1\" 404 153 \"-\" \"Mozilla/5.0 (compatible; Nuclei - Open-source project)\"\n198.51.100.10 - - [18/Nov/2026:08:15:03 +0000] \"GET /wp-login.php HTTP/1.1\" 404 153 \"-\" \"Mozilla/5.0 (compatible; Nuclei - Open-source project)\"",
+          "reading": "Benign: every probe returned 404 with the same small body, the source is the vulnerability-management scanner's documented address, and the user agent names the scanner. This is authorised enumeration from the approved scanner. The clearing evidence is the allowlist match plus the absence of any successful or payload-bearing request."
+        },
+        {
+          "context": "Parameter probing that returns data",
+          "text": "203.0.113.77 - - [18/Nov/2026:09:02:11 +0000] \"GET /product?id=1%27%20OR%20%271%27%3D%271 HTTP/1.1\" 500 512 \"-\" \"sqlmap/1.8.4#stable\"\n203.0.113.77 - - [18/Nov/2026:09:02:19 +0000] \"GET /product?id=1%20UNION%20SELECT%20username,password%20FROM%20users HTTP/1.1\" 200 48213 \"-\" \"sqlmap/1.8.4#stable\"",
+          "reading": "The first request injects a tautology and gets a 500. Nineteen seconds later a UNION query returns 48 KB instead of the normal 8 KB. The payload, the tool user agent, the error followed by a large 200 response, and the same source together support attempted exploitation with a likely data return."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "A sequence of 404 responses for /.env, /.git/config and /wp-login.php most likely indicates which activity?",
+          "options": [
+            "Path enumeration or scanning",
+            "Successful credential theft",
+            "A denial-of-service attack",
+            "Normal application browsing"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "These paths are common configuration and administrative targets. Repeated 404s show the requests were made but the files were not served, which is enumeration. Exploitation would require evidence that a request succeeded or changed application behaviour."
+        }
+      ],
+      "tags": [
+        "web",
+        "scanning",
+        "false-positive"
+      ]
+    },
+    {
+      "id": "log-sqli-105",
+      "subtopic": "web-logs",
+      "difficulty": "intermediate",
+      "title": "SQL injection evidence: payload is not proof",
+      "fact": "A request containing SQL syntax shows an attempt, not a compromise. Confirmation requires a response that differs from the parameterised baseline: extra rows, a database error, a time delay that scales with the payload, or a change in status and size. Applications legitimately receive apostrophes in search terms, and WAF signatures produce false positives on those requests.",
+      "references": [
+        {
+          "title": "SQL Injection Prevention Cheat Sheet",
+          "publisher": "OWASP",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.html",
+          "license": "CC-BY-SA-4.0"
+        },
+        {
+          "title": "T1190: Exploit Public-Facing Application",
+          "publisher": "MITRE ATT&CK",
+          "url": "https://attack.mitre.org/techniques/T1190/",
+          "license": "MITRE-ATTACK"
+        }
+      ],
+      "details": [
+        "URL decoding is required before judging a payload; %27 is an apostrophe and %20 is a space.",
+        "A generic 500 after a quote can be an application bug rather than a database error.",
+        "Time-based evidence needs a control request to show the delay is caused by the payload, not by load."
+      ],
+      "pitfalls": [
+        "Matching on the string OR 1=1 without checking whether the request reached a database-backed endpoint.",
+        "Ignoring the response body because the access log does not contain it."
+      ],
+      "logs": [
+        {
+          "context": "Benign apostrophe in a search query",
+          "text": "192.0.2.80 - - [18/Nov/2026:10:04:02 +0000] \"GET /search?q=O%27Reilly HTTP/1.1\" 200 8421 \"-\" \"Mozilla/5.0\"",
+          "reading": "Benign: the decoded query is O'Reilly, a book title. The response is 200 with the same size as a normal search page, there is no database error, and the source is an internal client. The apostrophe alone is not injection; the response shows it was handled as a literal search character."
+        },
+        {
+          "context": "Tautology followed by a response-size change",
+          "text": "203.0.113.77 - - [18/Nov/2026:10:05:10 +0000] \"GET /search?q=%27%20OR%20%271%27%3D%271-- HTTP/1.1\" 200 214530 \"-\" \"python-requests/2.31\"\n203.0.113.77 - - [18/Nov/2026:10:05:18 +0000] \"GET /search?q=zzzznotfound HTTP/1.1\" 200 8421 \"-\" \"python-requests/2.31\"",
+          "reading": "The tautology returns 214 KB while a nonsense control query returns the normal 8 KB. The size difference is the evidence: the first query appears to have returned every row, which is consistent with successful injection. The control request rules out a site-wide layout change."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Which response pattern is the strongest evidence that a SQL injection attempt succeeded?",
+          "options": [
+            "The response returns a different result set or size that a control request does not reproduce",
+            "The server returns HTTP 500 once",
+            "The request contains a single quote",
+            "The user agent names an injection tool"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "A reproducible change in returned data, confirmed against a control request, indicates the payload altered the query. A 500, a quote, or a tool user agent shows only that an attempt occurred or that something failed."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "Seeing ' OR 1=1 in a URL proves the database was compromised.",
+          "correction": "It proves a payload was sent. Many requests with SQL syntax are blocked, ignored, or handled by parameterised queries. Confirmation requires evidence that the query changed behaviour, such as extra rows, a database error, or a payload-dependent delay."
+        }
+      ],
+      "tags": [
+        "sqli",
+        "web",
+        "false-positive"
+      ]
+    },
+    {
+      "id": "log-dns-tunneling-106",
+      "subtopic": "network-telemetry",
+      "difficulty": "advanced",
+      "title": "DNS tunnelling indicators and their benign lookalikes",
+      "fact": "DNS tunnelling encodes data in query names or response records and relies on DNS being broadly allowed. Indicators include many unique subdomains under one parent, unusually long labels, high-entropy strings, heavy use of TXT or NULL record types, and a regular beacon cadence. The same shape appears in content delivery, antivirus lookups and domain reputation services, so the parent domain and the traffic baseline decide the interpretation.",
+      "references": [
+        {
+          "title": "T1071.004: Application Layer Protocol: DNS",
+          "publisher": "MITRE ATT&CK",
+          "url": "https://attack.mitre.org/techniques/T1071/004/",
+          "license": "MITRE-ATTACK"
+        }
+      ],
+      "details": [
+        "Entropy and label length are weak alone; a single long label can be a legitimate signed token or CDN key.",
+        "Count unique subdomains per parent domain per host, not total queries, to see encoding rather than caching.",
+        "Response size and record type matter: TXT responses can carry more data than a normal A lookup."
+      ],
+      "pitfalls": [
+        "Alerting on any long DNS label; many SaaS and security products use them.",
+        "Ignoring the resolver's cache, which can hide repeated lookups from the log."
+      ],
+      "logs": [
+        {
+          "context": "Benign reputation lookups from a security agent",
+          "text": "18-Nov-2026 08:14:22.631 client 10.20.30.55#51234: query: 8f3a1c9d2b7e4f60.av-check.example-vendor.test IN A + (72)\n18-Nov-2026 08:14:52.640 client 10.20.30.55#51235: query: 1d7b9e4a6c2f8035.av-check.example-vendor.test IN A + (72)",
+          "reading": "Benign: two lookups per minute, same host, same approved vendor suffix, A records only, and labels are 16 hex characters. This matches the endpoint agent's reputation check. The low volume, fixed domain and lack of TXT traffic distinguish it from a tunnel."
+        },
+        {
+          "context": "High-volume encoded subdomains under one parent",
+          "text": "18-Nov-2026 09:10:01.120 client 10.20.30.61#53001: query: a1b2c3d4e5f60718.a94f2c11.t.exfil-example.net IN TXT + (98)\n18-Nov-2026 09:10:01.980 client 10.20.30.61#53002: query: 0f9e8d7c6b5a4321.b73e1d02.t.exfil-example.net IN TXT + (98)\n18-Nov-2026 09:10:02.840 client 10.20.30.61#53003: query: 5c4b3a291807f6e5.c22d9a43.t.exfil-example.net IN TXT + (98)",
+          "reading": "Three TXT queries in under two seconds, each with a different high-entropy label and the same parent. The pattern suggests one encoded chunk per query. The parent domain is not on any approved list, and TXT is unusual for ordinary browsing, so this warrants scoping the host and the resolver's response sizes."
+        }
+      ],
+      "tags": [
+        "dns",
+        "tunneling",
+        "exfiltration"
+      ]
+    },
+    {
+      "id": "log-tls-errors-107",
+      "subtopic": "network-telemetry",
+      "difficulty": "intermediate",
+      "title": "TLS certificate errors: interception, misconfiguration or expiry",
+      "fact": "Certificate validation failures include an expired certificate, a name mismatch, an untrusted issuer, a revoked certificate and a weak or unsupported protocol. In a proxy log, the error may describe the client rejecting the proxy's certificate or the proxy rejecting the upstream server's certificate. Internal certificate authorities are common, so an untrusted-issuer error on an internal host is often a trust-store gap rather than interception.",
+      "references": [
+        {
+          "title": "RFC 5280: Internet X.509 Public Key Infrastructure Certificate and CRL Profile",
+          "publisher": "IETF",
+          "url": "https://www.rfc-editor.org/rfc/rfc5280.html",
+          "license": "IETF-Trust"
+        }
+      ],
+      "details": [
+        "A hostname mismatch means the certificate is valid for a different name, which can be a misconfiguration or a redirect.",
+        "Revocation checking can fail for reasons unrelated to the certificate, such as an unreachable OCSP responder.",
+        "Pinned applications may reject a proxy certificate even when the user's browser trusts it."
+      ],
+      "pitfalls": [
+        "Concluding that TLS interception is occurring whenever an untrusted-issuer error appears.",
+        "Ignoring the direction of the error: client-side and upstream-side failures have different causes."
+      ],
+      "logs": [
+        {
+          "context": "Benign internal CA trust gap",
+          "text": "2026-11-18T08:14:22Z proxy-01 tls-inspect[912]: host=legacy.example.internal sni=legacy.example.internal issuer=CN=Example-Internal-CA error=unable to get local issuer certificate action=bypass user=jdoe",
+          "reading": "Benign: the host is internal, the issuer is the organisation's own CA, and the proxy reports that it lacks the local issuer certificate. The action is a bypass, not a block. This is a trust-store configuration gap on the proxy, not evidence of an attacker intercepting traffic."
+        },
+        {
+          "context": "Self-signed certificate on a rare external host",
+          "text": "2026-11-18T09:31:07Z proxy-01 tls-inspect[912]: host=cdn-update.example.net sni=cdn-update.example.net issuer=CN=cdn-update.example.net error=self signed certificate action=allow user=svc-etl bytes_out=48213011",
+          "reading": "A self-signed certificate on an external host would normally be blocked, but here it was allowed and 48 MB left from a service account. The combination of a rare domain, an untrusted self-signed issuer, an allow decision and a large upload is worth escalating regardless of the certificate error alone."
+        }
+      ],
+      "tags": [
+        "tls",
+        "certificates",
+        "proxy"
+      ]
+    },
+    {
+      "id": "log-powershell-encoded-108",
+      "subtopic": "endpoint-telemetry",
+      "difficulty": "intermediate",
+      "title": "PowerShell -EncodedCommand is common and only sometimes suspicious",
+      "fact": "PowerShell's -EncodedCommand parameter accepts a Base64 encoding of a UTF-16LE script. Management platforms use it to avoid quoting problems, so its presence alone is weak evidence. What matters is the decoded content, the parent process, the account, whether the script is signed or comes from a known management path, and whether the process makes an unusual network connection.",
+      "references": [
+        {
+          "title": "about_Logging_Windows",
+          "publisher": "Microsoft Learn",
+          "url": "https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_logging_windows",
+          "license": "CC-BY-4.0"
+        },
+        {
+          "title": "T1059.001: PowerShell",
+          "publisher": "MITRE ATT&CK",
+          "url": "https://attack.mitre.org/techniques/T1059/001/",
+          "license": "MITRE-ATTACK"
+        }
+      ],
+      "details": [
+        "Script block logging, event 4104, records the decoded script text when the policy is enabled.",
+        "Process creation event 4688 or Sysmon event 1 records the encoded command line and the parent image.",
+        "A management agent such as CcmExec.exe launching PowerShell is expected; a word processor doing so is not."
+      ],
+      "pitfalls": [
+        "Decoding as plain Base64 without recognising UTF-16LE, which yields text with interleaved null bytes.",
+        "Treating every encoded command as malicious and ignoring the benign management traffic that dominates the volume."
+      ],
+      "logs": [
+        {
+          "context": "Benign management agent invocation",
+          "text": "UtcTime: 2026-11-18 06:00:03.112\nEventID: 1\nComputer: ws-014.example.internal\nUser: NT AUTHORITY\\SYSTEM\nImage: C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe\nCommandLine: powershell.exe -NoProfile -NonInteractive -EncodedCommand RwBlAHQALQBDAGkAbQBJAG4AcwB0AGEAbgBjAGUAIABXAGkAbgAzADIAXwBPAHAAZQByAGEAdABpAG4AZwBTAHkAcwB0AGUAbQA=\nParentImage: C:\\Windows\\CCM\\CcmExec.exe\nSignature: Microsoft Windows\nSignatureStatus: Valid",
+          "reading": "Benign: the parent is the Configuration Manager agent, the account is SYSTEM, the invocation is at the fleet's standard 06:00 maintenance time, and the image signature status is Valid. This is the documented software-deployment pattern, not user-driven obfuscation, and the encoded argument decodes to a read-only inventory cmdlet. The decoded script should still match a known signed module for confirmation."
+        },
+        {
+          "context": "Office process spawning encoded PowerShell",
+          "text": "UtcTime: 2026-11-18 09:44:18.550\nEventID: 1\nComputer: ws-022.example.internal\nUser: EXAMPLE\\asmith\nImage: C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe\nCommandLine: powershell.exe -NoProfile -WindowStyle Hidden -EncodedCommand <base64 omitted>\nParentImage: C:\\Program Files\\Microsoft Office\\root\\Office16\\EXCEL.EXE",
+          "reading": "Excel spawned a hidden PowerShell with an encoded command. The parent, the hidden window style and the user context are the concerning elements. The next steps are to decode the script, check for a child network connection, and inspect whether a macro or add-in initiated it."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "What encoding does PowerShell's -EncodedCommand parameter expect?",
+          "options": [
+            "Base64 of a UTF-16LE string",
+            "Base64 of a UTF-8 string",
+            "Hex of an ASCII string",
+            "URL encoding of a UTF-8 string"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "PowerShell decodes the argument from Base64 into UTF-16LE text before execution. Decoding as UTF-8 is a common mistake that produces null-interleaved output."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "Base64 in a PowerShell command line is obfuscation and therefore malicious.",
+          "correction": "EncodedCommand is a supported parameter used by management platforms to avoid quoting issues. Judgement depends on the decoded script, the parent process, the account and the network behaviour, not on the encoding alone."
+        }
+      ],
+      "tags": [
+        "powershell",
+        "encoded-command",
+        "false-positive"
+      ]
+    },
+    {
+      "id": "log-windows-logon-types-109",
+      "subtopic": "auth-logs",
+      "difficulty": "foundational",
+      "title": "Windows logon type semantics in 4624",
+      "fact": "Event 4624 records a successful logon and includes LogonType, which describes how the logon was performed. Type 2 is interactive at the console, 3 is network such as SMB or a remote service, 4 is batch, 5 is a service, 7 is unlock, 8 is network with cleartext credentials, 9 is a different credential for the same local session, 10 is remote interactive such as RDP, and 11 is cached interactive. The type changes what the event can tell you about the user's physical or network position.",
+      "references": [
+        {
+          "title": "4624(S): An account was successfully logged on",
+          "publisher": "Microsoft Learn",
+          "url": "https://learn.microsoft.com/en-us/windows/security/threat-protection/auditing/event-4624",
+          "license": "CC-BY-4.0"
+        },
+        {
+          "title": "4625(F): An account failed to log on",
+          "publisher": "Microsoft Learn",
+          "url": "https://learn.microsoft.com/en-us/windows/security/threat-protection/auditing/event-4625",
+          "license": "CC-BY-4.0"
+        }
+      ],
+      "details": [
+        "Type 3 is normal for file shares, printers and many service-to-service calls, so it is not inherently suspicious.",
+        "Type 10 indicates RDP and is often paired with a source address and a session ID.",
+        "Type 9 means the process supplied alternate credentials, and 4648 records the explicit credential use separately.",
+        "Event 4672 follows a logon that received administrative privileges and should be read together with 4624."
+      ],
+      "pitfalls": [
+        "Treating every type 3 logon as lateral movement; most file access uses type 3.",
+        "Reading LogonType without the account, source address and authentication package, which together give the context."
+      ],
+      "logs": [
+        {
+          "context": "Benign service logon over SMB",
+          "text": "2026-11-18T07:59:22Z fs-01.example.internal Security 4624 LogonType=3 TargetUserName=svc-backup TargetDomainName=EXAMPLE LogonProcessName=NtLmSsp AuthenticationPackage=NTLM WorkstationName=BACKUP-01 IpAddress=10.20.30.40\n2026-11-18T08:14:22Z fs-01.example.internal Security 4624 LogonType=3 TargetUserName=svc-backup TargetDomainName=EXAMPLE LogonProcessName=NtLmSsp AuthenticationPackage=NTLM WorkstationName=BACKUP-01 IpAddress=10.20.30.40",
+          "reading": "Benign: the same service account logs on over the network from the backup host at 07:59 and again at 08:14, matching a 15-minute backup schedule. Type 3 is expected for SMB, the source is the backup subnet, and the account name matches the job. Nothing here suggests interactive misuse."
+        },
+        {
+          "context": "Network logon from a workstation to a server",
+          "text": "2026-11-18T09:02:11Z fs-01.example.internal Security 4624 LogonType=3 TargetUserName=jdoe TargetDomainName=EXAMPLE LogonProcessName=NtLmSsp AuthenticationPackage=NTLM WorkstationName=WS-022 IpAddress=10.20.30.61",
+          "reading": "A user logon over NTLM from a workstation to a file server can be ordinary mapped-drive access. It becomes interesting when the same workstation authenticates to many servers in a short period, or when it is followed by 4672 on a server the user does not administer."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Which Windows logon type indicates a network logon such as an SMB connection?",
+          "options": [
+            "Type 3",
+            "Type 2",
+            "Type 5",
+            "Type 10"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "Type 3 is network, type 2 is interactive at the console, type 5 is a service logon, and type 10 is remote interactive, typically RDP."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "Logon type 3 always means lateral movement.",
+          "correction": "Type 3 covers ordinary network authentication such as file shares, printer access and service calls. Lateral movement is suggested by the combination of an unusual account, many targets, privileged follow-on events, or a source that does not normally authenticate that way."
+        }
+      ],
+      "tags": [
+        "windows",
+        "logon-type",
+        "4624"
+      ]
+    },
+    {
+      "id": "log-k8s-verb-110",
+      "subtopic": "cloud-audit",
+      "difficulty": "advanced",
+      "title": "Reading Kubernetes audit verbs and subresources",
+      "fact": "Kubernetes audit records express the action as an HTTP verb plus an object reference. A get on a secret is a read of that object, while create on pods/exec is how an exec session into a container appears. Identity is in user.username, the caller's address is in sourceIPs, and the outcome is in responseStatus.code. Namespace and RBAC scope determine whether the action is expected.",
+      "references": [
+        {
+          "title": "Auditing - Kubernetes Documentation",
+          "publisher": "Kubernetes project",
+          "url": "https://kubernetes.io/docs/tasks/debug/debug-cluster/audit/",
+          "license": "CC-BY-4.0"
+        },
+        {
+          "title": "Kubernetes API server audit configuration v1",
+          "publisher": "Kubernetes project",
+          "url": "https://kubernetes.io/docs/reference/config-api/apiserver-audit.v1/",
+          "license": "CC-BY-4.0"
+        }
+      ],
+      "details": [
+        "system:serviceaccount:<namespace>:<name> identifies a workload identity, not a human.",
+        "A 403 response is a denied attempt and can still be valuable evidence of probing.",
+        "list and watch are common for controllers and monitoring agents and are usually high volume."
+      ],
+      "pitfalls": [
+        "Assuming an exec event means a shell succeeded; check responseStatus and the subresource.",
+        "Ignoring cross-namespace access when the identity's RBAC role is namespace-scoped."
+      ],
+      "logs": [
+        {
+          "context": "Benign monitoring list operation",
+          "text": "{\"kind\":\"Event\",\"apiVersion\":\"audit.k8s.io/v1\",\"level\":\"Metadata\",\"stage\":\"ResponseComplete\",\"verb\":\"list\",\"user\":{\"username\":\"system:serviceaccount:monitoring:prometheus\"},\"sourceIPs\":[\"10.20.30.77\"],\"objectRef\":{\"resource\":\"pods\",\"namespace\":\"monitoring\",\"apiVersion\":\"v1\"},\"responseStatus\":{\"code\":200},\"requestReceivedTimestamp\":\"2026-11-18T08:14:22.631Z\"}",
+          "reading": "Benign: the monitoring service account lists pods in its own namespace, from the monitoring node, with a 200. This is the expected discovery pattern for a metrics collector and matches its RBAC scope."
+        },
+        {
+          "context": "Service account reading a secret in another namespace",
+          "text": "{\"kind\":\"Event\",\"apiVersion\":\"audit.k8s.io/v1\",\"level\":\"RequestResponse\",\"stage\":\"ResponseComplete\",\"verb\":\"get\",\"user\":{\"username\":\"system:serviceaccount:reporting:etl-runner\"},\"sourceIPs\":[\"10.20.30.77\"],\"objectRef\":{\"resource\":\"secrets\",\"namespace\":\"payments\",\"name\":\"db-creds\",\"apiVersion\":\"v1\"},\"responseStatus\":{\"code\":200},\"requestReceivedTimestamp\":\"2026-11-18T08:14:22.631Z\"}",
+          "reading": "A reporting identity read payment database credentials and received 200. The namespace crossing is the key fact: unless the ETL job is documented to use that secret, this is either an RBAC design flaw or credential access by a compromised workload."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "A Kubernetes audit event shows verb=get and objectRef.resource=secrets. What does this indicate?",
+          "options": [
+            "A read of a secret object, which must be judged against the caller's identity and RBAC scope",
+            "A secret was created",
+            "The API server denied the request automatically",
+            "The caller executed a shell in a pod"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "get is a read. Creation would be create, denial would show a 403 responseStatus, and exec appears as create on the pods/exec subresource."
+        }
+      ],
+      "tags": [
+        "kubernetes",
+        "rbac",
+        "audit"
+      ]
+    },
+    {
+      "id": "log-cloud-storage-access-111",
+      "subtopic": "cloud-audit",
+      "difficulty": "intermediate",
+      "title": "Cloud storage access patterns: backup versus collection",
+      "fact": "Object storage access is easy to log at volume and easy to misread. A backup job reads or writes a predictable prefix with a stable role, a schedule and a consistent user agent. Collection activity tends to enumerate buckets, read many distinct keys across prefixes, use an unusual identity or user agent, and may show AccessDenied errors while probing. The identity and the key pattern matter more than the raw count.",
+      "references": [
+        {
+          "title": "CloudTrail record contents for management, data, and network activity events",
+          "publisher": "AWS",
+          "url": "https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-event-reference.html",
+          "license": "CC-BY-SA-4.0"
+        },
+        {
+          "title": "Logging Amazon S3 API calls using AWS CloudTrail",
+          "publisher": "AWS",
+          "url": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/cloudtrail-logging.html",
+          "license": "CC-BY-SA-4.0"
+        }
+      ],
+      "details": [
+        "ListBucket followed by many GetObject calls is a common discovery-then-collect sequence.",
+        "A role session name often encodes the job or date and can corroborate the expected schedule.",
+        "Cross-account access and public bucket policy changes deserve separate, higher-severity treatment."
+      ],
+      "pitfalls": [
+        "Alerting only on object count; a legitimate restore can read thousands of objects.",
+        "Assuming the source address is the user's location when an AWS service made the call on their behalf."
+      ],
+      "logs": [
+        {
+          "context": "Benign nightly backup read",
+          "text": "{\"eventTime\":\"2026-11-18T02:00:04Z\",\"eventSource\":\"s3.amazonaws.com\",\"eventName\":\"GetObject\",\"sourceIPAddress\":\"203.0.113.50\",\"userAgent\":\"aws-cli/2.15.0\",\"userIdentity\":{\"type\":\"AssumedRole\",\"arn\":\"arn:aws:sts::111122223333:assumed-role/backup-runner/backup-20261118\"},\"requestParameters\":{\"bucketName\":\"example-backups\",\"key\":\"db/2026/11/18/full.tar.gz\"}}",
+          "reading": "Benign: the role is backup-runner, the session name contains the date, the key matches the nightly full-backup prefix, and the call occurs at 02:00 as scheduled. The pattern is stable and documented."
+        },
+        {
+          "context": "Enumeration followed by broad object reads",
+          "text": "{\"eventTime\":\"2026-11-18T09:14:02Z\",\"eventSource\":\"s3.amazonaws.com\",\"eventName\":\"ListBucket\",\"sourceIPAddress\":\"198.51.100.61\",\"userAgent\":\"python-requests/2.31\",\"userIdentity\":{\"type\":\"IAMUser\",\"arn\":\"arn:aws:iam::111122223333:user/contractor-07\"},\"requestParameters\":{\"bucketName\":\"example-customer-exports\"}}\n{\"eventTime\":\"2026-11-18T09:14:40Z\",\"eventSource\":\"s3.amazonaws.com\",\"eventName\":\"GetObject\",\"sourceIPAddress\":\"198.51.100.61\",\"userAgent\":\"python-requests/2.31\",\"userIdentity\":{\"type\":\"IAMUser\",\"arn\":\"arn:aws:iam::111122223333:user/contractor-07\"},\"requestParameters\":{\"bucketName\":\"example-customer-exports\",\"key\":\"2026/09/exports-part-017.csv\"}}",
+          "reading": "A contractor identity lists a customer-exports bucket, then reads a numbered part file with a generic Python user agent from an external address. Enumeration plus part-file reads is a collection pattern; verify the contractor's engagement and whether the bucket policy should allow that identity at all."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Which CloudTrail field identifies the IAM principal that made an API call?",
+          "options": [
+            "userIdentity.arn",
+            "sourceIPAddress",
+            "eventSource",
+            "awsRegion"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "userIdentity describes the principal, including its type and ARN. sourceIPAddress is the network origin, eventSource names the service, and awsRegion is the endpoint region."
+        }
+      ],
+      "tags": [
+        "cloud",
+        "s3",
+        "exfiltration"
+      ]
+    },
+    {
+      "id": "log-benign-corroboration-112",
+      "subtopic": "analysis-method",
+      "difficulty": "foundational",
+      "title": "Clearing an alert needs a positive explanation",
+      "fact": "An alert is cleared as benign when there is a specific, evidence-backed reason the activity is expected, not merely because no malicious indicator was found. The explanation should name the actor, the business process, the expected timing and the control that corroborates it. If the only support is 'nothing else looked bad', the alert is better left open or escalated than closed as a false positive.",
+      "references": [
+        {
+          "title": "NIST SP 800-61 Rev. 3: Incident Response Recommendations and Considerations for Cybersecurity Risk Management",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/61/r3/final",
+          "license": "Public-Domain"
+        },
+        {
+          "title": "Logging Vocabulary Cheat Sheet",
+          "publisher": "OWASP",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/Logging_Vocabulary_Cheat_Sheet.html",
+          "license": "CC-BY-SA-4.0"
+        }
+      ],
+      "details": [
+        "Corroboration can come from a change ticket, an asset owner, a scheduled job, a baseline, or an independent log source.",
+        "The explanation should be reproducible by another analyst from the case notes.",
+        "Absence of malware on disk does not explain why an encoded command ran."
+      ],
+      "pitfalls": [
+        "Using 'known good' as a reason without recording what makes it known good.",
+        "Closing an alert because the user is senior or the host is internal."
+      ],
+      "logs": [
+        {
+          "context": "Nightly updatedb process on a database host",
+          "text": "2026-11-18T03:00:01Z db-02.example.internal audit: type=SYSCALL msg=audit(1794980401.002:7781): arch=c000003e syscall=59 success=yes exit=0 ppid=22990 pid=22991 auid=4294967295 uid=0 gid=0 euid=0 comm=\"updatedb\" exe=\"/usr/bin/updatedb\" key=\"exec\"\n2026-11-18T03:00:01Z db-02.example.internal cron[22990]: (root) CMD (/usr/bin/updatedb --prunepaths=/var/lib/postgresql)",
+          "reading": "Benign: the cron record shows root launching updatedb at 03:00 with an explicit prune path, and the audit record shows the same process with a matching parent. The job is documented, runs nightly, and touches no unexpected path. The cron line is the positive explanation that clears the audit alert."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "What is the minimum standard for closing an alert as benign?",
+          "options": [
+            "A specific benign explanation supported by corroborating evidence",
+            "No malware was found on the host",
+            "The user has a senior job title",
+            "The alert came from an internal address"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "A benign closure should name the expected activity and support it with evidence such as a schedule, ticket, owner confirmation, or independent log. The other options are assumptions that do not explain the observed behaviour."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "If no malware hash is found, the alert is a false positive.",
+          "correction": "Absence of a known hash only means the sample is not in that hash set. The activity still needs an explanation. Living-off-the-land techniques often use signed system binaries with no malicious file at all."
+        }
+      ],
+      "tags": [
+        "triage",
+        "false-positive",
+        "evidence"
+      ]
+    },
+    {
+      "id": "soc-severity-priority-201",
+      "subtopic": "alert-triage",
+      "difficulty": "foundational",
+      "title": "Severity is not priority",
+      "fact": "Severity is the technical weight a detection assigns to an event, usually from the rule. Priority is the order in which the organisation should work, and it adds asset criticality, identity privilege, data sensitivity, exposure and current threat context. A high-severity rule on an isolated test host can be low priority, while a medium-severity identity event on a domain controller can be urgent.",
+      "references": [
+        {
+          "title": "NIST SP 800-61 Rev. 3: Incident Response Recommendations and Considerations for Cybersecurity Risk Management",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/61/r3/final",
+          "license": "Public-Domain"
+        }
+      ],
+      "details": [
+        "Priority should be computed from severity plus context, not copied from the rule level.",
+        "A single rule can produce different priorities for different assets and identities.",
+        "Queue order should be visible to analysts so they can see why one case outranks another."
+      ],
+      "pitfalls": [
+        "Sorting the queue by rule severity alone and starving high-impact medium alerts.",
+        "Letting priority inflate permanently because an asset was once critical."
+      ],
+      "logs": [
+        {
+          "context": "Alert with severity and computed priority",
+          "text": "{\"alert_id\":\"ALRT-2026-11842\",\"rule\":\"SSH authentication failure burst\",\"severity\":\"high\",\"asset\":{\"host\":\"lab-07\",\"tier\":\"test\",\"owner\":\"engineering\"},\"identity\":{\"user\":\"testuser\",\"privileged\":false},\"priority\":\"P4\",\"reason\":\"isolated test host with no production credentials\"}",
+          "reading": "The rule severity is high because the failure count crossed its threshold, but the asset is an isolated test host with an unprivileged test account. The computed priority is P4. Severity describes the pattern; priority describes the consequence of ignoring it."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Which factor most directly raises an alert's priority without changing the rule's severity?",
+          "options": [
+            "The affected asset is a tier-one production system",
+            "The rule has more than one condition",
+            "The alert was generated at night",
+            "The log source uses JSON"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "Priority incorporates business and asset context. A tier-one system raises consequence while the rule's technical severity stays the same. Rule structure, time of day and log format do not by themselves change impact."
+        }
+      ],
+      "tags": [
+        "severity",
+        "priority",
+        "triage"
+      ]
+    },
+    {
+      "id": "soc-enrichment-202",
+      "subtopic": "alert-triage",
+      "difficulty": "intermediate",
+      "title": "Alert enrichment: asset, identity and threat context",
+      "fact": "Enrichment adds the context needed to judge an alert: asset owner and criticality, whether an identity is active, disabled or privileged, the source's ASN and geography, threat-intelligence verdicts, recent related alerts, and exposure from vulnerability data. Good enrichment is fast, cached and explicit about failures, because a blank field caused by a timeout must not be read as 'no data found'.",
+      "references": [
+        {
+          "title": "NIST SP 800-61 Rev. 3: Incident Response Recommendations and Considerations for Cybersecurity Risk Management",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/61/r3/final",
+          "license": "Public-Domain"
+        },
+        {
+          "title": "MITRE ATT&CK Enterprise Matrix",
+          "publisher": "MITRE",
+          "url": "https://attack.mitre.org/",
+          "license": "MITRE-ATTACK"
+        }
+      ],
+      "details": [
+        "Identity context should include employment status and role, not just a display name.",
+        "Asset context should include owner, environment, data classification and whether the host is internet-facing.",
+        "Threat-intelligence hits need a confidence and freshness value; a decade-old indicator is weak evidence."
+      ],
+      "pitfalls": [
+        "Treating a failed enrichment lookup as a negative result.",
+        "Using stale HR data so a terminated employee still appears active."
+      ],
+      "logs": [
+        {
+          "context": "Alert enriched with identity and asset context",
+          "text": "{\"alert_id\":\"ALRT-2026-11901\",\"user\":{\"name\":\"jdoe\",\"department\":\"finance\",\"status\":\"active\",\"privileged\":false},\"asset\":{\"host\":\"fs-01\",\"criticality\":\"tier-1\",\"owner\":\"payments\",\"internet_facing\":false},\"src_ip\":{\"asn\":64500,\"country\":\"NL\"},\"intel\":{\"verdict\":\"unknown\",\"confidence\":\"none\"},\"related_alerts_7d\":3}",
+          "reading": "The identity is an active, non-privileged finance user, the target is a tier-one payments file server, and the source is an unfamiliar foreign ASN. The unknown intelligence verdict is explicitly recorded as unknown rather than treated as clean. This context supports escalation without asserting that the IP is malicious."
+        }
+      ],
+      "tags": [
+        "enrichment",
+        "context",
+        "triage"
+      ]
+    },
+    {
+      "id": "soc-triage-checklist-203",
+      "subtopic": "alert-triage",
+      "difficulty": "foundational",
+      "title": "A repeatable triage checklist",
+      "fact": "Triage should follow a fixed sequence so that analysts do not skip scope under time pressure. A practical order is: confirm the alert came from real data and the right rule; identify the asset, identity and time window; establish what succeeded versus failed; scope related hosts, accounts and addresses; corroborate with an independent source; assess business impact; then decide to close, escalate or contain. Every step should leave a note.",
+      "references": [
+        {
+          "title": "NIST SP 800-61 Rev. 3: Incident Response Recommendations and Considerations for Cybersecurity Risk Management",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/61/r3/final",
+          "license": "Public-Domain"
+        },
+        {
+          "title": "Logging Cheat Sheet",
+          "publisher": "OWASP",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/Logging_Cheat_Sheet.html",
+          "license": "CC-BY-SA-4.0"
+        }
+      ],
+      "details": [
+        "Validate the detection itself first, including parser errors and stale data, before investigating the actor.",
+        "Separate attempted from successful actions; a failed logon and a created process are different severities of fact.",
+        "Record the negative findings too, so the next analyst knows what was already excluded."
+      ],
+      "pitfalls": [
+        "Starting containment before scope, which can destroy the evidence needed to size the incident.",
+        "Accepting the alert's own summary as the timeline instead of checking raw events."
+      ],
+      "logs": [
+        {
+          "context": "Alert record to be triaged",
+          "text": "{\"alert\":\"Impossible travel\",\"user\":\"jdoe\",\"events\":[{\"ts\":\"2026-11-18T07:02:11Z\",\"geo\":\"NL\",\"result\":\"success\"},{\"ts\":\"2026-11-18T07:41:52Z\",\"geo\":\"SG\",\"result\":\"success\"}],\"mfa\":\"satisfied\",\"client\":\"browser\"}",
+          "reading": "Two successful browser logons 39 minutes apart from the Netherlands and Singapore with MFA satisfied. Before treating it as impossible travel, check whether the user is on a corporate VPN with an egress in one location, whether both events share a device identifier, and whether the identity provider records a single session. The MFA result and client type are part of the scope step."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "After confirming that an alert reflects real data, what should triage establish next?",
+          "options": [
+            "The scope: affected assets, identities, addresses and time window",
+            "Whether the user has a LinkedIn profile",
+            "The rule author's name",
+            "The SIEM licence tier"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "Scope determines whether the event is isolated or part of a wider incident and drives every later decision. Rule authorship and licence tier are not investigative facts, and open-source profiling is not a substitute for internal evidence."
+        }
+      ],
+      "tags": [
+        "triage",
+        "checklist",
+        "scope"
+      ]
+    },
+    {
+      "id": "soc-escalation-204",
+      "subtopic": "alert-triage",
+      "difficulty": "intermediate",
+      "title": "Escalation criteria that do not depend on gut feeling",
+      "fact": "Escalation should be triggered by observable conditions: confirmed code execution, access by a privileged or service identity, data access or transfer, persistence, activity on multiple hosts, communication with an untrusted external endpoint, or involvement of regulated data. The criteria should say who is notified, within what time, and what the analyst must hand over. Escalation is not the same as containment; it brings in the people who can authorise it.",
+      "references": [
+        {
+          "title": "NIST SP 800-61 Rev. 3: Incident Response Recommendations and Considerations for Cybersecurity Risk Management",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/61/r3/final",
+          "license": "Public-Domain"
+        }
+      ],
+      "details": [
+        "A privileged group change, a new service, or a scheduled task on a server are common escalation triggers even without malware.",
+        "The escalation note should include scope, evidence, actions already taken and the specific question for the next tier.",
+        "Regulatory and contractual notification clocks may start before technical confirmation, so legal counsel is a parallel path."
+      ],
+      "pitfalls": [
+        "Escalating everything, which defeats the purpose of a tiered model.",
+        "Waiting for certainty before escalating a confirmed privileged compromise."
+      ],
+      "logs": [
+        {
+          "context": "Privileged group membership change",
+          "text": "2026-11-18T09:02:11Z ws-014.example.internal Security 4728 MemberName=CN=svc-backup,OU=Service Accounts,DC=example,DC=internal GroupName=Domain Admins SubjectUserName=helpdesk-02 SubjectDomainName=EXAMPLE",
+          "reading": "A helpdesk account added a backup service account to Domain Admins. Adding a service account to the highest privilege group is a clear escalation trigger: it changes the identity's blast radius, may be unauthorised, and needs the directory owner to confirm the change request."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Which finding most clearly requires immediate escalation?",
+          "options": [
+            "A helpdesk account added a service account to Domain Admins",
+            "A user mistyped a password once",
+            "A workstation installed a signed browser update",
+            "A laptop connected to the guest wireless network"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "Adding an account to a highly privileged group is a durable privilege change with broad impact, and the actor and change record must be verified. The other events are common and low impact on their own."
+        }
+      ],
+      "tags": [
+        "escalation",
+        "privileged-access",
+        "ir"
+      ]
+    },
+    {
+      "id": "soc-containment-205",
+      "subtopic": "containment",
+      "difficulty": "advanced",
+      "title": "Containment thresholds and reversible action",
+      "fact": "Containment is a trade-off between stopping spread and preserving business function and evidence. A host with confirmed malicious execution and outbound command-and-control traffic is a strong candidate for network isolation; a single low-confidence alert on a business-critical system may justify monitoring, credential reset or blocking one destination first. The decision should record confidence, blast radius, business impact and the approval authority.",
+      "references": [
+        {
+          "title": "NIST SP 800-61 Rev. 3: Incident Response Recommendations and Considerations for Cybersecurity Risk Management",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/61/r3/final",
+          "license": "Public-Domain"
+        }
+      ],
+      "details": [
+        "Prefer reversible actions first: block a destination, revoke a session, disable one account, then isolate the host.",
+        "Preserve volatile evidence such as memory and active connections before powering off or wiping.",
+        "Isolation can tip off an attacker, so coordinate with the investigation lead when the actor may still be active.",
+        "Document the exact action and time, because containment changes the evidence available later."
+      ],
+      "pitfalls": [
+        "Isolating every alerted host by default, which trains the business to resist security action.",
+        "Shutting a machine down before collecting memory and volatile network state."
+      ],
+      "logs": [
+        {
+          "context": "EDR containment action record",
+          "text": "{\"ts\":\"2026-11-18T09:40:12Z\",\"action\":\"isolate_host\",\"host\":\"ws-014.example.internal\",\"actor\":\"analyst-3\",\"case\":\"CASE-2026-0412\",\"approval\":\"IR-LEAD\",\"result\":\"success\",\"note\":\"memory captured before isolation\"}",
+          "reading": "The record shows who isolated the host, when, under which case, with which approval, and that memory was captured first. That is the documentation a containment threshold needs: the action is attributable, authorised and ordered correctly relative to evidence collection."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Before isolating a suspected compromised host, which action best preserves evidence?",
+          "options": [
+            "Capture memory and active network connections first",
+            "Reboot the host to clear any malicious processes",
+            "Run a full antivirus scan and delete detected files",
+            "Delete temporary files to reduce the investigation scope"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "Memory and live connections disappear on reboot or shutdown. Isolation itself may be appropriate, but volatile state should be captured first when compromise is suspected, and the action and time recorded."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "The correct first response is always to isolate the host immediately.",
+          "correction": "Isolation is one option whose cost depends on confidence, spread risk, business criticality and evidence needs. Premature isolation can destroy volatile evidence and disrupt services without improving safety, so the threshold should be explicit."
+        }
+      ],
+      "tags": [
+        "containment",
+        "incident-response",
+        "decision"
+      ]
+    },
+    {
+      "id": "soc-documentation-206",
+      "subtopic": "case-management",
+      "difficulty": "foundational",
+      "title": "Case notes that another analyst can use",
+      "fact": "Case documentation should be contemporaneous, factual and reproducible. Record the alert, the scope, the evidence reviewed with timestamps in UTC, the actions taken and their results, the decisions and the alternatives considered. Avoid conclusions without the supporting observation, and distinguish what was verified from what was inferred.",
+      "references": [
+        {
+          "title": "NIST SP 800-61 Rev. 3: Incident Response Recommendations and Considerations for Cybersecurity Risk Management",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/61/r3/final",
+          "license": "Public-Domain"
+        }
+      ],
+      "details": [
+        "Quote exact event fields or attach the query, not a paraphrase of what the log 'basically said'.",
+        "Record negative results and dead ends; they prevent duplicated work on the next shift.",
+        "Note any evidence that was not collected and why, such as a host that was offline."
+      ],
+      "pitfalls": [
+        "Writing a narrative that omits timestamps, making the timeline impossible to reconstruct.",
+        "Storing evidence only in chat messages that will be lost or edited."
+      ],
+      "mcqs": [
+        {
+          "question": "Which entry makes a case note reproducible by another analyst?",
+          "options": [
+            "The exact query, time range and UTC timestamps used",
+            "A summary that says the activity looked suspicious",
+            "The analyst's opinion of the user's intent",
+            "A screenshot with no source or collection time"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "Reproducibility requires the query, scope and timestamps so another analyst can re-run the same search. Opinions and context-free screenshots cannot be verified or extended."
+        }
+      ],
+      "tags": [
+        "documentation",
+        "case-management"
+      ]
+    },
+    {
+      "id": "soc-shift-handoff-207",
+      "subtopic": "case-management",
+      "difficulty": "foundational",
+      "title": "Structured shift handoff",
+      "fact": "A shift handoff should transfer state, not just greetings. It covers open incidents and their current status, the next action and owner, recent closures with the reason, watchlist items that are not yet alerts, pending approvals, and the health of the detection pipeline. A written handoff with case links is safer than a verbal summary because it survives interruptions and can be audited.",
+      "references": [
+        {
+          "title": "NIST SP 800-61 Rev. 3: Incident Response Recommendations and Considerations for Cybersecurity Risk Management",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/61/r3/final",
+          "license": "Public-Domain"
+        }
+      ],
+      "details": [
+        "Include what changed since the last shift, especially new suppressions or data-source outages.",
+        "Flag cases that will breach an SLA during the next shift.",
+        "Hand off hypotheses and hunches as explicit watch items, not as conclusions."
+      ],
+      "pitfalls": [
+        "A verbal handoff that leaves no record of pending actions.",
+        "Handing off a case without saying which step was already completed."
+      ],
+      "mcqs": [
+        {
+          "question": "Which item belongs in a structured shift handoff?",
+          "options": [
+            "Open cases with status, next action and owner",
+            "Only the number of tickets closed during the shift",
+            "A list of every detection rule deployed in the SIEM",
+            "The analyst's personal assessment of each colleague"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "A handoff transfers state: what is open, what happens next, who owns it, and what is pending. Ticket counts alone do not tell the next shift what to do, and rule inventories are reference material rather than case state."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "A verbal handoff at the end of a shift is sufficient if the team is small.",
+          "correction": "Verbal handoffs lose detail and leave no auditable record. Even a short written summary with case identifiers and next actions prevents duplicated work and dropped follow-ups, and it is essential when the next shift is remote or in another time zone."
+        }
+      ],
+      "tags": [
+        "handoff",
+        "soc-operations"
+      ]
+    },
+    {
+      "id": "soc-false-positive-handling-208",
+      "subtopic": "alert-quality",
+      "difficulty": "intermediate",
+      "title": "False positives, benign true positives and noise",
+      "fact": "Not every closed alert is a false positive. A false positive means the detection logic fired incorrectly, for example a parser mapped the wrong field. A benign true positive means the activity really occurred and the rule correctly described it, but the activity is expected. Environmental noise is a third category, such as a scanner that is authorised but not excluded. Each needs a different fix.",
+      "references": [
+        {
+          "title": "NIST SP 800-61 Rev. 3: Incident Response Recommendations and Considerations for Cybersecurity Risk Management",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/61/r3/final",
+          "license": "Public-Domain"
+        },
+        {
+          "title": "Logging Vocabulary Cheat Sheet",
+          "publisher": "OWASP",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/Logging_Vocabulary_Cheat_Sheet.html",
+          "license": "CC-BY-SA-4.0"
+        }
+      ],
+      "details": [
+        "A parser bug needs a pipeline fix, not a suppression.",
+        "An expected business activity needs an allowlist with an owner and an expiry date.",
+        "Tracking reason codes by rule shows whether tuning is working or just hiding volume."
+      ],
+      "pitfalls": [
+        "Using 'false positive' as a single bin for every non-incident, which hides fixable data problems.",
+        "Suppressing a rule permanently because of one noisy environment."
+      ],
+      "logs": [
+        {
+          "context": "Benign administrative logon from the corporate VPN",
+          "text": "2026-11-18T07:58:03Z vpn-01 openvpn[812]: jdoe/203.0.113.21:51820 Peer Connection Initiated\n2026-11-18T07:58:09Z ws-014.example.internal Security 4624 LogonType=10 TargetUserName=jdoe IpAddress=203.0.113.21 AuthenticationPackage=Negotiate",
+          "reading": "Benign true positive: six seconds after a VPN session for jdoe, an RDP logon for the same account arrives from the address the VPN assigned. The source is the corporate VPN pool rather than the internet, and the rule correctly detected remote interactive logon; the activity is expected. The fix is to scope the rule to external or non-VPN sources, not to call the detection broken."
+        }
+      ],
+      "tags": [
+        "false-positive",
+        "tuning",
+        "reason-codes"
+      ]
+    },
+    {
+      "id": "soc-alert-fatigue-209",
+      "subtopic": "alert-quality",
+      "difficulty": "foundational",
+      "title": "Alert fatigue is a measurement problem",
+      "fact": "Alert fatigue is not simply 'too many alerts'. It is the condition where the volume of low-value alerts reduces the probability that a real one is investigated. The useful measure is the actionable ratio: how many alerts lead to a meaningful action or confirmed finding. Deduplication, entity grouping, risk-based queueing and expiring suppressions reduce volume without hiding signal; blanket threshold increases do not.",
+      "references": [
+        {
+          "title": "NIST SP 800-61 Rev. 3: Incident Response Recommendations and Considerations for Cybersecurity Risk Management",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/61/r3/final",
+          "license": "Public-Domain"
+        }
+      ],
+      "details": [
+        "Group alerts by entity and time so one noisy host does not produce fifty queue items.",
+        "Track how often analysts close without reading the evidence, a direct symptom of fatigue.",
+        "Automate enrichment and case creation, but do not automate the decision to ignore."
+      ],
+      "pitfalls": [
+        "Raising every threshold until the queue is quiet, which also removes the true positives.",
+        "Measuring only alert count and not the proportion that were actionable."
+      ],
+      "logs": [
+        {
+          "context": "Weekly rule volume with suppression counts",
+          "text": "rule=ssh_auth_failure_burst generated=412 suppressed=380 escalated=6 benign=26\nrule=new_local_admin generated=9 suppressed=0 escalated=4 benign=5\nrule=encoded_powershell generated=57 suppressed=41 escalated=3 benign=13",
+          "reading": "The SSH rule produced 412 alerts but 380 were suppressed and only 6 escalated, so its unsuppressed actionable yield is low and the suppression logic deserves review. The local-admin rule produced only 9 alerts but 4 escalations, a much higher yield. Volume alone would rank the wrong rule first."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Which metric best captures alert fatigue in a SOC queue?",
+          "options": [
+            "The proportion of alerts that lead to a meaningful action or confirmed finding",
+            "The total number of alerts generated per day",
+            "The number of rules deployed",
+            "The average length of an analyst's shift"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "Actionable ratio measures signal yield rather than raw volume. A large alert count can be healthy if most are actionable, and a small count can still be fatiguing if almost none are."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "Alert fatigue is solved by raising thresholds until the queue is manageable.",
+          "correction": "Blanket threshold increases suppress true positives along with noise. Fatigue is better addressed by removing duplicate alerts, grouping by entity, fixing parser errors, adding owned and expiring allowlists, and measuring actionable yield."
+        }
+      ],
+      "tags": [
+        "alert-fatigue",
+        "metrics",
+        "tuning"
+      ]
+    },
+    {
+      "id": "soc-detection-validation-210",
+      "subtopic": "detection-validation",
+      "difficulty": "advanced",
+      "title": "Validating detections with known-bad and known-good cases",
+      "fact": "A detection is validated when it fires on representative malicious activity and stays quiet on representative benign activity, using the same pipeline that production uses. Purple-team exercises, atomic tests and replayed historical events provide the positive cases; production baselines and approved business activity provide the negative cases. A rule that passes only a hand-written fixture has demonstrated syntax, not coverage.",
+      "references": [
+        {
+          "title": "NIST SP 800-61 Rev. 3: Incident Response Recommendations and Considerations for Cybersecurity Risk Management",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/61/r3/final",
+          "license": "Public-Domain"
+        },
+        {
+          "title": "Sigma Rules Specification",
+          "publisher": "SigmaHQ",
+          "url": "https://github.com/SigmaHQ/sigma-specification",
+          "license": "Public-Domain"
+        }
+      ],
+      "details": [
+        "Run the test through the real parser and field mapping, not against the raw fixture alone.",
+        "Record the expected alert fields, not just whether an alert appeared.",
+        "Re-validate after log-source upgrades, because a field rename can silently break the match."
+      ],
+      "pitfalls": [
+        "Testing with a fixture that contains fields production never populates.",
+        "Counting a rule as validated because it once fired in production; that may have been a false positive."
+      ],
+      "logs": [
+        {
+          "context": "Positive test fixture for a failed-logon rule",
+          "text": "{\"@timestamp\":\"2026-11-18T08:14:22.631Z\",\"event\":{\"code\":\"4625\",\"outcome\":\"failure\"},\"host\":{\"name\":\"ws-014\"},\"user\":{\"name\":\"jdoe\"},\"source\":{\"ip\":\"203.0.113.77\"},\"winlog\":{\"event_data\":{\"LogonType\":\"3\",\"SubStatus\":\"0xc000006a\"}}}",
+          "reading": "This fixture represents a known-bad network logon failure with the fields the rule references. A validation run should confirm that the rule fires and that the alert carries ws-014, jdoe and the source address. The companion negative fixture should use a successful logon and confirm silence."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "What does a passing unit test on a detection rule prove?",
+          "options": [
+            "The rule matches the supplied fixture through the tested pipeline",
+            "The rule detects every real-world variant of the technique",
+            "The rule has no false positives in production",
+            "The rule is mapped to the correct ATT&CK technique"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "A unit test proves behaviour on the fixture and pipeline used. It does not establish production coverage, false-positive rate, or correct technique mapping, which need separate validation and review."
+        }
+      ],
+      "tags": [
+        "validation",
+        "purple-team",
+        "testing"
+      ]
+    },
+    {
+      "id": "soc-metrics-211",
+      "subtopic": "soc-operations",
+      "difficulty": "intermediate",
+      "title": "MTTD, MTTA and MTTR: definitions before dashboards",
+      "fact": "Mean time to detect, acknowledge and respond are only comparable when their start and stop points are defined. Detection might start at the first event or at the alert; acknowledgement at the first analyst action; response at containment or closure. Means are easily skewed by a few long cases, so medians and percentiles usually describe the queue better. Metrics should distinguish detection quality from staffing delay.",
+      "references": [
+        {
+          "title": "NIST SP 800-61 Rev. 3: Incident Response Recommendations and Considerations for Cybersecurity Risk Management",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/61/r3/final",
+          "license": "Public-Domain"
+        }
+      ],
+      "details": [
+        "A fast MTTA can coexist with a slow MTTD if the alert was late; the two measure different stages.",
+        "Percentiles such as p50 and p90 expose the tail that a mean hides.",
+        "Changing the definition mid-quarter makes trend comparisons meaningless."
+      ],
+      "pitfalls": [
+        "Optimising MTTR by closing cases earlier rather than resolving them.",
+        "Comparing metrics across organisations with different definitions."
+      ],
+      "mcqs": [
+        {
+          "question": "Why are medians often preferred over means for SOC response-time metrics?",
+          "options": [
+            "A few very long cases can pull the mean away from the typical experience",
+            "Medians are required by NIST",
+            "Means cannot be calculated for timestamps",
+            "Medians include weekends and means do not"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "Response-time distributions are skewed by a small number of long-running incidents. The median describes the typical case, while the mean is inflated by the tail. Reporting percentiles as well gives a fuller picture."
+        }
+      ],
+      "tags": [
+        "metrics",
+        "mttd",
+        "soc-operations"
+      ]
+    },
+    {
+      "id": "det-sigma-structure-301",
+      "subtopic": "sigma",
+      "difficulty": "intermediate",
+      "title": "Anatomy of a Sigma rule",
+      "fact": "A Sigma rule is YAML with metadata and a detection block. Metadata includes title, a UUID id, status, description, author, references, tags and level. The logsource block selects a category, product or service. The detection block defines named selections and a condition that combines them, and falsepositives documents known benign causes. Sigma is vendor-neutral, so a backend pipeline translates its field names into the target SIEM's schema.",
+      "references": [
+        {
+          "title": "Sigma Rules Specification",
+          "publisher": "SigmaHQ",
+          "url": "https://github.com/SigmaHQ/sigma-specification",
+          "license": "Public-Domain"
+        },
+        {
+          "title": "SigmaHQ detection rule repository",
+          "publisher": "SigmaHQ",
+          "url": "https://github.com/SigmaHQ/sigma",
+          "license": "DRL-1.1"
+        }
+      ],
+      "details": [
+        "The condition can use and, or, not and one or more of them, with parentheses for grouping.",
+        "tags commonly include attack.<tactic> and attack.t<technique> for ATT&CK mapping.",
+        "status values such as experimental, test and stable communicate review maturity."
+      ],
+      "pitfalls": [
+        "Assuming a Sigma rule runs unchanged in every SIEM; field names and modifiers need a translation pipeline.",
+        "Leaving falsepositives empty, which hides known noise from the reviewer."
+      ],
+      "configs": [
+        {
+          "language": "yaml",
+          "snippet": "title: SSH Authentication Failure Burst\nid: 11111111-1111-4111-8111-111111111111\nstatus: experimental\nlogsource:\n  product: linux\n  service: sshd\ndetection:\n  selection:\n    message|contains: 'Failed password for'\n  condition: selection\nfalsepositives:\n  - Automation using an expired key\nlevel: medium\ntags:\n  - attack.credential_access\n  - attack.t1110",
+          "purpose": "Minimal Sigma rule showing metadata, logsource, detection, condition, false positives and ATT&CK tags."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "In Sigma, which section maps a rule to the type of log source it expects?",
+          "options": [
+            "logsource",
+            "detection",
+            "falsepositives",
+            "tags"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "logsource declares category, product or service. detection holds the selections and condition, falsepositives documents benign causes, and tags carry classification such as ATT&CK."
+        }
+      ],
+      "tags": [
+        "sigma",
+        "detection-engineering",
+        "yaml"
+      ]
+    },
+    {
+      "id": "det-sigma-modifiers-302",
+      "subtopic": "sigma",
+      "difficulty": "advanced",
+      "title": "Sigma field modifiers change matching semantics",
+      "fact": "Modifiers are appended to a field name with a pipe and alter how its values are compared. contains, startswith and endswith do substring matching; all changes a list from OR to AND; re applies a regular expression; cidr matches network ranges; base64offset handles encoded strings whose alignment varies; windash matches common Windows dash variants; fieldref compares one field to another. Modifiers can be chained, and their order matters.",
+      "references": [
+        {
+          "title": "Sigma Rules Specification",
+          "publisher": "SigmaHQ",
+          "url": "https://github.com/SigmaHQ/sigma-specification",
+          "license": "Public-Domain"
+        }
+      ],
+      "details": [
+        "A plain list of values under one field is OR; adding all makes every value required.",
+        "base64offset produces several variants because base64 encoding depends on the byte offset of the substring.",
+        "windash covers hyphen, en dash and other dash characters that command-line parsers may accept."
+      ],
+      "pitfalls": [
+        "Using contains on a very short string, which over-matches unrelated commands.",
+        "Assuming modifier order is irrelevant when chaining, for example base64offset and contains."
+      ],
+      "configs": [
+        {
+          "language": "yaml",
+          "snippet": "detection:\n  selection_img:\n    Image|endswith:\n      - '\\powershell.exe'\n      - '\\pwsh.exe'\n  selection_flags:\n    CommandLine|contains|all:\n      - '-enc'\n      - '-nop'\n  selection_payload:\n    CommandLine|contains:\n      - 'FromBase64String'\n      - 'DownloadString'\n  condition: selection_img and selection_flags and selection_payload",
+          "purpose": "Combine image matching, multiple required flags and payload keywords without writing a regular expression."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "What does the Sigma |all modifier change about a list of values?",
+          "options": [
+            "It requires every listed value to match instead of any one",
+            "It makes the match case-sensitive",
+            "It base64-encodes each value",
+            "It limits the match to the first value"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "By default values are ORed. all switches the list to AND, so a command line must contain each listed token. Case sensitivity is a separate concern of the backend, and encoding is handled by base64 modifiers."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "A Sigma rule's field names are universal, so the same YAML works in every SIEM.",
+          "correction": "Sigma is a vendor-neutral specification. Backends use different schemas, so a conversion pipeline maps abstract fields such as Image or CommandLine onto the target's fields. Without that mapping a rule may run but match nothing."
+        }
+      ],
+      "tags": [
+        "sigma",
+        "modifiers",
+        "detection-engineering"
+      ]
+    },
+    {
+      "id": "det-kql-basics-303",
+      "subtopic": "query-languages",
+      "difficulty": "foundational",
+      "title": "KQL: the pipe, where and summarize",
+      "fact": "Kusto Query Language composes a query as a pipeline. A tabular expression starts with a table such as SecurityEvent, then each pipe passes rows to the next operator. where filters, summarize aggregates with functions such as count and dcount, bin groups timestamps into fixed buckets, and by names the grouping keys. The result is a table, so operators can be added or removed without rewriting the whole query.",
+      "references": [
+        {
+          "title": "Kusto Query Language (KQL) overview",
+          "publisher": "Microsoft Learn",
+          "url": "https://learn.microsoft.com/en-us/azure/azure-monitor/logs/log-query-overview",
+          "license": "CC-BY-4.0"
+        }
+      ],
+      "details": [
+        "Time filters should be explicit, for example where TimeGenerated > ago(24h), rather than relying on the portal's default.",
+        "dcount counts distinct values, which is how you measure account or host diversity.",
+        "Join and union combine tables but multiply or merge rows, so check cardinality before alerting."
+      ],
+      "pitfalls": [
+        "Forgetting that string comparisons may be case-sensitive depending on the operator and column type.",
+        "Using summarize without a time bin, which collapses the whole period into one row and hides bursts."
+      ],
+      "configs": [
+        {
+          "language": "kql",
+          "snippet": "SecurityEvent\n| where TimeGenerated > ago(24h)\n| where EventID == 4625\n| summarize Failures = count(), Accounts = dcount(TargetUserName) by IpAddress, bin(TimeGenerated, 10m)\n| where Failures >= 20\n| order by Failures desc",
+          "purpose": "Count failed logons per source address in ten-minute buckets and keep the busiest windows."
+        }
+      ],
+      "logs": [
+        {
+          "context": "Output rows from the failed-logon query",
+          "text": "TimeGenerated            IpAddress       Failures  Accounts\n2026-11-18T08:10:00Z     203.0.113.77    41        3\n2026-11-18T08:10:00Z     10.20.30.40     2         1\n2026-11-18T08:20:00Z     203.0.113.77    37        2",
+          "reading": "The external address produced 41 failures across three accounts in one ten-minute bucket, then 37 more in the next. The internal management address produced two failures for one account, which is consistent with a key retry. The Accounts column adds the diversity signal that raw counts lack."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Which KQL pattern produces per-entity counts in fixed time buckets?",
+          "options": [
+            "summarize count() by Entity, bin(TimeGenerated, 10m)",
+            "where Entity == 'x'",
+            "project Entity, TimeGenerated",
+            "join kind=inner (OtherTable) on Entity"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "summarize applies an aggregate such as count, and the by clause groups by entity and by a binned timestamp. where filters, project selects columns, and join combines tables but does not bucket."
+        }
+      ],
+      "tags": [
+        "kql",
+        "queries",
+        "siem"
+      ]
+    },
+    {
+      "id": "det-spl-basics-304",
+      "subtopic": "query-languages",
+      "difficulty": "intermediate",
+      "title": "SPL: search, stats and field extraction",
+      "fact": "Splunk's search processing language starts with a search that selects an index and often a sourcetype, then pipes results through commands. stats computes aggregates such as count and dc, eval creates fields, rex extracts with a regular expression, and tstats queries accelerated summaries when available. Field names depend on the sourcetype and on configured extractions, so a query that works on one feed may need adjustment on another.",
+      "references": [
+        {
+          "title": "Splunk Enterprise Search Manual",
+          "publisher": "Splunk",
+          "url": "https://help.splunk.com/en/splunk-enterprise/search/search-manual",
+          "license": "Splunk-Docs"
+        }
+      ],
+      "details": [
+        "index and sourcetype narrow the search before any expensive command runs.",
+        "dc(field) counts distinct values, which is useful for account or host diversity.",
+        "tstats is much faster than raw search but only covers fields present in the data model or accelerated summary."
+      ],
+      "pitfalls": [
+        "Using a raw search over all indexes and relying on the time picker to keep it cheap.",
+        "Assuming a field exists because it appears in the raw text; it may need an explicit extraction."
+      ],
+      "configs": [
+        {
+          "language": "spl",
+          "snippet": "index=linux sourcetype=linux_secure \"Failed password\"\n| rex field=_raw \"from (?<src_ip>\\d{1,3}(?:\\.\\d{1,3}){3})\"\n| stats count AS failures dc(user) AS accounts BY src_ip\n| where failures > 20\n| sort - failures",
+          "purpose": "Extract the source address from SSH failures and rank sources by failure count and account diversity."
+        }
+      ],
+      "logs": [
+        {
+          "context": "Result table from the SPL search",
+          "text": "src_ip          failures  accounts\n203.0.113.77    78        3\n10.20.30.40     2         1",
+          "reading": "The external source accounts for 78 failures across three usernames, while the internal address shows the single-account retry pattern. The stats command has already reduced thousands of raw lines to two rows, which is the point of aggregating before alerting."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "In SPL, which command calculates aggregate statistics such as counts grouped by a field?",
+          "options": [
+            "stats",
+            "rex",
+            "eval",
+            "table"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "stats performs aggregation with functions such as count and dc and a BY clause. rex extracts fields, eval computes new fields per row, and table only selects and orders columns."
+        }
+      ],
+      "tags": [
+        "spl",
+        "splunk",
+        "queries"
+      ]
+    },
+    {
+      "id": "det-threshold-correlation-305",
+      "subtopic": "rule-logic",
+      "difficulty": "expert",
+      "title": "Threshold rules and correlation rules answer different questions",
+      "fact": "A threshold rule aggregates events of one type and fires when a count crosses a limit inside a window, for example more than twenty failed logons per source in ten minutes. A correlation rule combines different event types or a sequence, for example a failure followed by a success from the same source and account. Correlation carries state and ordering, so window semantics, late-arriving events, entity keys and duplicate suppression determine whether it behaves correctly.",
+      "references": [
+        {
+          "title": "Sigma Rules Specification",
+          "publisher": "SigmaHQ",
+          "url": "https://github.com/SigmaHQ/sigma-specification",
+          "license": "Public-Domain"
+        },
+        {
+          "title": "Kusto Query Language (KQL) overview",
+          "publisher": "Microsoft Learn",
+          "url": "https://learn.microsoft.com/en-us/azure/azure-monitor/logs/log-query-overview",
+          "license": "CC-BY-4.0"
+        }
+      ],
+      "details": [
+        "Tumbling windows do not overlap; sliding windows do, and can count the same event in several evaluations.",
+        "A sequence rule should define whether order is required and how far apart the steps may occur.",
+        "Late events can arrive after the window closed, so a correlation engine needs a grace period or a re-evaluation strategy.",
+        "Entity keys must be normalized, or the same host written two ways will never join."
+      ],
+      "pitfalls": [
+        "Using a threshold when the behaviour is defined by sequence; volume alone cannot express 'failure then success'.",
+        "Ignoring duplicate ingestion, which inflates counts and can fire a threshold on one real event."
+      ],
+      "mcqs": [
+        {
+          "question": "A rule fires when a failed logon is followed by a successful logon from the same address within ten minutes. What kind of rule is this?",
+          "options": [
+            "A correlation rule with sequence and time constraints",
+            "A simple threshold rule on failed-logon count",
+            "A static blocklist match",
+            "A vulnerability signature"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "The rule combines two event types, requires an order, and constrains the interval, which is correlation. A threshold would only count failures and would miss the success that gives the pattern its meaning."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "A correlation rule that works in testing will behave the same at production volume.",
+          "correction": "Production adds late events, duplicates, retries and clock skew. Window boundaries and join keys that looked clean in a small sample can produce missed pairs or repeated alerts at scale, so correlation rules need volume testing and monitoring of unmatched or dropped events."
+        }
+      ],
+      "tags": [
+        "correlation",
+        "threshold",
+        "rule-logic"
+      ]
+    },
+    {
+      "id": "det-tuning-baseline-306",
+      "subtopic": "tuning",
+      "difficulty": "advanced",
+      "title": "Tuning against a baseline without overfitting",
+      "fact": "Tuning compares a rule's output with what is normal for each environment. A baseline can be deterministic, such as an inventory of approved scanners, or statistical, such as the usual number of failed logons per host per hour. Good tuning is scoped, owned and time-limited; it records why an exception exists and when it should be reviewed. Overfitting produces a rule that is quiet only because it has learned the current noise, including the attacker's.",
+      "references": [
+        {
+          "title": "NIST SP 800-92: Guide to Computer Security Log Management",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/92/final",
+          "license": "Public-Domain"
+        },
+        {
+          "title": "Sigma Rules Specification",
+          "publisher": "SigmaHQ",
+          "url": "https://github.com/SigmaHQ/sigma-specification",
+          "license": "Public-Domain"
+        }
+      ],
+      "details": [
+        "Baselines should account for weekday and weekend patterns, maintenance windows and seasonal business cycles.",
+        "An allowlist entry should name an owner, a justification and an expiry or review date.",
+        "Measure the effect of tuning on both false positives and missed true positives, not just volume."
+      ],
+      "pitfalls": [
+        "Excluding an entire subnet because one host was noisy.",
+        "Tuning until the rule no longer fires on the attack it was written for."
+      ],
+      "configs": [
+        {
+          "language": "yaml",
+          "snippet": "exceptions:\n  - id: EXC-0042\n    scope: source.ip = 198.51.100.10\n    reason: Authorised vulnerability scanner\n    owner: security-testing@example.internal\n    expires: 2027-01-31",
+          "purpose": "Record a scoped, owned and expiring tuning exception instead of an untracked filter."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "A well-tuned rule should produce no false positives.",
+          "correction": "Some false positives are unavoidable when detection depends on probabilistic behaviour, and driving them to zero usually costs detection coverage. The goal is a managed, measured rate with documented exceptions, not silence."
+        }
+      ],
+      "tags": [
+        "tuning",
+        "baseline",
+        "false-positive"
+      ]
+    },
+    {
+      "id": "det-attack-mapping-307",
+      "subtopic": "attack-mapping",
+      "difficulty": "intermediate",
+      "title": "Mapping detections to MITRE ATT&CK",
+      "fact": "ATT&CK mapping connects a detection to the adversary behaviour it observes, using a tactic and a technique or sub-technique identifier. It helps communicate coverage, find gaps and prioritise hunts, but it does not prove that a rule detects the technique in all its forms. A single rule can cover several techniques, and one technique usually needs several rules across different data sources.",
+      "references": [
+        {
+          "title": "MITRE ATT&CK Enterprise Matrix",
+          "publisher": "MITRE",
+          "url": "https://attack.mitre.org/",
+          "license": "MITRE-ATTACK"
+        }
+      ],
+      "details": [
+        "Use sub-techniques where the behaviour is specific, for example T1059.001 for PowerShell.",
+        "Record the data sources a technique requires; a missing log source is a coverage gap regardless of rule count.",
+        "ATT&CK versions change, so mappings should be reviewed when the matrix is updated."
+      ],
+      "pitfalls": [
+        "Counting one rule per technique as complete coverage.",
+        "Mapping by tool name rather than by observed behaviour."
+      ],
+      "mcqs": [
+        {
+          "question": "What does mapping a detection rule to T1059.001 communicate?",
+          "options": [
+            "The rule targets PowerShell execution behaviour, not that coverage is complete",
+            "The rule detects every ATT&CK technique",
+            "The rule is guaranteed free of false positives",
+            "The rule was approved by MITRE"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "The tag associates the rule with the PowerShell sub-technique. It says nothing about completeness, false-positive rate or endorsement; coverage still depends on data sources and variants."
+        }
+      ],
+      "tags": [
+        "att&ck",
+        "coverage",
+        "detection-engineering"
+      ]
+    },
+    {
+      "id": "det-detection-as-code-308",
+      "subtopic": "detection-as-code",
+      "difficulty": "advanced",
+      "title": "Detection rules belong in version control with tests",
+      "fact": "Detection-as-code treats rules like software: stored in a repository, reviewed by peers, validated in continuous integration, deployed through a pipeline and versioned for rollback. Validation should include schema checks, translation to each backend, and unit tests with positive and negative fixtures. The pipeline should fail closed when a rule cannot be translated, rather than deploying a rule that silently matches nothing.",
+      "references": [
+        {
+          "title": "Sigma Rules Specification",
+          "publisher": "SigmaHQ",
+          "url": "https://github.com/SigmaHQ/sigma-specification",
+          "license": "Public-Domain"
+        },
+        {
+          "title": "SigmaHQ detection rule repository",
+          "publisher": "SigmaHQ",
+          "url": "https://github.com/SigmaHQ/sigma",
+          "license": "DRL-1.1"
+        }
+      ],
+      "details": [
+        "A pull request should show the rule diff, the test fixtures and the expected alert fields.",
+        "Backend translation should be tested for every SIEM in use, not just the primary one.",
+        "Deployment metadata should record who approved the rule and which data sources it assumes."
+      ],
+      "pitfalls": [
+        "Testing only that the YAML parses; a valid rule can still be logically wrong.",
+        "Letting rules drift between the repository and the live SIEM with manual edits."
+      ],
+      "commands": [
+        {
+          "language": "bash",
+          "code": "sigma check rules/ssh_failure_burst.yml\nsigma convert -t splunk rules/ssh_failure_burst.yml",
+          "purpose": "Lint a Sigma rule and translate it to a Splunk query for review."
+        }
+      ],
+      "tags": [
+        "detection-as-code",
+        "ci",
+        "sigma"
+      ]
+    },
+    {
+      "id": "det-fp-fn-base-rate-309",
+      "subtopic": "detection-quality",
+      "difficulty": "expert",
+      "title": "False positives scale with volume, and precision depends on prevalence",
+      "fact": "A false-positive rate is only meaningful next to the number of events it is applied to. One percent of one million daily events is ten thousand false alerts, while the same rate on a thousand events is ten. Precision also depends on how rare the true behaviour is: when the base rate is very low, even a sensitive and specific rule produces mostly false positives, so a high alert count is not proof that the rule is badly written.",
+      "references": [
+        {
+          "title": "NIST SP 800-92: Guide to Computer Security Log Management",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/92/final",
+          "license": "Public-Domain"
+        },
+        {
+          "title": "Sigma Rules Specification",
+          "publisher": "SigmaHQ",
+          "url": "https://github.com/SigmaHQ/sigma-specification",
+          "license": "Public-Domain"
+        }
+      ],
+      "details": [
+        "Track true positives, false positives and missed cases separately; a single accuracy number hides the trade-off.",
+        "Precision is true positives divided by all alerts; recall is true positives divided by all real instances.",
+        "Cost asymmetry matters: missing a domain-controller compromise may be far worse than investigating extra alerts.",
+        "Prevalence changes over time and across environments, so re-measure rather than reusing a vendor claim."
+      ],
+      "pitfalls": [
+        "Quoting a percentage false-positive rate without the event volume it applies to.",
+        "Comparing rules by alert count instead of by precision and recall on a labelled sample."
+      ],
+      "mcqs": [
+        {
+          "question": "A rule has a 1% false-positive rate and evaluates 1,000,000 events per day. How many false positives per day does that imply?",
+          "options": [
+            "10,000",
+            "100",
+            "1,000",
+            "100,000"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "One percent of one million is ten thousand. This is why a rate that sounds small can still overwhelm a queue, and why volume must be part of the evaluation."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "A detector that is 99% accurate is reliable regardless of how rare the behaviour is.",
+          "correction": "Accuracy mixes both error types and ignores prevalence. When the true behaviour is extremely rare, most positive alerts can still be false, so precision must be computed from the actual base rate in the environment."
+        }
+      ],
+      "tags": [
+        "precision",
+        "base-rate",
+        "detection-quality"
+      ]
+    },
+    {
+      "id": "det-data-quality-310",
+      "subtopic": "data-quality",
+      "difficulty": "advanced",
+      "title": "Detections fail silently when data quality changes",
+      "fact": "A rule is only as good as the fields it reads. Parser upgrades, schema migrations, timezone changes, sampling, message truncation and ingestion lag can remove or rename a field without producing an error. The rule continues to run and simply stops matching, which looks like the behaviour disappeared. Pipeline health, field-presence checks and canary events should be monitored alongside rule results.",
+      "references": [
+        {
+          "title": "Elastic Common Schema (ECS) Reference",
+          "publisher": "Elastic",
+          "url": "https://www.elastic.co/guide/en/ecs/current/index.html",
+          "license": "Apache-2.0"
+        },
+        {
+          "title": "NIST SP 800-92: Guide to Computer Security Log Management",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/92/final",
+          "license": "Public-Domain"
+        }
+      ],
+      "details": [
+        "A canary event with known content can prove end-to-end parsing after every deployment.",
+        "Field-presence dashboards catch a source that is still sending but no longer populating a key field.",
+        "Ingestion lag makes a rule evaluate incomplete windows and miss late data.",
+        "Sampling at the collection layer can drop the exact events a rare detection needs."
+      ],
+      "pitfalls": [
+        "Assuming no alerts means no activity rather than a broken parser.",
+        "Validating a rule on raw fixtures while production goes through a different normalization path."
+      ],
+      "logs": [
+        {
+          "context": "Pipeline parse failure caused by a null source address",
+          "text": "{\"time\":\"2026-11-18T08:14:22.631Z\",\"level\":\"warn\",\"pipeline\":\"linux-auth\",\"message\":\"failed to parse field source.ip: value '-' is not an IP address\",\"event.original\":\"Failed password for jdoe from  port 51001 ssh2\"}",
+          "reading": "The source address is missing in the original line, so the parser cannot populate source.ip. Any rule that groups by source.ip will drop this event or place it in a null bucket. The warning is the visible symptom; a field-presence check would show the wider gap."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "A detection silently stops matching after a log pipeline upgrade. What is the most likely cause?",
+          "options": [
+            "A field the rule references was renamed or dropped during normalization",
+            "The attacker disabled the rule in the SIEM",
+            "The rule's ATT&CK mapping expired",
+            "The alert queue reached its storage limit"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "Pipeline changes can rename fields, change types or stop populating them, and the rule then matches nothing without erroring. Canary events and field-presence monitoring surface this class of failure."
+        }
+      ],
+      "tags": [
+        "data-quality",
+        "pipeline",
+        "normalization"
+      ]
+    },
+    {
+      "id": "det-rule-lifecycle-311",
+      "subtopic": "rule-lifecycle",
+      "difficulty": "intermediate",
+      "title": "The lifecycle of a detection rule",
+      "fact": "A rule moves through proposal, prototyping, testing, deployment, tuning, review and retirement. Each stage needs an owner, a data-source assumption and a success criterion. Rules should be reviewed on a schedule and when the underlying log source, attacker behaviour or business asset changes. Retirement is a normal outcome, not a failure, and a stale rule that no longer matches anything is worse than no rule because it implies coverage that does not exist.",
+      "references": [
+        {
+          "title": "Sigma Rules Specification",
+          "publisher": "SigmaHQ",
+          "url": "https://github.com/SigmaHQ/sigma-specification",
+          "license": "Public-Domain"
+        },
+        {
+          "title": "NIST SP 800-92: Guide to Computer Security Log Management",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/92/final",
+          "license": "Public-Domain"
+        }
+      ],
+      "details": [
+        "Proposal should state the behaviour, the data source and the expected false positives before any query is written.",
+        "Deployment should record the rule version and the date it went live.",
+        "Review should check whether the rule still fires, whether its suppressions are still valid and whether the owner still exists."
+      ],
+      "pitfalls": [
+        "Leaving orphaned rules after the owning team changes.",
+        "Keeping a rule because it once caught something, even though its data source is gone."
+      ],
+      "logs": [
+        {
+          "context": "Detection deployment record from a CI pipeline",
+          "text": "2026-11-18T10:00:00Z detection-ci[42]: rule=ssh_auth_failure_burst version=3 action=deploy backend=splunk result=success owner=soc-eng",
+          "reading": "The deployment record ties a rule version to a backend, an owner and a result. A failed translation would show result=failure and should block the release; without this record, a rule present in the repository but missing from the SIEM would look deployed."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "When should a detection rule be retired?",
+          "options": [
+            "When its data source no longer exists or it can no longer be tuned to an acceptable rate",
+            "Only when the SIEM licence expires",
+            "When it has been deployed for exactly one year",
+            "When a newer rule uses a different name"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "Retirement is driven by loss of data, loss of relevance or an unmanageable error rate with no viable tuning path. Age alone is not a reason, and duplicate rules should be consolidated rather than left to drift."
+        }
+      ],
+      "tags": [
+        "lifecycle",
+        "governance",
+        "detection-engineering"
+      ]
+    },
+    {
+      "id": "hunt-hypothesis-401",
+      "subtopic": "hunting-method",
+      "difficulty": "intermediate",
+      "title": "A hunting hypothesis must be falsifiable",
+      "fact": "A threat hunt starts with a specific, testable statement about adversary behaviour in this environment, not with a generic instruction to look for badness. A usable hypothesis names the actor or technique, the expected observable, the data source that would contain it and the time range. It also states what evidence would disprove it, so the hunt can end with a clear answer rather than an open-ended search.",
+      "references": [
+        {
+          "title": "MITRE ATT&CK Enterprise Matrix",
+          "publisher": "MITRE",
+          "url": "https://attack.mitre.org/",
+          "license": "MITRE-ATTACK"
+        },
+        {
+          "title": "NIST SP 800-61 Rev. 3: Incident Response Recommendations and Considerations for Cybersecurity Risk Management",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/61/r3/final",
+          "license": "Public-Domain"
+        }
+      ],
+      "details": [
+        "Derive hypotheses from ATT&CK gaps, threat intelligence relevant to the sector, or anomalies left by past incidents.",
+        "Write the expected query result before running the query, to avoid rationalising whatever appears.",
+        "Record negative results; they are coverage evidence and can justify new collection."
+      ],
+      "pitfalls": [
+        "Starting with a tool rather than a question, then searching for a use for the tool.",
+        "Treating a hunt as a dashboard review with no stated hypothesis."
+      ],
+      "mcqs": [
+        {
+          "question": "Which is a well-formed threat-hunting hypothesis?",
+          "options": [
+            "If an intruder used valid accounts, we will see a service account authenticating to servers it has never accessed before",
+            "Attackers may be in the network",
+            "We should check the SIEM for suspicious activity",
+            "The EDR console looks quiet"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "The first option names a behaviour, an observable, an implied data source and a comparison baseline, so it can be tested and disproved. The others are unfalsifiable or describe a tool state rather than adversary behaviour."
+        }
+      ],
+      "tags": [
+        "hunting",
+        "hypothesis",
+        "method"
+      ]
+    },
+    {
+      "id": "hunt-evidence-collection-402",
+      "subtopic": "evidence",
+      "difficulty": "advanced",
+      "title": "Collecting hunt evidence without destroying it",
+      "fact": "Hunt evidence must be collected in a way that preserves its value: record the exact query, time range, data source and collection time; export results with hashes; keep original timestamps and field values; and maintain a chain of custody for anything that may become case evidence. Prefer read-only access and remote collection, and avoid running untrusted tools on a host that may be compromised.",
+      "references": [
+        {
+          "title": "NIST SP 800-61 Rev. 3: Incident Response Recommendations and Considerations for Cybersecurity Risk Management",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/61/r3/final",
+          "license": "Public-Domain"
+        },
+        {
+          "title": "NIST SP 800-92: Guide to Computer Security Log Management",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/92/final",
+          "license": "Public-Domain"
+        }
+      ],
+      "details": [
+        "Volatile data such as memory, running processes and network connections disappears on reboot, so capture it first when compromise is suspected.",
+        "A hash of an export proves integrity only if the hash and the export are stored separately.",
+        "Record the clock source and any known skew, because it affects how the evidence timeline is interpreted.",
+        "Keep analyst notes with the evidence, including what was not collected and why."
+      ],
+      "pitfalls": [
+        "Rebooting a suspect host before capturing memory.",
+        "Exporting a query result without saving the query, so the result cannot be reproduced."
+      ],
+      "logs": [
+        {
+          "context": "Evidence collection record for one artifact",
+          "text": "{\"case\":\"CASE-2026-0412\",\"host\":\"ws-014.example.internal\",\"artifact\":\"C:\\\\Windows\\\\System32\\\\winevt\\\\Logs\\\\Security.evtx\",\"collected_at\":\"2026-11-18T10:02:11Z\",\"collector\":\"analyst-3\",\"method\":\"remote read-only copy\",\"sha256\":\"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"}",
+          "reading": "The record names the case, host, exact artifact path, UTC collection time, collector and method, and stores a SHA-256 digest. That combination lets another analyst verify the copy and reproduce how it was obtained. The hash is synthetic here but would be real in a case."
+        }
+      ],
+      "mcqs": [
+        {
+          "question": "Which evidence is most volatile and should be captured first on a suspected compromised host?",
+          "options": [
+            "Memory and active network connections",
+            "Files on the disk",
+            "Installed application versions",
+            "The operating system release"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "Memory contents and live connections disappear on reboot or shutdown. Disk files and installed software persist and can be collected afterwards, so volatile state has priority when compromise is suspected."
+        }
+      ],
+      "tags": [
+        "evidence",
+        "chain-of-custody",
+        "hunting"
+      ]
+    },
+    {
+      "id": "hunt-to-detection-403",
+      "subtopic": "hunting-method",
+      "difficulty": "intermediate",
+      "title": "Turning a successful hunt into a durable detection",
+      "fact": "When a hunt finds behaviour worth watching for, the query should become a detection with an owner, a logsource declaration, positive and negative tests, a tuning plan and a review date. The hunt's exploratory query is rarely production-ready: it may be too broad, too slow, or dependent on fields that are not guaranteed. The conversion should preserve the logic while making the assumptions explicit.",
+      "references": [
+        {
+          "title": "Sigma Rules Specification",
+          "publisher": "SigmaHQ",
+          "url": "https://github.com/SigmaHQ/sigma-specification",
+          "license": "Public-Domain"
+        },
+        {
+          "title": "MITRE ATT&CK Enterprise Matrix",
+          "publisher": "MITRE",
+          "url": "https://attack.mitre.org/",
+          "license": "MITRE-ATTACK"
+        }
+      ],
+      "details": [
+        "Translate the hunt into the detection format used by the team, such as Sigma, rather than leaving it as a one-off query.",
+        "Add the false positives discovered during the hunt to the rule's documentation.",
+        "If the hunt found nothing, record the coverage gap instead of inventing a rule with no evidence."
+      ],
+      "pitfalls": [
+        "Deploying the hunt query unchanged and flooding the queue.",
+        "Losing the context of why the rule exists once the hunt ticket is closed."
+      ],
+      "mcqs": [
+        {
+          "question": "What should happen when a threat hunt finds no evidence of the hypothesised behaviour?",
+          "options": [
+            "Document the negative result and any coverage gap it reveals",
+            "Delete the hunt record to avoid confusion",
+            "Deploy a detection anyway to show activity",
+            "Conclude that the environment is definitely clean"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "A negative result is still evidence: it may show that the behaviour is absent, that the data source is missing, or that the hypothesis was poorly specified. Recording it preserves that distinction and supports coverage decisions."
+        }
+      ],
+      "tags": [
+        "hunting",
+        "detection-engineering",
+        "coverage"
+      ]
+    },
+    {
+      "id": "hunt-falsification-404",
+      "subtopic": "hunting-method",
+      "difficulty": "expert",
+      "title": "Hunts should be designed to disprove, not to confirm",
+      "fact": "Confirmation bias is the main analytical risk in hunting. An analyst who expects to find lateral movement will interpret ordinary SMB traffic as evidence of it. Strong hunts state competing explanations, define what would falsify the hypothesis, and use baselines and control groups. Negative results and alternative explanations should be documented with the same care as findings.",
+      "references": [
+        {
+          "title": "NIST SP 800-61 Rev. 3: Incident Response Recommendations and Considerations for Cybersecurity Risk Management",
+          "publisher": "NIST",
+          "url": "https://csrc.nist.gov/pubs/sp/800/61/r3/final",
+          "license": "Public-Domain"
+        },
+        {
+          "title": "MITRE ATT&CK Enterprise Matrix",
+          "publisher": "MITRE",
+          "url": "https://attack.mitre.org/",
+          "license": "MITRE-ATTACK"
+        }
+      ],
+      "details": [
+        "Ask what else would produce the same observable, such as backup software, a scanner or an administrative script.",
+        "Use a control population: compare the suspect host or account with peers that perform similar roles.",
+        "Have another analyst review the evidence before a hunt is promoted to an incident.",
+        "Measure the hunt programme by hypotheses tested and detections improved, not only by incidents found."
+      ],
+      "pitfalls": [
+        "Selecting only the events that support the hypothesis and ignoring the rest of the timeline.",
+        "Treating a lack of findings as proof of good security rather than as a statement about the data."
+      ],
+      "mcqs": [
+        {
+          "question": "Which practice most reduces confirmation bias during a hunt?",
+          "options": [
+            "Define competing explanations and a control group before searching",
+            "Search only for the indicator you expect to find",
+            "Ask the asset owner to confirm the host is compromised",
+            "Extend the time range until something unusual appears"
+          ],
+          "answer": [
+            0
+          ],
+          "rationale": "Stating alternatives and comparing against similar hosts makes it harder to interpret ordinary activity as confirmation. Searching only for the expected indicator and widening the window until something appears both increase the chance of a false conclusion."
+        }
+      ],
+      "misconceptions": [
+        {
+          "claim": "A hunt that finds nothing was wasted effort.",
+          "correction": "A well-designed negative hunt tests a specific hypothesis and can reveal missing telemetry, weak baselines or a hypothesis that needs refinement. That is coverage evidence, and it is often more useful than a vague finding that cannot be actioned."
+        }
+      ],
+      "tags": [
+        "hunting",
+        "bias",
+        "methodology"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "assessed": 22503,
+  "limitations": "Heuristic gates; not a substitute for technical review.",
+  "rejection_counts": {
+    "duplicate:near": 3625,
+    "duplicate:response": 3052,
+    "near_duplicate:minhash": 6,
+    "quality:response_too_long": 17,
+    "token_length_over_limit": 200
+  },
+  "summary": {
+    "accepted": 22486,
+    "assessed": 22503,
+    "rejected": 17,
+    "rejection_reasons": {
+      "response_too_long": 17
+    },
+    "warning_counts": {
+      "pii_detected": 207,
+      "unsupported_absolute_claim": 983
+    }
+  },
+  "thresholds": {
+    "max_sequence_tokens": 1024,
+    "min_response_chars": 60
+  }
+}

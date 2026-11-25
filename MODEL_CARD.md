@@ -6,7 +6,7 @@
 |---|---|
 | Model name | CyberLite (research preview) |
 | Version | 0.1.0 (repository scaffold; no research checkpoint released) |
-| Base model | `Qwen/Qwen3.5-0.8B` (instruct); base checkpoint supported where available |
+| Base model | `Qwen/Qwen3.5-0.8B` (instruct); matched runs pin revision `2fc06364715b967f1860aea9cf38778875588b17` |
 | Architecture | `Qwen3_5ForConditionalGeneration`; hybrid linear/full attention, multimodal, text-only use |
 | Parameters | 852,985,920 total; 100,592,896 vision; LoRA adapters add ~2.7M at rank 4 |
 | Adaptation | LoRA / 4-bit QLoRA supervised fine-tuning |
@@ -91,8 +91,15 @@ synthetic and for pipeline validation only.
 
 No research training corpus is released. The planned pipeline uses licensed
 public sources and project-authored examples, with provenance, secret redaction,
-deduplication, and contamination screening. See `DATASET_CARD.md`. The committed
-smoke corpus is 34 original synthetic records.
+deduplication, contamination screening, and a frozen-manifest integrity gate.
+See `DATASET_CARD.md`. The committed smoke corpus is 34 original synthetic
+records.
+
+Research training is **not currently authorized** by the repository: the
+pilot-v2 license report contains unresolved model-output questions, the manual
+quality/safety review is incomplete, and the analysis plan is not externally
+pre-registered. The preflight reports these as research blockers instead of
+treating public accessibility as training permission.
 
 ## Quantitative analyses
 
