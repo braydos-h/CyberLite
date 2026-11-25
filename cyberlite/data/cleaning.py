@@ -141,7 +141,11 @@ def contains_pii_like(text: str) -> bool:
 
 
 def _tokens(text: str) -> list[str]:
-    return re.findall(r"[a-z0-9_]{2,}", text.lower())
+    # Keep single-character numeric tokens: version, port, and CVE/CWE
+    # identifiers carry meaning, and dropping them makes distinct records
+    # collide under exact deduplication.
+    tokens = re.findall(r"[a-z0-9_]+", text.lower())
+    return [token for token in tokens if len(token) >= 2 or token.isdigit()]
 
 
 def simhash64(text: str) -> int:

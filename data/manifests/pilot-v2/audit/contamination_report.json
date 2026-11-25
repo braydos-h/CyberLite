@@ -1,0 +1,116 @@
+{
+  "contamination": {
+    "index": {
+      "findings": [],
+      "group_removed_ids": [],
+      "ngram": 13,
+      "removed": 0,
+      "removed_groups": [],
+      "sets": [
+        {
+          "items": 36,
+          "license": "Synthetic",
+          "matched_ids": [],
+          "matched_records": 0,
+          "metadata": {
+            "benchmark": "baseline-probe-v1",
+            "evaluation_only": true,
+            "items": 36,
+            "license": "Synthetic",
+            "note": "36 project-authored capability-probe items; a regression signal, not a validated benchmark.",
+            "redistribution": "project-authored; may be redistributed with attribution",
+            "sha256": "f5a7055c5168e77529b52e0d572cf8f987c60d15e6e5c49a0d3099b70857baf4",
+            "version": "v1"
+          },
+          "name": "baseline-probe-v1",
+          "ngrams": 594,
+          "path": "baseline_probe_v1.jsonl",
+          "populated": true,
+          "sha256": "f5a7055c5168e77529b52e0d572cf8f987c60d15e6e5c49a0d3099b70857baf4",
+          "version": "v1"
+        },
+        {
+          "items": 2182,
+          "license": "CC-BY-NC-SA-4.0",
+          "matched_ids": [],
+          "matched_records": 0,
+          "metadata": {
+            "benchmark": "seceval",
+            "converted_items": 2182,
+            "converted_sha256": "6ae74b2c9c45d1024f99453be00ae82d00567f0b5f1ffa1cc4109a2fa4ef1c03",
+            "downloaded_at": "2026-11-25T04:02:40.001947+00:00",
+            "evaluation_only": true,
+            "license": "CC-BY-NC-SA-4.0",
+            "multi_answer_items": 925,
+            "redistribution": "not permitted",
+            "single_answer_items": 1257,
+            "skipped": {
+              "unusable_or_empty_answer": 7
+            },
+            "topics": {
+              "ApplicationSecurity": 807,
+              "Cryptography": 14,
+              "MemorySafety": 48,
+              "NetworkSecurity": 228,
+              "PenTest": 473,
+              "SoftwareSecurity": 232,
+              "SystemSecurity": 1062,
+              "Vulnerability": 334,
+              "WebSecurity": 771
+            },
+            "upstream_items": 2189,
+            "upstream_revision": "205dab7b0888a06f4b53ca7d9c7093e1326683e1",
+            "upstream_sha256": "194c3a511104be422a678675a71d44315d0c0392b040745155aeebc321e692e0",
+            "upstream_url": "https://huggingface.co/datasets/XuanwuAI/SecEval"
+          },
+          "name": "seceval",
+          "ngrams": 240755,
+          "path": "seceval_v1.jsonl",
+          "populated": true,
+          "sha256": "6ae74b2c9c45d1024f99453be00ae82d00567f0b5f1ffa1cc4109a2fa4ef1c03",
+          "version": "205dab7b0888a06f4b53ca7d9c7093e1326683e1"
+        },
+        {
+          "items": 8,
+          "license": "Synthetic",
+          "matched_ids": [],
+          "matched_records": 0,
+          "metadata": {
+            "benchmark": "smoke-eval",
+            "evaluation_only": true,
+            "items": 8,
+            "license": "Synthetic",
+            "note": "Eight original synthetic harness-validation items; not a benchmark.",
+            "redistribution": "project-authored; may be redistributed with attribution",
+            "sha256": "111132beb36f65d9bc57bdb42efe9d801d5971d0f355f23b08723e7b6be5fc3d",
+            "version": "v1"
+          },
+          "name": "smoke-eval",
+          "ngrams": 166,
+          "path": "smoke_eval.jsonl",
+          "populated": true,
+          "sha256": "111132beb36f65d9bc57bdb42efe9d801d5971d0f355f23b08723e7b6be5fc3d",
+          "version": "v1"
+        }
+      ],
+      "threshold": 0.2,
+      "total_indexed_ngrams": 241515
+    },
+    "limitations": [
+      "13-gram overlap detects verbatim and near-verbatim leakage only.",
+      "Paraphrase, translation, and conceptual overlap are not detected."
+    ],
+    "passed": true,
+    "verified": true,
+    "verified_kept": 7188,
+    "verified_removed": 0
+  },
+  "dataset_version": "cyberlite-data-2.0.0-04b01b437805",
+  "limitations": [
+    "Quality gates are heuristics and can reject useful text or accept questionable text.",
+    "The 13-gram screen does not detect paraphrase, translation, or conceptual overlap.",
+    "Token counts are a length signal, not a quality or factuality measure.",
+    "Manual review is pending; no record is described as human-verified."
+  ],
+  "report": "benchmark-contamination-audit"
+}

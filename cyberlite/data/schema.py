@@ -49,6 +49,10 @@ class Record:
             raise ValueError("record.source is required for provenance")
         if not self.license:
             raise ValueError("record.license is required for provenance")
+        if self.metadata is None:
+            self.metadata = {}
+        if not isinstance(self.metadata, dict):
+            raise ValueError("record.metadata must be a JSON object")
         if not self.id:
             self.id = self.compute_id()
         validate_record(self)

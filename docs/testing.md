@@ -12,6 +12,14 @@ The default suite is network-free and does not download model weights. It covers
 - hardware detection and planning estimates,
 - dataset schema, cleaning, deduplication, secret detection, splitting, and
   contamination,
+- multi-source configuration, explicit include/exclude, per-source limits,
+  archive caching, offline rebuilds, and deterministic manifests,
+- mocked NVD pagination, retries, backoff, API-key headers, cache reuse, and
+  malformed-page handling,
+- Markdown directory ingestion, code-fence preservation, roff/mdoc and RFC
+  parsing, and missing-SPDX quarantine,
+- quality gates, PII/secret checks, token-length percentiles, cross-split
+  leakage, per-benchmark contamination, and audit review sampling,
 - tokenizer-facing SFT encoding with a fake tokenizer,
 - metrics and uncertainty estimates,
 - BM25 retrieval and RAG formatting,
@@ -45,7 +53,8 @@ python scripts/validate_repo.py
 ```
 
 `validate_repo.py` checks required repository files, rejects common weight and
-secret artifacts, and verifies that configs load.
+secret artifacts, and verifies that training configs and the dataset build
+configuration load.
 
 ## CI
 

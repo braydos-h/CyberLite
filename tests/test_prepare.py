@@ -71,7 +71,7 @@ def test_write_manifest_hashes(tmp_path: Path) -> None:
     )
     dataset = prepare_records(records, options)
     manifest = write_prepared_dataset(dataset, options)
-    assert manifest["dataset_version"].startswith("cyberlite-data-0.1.0-")
+    assert manifest["dataset_version"].startswith("cyberlite-data-2.0.0-")
     for split in ("train", "validation", "test"):
         assert manifest["files"][split]["sha256"]
         assert load_records(tmp_path / "processed" / f"{split}.jsonl")

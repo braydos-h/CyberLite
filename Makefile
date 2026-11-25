@@ -1,4 +1,4 @@
-.PHONY: install install-dev test lint format typecheck validate progress progress-check budget smoke data paper deploy-web preview-web clean
+.PHONY: install install-dev test lint format typecheck validate progress progress-check budget smoke data audit paper deploy-web preview-web clean
 
 install:
 	python -m pip install -e .
@@ -40,6 +40,13 @@ budget:
 
 data:
 	python scripts/prepare_dataset.py --smoke
+
+audit:
+	python scripts/audit_dataset.py \
+		--dataset data/processed/pilot-v2 \
+		--out data/manifests/pilot-v2/audit \
+		--review-out data/processed/pilot-v2/review_samples.jsonl \
+		--tokenizer Qwen/Qwen3.5-0.8B --max-seq-len 1024
 
 smoke:
 	python scripts/train.py --config configs/smoke.yaml --smoke --force

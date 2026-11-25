@@ -2,7 +2,8 @@ schema_version: 1
 # Source registry for CyberLite dataset preparation.
 #
 # Rules:
-#   * Nothing is downloaded unless the caller passes --download SOURCE.
+#   * Nothing is downloaded unless the caller passes --download SOURCE or a
+#     dataset configuration explicitly enables acquisition.
 #   * Every source carries an explicit license identifier. Unknown licenses are
 #     quarantined by the preparation pipeline.
 #   * ``redistributable`` describes whether CyberLite may redistribute derived
@@ -15,48 +16,79 @@ sources:
     kind: stix_attack
     license: MITRE-ATTACK
     homepage: https://attack.mitre.org/
-    url: https://raw.githubusercontent.com/mitre-attack/attack-stix-data/master/enterprise-attack/enterprise-attack.json
+    url: https://raw.githubusercontent.com/mitre-attack/attack-stix-data/v20.1/enterprise-attack/enterprise-attack.json
     filename: enterprise-attack.json
     enabled: true
     redistributable: false
+    revision: v20.1
+    license_url: https://attack.mitre.org/resources/legal-and-branding/
+    terms_url: https://attack.mitre.org/resources/legal-and-branding/
+    attribution_required: true
+    commercial_use: true
+    allowed_uses: [training, research, commercial-use]
+    redistribution_notes: >-
+      Do not redistribute raw STIX data. Derived records must preserve MITRE
+      attribution and comply with the ATT&CK terms.
+    unresolved:
+      - Whether a derived training corpus or model is a derivative work remains a legal question.
     citation: >-
       The MITRE Corporation. MITRE ATT&CK. https://attack.mitre.org
     notes: >-
       MITRE grants a royalty-free license for research, development, and commercial use,
-      subject to its terms and attribution requirements. Derived datasets must preserve
-      attribution. Do not redistribute raw STIX data from this repository.
+      subject to its terms and attribution requirements. Revoked and deprecated
+      objects are excluded during normalization. Do not redistribute raw STIX data.
 
   mitre_cwe:
     title: MITRE Common Weakness Enumeration (CWE)
     kind: cwe_xml
     license: MITRE-CWE
     homepage: https://cwe.mitre.org/
-    url: https://cwe.mitre.org/data/xml/cwec_latest.xml.zip
-    filename: cwec_latest.xml.zip
+    url: https://cwe.mitre.org/data/xml/cwec_v5.0.xml.zip
+    filename: cwec_v5.0.xml.zip
     enabled: true
     redistributable: false
+    revision: "5.0"
+    license_url: https://cwe.mitre.org/about/termsofuse.html
+    terms_url: https://cwe.mitre.org/about/termsofuse.html
+    attribution_required: true
+    commercial_use: true
+    allowed_uses: [training, research, commercial-use]
+    redistribution_notes: >-
+      Do not redistribute raw CWE XML. Preserve the MITRE copyright designation
+      and CWE identifiers in derived records.
+    unresolved:
+      - Derived-text redistribution requires a terms review.
     citation: >-
       The MITRE Corporation. Common Weakness Enumeration. https://cwe.mitre.org
     notes: >-
       CWE is free to use for research, development, and commercial purposes with
-      attribution and the CWE terms of use. Preserve the MITRE copyright designation in
-      derived distributions.
+      attribution and the CWE terms of use. Deprecated and obsolete weaknesses are
+      excluded during normalization.
 
   nist_nvd:
     title: NIST National Vulnerability Database (NVD) API 2.0
     kind: nvd_json
     license: Public-Domain
     homepage: https://nvd.nist.gov/
-    url: https://services.nvd.nist.gov/rest/json/cves/2.0?resultsPerPage=2000
-    filename: nvdcve-page.json
-    enabled: false
+    url: https://services.nvd.nist.gov/rest/json/cves/2.0
+    filename: ""
+    enabled: true
     redistributable: true
+    revision: nvd-api-2.0
+    license_url: https://www.nist.gov/open/copyright-fair-use-and-licensing-statements-srd-data-software-and-technical-series-publications
+    terms_url: https://nvd.nist.gov/developers/terms-of-use
+    attribution_required: false
+    commercial_use: true
+    allowed_uses: [training, research, commercial-use, redistribution]
+    redistribution_notes: >-
+      NIST data is generally a U.S. Government work; NVD requests attribution.
+      Do not imply NIST endorsement.
     citation: >-
       National Institute of Standards and Technology. National Vulnerability Database.
     notes: >-
-      NVD feeds are large and paginated. Download explicitly and obey NVD rate limits.
-      NIST data is generally a U.S. Government work; NVD requests attribution. Do not
-      auto-download the full corpus in CI.
+      Collection uses the paginated API 2.0 with a configurable publication-date
+      range, rate limiting, retries, and a resumable local cache. Rejected entries
+      are skipped. Do not auto-download the full corpus in CI.
 
   owasp_cheatsheets:
     title: OWASP Cheat Sheet Series
@@ -65,40 +97,119 @@ sources:
     homepage: https://cheatsheetseries.owasp.org/
     url: https://github.com/OWASP/CheatSheetSeries
     filename: ""
-    enabled: false
+    enabled: true
     redistributable: false
+    revision: 05861f28ed88269db390afeb67486abc0adfc076
+    license_url: https://creativecommons.org/licenses/by-sa/4.0/
+    terms_url: https://github.com/OWASP/CheatSheetSeries/blob/master/LICENSE.md
+    attribution_required: true
+    commercial_use: true
+    allowed_uses: [training, research]
+    redistribution_notes: >-
+      Share-alike. CyberLite does not redistribute the Markdown text or derived
+      splits; attribution and change indication are required for any redistribution.
+    unresolved:
+      - Whether a trained model or derived training corpus is a derivative work is unsettled.
     citation: OWASP Foundation. OWASP Cheat Sheet Series.
     notes: >-
-      Clone the repository locally, then pass a Markdown file with --input. The share-alike
-      license may affect redistribution of derived text; review before publishing.
+      Ingested from a pinned repository revision. Navigation and boilerplate are
+      removed; headings and fenced code blocks are preserved.
 
-  linux_docs:
-    title: Linux man-pages and kernel documentation
-    kind: markdown
-    license: GPL-2.0-or-later
+  linux_man_pages:
+    title: Linux man-pages project
+    kind: manpage
+    license: Mixed-SPDX
     homepage: https://www.kernel.org/doc/man-pages/
-    url: https://git.kernel.org/pub/scm/docs/man-pages/man-pages.git
-    filename: ""
-    enabled: false
+    url: https://mirrors.edge.kernel.org/pub/linux/docs/man-pages/man-pages-6.9.tar.xz
+    filename: man-pages-6.9.tar.xz
+    enabled: true
     redistributable: false
-    citation: Linux man-pages project and Linux kernel documentation.
+    revision: man-pages-6.9
+    license_url: https://git.kernel.org/pub/scm/docs/man-pages/man-pages.git/tree/LICENSES
+    terms_url: https://www.kernel.org/doc/man-pages/
+    attribution_required: true
+    commercial_use: null
+    allowed_uses: [training, research]
+    redistribution_notes: >-
+      Licenses are per page (SPDX headers). Copyleft and one-paragraph notices
+      require attribution; CyberLite does not redistribute the manual text.
+    unresolved:
+      - Training use of Linux-man-pages-copyleft pages is not explicitly addressed.
+      - Pages without an SPDX header are quarantined and excluded from the corpus.
+    citation: Linux man-pages project. https://www.kernel.org/doc/man-pages/
     notes: >-
-      Copyleft documentation. Training use is permitted, but redistribution of derived
-      text may trigger license obligations. Prefer local, minimal excerpts and attribute.
+      Only an explicit allowlist of pages is ingested. The SPDX identifier in each
+      page is preserved as the record license; missing identifiers are reported.
 
-  networking_docs:
-    title: IETF networking standards and operational guidance
-    kind: markdown
-    license: IETF-Trust
-    homepage: https://www.ietf.org/process/rfcs/
-    url: https://www.rfc-editor.org/
-    filename: ""
-    enabled: false
+  openssh_docs:
+    title: OpenSSH manual pages
+    kind: manpage
+    license: OpenSSH
+    homepage: https://www.openssh.com/manual.html
+    url: https://codeload.github.com/openssh/openssh-portable/tar.gz/d449e662b6b8b8cb20e852d8084c269af1c5e8f1
+    filename: openssh-portable-d449e66.tar.gz
+    enabled: true
     redistributable: false
-    citation: IETF Trust. RFC series.
+    revision: V_10_6_P2
+    license_url: https://github.com/openssh/openssh-portable/blob/master/LICENCE
+    terms_url: https://www.openssh.com/txt/release-notes
+    attribution_required: true
+    commercial_use: true
+    allowed_uses: [training, research]
+    redistribution_notes: >-
+      BSD-style OpenSSH licence. Keep the copyright and permission notice; do not
+      use the OpenSSH name to endorse derived material.
+    unresolved: []
+    citation: The OpenSSH Project. OpenSSH manual pages.
     notes: >-
-      RFC text is subject to the IETF Trust legal provisions. Extract only the material
-      needed for the experiment and retain copyright notices.
+      Pinned source archive; only sshd_config(5) and ssh_config(5) are ingested.
+
+  netfilter_nftables:
+    title: nftables manual page and firewall syntax
+    kind: manpage
+    license: GPL-2.0-only
+    homepage: https://www.netfilter.org/projects/nftables/
+    url: https://www.netfilter.org/projects/nftables/files/nftables-1.1.1.tar.xz
+    filename: nftables-1.1.1.tar.xz
+    enabled: true
+    redistributable: false
+    revision: "1.1.1"
+    license_url: https://www.netfilter.org/projects/nftables/
+    terms_url: https://www.gnu.org/licenses/old-licenses/gpl-2.0.html
+    attribution_required: true
+    commercial_use: true
+    allowed_uses: [training, research]
+    redistribution_notes: "Copyleft; do not redistribute derived text without a license review."
+    unresolved:
+      - Mixed GPL-2.0-only and GPL-2.0-or-later contributions; treated conservatively as GPL-2.0-only.
+    citation: The Netfilter Project. nftables manual.
+    notes: >-
+      Pinned release archive; only the generated nft(8) manual page is ingested.
+
+  ietf_rfcs:
+    title: IETF Request for Comments (selected networking standards)
+    kind: rfc_text
+    license: IETF-Trust
+    homepage: https://www.rfc-editor.org/
+    url: https://www.rfc-editor.org/rfc/rfc8446.txt
+    filename: ""
+    enabled: true
+    redistributable: false
+    revision: "2026-11-25-selection-v1"
+    license_url: https://trustee.ietf.org/license-info
+    terms_url: https://www.rfc-editor.org/rfc/rfc5378
+    attribution_required: true
+    commercial_use: true
+    allowed_uses: [training, research]
+    redistribution_notes: >-
+      Subject to the IETF Trust legal provisions. Retain copyright notices and do
+      not redistribute modified RFC text without reviewing BCP 78.
+    unresolved:
+      - Derived-text redistribution requires a terms review.
+    citation: IETF Trust. Request for Comments series.
+    notes: >-
+      Only the explicitly selected RFCs are ingested. Page headers, footers, and
+      front matter are removed; section structure and indented examples are kept.
 
   security_tool_docs:
     title: Defensive security tool documentation
@@ -113,6 +224,32 @@ sources:
     notes: >-
       Tool documentation licenses vary (some are proprietary). Add an explicit license
       per document before ingestion; the default pipeline will quarantine "See-source".
+
+  project_examples:
+    title: Project-authored defensive-security examples
+    kind: jsonl
+    license: Synthetic
+    homepage: https://github.com/braydos-h/CyberLite
+    url: ""
+    filename: project_examples_v1.jsonl
+    enabled: true
+    redistributable: true
+    revision: v1
+    license_url: https://github.com/braydos-h/CyberLite/blob/main/LICENSE
+    terms_url: https://github.com/braydos-h/CyberLite/blob/main/LICENSE
+    attribution_required: false
+    commercial_use: true
+    allowed_uses: [training, research, redistribution]
+    redistribution_notes: >-
+      Original project-authored drafts. They are AI-assisted and not manually
+      reviewed unless a record's metadata says otherwise.
+    unresolved:
+      - Human quality and safety review is pending for all project-authored records.
+    citation: CyberLite contributors.
+    notes: >-
+      Covers incident response, vulnerability remediation, secure coding, detection
+      engineering, log analysis, and system administration. Records are labeled
+      review_status: pending-human-review; do not describe them as manually verified.
 
   defensive_workflows:
     title: Project-authored defensive workflows
@@ -173,6 +310,7 @@ sources:
     filename: smoke.jsonl
     enabled: true
     redistributable: true
+    revision: seed-v1
     citation: CyberLite contributors.
     notes: Tiny, original examples for pipeline validation only. Not a benchmark.
 

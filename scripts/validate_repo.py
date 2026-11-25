@@ -18,6 +18,7 @@ if str(ROOT) not in sys.path:
 
 from cyberlite.config import load_config  # noqa: E402
 from cyberlite.data.cleaning import find_secrets  # noqa: E402
+from cyberlite.data.config import DatasetConfig  # noqa: E402
 
 REQUIRED = [
     "README.md",
@@ -43,9 +44,11 @@ REQUIRED = [
     "configs/lora.yaml",
     "configs/qlora.yaml",
     "configs/distillation.yaml",
+    "configs/dataset_pilot.yaml",
     "data/sources.yaml",
     "scripts/check_hardware.py",
     "scripts/prepare_dataset.py",
+    "scripts/audit_dataset.py",
     "scripts/train.py",
     "scripts/evaluate.py",
     "scripts/quantize.py",
@@ -54,6 +57,7 @@ REQUIRED = [
     "scripts/cuda_memory_fraction.py",
     "scripts/update_progress.py",
     "cyberlite/__init__.py",
+    "data/manifests/pilot-v2/manifest.json",
     "paper/main.tex",
     "paper/references.bib",
     ".github/workflows/ci.yml",
@@ -160,7 +164,10 @@ def check_configs() -> list[str]:
     errors = []
     for path in sorted((ROOT / "configs").glob("*.yaml")):
         try:
-            load_config(path)
+            if path.name.startswith("dataset_"):
+                DatasetConfig.load(path)
+            else:
+                load_config(path)
         except Exception as exc:
             errors.append(f"invalid config {path.name}: {exc}")
     return errors

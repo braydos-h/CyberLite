@@ -17,7 +17,7 @@
 [![CI](https://github.com/braydos-h/CyberLite/actions/workflows/ci.yml/badge.svg)](https://github.com/braydos-h/CyberLite/actions/workflows/ci.yml)
 [![Paper](https://github.com/braydos-h/CyberLite/actions/workflows/paper.yml/badge.svg)](https://github.com/braydos-h/CyberLite/actions/workflows/paper.yml)
 [![Model: Qwen3.5-0.8B](https://img.shields.io/badge/base-Qwen3.5--0.8B-purple.svg)](https://huggingface.co/Qwen/Qwen3.5-0.8B)
-[![Progress](https://img.shields.io/badge/progress-36%25-yellow.svg)](#goals-and-live-progress) <!-- progress-badge -->
+[![Progress](https://img.shields.io/badge/progress-46%25-yellow.svg)](#goals-and-live-progress) <!-- progress-badge -->
 
 > **Research preview.** CyberLite is an active research project, not a released
 > security product. There are **no trained checkpoints**. The only verified
@@ -69,18 +69,18 @@ changing a checkbox; CI runs `make progress-check` and fails on a stale block.
 
 | Goal | Progress | Milestones |
 |---|---|---:|
-| [G1 — Licensed, reproducible data foundation](GOALS.md#g1--licensed-reproducible-data-foundation) | `████░░░░░░` 43% | 3/7 |
+| [G1 — Licensed, reproducible data foundation](GOALS.md#g1--licensed-reproducible-data-foundation) | `█████████░` 89% | 8/9 |
 | [G2 — Post-training on consumer hardware](GOALS.md#g2--post-training-on-consumer-hardware) | `████░░░░░░` 43% | 3/7 |
 | [G3 — Honest, reproducible evaluation](GOALS.md#g3--honest-reproducible-evaluation) | `███░░░░░░░` 33% | 2/6 |
 | [G4 — Practical local deployment](GOALS.md#g4--practical-local-deployment) | `█████░░░░░` 50% | 4/8 |
 | [G5 — Distillation and retrieval](GOALS.md#g5--distillation-and-retrieval) | `██░░░░░░░░` 20% | 1/5 |
 | [G6 — Publication and release](GOALS.md#g6--publication-and-release) | `██░░░░░░░░` 17% | 1/6 |
-| **Overall** | `████░░░░░░` 36% | 14/39 |
+| **Overall** | `█████░░░░░` 46% | 19/41 |
 
 | Roadmap phase | Progress | Items |
 |---|---|---:|
 | Phase 0 — Reproducible foundation | `██████████` 100% | 10/10 |
-| Phase 1 — Dataset pilot | `░░░░░░░░░░` 0% | 0/4 |
+| Phase 1 — Dataset pilot | `████████░░` 83% | 5/6 |
 | Phase 2 — Core post-training comparison | `░░░░░░░░░░` 0% | 0/5 |
 | Phase 3 — Autocomplete | `░░░░░░░░░░` 0% | 0/4 |
 | Phase 4 — Distillation and retrieval | `░░░░░░░░░░` 0% | 0/4 |
@@ -103,8 +103,9 @@ Every notable change, including documentation changes, is recorded in
 | Deployment | CPU/GPU/MPS local inference; OpenAI-compatible API; GGUF export path |
 | Evaluation | Local harness with fixed seeds, uncertainty intervals, memory and latency logging |
 
-The default workflow uses **no paid APIs**, downloads **no datasets
-automatically**, and never executes generated commands.
+The default workflow uses **no paid APIs**, downloads **no datasets unless a
+pinned dataset configuration explicitly enables acquisition**, and never
+executes generated commands.
 
 ## Architecture
 
@@ -276,17 +277,26 @@ python scripts/check_hardware.py
 # 2. Build the tiny, original smoke dataset (offline).
 python scripts/prepare_dataset.py --smoke
 
-# 3. Plan a QLoRA run without downloading the model.
+# 3. Rebuild the expanded pilot from pinned inputs (requires network on the
+#    first run; use --offline afterwards).
+python scripts/prepare_dataset.py --config configs/dataset_pilot.yaml --force
+python scripts/audit_dataset.py \
+  --dataset data/processed/pilot-v2 \
+  --out data/manifests/pilot-v2/audit \
+  --review-out data/processed/pilot-v2/review_samples.jsonl \
+  --tokenizer Qwen/Qwen3.5-0.8B --max-seq-len 1024
+
+# 4. Plan a QLoRA run without downloading the model.
 python scripts/train.py --config configs/qlora.yaml --estimate-only --force
 
-# 4. Validate the full training path with two optimization steps.
+# 5. Validate the full training path with two optimization steps.
 python scripts/train.py --config configs/smoke.yaml --smoke --force
 
-# 5. Validate an evaluation dataset without loading a model.
+# 6. Validate an evaluation dataset without loading a model.
 python scripts/evaluate.py \
   --dataset data/evaluation/smoke_eval.jsonl --dry-run
 
-# 6. Serve locally (after training an adapter).
+# 7. Serve locally (after training an adapter).
 cyberlite-serve --model Qwen/Qwen3.5-0.8B --adapter runs/smoke --device cpu
 ```
 
@@ -393,7 +403,7 @@ See [docs/evaluation.md](docs/evaluation.md).
 |---|---|
 | Repository, package, tests, CI | Implemented |
 | Qwen3.5 architecture compatibility | Verified by local load and LoRA backward pass |
-| Data preparation, provenance, contamination screen | Implemented; smoke-validated; first licensed pilot manifest (ATT&CK + CWE, 2,006 records) committed |
+| Data preparation, provenance, contamination screen | Implemented and executed: pilot-v2 has 7,188 accepted records from nine sources, with committed manifest, quality, contamination, license, and audit reports; manual review is pending |
 | LoRA/QLoRA training pipeline | Implemented; smoke-tested on CPU |
 | Local inference and OpenAI-compatible API | Implemented; unit-tested |
 | Autocomplete (FIM + prefix fallback) | Implemented; unit-tested |
@@ -411,18 +421,18 @@ CyberLite/
 ├── GOVERNANCE.md          # decisions, money handling, key-person plan
 ├── CHANGELOG.md           # every notable change, newest first
 ├── AGENTS.md              # working rules for contributors and agents
-├── configs/               # LoRA, QLoRA, low-VRAM, distillation, smoke
+├── configs/               # training configs plus configs/dataset_pilot.yaml
 ├── data/                  # source registry, seed data, local evaluation inputs
 │   └── manifests/         # committed, license-safe corpus manifests
 ├── cyberlite/             # installable package
-│   ├── data/              # cleaning, dedup, provenance, contamination, splits
+│   ├── data/              # config, acquisition, NVD, parsers, quality, audit, splits
 │   ├── training/          # model loading, LoRA, SFT, distillation, trainer
 │   ├── inference/         # engine, OpenAI-compatible server, quantization, benchmark
 │   ├── autocomplete/      # language profiles, FIM/prefix engine, API
 │   ├── retrieval/         # BM25 index and RAG
 │   ├── evaluation/        # metrics, harness, benchmark registry
 │   └── compute_budget.py  # GPU-hour and cost estimator
-├── scripts/               # thin CLI entry points
+├── scripts/               # prepare, audit, training, evaluation, repository checks
 ├── tests/                 # unit tests; integration tests opt-in
 ├── docs/                  # architecture, hardware, data, evaluation, safety
 ├── paper/                 # LaTeX paper scaffold with placeholders

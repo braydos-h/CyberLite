@@ -16,6 +16,13 @@ Move entries into a versioned section only when a release is tagged.
 
 ### Added
 
+- Configuration-driven multi-source ingestion (`configs/dataset_pilot.yaml`) with per-source paths and limits, explicit include/exclude, global cleaning/deduplication/splitting, a local acquisition cache, and offline rebuilds.
+- NVD API 2.0 collection with publication-date chunking, pagination, resumable per-page cache, timeouts, retries, exponential backoff, `Retry-After`, rate limiting, optional `NVD_API_KEY`, and factual defensive normalization without invented remediation.
+- Heading-aware Markdown segmentation that preserves fenced code, removes navigation/boilerplate, and ingests recursive directories; roff/mdoc manual-page and IETF RFC parsers with per-section provenance and per-page SPDX licenses.
+- CPU-only `scripts/audit_dataset.py` and `cyberlite/data/audit.py` producing JSON/Markdown audit, quality, contamination, and license reports, token-length percentiles, cross-split leakage checks, SHA-256 inventories, and a deterministic 200-record stratified review sample with a human-review template.
+- Frozen `pilot-v2` manifest and reports: 7,724 normalized inputs, 7,188 accepted records across nine sources, 536 rejected (417 near-duplicates, 119 quality), 6,351/416/421 train/validation/test, 241,515 evaluation n-grams screened with zero 13-gram findings, and Qwen3.5-0.8B token p50 373 / p95 798 / p99 1,539.
+- Project-authored defensive examples (`data/seed/project_examples_v1.jsonl`) covering incident response, vulnerability remediation, secure coding, detection engineering, log analysis, and system administration, explicitly labeled AI-assisted and pending human review.
+- Tests for multi-source builds, NVD pagination/retries/offline cache, archive caching and path traversal, Markdown directory ingestion, malformed inputs, license filtering, global and cross-source deduplication, cross-split leakage, per-benchmark contamination, deterministic manifests, and audit sampling.
 - E0 SecEval baseline of the untrained base model: `Qwen/Qwen3.5-0.8B` on the full 2,182-item set (CC BY-NC-SA 4.0, evaluation only), CPU fp32, official chat protocol, seed 42. Overall exact-set accuracy is **0.346** (95% CI 0.327–0.365), split into **0.591** on single-answer items (n=1,257) and **0.014** on multi-answer items (n=925). The snapshot records the pinned revision, conversion and prediction hashes, a per-topic breakdown, and the reproduce command; predictions stay git-ignored under the evaluation-only license.
 - First licensed pilot dataset slice: ATT&CK + CWE, 2,102 records in, 2,006 out, 96 near-duplicates removed (0 exact), zero 13-gram contamination findings against 241,515 indexed evaluation n-grams, published as a committed manifest under `data/manifests/pilot-attack-cwe-v1/` with split hashes and license counts.
 - `FUNDING.md` with a hardware-only three-tier request, bill of materials, deliverables, risks, single-maintainer capacity limits, and use-of-funds rules, so the GPU ask is reviewable instead of implied.
@@ -42,6 +49,9 @@ Move entries into a versioned section only when a release is tagged.
 
 ### Changed
 
+- `data/sources.yaml` now registers pinned ATT&CK v20.1, CWE 5.0, NVD API 2.0, a pinned OWASP revision, Linux man-pages 6.9, OpenSSH V_10_6_P2, nftables 1.1.1, ten selected IETF RFCs, and project-authored examples, with license, attribution, redistribution, and unresolved-question metadata.
+- Dataset versions now use pipeline version `2.0.0` and include the configuration hash; splits are group-aware so sections of one document or views of one security identifier cannot straddle train/validation/test.
+- `DATASET_CARD.md`, `docs/dataset.md`, `docs/reproducibility.md`, `README.md`, `GOALS.md`, and `docs/roadmap.md` distinguish implemented infrastructure, the executed pilot-v2 build, pending manual review, and unresolved licensing/benchmark access.
 - The `web/` site is rebuilt around verified material: the E0 baseline run, the 6–8 GB memory budget, the 13 autocomplete profiles, the safety contract, and the 14/39 milestone snapshot, with a responsive triptych hero and a dark forest palette.
 - The `web/` page now loads Instrument Sans and DM Mono from Google Fonts; the Cloudflare `_headers` content policy permits that stylesheet and the font files.
 
@@ -58,14 +68,23 @@ Move entries into a versioned section only when a release is tagged.
 
 ### Fixed
 
+- Deduplication now keeps single-character numeric tokens, so identifiers such as `alpha-1` and `alpha-2` no longer collide; the expanded pilot reports zero exact duplicates after the fix.
+- Roff paragraph splitting no longer duplicates accumulated text, removing an out-of-memory failure on large manual pages such as `proc_sys_kernel(5)`.
+- Archive inputs are recorded as provenance but no longer normalized as if the compressed bytes were text, which had produced bogus OWASP records keyed by the commit hash.
+- Cached NVD ranges rebuild from recorded page metadata instead of requesting a page past the last result, so online cache reuse and offline replay both work.
+- Manual pages without an explicit SPDX identifier are quarantined instead of being accepted under a mixed-license fallback.
 - Benchmark-contamination screening no longer silently skips evaluation files that use a benchmark schema (`question` / `choices` / `answer`); the index now reads every string value and records how many evaluation n-grams it covered, so a zero result is distinguishable from a skipped check.
 
 ### Security
 
+- `.gitignore` excludes `data/cache/` and local review samples/summaries so raw source text and acquisition artifacts cannot be committed accidentally.
 - `.gitignore` now excludes `web/.taste-skill/`, which contains a real browser profile (history, cookies, login databases), and `.wrangler/`, preventing accidental publication of local browser state.
 
 ### Docs
 
+- `docs/dataset.md` documents the source registry versus build configuration, NVD collection, normalizers, quality/contamination controls, audit workflow, licensing limits, and the pilot-v2 reproduction commands.
+- `DATASET_CARD.md` now reports measured pilot-v2 composition, licenses, token lengths, rejection reasons, and the explicit manual-review and CyberSecEval blockers.
+- `README.md` quick start includes the pilot-v2 build and audit commands; the experimental-status table no longer describes data preparation as smoke-only.
 - `web/README.md` now describes the rebuilt asset layout, the Google Fonts dependency, the E0 and milestone snapshot, and the `share.jpg` social image.
 - `README.md` documents the conditional scaling path from the 0.8B Qwen3.5 target to a 26B Inkling-2-mini follow-on, so the larger-model ambition is stated as a plan rather than left implied.
 - Documented the planning estimates as estimates in every new page; no new measurement or benchmark claim is introduced.

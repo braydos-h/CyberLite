@@ -83,3 +83,66 @@ def test_estimate_steps(repo_root: Path) -> None:
     assert estimate_steps(config, 80) == 10
     config.training.max_steps = 3
     assert estimate_steps(config, 80) == 3
+
+
+def test_prepare_config_cli_backward_compatible(tmp_path: Path, repo_root: Path) -> None:
+    import json
+
+    (tmp_path / "data").mkdir()
+    (tmp_path / "configs").mkdir()
+    source = {
+        "id": "cli-1",
+        "source": "cli",
+        "license": "Synthetic",
+        "prompt": "How should an administrator verify a firewall rule?",
+        "response": (
+            "Verify the rule in a staging environment, confirm the default-deny policy, "
+            "and record the test evidence. "
+        )
+        * 4,
+        "metadata": {"source_version": "v1", "upstream_id": "cli-1"},
+    }
+    (tmp_path / "data" / "cli.jsonl").write_text(json.dumps(source) + "\n", encoding="utf-8")
+    (tmp_path / "data" / "sources.yaml").write_text(
+        """
+schema_version: 1
+sources:
+  cli:
+    title: CLI source
+    kind: jsonl
+    license: Synthetic
+    enabled: true
+    revision: v1
+""",
+        encoding="utf-8",
+    )
+    config = tmp_path / "configs" / "build.yaml"
+    config.write_text(
+        """
+schema_version: 1
+name: cli-test
+out_dir: processed
+manifest_dir: manifests
+raw_dir: raw
+cache_dir: cache
+eval_dir: evaluation
+registry: data/sources.yaml
+download: false
+tokenizer: ""
+sources:
+  cli:
+    paths: [data/cli.jsonl]
+""",
+        encoding="utf-8",
+    )
+    result = _run(
+        "prepare_dataset.py",
+        "--config",
+        str(config),
+        "--offline",
+        "--force",
+        cwd=repo_root,
+    )
+    assert result.returncode == 0, result.stderr
+    assert (tmp_path / "processed" / "manifest.json").is_file()
+    assert (tmp_path / "manifests" / "quality_report.json").is_file()

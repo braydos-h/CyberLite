@@ -22,12 +22,19 @@ been established. Outcome-level progress is tracked in
 
 ## Phase 1 — Dataset pilot
 
-- [ ] Curate a licensed, versioned pilot corpus from ATT&CK, CWE, NVD, OWASP,
+- [x] Curate a licensed, versioned pilot corpus from ATT&CK, CWE, NVD, OWASP,
       Linux/networking docs, and project-authored defensive workflows
+- [x] Multi-source, configuration-driven ingestion with explicit
+      include/exclude, per-source limits, local caching, and offline rebuilds
+- [x] Global cleaning, deduplication, contamination screening, group-aware
+      splitting, and cross-split leakage checks across the combined corpus
+- [x] Publish a manifest, quality report, contamination report, and
+      source-license report without redistributing restricted data
+- [x] Measure contamination against every locally available held-out benchmark
+      (SecEval, project baseline probe, smoke evaluation); CyberSecEval access
+      remains an open blocker
 - [ ] Manually review a stratified sample for quality, safety, and duplication
-- [ ] Publish a manifest and source-license report without redistributing
-      restricted data
-- [ ] Measure contamination against the selected benchmark subsets
+      (200 samples generated, none reviewed)
 
 ## Phase 2 — Core post-training comparison
 

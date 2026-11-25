@@ -1,0 +1,4228 @@
+{
+  "dataset_schema": 2,
+  "dataset_name": "pilot-v2",
+  "pipeline_version": "2.0.0",
+  "cyberlite_version": "0.1.0",
+  "created_at": "2026-11-25T12:13:02.681221+00:00",
+  "seed": 42,
+  "options": {
+    "out_dir": "data/processed/pilot-v2",
+    "seed": 42,
+    "ratios": {
+      "train": 0.9,
+      "validation": 0.05,
+      "test": 0.05
+    },
+    "allowed_licenses": [
+      "Apache-2.0",
+      "BSD-2-Clause",
+      "BSD-3-Clause",
+      "BSD-4-Clause-UC",
+      "CC-BY-4.0",
+      "CC-BY-SA-4.0",
+      "CC0-1.0",
+      "GPL-1.0-or-later",
+      "GPL-2.0-only",
+      "GPL-2.0-or-later",
+      "GPL-3.0-or-later",
+      "IETF-Trust",
+      "Linux-man-pages-1-para",
+      "Linux-man-pages-copyleft",
+      "MIT",
+      "MITRE-ATTACK",
+      "MITRE-CWE",
+      "Mixed-SPDX",
+      "OpenSSH",
+      "Public-Domain",
+      "Synthetic"
+    ],
+    "redact": true,
+    "min_chars": 120,
+    "max_chars": 200000,
+    "dedup_threshold": 3,
+    "contamination_n": 13,
+    "contamination_threshold": 0.2,
+    "contamination_group_quarantine": true,
+    "group_splits": true,
+    "verify_split_leakage": true,
+    "force": true,
+    "smoke": false,
+    "quality": {
+      "min_prompt_chars": 10,
+      "min_response_chars": 120,
+      "max_response_chars": 20000,
+      "min_total_chars": 120,
+      "max_total_chars": 200000,
+      "max_repeated_line_ratio": 0.35,
+      "min_unique_token_ratio": 0.2,
+      "max_url_ratio": 0.45,
+      "max_boilerplate_ratio": 0.5,
+      "max_navigation_line_ratio": 0.25,
+      "reject_pii": true,
+      "reject_unsupported_absolute_claims": false,
+      "max_sequence_tokens": 1024
+    },
+    "tokenizer": "Qwen/Qwen3.5-0.8B",
+    "tokenizer_local_only": true,
+    "max_seq_len": 1024,
+    "dataset_name": "pilot-v2",
+    "report_dir": "data/manifests/pilot-v2",
+    "reproduction_command": "python scripts/prepare_dataset.py --config configs/dataset_pilot.yaml --force"
+  },
+  "config_sha256": "f16a637704a964c6caab7c58320d8e5da6b9434168cf20c3570595116465209f",
+  "source_registry_sha256": "934c16033693f7ae8a6f61799655b6bf4ec31d3dc097c13672f95a347a74f4c6",
+  "input_records": 7724,
+  "output_records": 7188,
+  "rejected_total": 536,
+  "split_counts": {
+    "train": 6351,
+    "validation": 416,
+    "test": 421
+  },
+  "source_counts": {
+    "ietf_rfcs": 393,
+    "linux_man_pages": 246,
+    "mitre_attack": 959,
+    "mitre_cwe": 906,
+    "netfilter_nftables": 40,
+    "nist_nvd": 2615,
+    "openssh_docs": 28,
+    "owasp_cheatsheets": 1965,
+    "project_examples": 36
+  },
+  "task_counts": {
+    "attack-technique": 712,
+    "cryptography": 4,
+    "defensive-control": 247,
+    "detection-engineering": 6,
+    "dns": 109,
+    "documentation": 1467,
+    "incident-response": 6,
+    "log-analysis": 6,
+    "logging-monitoring": 73,
+    "networking": 95,
+    "permissions": 93,
+    "secure-coding": 504,
+    "ssh": 82,
+    "system-administration": 48,
+    "system-hardening": 68,
+    "tls": 141,
+    "vulnerability": 2615,
+    "vulnerability-remediation": 6,
+    "weakness": 906
+  },
+  "license_counts": {
+    "CC-BY-SA-4.0": 1967,
+    "GPL-1.0-or-later": 6,
+    "GPL-2.0-only": 40,
+    "GPL-2.0-or-later": 10,
+    "GPL-3.0-or-later": 8,
+    "IETF-Trust": 395,
+    "Linux-man-pages-1-para": 67,
+    "Linux-man-pages-copyleft": 156,
+    "MITRE-ATTACK": 977,
+    "MITRE-CWE": 954,
+    "OpenSSH": 28,
+    "Public-Domain": 2961,
+    "Synthetic": 36
+  },
+  "sources": [
+    {
+      "name": "ietf_rfcs",
+      "title": "IETF Request for Comments (selected networking standards)",
+      "license": "IETF-Trust",
+      "kind": "rfc_text",
+      "revision": "2026-11-25-selection-v1",
+      "records": 399,
+      "inputs": [
+        {
+          "path": "data/cache/files/ietf_rfcs/rfc8446.txt",
+          "kind": "download",
+          "url": "https://www.rfc-editor.org/rfc/rfc8446.txt",
+          "sha256": "47871bc8820a2c3b6ea89f061055577058862cf543686b82d10131239702b3bd",
+          "bytes": 337736
+        },
+        {
+          "path": "data/cache/files/ietf_rfcs/rfc9325.txt",
+          "kind": "download",
+          "url": "https://www.rfc-editor.org/rfc/rfc9325.txt",
+          "sha256": "e3475381d056bde1eed65252954cce68250168454387f6799b38660806f215bc",
+          "bytes": 96608
+        },
+        {
+          "path": "data/cache/files/ietf_rfcs/rfc1034.txt",
+          "kind": "download",
+          "url": "https://www.rfc-editor.org/rfc/rfc1034.txt",
+          "sha256": "d6b10a71441df879cc2817d23f2dad120c8a5f87e74eba1e4ed4b743a76a891a",
+          "bytes": 126103
+        },
+        {
+          "path": "data/cache/files/ietf_rfcs/rfc1035.txt",
+          "kind": "download",
+          "url": "https://www.rfc-editor.org/rfc/rfc1035.txt",
+          "sha256": "d14ae809fc9b41bbcae26bb38c937c9515808b944f3252b00de9fe0e95f4fdfb",
+          "bytes": 122549
+        },
+        {
+          "path": "data/cache/files/ietf_rfcs/rfc4251.txt",
+          "kind": "download",
+          "url": "https://www.rfc-editor.org/rfc/rfc4251.txt",
+          "sha256": "23a5052796d29edc2f0ff4f5be557df244544d129cfc26ed51971a6485eff4ef",
+          "bytes": 71750
+        },
+        {
+          "path": "data/cache/files/ietf_rfcs/rfc4252.txt",
+          "kind": "download",
+          "url": "https://www.rfc-editor.org/rfc/rfc4252.txt",
+          "sha256": "a36b882cf77b107335d49921b5e955b4ba78e253205dfbce5096ebc0e78bdf14",
+          "bytes": 34268
+        },
+        {
+          "path": "data/cache/files/ietf_rfcs/rfc4253.txt",
+          "kind": "download",
+          "url": "https://www.rfc-editor.org/rfc/rfc4253.txt",
+          "sha256": "b471173305154f6c66facffcf7a4a25fc5c32765cb30542120be6c20a88f1ed3",
+          "bytes": 68263
+        },
+        {
+          "path": "data/cache/files/ietf_rfcs/rfc5424.txt",
+          "kind": "download",
+          "url": "https://www.rfc-editor.org/rfc/rfc5424.txt",
+          "sha256": "24d91f90a05d2536730ada929c296f45ae9cd72226e22b6775ad8c04cae37a53",
+          "bytes": 85162
+        },
+        {
+          "path": "data/cache/files/ietf_rfcs/rfc1918.txt",
+          "kind": "download",
+          "url": "https://www.rfc-editor.org/rfc/rfc1918.txt",
+          "sha256": "56c43465298772bc4d899923f1785b7b7bf8dd2c9f2f9a53422800ddc5cf9337",
+          "bytes": 22271
+        },
+        {
+          "path": "data/cache/files/ietf_rfcs/rfc5735.txt",
+          "kind": "download",
+          "url": "https://www.rfc-editor.org/rfc/rfc5735.txt",
+          "sha256": "db63b2eaec515690a50ce4d8079c4ab8ba495101ee11dae7eed8d95b7aef990d",
+          "bytes": 20369
+        }
+      ],
+      "errors": [],
+      "max_records": 600,
+      "group": "ietf_rfcs"
+    },
+    {
+      "name": "linux_man_pages",
+      "title": "Linux man-pages project",
+      "license": "Mixed-SPDX",
+      "kind": "manpage",
+      "revision": "man-pages-6.9",
+      "records": 251,
+      "inputs": [
+        {
+          "path": "data/cache/archives/man-pages-6.9.tar.xz",
+          "kind": "archive",
+          "url": "https://mirrors.edge.kernel.org/pub/linux/docs/man-pages/man-pages-6.9.tar.xz",
+          "sha256": "d14caff54cc662f34b1b70bcf62d4e27e4c2fd260672a35b6e74af71b3f71f88",
+          "bytes": 1863872
+        },
+        {
+          "path": "data/cache/extracted/man-pages-6.9.tar-d14caff54cc662f3/man-pages-6.9/man",
+          "kind": "extracted",
+          "url": "https://mirrors.edge.kernel.org/pub/linux/docs/man-pages/man-pages-6.9.tar.xz",
+          "sha256": "",
+          "bytes": 0
+        }
+      ],
+      "errors": [],
+      "max_records": 1500,
+      "group": "linux_man_pages"
+    },
+    {
+      "name": "mitre_attack",
+      "title": "MITRE ATT&CK Enterprise (STIX 2.1)",
+      "license": "MITRE-ATTACK",
+      "kind": "stix_attack",
+      "revision": "v20.1",
+      "records": 977,
+      "inputs": [
+        {
+          "path": "data/raw/mitre_attack/enterprise-attack.json",
+          "kind": "local",
+          "url": "",
+          "sha256": "539a843a7b53ed9749740b2123dddae3726b1a4831841c32aca740b011b910b5",
+          "bytes": 55277605
+        }
+      ],
+      "errors": [],
+      "max_records": null,
+      "group": "mitre_attack"
+    },
+    {
+      "name": "mitre_cwe",
+      "title": "MITRE Common Weakness Enumeration (CWE)",
+      "license": "MITRE-CWE",
+      "kind": "cwe_xml",
+      "revision": "5.0",
+      "records": 956,
+      "inputs": [
+        {
+          "path": "data/raw/mitre_cwe/cwec_latest.xml.zip",
+          "kind": "local",
+          "url": "",
+          "sha256": "bcda44c9abf61ff977f50c3c6649eea5a97a7b0626b0396c2c3ec4bfb973a3dc",
+          "bytes": 2119263
+        }
+      ],
+      "errors": [],
+      "max_records": null,
+      "group": "mitre_cwe"
+    },
+    {
+      "name": "netfilter_nftables",
+      "title": "nftables manual page and firewall syntax",
+      "license": "GPL-2.0-only",
+      "kind": "manpage",
+      "revision": "1.1.1",
+      "records": 96,
+      "inputs": [
+        {
+          "path": "data/cache/archives/nftables-1.1.1.tar.xz",
+          "kind": "archive",
+          "url": "https://www.netfilter.org/projects/nftables/files/nftables-1.1.1.tar.xz",
+          "sha256": "6358830f3a64f31e39b0ad421d7dadcd240b72343ded48d8ef13b8faf204865a",
+          "bytes": 989700
+        },
+        {
+          "path": "data/cache/extracted/nftables-1.1.1.tar-6358830f3a64f31e/nftables-1.1.1/doc",
+          "kind": "extracted",
+          "url": "https://www.netfilter.org/projects/nftables/files/nftables-1.1.1.tar.xz",
+          "sha256": "",
+          "bytes": 0
+        }
+      ],
+      "errors": [],
+      "max_records": 100,
+      "group": "netfilter_nftables"
+    },
+    {
+      "name": "nist_nvd",
+      "title": "NIST National Vulnerability Database (NVD) API 2.0",
+      "license": "Public-Domain",
+      "kind": "nvd_json",
+      "revision": "nvd-api-2.0",
+      "records": 3000,
+      "inputs": [
+        {
+          "path": "data/cache/nvd/f0f73a7d5a542b9f/page-000000.json",
+          "sha256": "c697ae78ea93e35eaaaca37065c2ff4810026b6381198fbdb09c0824b666816b",
+          "kind": "nvd-page",
+          "start_index": 0,
+          "total_results": 8905
+        },
+        {
+          "path": "data/cache/nvd/f0f73a7d5a542b9f/page-002000.json",
+          "sha256": "9c4e25df362d27b5d52b7de7d61d28554a7d84ecc33fc2153b306dcb4e8569d8",
+          "kind": "nvd-page",
+          "start_index": 2000,
+          "total_results": 8905
+        }
+      ],
+      "acquisition": {
+        "mode": "api",
+        "date_start": "2024-01-01T00:00:00.000",
+        "date_end": "2024-03-31T23:59:59.999",
+        "requests": 0,
+        "cache_hits": 2,
+        "records_seen": 4000,
+        "total_results": 8905,
+        "truncated": true
+      },
+      "errors": []
+    },
+    {
+      "name": "openssh_docs",
+      "title": "OpenSSH manual pages",
+      "license": "OpenSSH",
+      "kind": "manpage",
+      "revision": "V_10_6_P2",
+      "records": 28,
+      "inputs": [
+        {
+          "path": "data/cache/archives/openssh-portable-d449e66.tar.gz",
+          "kind": "archive",
+          "url": "https://codeload.github.com/openssh/openssh-portable/tar.gz/d449e662b6b8b8cb20e852d8084c269af1c5e8f1",
+          "sha256": "c9f5885b1d970ae80e320be3b7a79a54545e7789d96004992969b3c512e89e5f",
+          "bytes": 2321413
+        },
+        {
+          "path": "data/cache/extracted/openssh-portable-d449e66.tar-c9f5885b1d970ae8/openssh-portable-d449e662b6b8b8cb20e852d8084c269af1c5e8f1",
+          "kind": "extracted",
+          "url": "https://codeload.github.com/openssh/openssh-portable/tar.gz/d449e662b6b8b8cb20e852d8084c269af1c5e8f1",
+          "sha256": "",
+          "bytes": 0
+        }
+      ],
+      "errors": [],
+      "max_records": 300,
+      "group": "openssh_docs"
+    },
+    {
+      "name": "owasp_cheatsheets",
+      "title": "OWASP Cheat Sheet Series",
+      "license": "CC-BY-SA-4.0",
+      "kind": "markdown",
+      "revision": "05861f28ed88269db390afeb67486abc0adfc076",
+      "records": 1981,
+      "inputs": [
+        {
+          "path": "data/cache/archives/05861f28ed88269db390afeb67486abc0adfc076",
+          "kind": "archive",
+          "url": "https://codeload.github.com/OWASP/CheatSheetSeries/tar.gz/05861f28ed88269db390afeb67486abc0adfc076",
+          "sha256": "728ce56bad5ea899d15117087ef5ad14715561e5146853bfb200c980f582ba53",
+          "bytes": 18274817
+        },
+        {
+          "path": "data/cache/extracted/05861f28ed88269db390afeb67486abc0adfc076-728ce56bad5ea899/CheatSheetSeries-05861f28ed88269db390afeb67486abc0adfc076/cheatsheets",
+          "kind": "extracted",
+          "url": "https://codeload.github.com/OWASP/CheatSheetSeries/tar.gz/05861f28ed88269db390afeb67486abc0adfc076",
+          "sha256": "",
+          "bytes": 0
+        }
+      ],
+      "errors": [],
+      "max_records": 2500,
+      "group": "owasp_cheatsheets"
+    },
+    {
+      "name": "project_examples",
+      "title": "Project-authored defensive-security examples",
+      "license": "Synthetic",
+      "kind": "jsonl",
+      "revision": "v1",
+      "records": 36,
+      "inputs": [
+        {
+          "path": "data/seed/project_examples_v1.jsonl",
+          "kind": "local",
+          "url": "",
+          "sha256": "1cf1100dcaa64bf2bb2e5771b7ce6685a25bb28475aab4ab7b19c0b281e7676b",
+          "bytes": 69922
+        }
+      ],
+      "errors": [],
+      "max_records": 200,
+      "group": "project_examples"
+    }
+  ],
+  "source_errors": [],
+  "cleaning": {
+    "redacted_secrets": 8,
+    "dedup": {
+      "kept": 7188,
+      "exact_duplicates": 0,
+      "near_duplicates": 417
+    },
+    "duplicates": 417,
+    "cross_source_duplicates": 0
+  },
+  "quality": {
+    "assessed": 7724,
+    "accepted": 7605,
+    "rejected": 119,
+    "rejection_reasons": {
+      "excessive_repeated_lines": 77,
+      "link_heavy": 14,
+      "pii_detected": 28
+    },
+    "warning_counts": {
+      "pii_detected": 287,
+      "unsupported_absolute_claim": 505
+    },
+    "warnings_by_source": {
+      "ietf_rfcs": {
+        "pii_detected": 15,
+        "unsupported_absolute_claim": 63
+      },
+      "linux_man_pages": {
+        "unsupported_absolute_claim": 46
+      },
+      "mitre_attack": {
+        "unsupported_absolute_claim": 10
+      },
+      "mitre_cwe": {
+        "unsupported_absolute_claim": 98
+      },
+      "netfilter_nftables": {
+        "unsupported_absolute_claim": 6
+      },
+      "nist_nvd": {
+        "pii_detected": 255,
+        "unsupported_absolute_claim": 6
+      },
+      "openssh_docs": {
+        "pii_detected": 13,
+        "unsupported_absolute_claim": 9
+      },
+      "owasp_cheatsheets": {
+        "pii_detected": 4,
+        "unsupported_absolute_claim": 262
+      },
+      "project_examples": {
+        "unsupported_absolute_claim": 5
+      }
+    },
+    "token_lengths": {
+      "tokenizer": "Qwen/Qwen3.5-0.8B",
+      "records": 7188,
+      "max_sequence_tokens": 1024,
+      "truncation_by_limit": {
+        "512": {
+          "over_limit": 1495,
+          "ratio": 0.208
+        },
+        "1024": {
+          "over_limit": 216,
+          "ratio": 0.0301
+        },
+        "2048": {
+          "over_limit": 31,
+          "ratio": 0.0043
+        },
+        "4096": {
+          "over_limit": 0,
+          "ratio": 0.0
+        },
+        "8192": {
+          "over_limit": 0,
+          "ratio": 0.0
+        }
+      },
+      "tokens": {
+        "min": 53,
+        "p50": 373,
+        "p90": 616,
+        "p95": 798,
+        "p99": 1539,
+        "max": 3474,
+        "mean": 395.26
+      },
+      "truncation": {
+        "over_limit": 216,
+        "ratio": 0.0301,
+        "risk": "low"
+      },
+      "limitations": "Token counts are a length signal, not a quality measure. Truncation risk assumes the configured maximum sequence length and does not model the training collator or packing.",
+      "tokenizer_info": {
+        "name": "Qwen/Qwen3.5-0.8B",
+        "kind": "transformers",
+        "estimated": false,
+        "revision": "",
+        "local_only": true
+      }
+    }
+  },
+  "contamination": {
+    "ngram": 13,
+    "total_indexed_ngrams": 241515,
+    "sets": [
+      {
+        "name": "baseline-probe-v1",
+        "path": "data/evaluation/baseline_probe_v1.jsonl",
+        "sha256": "f5a7055c5168e77529b52e0d572cf8f987c60d15e6e5c49a0d3099b70857baf4",
+        "version": "v1",
+        "license": "Synthetic",
+        "items": 36,
+        "ngrams": 594,
+        "populated": true,
+        "metadata": {
+          "benchmark": "baseline-probe-v1",
+          "evaluation_only": true,
+          "items": 36,
+          "license": "Synthetic",
+          "note": "36 project-authored capability-probe items; a regression signal, not a validated benchmark.",
+          "redistribution": "project-authored; may be redistributed with attribution",
+          "sha256": "f5a7055c5168e77529b52e0d572cf8f987c60d15e6e5c49a0d3099b70857baf4",
+          "version": "v1"
+        },
+        "matched_records": 0,
+        "matched_ids": []
+      },
+      {
+        "name": "seceval",
+        "path": "data/evaluation/seceval_v1.jsonl",
+        "sha256": "6ae74b2c9c45d1024f99453be00ae82d00567f0b5f1ffa1cc4109a2fa4ef1c03",
+        "version": "205dab7b0888a06f4b53ca7d9c7093e1326683e1",
+        "license": "CC-BY-NC-SA-4.0",
+        "items": 2182,
+        "ngrams": 240755,
+        "populated": true,
+        "metadata": {
+          "benchmark": "seceval",
+          "license": "CC-BY-NC-SA-4.0",
+          "evaluation_only": true,
+          "redistribution": "not permitted",
+          "upstream_url": "https://huggingface.co/datasets/XuanwuAI/SecEval",
+          "upstream_revision": "205dab7b0888a06f4b53ca7d9c7093e1326683e1",
+          "upstream_sha256": "194c3a511104be422a678675a71d44315d0c0392b040745155aeebc321e692e0",
+          "converted_sha256": "6ae74b2c9c45d1024f99453be00ae82d00567f0b5f1ffa1cc4109a2fa4ef1c03",
+          "downloaded_at": "2026-11-25T04:02:40.001947+00:00",
+          "upstream_items": 2189,
+          "converted_items": 2182,
+          "skipped": {
+            "unusable_or_empty_answer": 7
+          },
+          "single_answer_items": 1257,
+          "multi_answer_items": 925,
+          "topics": {
+            "ApplicationSecurity": 807,
+            "Cryptography": 14,
+            "MemorySafety": 48,
+            "NetworkSecurity": 228,
+            "PenTest": 473,
+            "SoftwareSecurity": 232,
+            "SystemSecurity": 1062,
+            "Vulnerability": 334,
+            "WebSecurity": 771
+          }
+        },
+        "matched_records": 0,
+        "matched_ids": []
+      },
+      {
+        "name": "smoke-eval",
+        "path": "data/evaluation/smoke_eval.jsonl",
+        "sha256": "111132beb36f65d9bc57bdb42efe9d801d5971d0f355f23b08723e7b6be5fc3d",
+        "version": "v1",
+        "license": "Synthetic",
+        "items": 8,
+        "ngrams": 166,
+        "populated": true,
+        "metadata": {
+          "benchmark": "smoke-eval",
+          "evaluation_only": true,
+          "items": 8,
+          "license": "Synthetic",
+          "note": "Eight original synthetic harness-validation items; not a benchmark.",
+          "redistribution": "project-authored; may be redistributed with attribution",
+          "sha256": "111132beb36f65d9bc57bdb42efe9d801d5971d0f355f23b08723e7b6be5fc3d",
+          "version": "v1"
+        },
+        "matched_records": 0,
+        "matched_ids": []
+      }
+    ],
+    "threshold": 0.2,
+    "removed": 0,
+    "removed_groups": [],
+    "group_removed_ids": [],
+    "findings": [],
+    "status": "screened",
+    "records_before": 7188,
+    "records_after": 7188
+  },
+  "rejections": [
+    {
+      "reason": "quality:excessive_repeated_lines",
+      "source": "ietf_rfcs",
+      "id": "ietf_rfcs-cb1616457f975b60",
+      "quality_issues": [
+        "excessive_repeated_lines"
+      ]
+    },
+    {
+      "reason": "quality:excessive_repeated_lines",
+      "source": "ietf_rfcs",
+      "id": "ietf_rfcs-4c64f8fdf28cbf84",
+      "quality_issues": [
+        "excessive_repeated_lines"
+      ]
+    },
+    {
+      "reason": "quality:pii_detected",
+      "source": "ietf_rfcs",
+      "id": "ietf_rfcs-5dbff0ac62a8cbfe",
+      "quality_issues": [
+        "pii_detected"
+      ]
+    },
+    {
+      "reason": "quality:excessive_repeated_lines",
+      "source": "ietf_rfcs",
+      "id": "ietf_rfcs-9e23dd9489ded078",
+      "quality_issues": [
+        "excessive_repeated_lines"
+      ]
+    },
+    {
+      "reason": "quality:excessive_repeated_lines",
+      "source": "linux_man_pages",
+      "id": "linux_man_pages-7402853f011392c6",
+      "quality_issues": [
+        "excessive_repeated_lines"
+      ]
+    },
+    {
+      "reason": "quality:excessive_repeated_lines",
+      "source": "linux_man_pages",
+      "id": "linux_man_pages-46a3186cf88da50d",
+      "quality_issues": [
+        "excessive_repeated_lines"
+      ]
+    },
+    {
+      "reason": "quality:excessive_repeated_lines",
+      "source": "linux_man_pages",
+      "id": "linux_man_pages-6dffefa2ce9aa2aa",
+      "quality_issues": [
+        "excessive_repeated_lines"
+      ]
+    },
+    {
+      "reason": "quality:pii_detected",
+      "source": "linux_man_pages",
+      "id": "linux_man_pages-a32d9a1642ea1c25",
+      "quality_issues": [
+        "pii_detected"
+      ]
+    },
+    {
+      "reason": "quality:excessive_repeated_lines",
+      "source": "mitre_cwe",
+      "id": "mitre_cwe-41385bf353adee00",
+      "quality_issues": [
+        "excessive_repeated_lines"
+      ]
+    },
+    {
+      "reason": "quality:excessive_repeated_lines",
+      "source": "mitre_cwe",
+      "id": "mitre_cwe-113ce7f2b3b3b0ca",
+      "quality_issues": [
+        "excessive_repeated_lines"
+      ]
+    },
+    {
+      "reason": "quality:excessive_repeated_lines",
+      "source": "netfilter_nftables",
+      "id": "netfilter_nftables-3569038c0ec4d5a5",
+      "quality_issues": [
+        "excessive_repeated_lines"
+      ]
+    },
+    {
+      "reason": "quality:excessive_repeated_lines",
+      "source": "netfilter_nftables",
+      "id": "netfilter_nftables-9907a7f4132dcb6f",
+      "quality_issues": [
+        "excessive_repeated_lines"
+      ]
+    },
+    {
+      "reason": "quality:excessive_repeated_lines",
+      "source": "netfilter_nftables",
+      "id": "netfilter_nftables-59cd6208646a01f2",
+      "quality_issues": [
+        "excessive_repeated_lines"
+      ]
+    },
+    {
+      "reason": "quality:excessive_repeated_lines",
+      "source": "netfilter_nftables",
+      "id": "netfilter_nftables-46de53ac729fb1ea",
+      "quality_issues": [
+        "excessive_repeated_lines"
+      ]
+    },
+    {
+      "reason": "quality:excessive_repeated_lines",
+      "source": "netfilter_nftables",
+      "id": "netfilter_nftables-c722616ab010d1cc",
+      "quality_issues": [
+        "excessive_repeated_lines"
+      ]
+    },
+    {
+      "reason": "quality:excessive_repeated_lines",
+      "source": "netfilter_nftables",
+      "id": "netfilter_nftables-eb5db32ceb8186e0",
+      "quality_issues": [
+        "excessive_repeated_lines"
+      ]
+    },
+    {
+      "reason": "quality:excessive_repeated_lines",
+      "source": "netfilter_nftables",
+      "id": "netfilter_nftables-365da1cf8fe48800",
+      "quality_issues": [
+        "excessive_repeated_lines"
+      ]
+    },
+    {
+      "reason": "quality:excessive_repeated_lines",
+      "source": "netfilter_nftables",
+      "id": "netfilter_nftables-60c18e0d961d055c",
+      "quality_issues": [
+        "excessive_repeated_lines"
+      ]
+    },
+    {
+      "reason": "quality:excessive_repeated_lines",
+      "source": "netfilter_nftables",
+      "id": "netfilter_nftables-72354228b0f10a60",
+      "quality_issues": [
+        "excessive_repeated_lines"
+      ]
+    },
+    {
+      "reason": "quality:excessive_repeated_lines",
+      "source": "netfilter_nftables",
+      "id": "netfilter_nftables-b81eb8f5d5871e32",
+      "quality_issues": [
+        "excessive_repeated_lines"
+      ]
+    },
+    {
+      "reason": "quality:excessive_repeated_lines",
+      "source": "netfilter_nftables",
+      "id": "netfilter_nftables-39f8695fb6ec3472",
+      "quality_issues": [
+        "excessive_repeated_lines"
+      ]
+    },
+    {
+      "reason": "quality:excessive_repeated_lines",
+      "source": "netfilter_nftables",
+      "id": "netfilter_nftables-aec42d4378cfe52a",
+      "quality_issues": [
+        "excessive_repeated_lines"
+      ]
+    },
+    {
+      "reason": "quality:excessive_repeated_lines",
+      "source": "netfilter_nftables",
+      "id": "netfilter_nftables-e4856ccd6175268e",
+      "quality_issues": [
+        "excessive_repeated_lines"
+      ]
+    },
+    {
+      "reason": "quality:excessive_repeated_lines",
+      "source": "netfilter_nftables",
+      "id": "netfilter_nftables-6fd64fb7f577e991",
+      "quality_issues": [
+        "excessive_repeated_lines"
+      ]
+    },
+    {
+      "reason": "quality:excessive_repeated_lines",
+      "source": "netfilter_nftables",
+      "id": "netfilter_nftables-14b1d6df517f76ad",
+      "quality_issues": [
+        "excessive_repeated_lines"
+      ]
+    },
+    {
+      "reason": "quality:excessive_repeated_lines",
+      "source": "netfilter_nftables",
+      "id": "netfilter_nftables-b1608a3b377c4cbd",
+      "quality_issues": [
+        "excessive_repeated_lines"
+      ]
+    },
+    {
+      "reason": "quality:excessive_repeated_lines",
+      "source": "netfilter_nftables",
+      "id": "netfilter_nftables-2cc553e8b055fe19",
+      "quality_issues": [
+        "excessive_repeated_lines"
+      ]
+    },
+    {
+      "reason": "quality:excessive_repeated_lines",
+      "source": "netfilter_nftables",
+      "id": "netfilter_nftables-f0caf6f9b01c40db",
+      "quality_issues": [
+        "excessive_repeated_lines"
+      ]
+    },
+    {
+      "reason": "quality:excessive_repeated_lines",
+      "source": "netfilter_nftables",
+      "id": "netfilter_nftables-41bc9584848a0230",
+      "quality_issues": [
+        "excessive_repeated_lines"
+      ]
+    },
+    {
+      "reason": "quality:excessive_repeated_lines",
+      "source": "netfilter_nftables",
+      "id": "netfilter_nftables-de139cb3b76efd01",
+      "quality_issues": [
+        "excessive_repeated_lines"
+      ]
+    },
+    {
+      "reason": "quality:excessive_repeated_lines",
+      "source": "netfilter_nftables",
+      "id": "netfilter_nftables-f0cc42b731e5f53c",
+      "quality_issues": [
+        "excessive_repeated_lines"
+      ]
+    },
+    {
+      "reason": "quality:excessive_repeated_lines",
+      "source": "netfilter_nftables",
+      "id": "netfilter_nftables-d363c6dd96f2ed1c",
+      "quality_issues": [
+        "excessive_repeated_lines"
+      ]
+    },
+    {
+      "reason": "quality:excessive_repeated_lines",
+      "source": "netfilter_nftables",
+      "id": "netfilter_nftables-17aa3f965676b454",
+      "quality_issues": [
+        "excessive_repeated_lines"
+      ]
+    },
+    {
+      "reason": "quality:excessive_repeated_lines",
+      "source": "netfilter_nftables",
+      "id": "netfilter_nftables-cc9ffef4bfe4c160",
+      "quality_issues": [
+        "excessive_repeated_lines"
+      ]
+    },
+    {
+      "reason": "quality:excessive_repeated_lines",
+      "source": "netfilter_nftables",
+      "id": "netfilter_nftables-e0e4fa0fbb58efee",
+      "quality_issues": [
+        "excessive_repeated_lines"
+      ]
+    },
+    {
+      "reason": "quality:excessive_repeated_lines",
+      "source": "netfilter_nftables",
+      "id": "netfilter_nftables-d481b02ce42fd805",
+      "quality_issues": [
+        "excessive_repeated_lines"
+      ]
+    },
+    {
+      "reason": "quality:excessive_repeated_lines",
+      "source": "netfilter_nftables",
+      "id": "netfilter_nftables-82684d5cc7305ea4",
+      "quality_issues": [
+        "excessive_repeated_lines"
+      ]
+    },
+    {
+      "reason": "quality:excessive_repeated_lines",
+      "source": "netfilter_nftables",
+      "id": "netfilter_nftables-8fda4c2d04294692",
+      "quality_issues": [
+        "excessive_repeated_lines"
+      ]
+    },
+    {
+      "reason": "quality:excessive_repeated_lines",
+      "source": "netfilter_nftables",
+      "id": "netfilter_nftables-150b7f639efdf493",
+      "quality_issues": [
+        "excessive_repeated_lines"
+      ]
+    },
+    {
+      "reason": "quality:excessive_repeated_lines",
+      "source": "netfilter_nftables",
+      "id": "netfilter_nftables-712d1d8a6fbedb5e",
+      "quality_issues": [
+        "excessive_repeated_lines"
+      ]
+    },
+    {
+      "reason": "quality:excessive_repeated_lines",
+      "source": "netfilter_nftables",
+      "id": "netfilter_nftables-5d835602cb0d4ca9",
+      "quality_issues": [
+        "excessive_repeated_lines"
+      ]
+    },
+    {
+      "reason": "quality:excessive_repeated_lines",
+      "source": "netfilter_nftables",
+      "id": "netfilter_nftables-7af0d401083e54f0",
+      "quality_issues": [
+        "excessive_repeated_lines"
+      ]
+    },
+    {
+      "reason": "quality:excessive_repeated_lines",
+      "source": "netfilter_nftables",
+      "id": "netfilter_nftables-99418f0b05e1bc6f",
+      "quality_issues": [
+        "excessive_repeated_lines"
+      ]
+    },
+    {
+      "reason": "quality:excessive_repeated_lines",
+      "source": "netfilter_nftables",
+      "id": "netfilter_nftables-a67c1c6a2d5f3189",
+      "quality_issues": [
+        "excessive_repeated_lines"
+      ]
+    },
+    {
+      "reason": "quality:excessive_repeated_lines",
+      "source": "netfilter_nftables",
+      "id": "netfilter_nftables-cbef15c7812852df",
+      "quality_issues": [
+        "excessive_repeated_lines"
+      ]
+    },
+    {
+      "reason": "quality:excessive_repeated_lines",
+      "source": "netfilter_nftables",
+      "id": "netfilter_nftables-6f7b7a9d10f49c4a",
+      "quality_issues": [
+        "excessive_repeated_lines"
+      ]
+    },
+    {
+      "reason": "quality:excessive_repeated_lines",
+      "source": "netfilter_nftables",
+      "id": "netfilter_nftables-09fae9e06d2cab50",
+      "quality_issues": [
+        "excessive_repeated_lines"
+      ]
+    },
+    {
+      "reason": "quality:excessive_repeated_lines",
+      "source": "netfilter_nftables",
+      "id": "netfilter_nftables-16e39ef5132775c7",
+      "quality_issues": [
+        "excessive_repeated_lines"
+      ]
+    },
+    {
+      "reason": "quality:excessive_repeated_lines",
+      "source": "netfilter_nftables",
+      "id": "netfilter_nftables-5295cedbe38e2e03",
+      "quality_issues": [
+        "excessive_repeated_lines"
+      ]
+    },
+    {
+      "reason": "quality:excessive_repeated_lines",
+      "source": "netfilter_nftables",
+      "id": "netfilter_nftables-becf5dac756f185c",
+      "quality_issues": [
+        "excessive_repeated_lines"
+      ]
+    },
+    {
+      "reason": "quality:excessive_repeated_lines",
+      "source": "netfilter_nftables",
+      "id": "netfilter_nftables-6e69d1fdc13842b0",
+      "quality_issues": [
+        "excessive_repeated_lines"
+      ]
+    },
+    {
+      "reason": "quality:excessive_repeated_lines",
+      "source": "netfilter_nftables",
+      "id": "netfilter_nftables-29bea1873f91c2ca",
+      "quality_issues": [
+        "excessive_repeated_lines"
+      ]
+    },
+    {
+      "reason": "quality:excessive_repeated_lines",
+      "source": "netfilter_nftables",
+      "id": "netfilter_nftables-ac6e27f6554dab73",
+      "quality_issues": [
+        "excessive_repeated_lines"
+      ]
+    },
+    {
+      "reason": "quality:excessive_repeated_lines",
+      "source": "netfilter_nftables",
+      "id": "netfilter_nftables-04f8492ccdc6d1df",
+      "quality_issues": [
+        "excessive_repeated_lines"
+      ]
+    },
+    {
+      "reason": "quality:excessive_repeated_lines",
+      "source": "netfilter_nftables",
+      "id": "netfilter_nftables-b8021ab9a0709294",
+      "quality_issues": [
+        "excessive_repeated_lines"
+      ]
+    },
+    {
+      "reason": "quality:excessive_repeated_lines",
+      "source": "netfilter_nftables",
+      "id": "netfilter_nftables-3b9e2dc8e524a264",
+      "quality_issues": [
+        "excessive_repeated_lines"
+      ]
+    },
+    {
+      "reason": "quality:excessive_repeated_lines",
+      "source": "netfilter_nftables",
+      "id": "netfilter_nftables-050b29a717a06103",
+      "quality_issues": [
+        "excessive_repeated_lines"
+      ]
+    },
+    {
+      "reason": "quality:excessive_repeated_lines",
+      "source": "netfilter_nftables",
+      "id": "netfilter_nftables-2366dd0a3601815d",
+      "quality_issues": [
+        "excessive_repeated_lines"
+      ]
+    },
+    {
+      "reason": "quality:excessive_repeated_lines",
+      "source": "netfilter_nftables",
+      "id": "netfilter_nftables-ad44efb6a326c89d",
+      "quality_issues": [
+        "excessive_repeated_lines"
+      ]
+    },
+    {
+      "reason": "quality:excessive_repeated_lines",
+      "source": "netfilter_nftables",
+      "id": "netfilter_nftables-317f1e0cce296e3c",
+      "quality_issues": [
+        "excessive_repeated_lines"
+      ]
+    },
+    {
+      "reason": "quality:excessive_repeated_lines",
+      "source": "netfilter_nftables",
+      "id": "netfilter_nftables-5eb214a5468ad297",
+      "quality_issues": [
+        "excessive_repeated_lines"
+      ]
+    },
+    {
+      "reason": "quality:excessive_repeated_lines",
+      "source": "netfilter_nftables",
+      "id": "netfilter_nftables-16d0a7755fb2a8f0",
+      "quality_issues": [
+        "excessive_repeated_lines"
+      ]
+    },
+    {
+      "reason": "quality:excessive_repeated_lines",
+      "source": "netfilter_nftables",
+      "id": "netfilter_nftables-7b87c3bffe54cb54",
+      "quality_issues": [
+        "excessive_repeated_lines"
+      ]
+    },
+    {
+      "reason": "quality:excessive_repeated_lines",
+      "source": "netfilter_nftables",
+      "id": "netfilter_nftables-4564510fde9cafde",
+      "quality_issues": [
+        "excessive_repeated_lines"
+      ]
+    },
+    {
+      "reason": "quality:excessive_repeated_lines",
+      "source": "netfilter_nftables",
+      "id": "netfilter_nftables-a331e3e2015cbd5f",
+      "quality_issues": [
+        "excessive_repeated_lines"
+      ]
+    },
+    {
+      "reason": "quality:excessive_repeated_lines",
+      "source": "netfilter_nftables",
+      "id": "netfilter_nftables-07c856526bb0fe79",
+      "quality_issues": [
+        "excessive_repeated_lines"
+      ]
+    },
+    {
+      "reason": "quality:link_heavy",
+      "source": "nist_nvd",
+      "id": "nist_nvd-6dcb957a939cc2f4",
+      "quality_issues": [
+        "link_heavy"
+      ]
+    },
+    {
+      "reason": "quality:link_heavy",
+      "source": "nist_nvd",
+      "id": "nist_nvd-a04b72989395f719",
+      "quality_issues": [
+        "link_heavy"
+      ]
+    },
+    {
+      "reason": "quality:link_heavy",
+      "source": "nist_nvd",
+      "id": "nist_nvd-460bb1a7cf22ed1d",
+      "quality_issues": [
+        "link_heavy"
+      ]
+    },
+    {
+      "reason": "quality:link_heavy",
+      "source": "nist_nvd",
+      "id": "nist_nvd-beb29dc4a77f8dbd",
+      "quality_issues": [
+        "link_heavy"
+      ]
+    },
+    {
+      "reason": "quality:link_heavy",
+      "source": "nist_nvd",
+      "id": "nist_nvd-e526f607986f3342",
+      "quality_issues": [
+        "link_heavy"
+      ]
+    },
+    {
+      "reason": "quality:link_heavy",
+      "source": "nist_nvd",
+      "id": "nist_nvd-c5e9904d9ac402cc",
+      "quality_issues": [
+        "link_heavy"
+      ]
+    },
+    {
+      "reason": "quality:link_heavy",
+      "source": "nist_nvd",
+      "id": "nist_nvd-fedc6dca3310be39",
+      "quality_issues": [
+        "link_heavy"
+      ]
+    },
+    {
+      "reason": "quality:link_heavy",
+      "source": "nist_nvd",
+      "id": "nist_nvd-9253ca6d314e49f2",
+      "quality_issues": [
+        "link_heavy"
+      ]
+    },
+    {
+      "reason": "quality:pii_detected",
+      "source": "nist_nvd",
+      "id": "nist_nvd-e057f69c7cac9285",
+      "quality_issues": [
+        "pii_detected"
+      ]
+    },
+    {
+      "reason": "quality:pii_detected",
+      "source": "nist_nvd",
+      "id": "nist_nvd-a254934629d6c8e3",
+      "quality_issues": [
+        "pii_detected"
+      ]
+    },
+    {
+      "reason": "quality:pii_detected",
+      "source": "nist_nvd",
+      "id": "nist_nvd-e86e800bd0b27939",
+      "quality_issues": [
+        "pii_detected"
+      ]
+    },
+    {
+      "reason": "quality:pii_detected",
+      "source": "nist_nvd",
+      "id": "nist_nvd-d592c10f93e517c8",
+      "quality_issues": [
+        "pii_detected"
+      ]
+    },
+    {
+      "reason": "quality:pii_detected",
+      "source": "nist_nvd",
+      "id": "nist_nvd-b7af0a705aeca18e",
+      "quality_issues": [
+        "pii_detected"
+      ]
+    },
+    {
+      "reason": "quality:pii_detected",
+      "source": "nist_nvd",
+      "id": "nist_nvd-f1e3e47c561c9814",
+      "quality_issues": [
+        "pii_detected"
+      ]
+    },
+    {
+      "reason": "quality:pii_detected",
+      "source": "nist_nvd",
+      "id": "nist_nvd-5ba20278eaf34772",
+      "quality_issues": [
+        "pii_detected"
+      ]
+    },
+    {
+      "reason": "quality:pii_detected",
+      "source": "nist_nvd",
+      "id": "nist_nvd-364251bc36cd5d6c",
+      "quality_issues": [
+        "pii_detected"
+      ]
+    },
+    {
+      "reason": "quality:pii_detected",
+      "source": "nist_nvd",
+      "id": "nist_nvd-4d1e1d096c7a6ad2",
+      "quality_issues": [
+        "pii_detected"
+      ]
+    },
+    {
+      "reason": "quality:pii_detected",
+      "source": "nist_nvd",
+      "id": "nist_nvd-79cb3960f58bfd46",
+      "quality_issues": [
+        "pii_detected"
+      ]
+    },
+    {
+      "reason": "quality:pii_detected",
+      "source": "nist_nvd",
+      "id": "nist_nvd-ce736c177342f303",
+      "quality_issues": [
+        "pii_detected"
+      ]
+    },
+    {
+      "reason": "quality:pii_detected",
+      "source": "nist_nvd",
+      "id": "nist_nvd-c415c22ddcd5ee59",
+      "quality_issues": [
+        "pii_detected"
+      ]
+    },
+    {
+      "reason": "quality:pii_detected",
+      "source": "nist_nvd",
+      "id": "nist_nvd-02658d2aab6950b9",
+      "quality_issues": [
+        "pii_detected"
+      ]
+    },
+    {
+      "reason": "quality:pii_detected",
+      "source": "nist_nvd",
+      "id": "nist_nvd-e7593fdd1660bfe5",
+      "quality_issues": [
+        "pii_detected"
+      ]
+    },
+    {
+      "reason": "quality:pii_detected",
+      "source": "nist_nvd",
+      "id": "nist_nvd-36139e86393d16f2",
+      "quality_issues": [
+        "pii_detected"
+      ]
+    },
+    {
+      "reason": "quality:pii_detected",
+      "source": "nist_nvd",
+      "id": "nist_nvd-0cfa40a5f88aaaae",
+      "quality_issues": [
+        "pii_detected"
+      ]
+    },
+    {
+      "reason": "quality:pii_detected",
+      "source": "nist_nvd",
+      "id": "nist_nvd-8776fd5614dff900",
+      "quality_issues": [
+        "pii_detected"
+      ]
+    },
+    {
+      "reason": "quality:pii_detected",
+      "source": "nist_nvd",
+      "id": "nist_nvd-4691ac2a330b645b",
+      "quality_issues": [
+        "pii_detected"
+      ]
+    },
+    {
+      "reason": "quality:pii_detected",
+      "source": "nist_nvd",
+      "id": "nist_nvd-c651c03ee0ff379c",
+      "quality_issues": [
+        "pii_detected"
+      ]
+    },
+    {
+      "reason": "quality:pii_detected",
+      "source": "nist_nvd",
+      "id": "nist_nvd-cbbec9d2f9c78cae",
+      "quality_issues": [
+        "pii_detected"
+      ]
+    },
+    {
+      "reason": "quality:pii_detected",
+      "source": "nist_nvd",
+      "id": "nist_nvd-dc613df17c225a78",
+      "quality_issues": [
+        "pii_detected"
+      ]
+    },
+    {
+      "reason": "quality:pii_detected",
+      "source": "nist_nvd",
+      "id": "nist_nvd-b34a20abdb49f625",
+      "quality_issues": [
+        "pii_detected"
+      ]
+    },
+    {
+      "reason": "quality:pii_detected",
+      "source": "nist_nvd",
+      "id": "nist_nvd-e99da1846b3fb40f",
+      "quality_issues": [
+        "pii_detected"
+      ]
+    },
+    {
+      "reason": "quality:link_heavy",
+      "source": "nist_nvd",
+      "id": "nist_nvd-f120538530d3fea4",
+      "quality_issues": [
+        "link_heavy"
+      ]
+    },
+    {
+      "reason": "quality:link_heavy",
+      "source": "nist_nvd",
+      "id": "nist_nvd-a5544eb36741dbc3",
+      "quality_issues": [
+        "link_heavy"
+      ]
+    },
+    {
+      "reason": "quality:pii_detected",
+      "source": "nist_nvd",
+      "id": "nist_nvd-98e1a0ae90bdfe05",
+      "quality_issues": [
+        "pii_detected"
+      ]
+    },
+    {
+      "reason": "quality:pii_detected",
+      "source": "nist_nvd",
+      "id": "nist_nvd-70b9226e5761435d",
+      "quality_issues": [
+        "pii_detected"
+      ]
+    },
+    {
+      "reason": "quality:link_heavy",
+      "source": "nist_nvd",
+      "id": "nist_nvd-e51de5a1aa0fa6a1",
+      "quality_issues": [
+        "link_heavy"
+      ]
+    },
+    {
+      "reason": "quality:link_heavy",
+      "source": "nist_nvd",
+      "id": "nist_nvd-d925f946f13b31be",
+      "quality_issues": [
+        "link_heavy"
+      ]
+    },
+    {
+      "reason": "quality:link_heavy",
+      "source": "nist_nvd",
+      "id": "nist_nvd-7d06e731bce0aeee",
+      "quality_issues": [
+        "link_heavy"
+      ]
+    },
+    {
+      "reason": "quality:link_heavy",
+      "source": "nist_nvd",
+      "id": "nist_nvd-829d5a1a47ce6939",
+      "quality_issues": [
+        "link_heavy"
+      ]
+    },
+    {
+      "reason": "quality:excessive_repeated_lines",
+      "source": "owasp_cheatsheets",
+      "id": "owasp_cheatsheets-1e35c74184cf0b88",
+      "quality_issues": [
+        "excessive_repeated_lines"
+      ]
+    },
+    {
+      "reason": "quality:excessive_repeated_lines",
+      "source": "owasp_cheatsheets",
+      "id": "owasp_cheatsheets-786dcb4fda63e8d5",
+      "quality_issues": [
+        "excessive_repeated_lines"
+      ]
+    },
+    {
+      "reason": "quality:pii_detected",
+      "source": "owasp_cheatsheets",
+      "id": "owasp_cheatsheets-3c5c15b39ded0f88",
+      "quality_issues": [
+        "pii_detected"
+      ]
+    },
+    {
+      "reason": "quality:excessive_repeated_lines",
+      "source": "owasp_cheatsheets",
+      "id": "owasp_cheatsheets-3851552ec8b5402d",
+      "quality_issues": [
+        "excessive_repeated_lines"
+      ]
+    },
+    {
+      "reason": "quality:excessive_repeated_lines",
+      "source": "owasp_cheatsheets",
+      "id": "owasp_cheatsheets-59fad2d237a75d6b",
+      "quality_issues": [
+        "excessive_repeated_lines"
+      ]
+    },
+    {
+      "reason": "quality:excessive_repeated_lines",
+      "source": "owasp_cheatsheets",
+      "id": "owasp_cheatsheets-2ade553fafb04b67",
+      "quality_issues": [
+        "excessive_repeated_lines"
+      ]
+    },
+    {
+      "reason": "quality:excessive_repeated_lines",
+      "source": "owasp_cheatsheets",
+      "id": "owasp_cheatsheets-af954d6707a0933b",
+      "quality_issues": [
+        "excessive_repeated_lines"
+      ]
+    },
+    {
+      "reason": "quality:excessive_repeated_lines",
+      "source": "owasp_cheatsheets",
+      "id": "owasp_cheatsheets-ce11d1478acbc5e8",
+      "quality_issues": [
+        "excessive_repeated_lines"
+      ]
+    },
+    {
+      "reason": "quality:excessive_repeated_lines",
+      "source": "owasp_cheatsheets",
+      "id": "owasp_cheatsheets-1c34ec9a709c6d99",
+      "quality_issues": [
+        "excessive_repeated_lines"
+      ]
+    },
+    {
+      "reason": "quality:excessive_repeated_lines",
+      "source": "owasp_cheatsheets",
+      "id": "owasp_cheatsheets-4230b3df62fe2abe",
+      "quality_issues": [
+        "excessive_repeated_lines"
+      ]
+    },
+    {
+      "reason": "quality:excessive_repeated_lines",
+      "source": "owasp_cheatsheets",
+      "id": "owasp_cheatsheets-c0dfdf1150605827",
+      "quality_issues": [
+        "excessive_repeated_lines"
+      ]
+    },
+    {
+      "reason": "quality:excessive_repeated_lines",
+      "source": "owasp_cheatsheets",
+      "id": "owasp_cheatsheets-51cfe3d4d631f029",
+      "quality_issues": [
+        "excessive_repeated_lines"
+      ]
+    },
+    {
+      "reason": "quality:excessive_repeated_lines",
+      "source": "owasp_cheatsheets",
+      "id": "owasp_cheatsheets-aae47588925ca426",
+      "quality_issues": [
+        "excessive_repeated_lines"
+      ]
+    },
+    {
+      "reason": "quality:excessive_repeated_lines",
+      "source": "owasp_cheatsheets",
+      "id": "owasp_cheatsheets-8268fc2b392412c8",
+      "quality_issues": [
+        "excessive_repeated_lines"
+      ]
+    },
+    {
+      "reason": "duplicate:near:186",
+      "source": "ietf_rfcs",
+      "id": "ietf_rfcs-2a1aee9a1987ef6c",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:289",
+      "source": "ietf_rfcs",
+      "id": "ietf_rfcs-69b815837c241662",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:469",
+      "source": "linux_man_pages",
+      "id": "linux_man_pages-68fb3c92d89a75dc",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:661",
+      "source": "mitre_attack",
+      "id": "mitre_attack-4d5eae3c3af75cb3",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:661",
+      "source": "mitre_attack",
+      "id": "mitre_attack-feaec9dfd89d8545",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:643",
+      "source": "mitre_attack",
+      "id": "mitre_attack-865942de4eac7711",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:661",
+      "source": "mitre_attack",
+      "id": "mitre_attack-08fab5adf300051e",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:725",
+      "source": "mitre_attack",
+      "id": "mitre_attack-10dd147c0d49deac",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:694",
+      "source": "mitre_attack",
+      "id": "mitre_attack-e5e0fcda04464eca",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:663",
+      "source": "mitre_attack",
+      "id": "mitre_attack-528d1e1b4170c790",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:671",
+      "source": "mitre_attack",
+      "id": "mitre_attack-91d074d15f49df10",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:671",
+      "source": "mitre_attack",
+      "id": "mitre_attack-1a4c700fca484530",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:680",
+      "source": "mitre_attack",
+      "id": "mitre_attack-1f7bc681c9931831",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:671",
+      "source": "mitre_attack",
+      "id": "mitre_attack-b0ae47527cdcae47",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:849",
+      "source": "mitre_attack",
+      "id": "mitre_attack-d183755d78978d9e",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:957",
+      "source": "mitre_attack",
+      "id": "mitre_attack-5770051eb4f56a25",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:923",
+      "source": "mitre_attack",
+      "id": "mitre_attack-1bd3e257b254f5a5",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:998",
+      "source": "mitre_attack",
+      "id": "mitre_attack-8b71df45cb0b2080",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:1090",
+      "source": "mitre_attack",
+      "id": "mitre_attack-2438324c237c98c4",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:1304",
+      "source": "mitre_attack",
+      "id": "mitre_attack-6ab7e1948378361c",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:902",
+      "source": "mitre_attack",
+      "id": "mitre_attack-b152b207157b7efd",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:1614",
+      "source": "mitre_cwe",
+      "id": "mitre_cwe-b8c2a6bad21fcdff",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:1614",
+      "source": "mitre_cwe",
+      "id": "mitre_cwe-b896400265111840",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:1614",
+      "source": "mitre_cwe",
+      "id": "mitre_cwe-3066ba6a83196921",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:1723",
+      "source": "mitre_cwe",
+      "id": "mitre_cwe-df9eb5be0bb0e5d9",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:1861",
+      "source": "mitre_cwe",
+      "id": "mitre_cwe-a62298faff4e4c7a",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:1863",
+      "source": "mitre_cwe",
+      "id": "mitre_cwe-9c33ec183e40e5df",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:1863",
+      "source": "mitre_cwe",
+      "id": "mitre_cwe-c6ddfc5eec3f7d03",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:1863",
+      "source": "mitre_cwe",
+      "id": "mitre_cwe-82dddc53f2da03a5",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:1863",
+      "source": "mitre_cwe",
+      "id": "mitre_cwe-292b2b96ae6aa5a2",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:1849",
+      "source": "mitre_cwe",
+      "id": "mitre_cwe-2f8f6d6b1422a600",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:1794",
+      "source": "mitre_cwe",
+      "id": "mitre_cwe-8c30df4d12f6a8a6",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:1861",
+      "source": "mitre_cwe",
+      "id": "mitre_cwe-de6b79902a3e8d56",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:1861",
+      "source": "mitre_cwe",
+      "id": "mitre_cwe-d076d8b218ccda7f",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:1863",
+      "source": "mitre_cwe",
+      "id": "mitre_cwe-c10eade6b5005d0a",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:1849",
+      "source": "mitre_cwe",
+      "id": "mitre_cwe-a2bbf6ae17c9eeaf",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:1849",
+      "source": "mitre_cwe",
+      "id": "mitre_cwe-f7da37e82908c722",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:1896",
+      "source": "mitre_cwe",
+      "id": "mitre_cwe-01c56cf08f281b21",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:1863",
+      "source": "mitre_cwe",
+      "id": "mitre_cwe-febd134c6f5c0422",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:1849",
+      "source": "mitre_cwe",
+      "id": "mitre_cwe-5416744b665bb2cd",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:1849",
+      "source": "mitre_cwe",
+      "id": "mitre_cwe-452f9324c5ec0214",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:1794",
+      "source": "mitre_cwe",
+      "id": "mitre_cwe-526a9a60210410b8",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:1902",
+      "source": "mitre_cwe",
+      "id": "mitre_cwe-76e749bf4b516ad8",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:1904",
+      "source": "mitre_cwe",
+      "id": "mitre_cwe-fce83ead05921903",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:1904",
+      "source": "mitre_cwe",
+      "id": "mitre_cwe-c0b96b8dedbccf52",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:1962",
+      "source": "mitre_cwe",
+      "id": "mitre_cwe-761cb74edcfbfdec",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:1971",
+      "source": "mitre_cwe",
+      "id": "mitre_cwe-14acfcc1d7d1eab4",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:1993",
+      "source": "mitre_cwe",
+      "id": "mitre_cwe-4e7bc45b3f908f2a",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:1971",
+      "source": "mitre_cwe",
+      "id": "mitre_cwe-140c79001f650b92",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:1971",
+      "source": "mitre_cwe",
+      "id": "mitre_cwe-0c3ba000ec0ed510",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:1971",
+      "source": "mitre_cwe",
+      "id": "mitre_cwe-3eb90ef9f72f6278",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:1971",
+      "source": "mitre_cwe",
+      "id": "mitre_cwe-f8ea9ce40bc44c4d",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:1962",
+      "source": "mitre_cwe",
+      "id": "mitre_cwe-8176c22ec89b9c34",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2033",
+      "source": "mitre_cwe",
+      "id": "mitre_cwe-31899641e2646e06",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2033",
+      "source": "mitre_cwe",
+      "id": "mitre_cwe-d03e70ea52f20ae4",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2074",
+      "source": "mitre_cwe",
+      "id": "mitre_cwe-67bba55d43350bd7",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:1904",
+      "source": "mitre_cwe",
+      "id": "mitre_cwe-a384f1a6dfdf1aeb",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2177",
+      "source": "mitre_cwe",
+      "id": "mitre_cwe-c565855c59dde1f9",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2220",
+      "source": "mitre_cwe",
+      "id": "mitre_cwe-d11ba14e5c641c1b",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2177",
+      "source": "mitre_cwe",
+      "id": "mitre_cwe-edcd5ddb1d358868",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2190",
+      "source": "mitre_cwe",
+      "id": "mitre_cwe-4c4e55714e7dd872",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:1942",
+      "source": "mitre_cwe",
+      "id": "mitre_cwe-529eb93300a8a3ca",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2304",
+      "source": "mitre_cwe",
+      "id": "mitre_cwe-6ea49f817d327e34",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2322",
+      "source": "mitre_cwe",
+      "id": "mitre_cwe-ff9b163b2603cddc",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2437",
+      "source": "mitre_cwe",
+      "id": "mitre_cwe-a892d8eb1230aa94",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:1942",
+      "source": "mitre_cwe",
+      "id": "mitre_cwe-5fd92ccae9d8aeb9",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2463",
+      "source": "mitre_cwe",
+      "id": "mitre_cwe-1a2010ff392850f7",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2000",
+      "source": "mitre_cwe",
+      "id": "mitre_cwe-7c4a9d2e55a9f51f",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2463",
+      "source": "mitre_cwe",
+      "id": "mitre_cwe-49432d93c87a1042",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2554",
+      "source": "nist_nvd",
+      "id": "nist_nvd-8b2b5c5cf30d04d5",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2564",
+      "source": "nist_nvd",
+      "id": "nist_nvd-fd47d00b339e99d6",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2587",
+      "source": "nist_nvd",
+      "id": "nist_nvd-41f42d6539c23d56",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2584",
+      "source": "nist_nvd",
+      "id": "nist_nvd-6d8c7a176ebd1bcc",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2601",
+      "source": "nist_nvd",
+      "id": "nist_nvd-83374d8bfaa2065a",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2607",
+      "source": "nist_nvd",
+      "id": "nist_nvd-f9680c9a46bc7ba8",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2640",
+      "source": "nist_nvd",
+      "id": "nist_nvd-2de376d27a6ed74c",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2650",
+      "source": "nist_nvd",
+      "id": "nist_nvd-4c0db03ce2738e25",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2665",
+      "source": "nist_nvd",
+      "id": "nist_nvd-96f1ff9035359ede",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2665",
+      "source": "nist_nvd",
+      "id": "nist_nvd-589ccaa172391bab",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2684",
+      "source": "nist_nvd",
+      "id": "nist_nvd-d12d2f79bb1207ba",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2684",
+      "source": "nist_nvd",
+      "id": "nist_nvd-fa523eec43b421c5",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2687",
+      "source": "nist_nvd",
+      "id": "nist_nvd-9455269670161182",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2687",
+      "source": "nist_nvd",
+      "id": "nist_nvd-272a92b91041cacb",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2699",
+      "source": "nist_nvd",
+      "id": "nist_nvd-c6f1c935c81dc928",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2688",
+      "source": "nist_nvd",
+      "id": "nist_nvd-6f832757d1017bb7",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2688",
+      "source": "nist_nvd",
+      "id": "nist_nvd-5701d5ce716332e9",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2744",
+      "source": "nist_nvd",
+      "id": "nist_nvd-333cd6f50a0e7640",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2747",
+      "source": "nist_nvd",
+      "id": "nist_nvd-2626a270887138dc",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2769",
+      "source": "nist_nvd",
+      "id": "nist_nvd-56f804eea24630d6",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2769",
+      "source": "nist_nvd",
+      "id": "nist_nvd-77cd5eec471f846f",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2781",
+      "source": "nist_nvd",
+      "id": "nist_nvd-2e18eb7b820ddb9d",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2782",
+      "source": "nist_nvd",
+      "id": "nist_nvd-0969ecc6a9fa542f",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2844",
+      "source": "nist_nvd",
+      "id": "nist_nvd-2eb8d798f8383dfa",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2850",
+      "source": "nist_nvd",
+      "id": "nist_nvd-5548c9a2a78c79c2",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2850",
+      "source": "nist_nvd",
+      "id": "nist_nvd-14d5d042672786d6",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2850",
+      "source": "nist_nvd",
+      "id": "nist_nvd-e60ebe1270f43f63",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2850",
+      "source": "nist_nvd",
+      "id": "nist_nvd-f6e828e73c8f80a9",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2850",
+      "source": "nist_nvd",
+      "id": "nist_nvd-ece0a5164d00a1b4",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2880",
+      "source": "nist_nvd",
+      "id": "nist_nvd-31c30e60813e95d1",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2880",
+      "source": "nist_nvd",
+      "id": "nist_nvd-bfedcc5ec8b5e116",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2901",
+      "source": "nist_nvd",
+      "id": "nist_nvd-b31f9d2180ee4233",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2923",
+      "source": "nist_nvd",
+      "id": "nist_nvd-4b6685a0533b91ed",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2945",
+      "source": "nist_nvd",
+      "id": "nist_nvd-2b1b3604539cdc21",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2945",
+      "source": "nist_nvd",
+      "id": "nist_nvd-07816b5f26eee331",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2946",
+      "source": "nist_nvd",
+      "id": "nist_nvd-496f5a1c966d1cbe",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2946",
+      "source": "nist_nvd",
+      "id": "nist_nvd-f61d7366617c14b2",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2948",
+      "source": "nist_nvd",
+      "id": "nist_nvd-85c8071ac0a0fffa",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2948",
+      "source": "nist_nvd",
+      "id": "nist_nvd-9013e435eb831455",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2948",
+      "source": "nist_nvd",
+      "id": "nist_nvd-3dbc00250ba2a828",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2948",
+      "source": "nist_nvd",
+      "id": "nist_nvd-de666021536b11d7",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2948",
+      "source": "nist_nvd",
+      "id": "nist_nvd-dd3a0424c13ec897",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2945",
+      "source": "nist_nvd",
+      "id": "nist_nvd-efa92e3c1ece822e",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2945",
+      "source": "nist_nvd",
+      "id": "nist_nvd-9ab89d2e1f229856",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2945",
+      "source": "nist_nvd",
+      "id": "nist_nvd-4e975c18927fb94f",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2945",
+      "source": "nist_nvd",
+      "id": "nist_nvd-8478643cc8500b77",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2940",
+      "source": "nist_nvd",
+      "id": "nist_nvd-6f04932bffdb96ac",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2953",
+      "source": "nist_nvd",
+      "id": "nist_nvd-757bdfb67912c3e7",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2945",
+      "source": "nist_nvd",
+      "id": "nist_nvd-d57087894876d2d6",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2957",
+      "source": "nist_nvd",
+      "id": "nist_nvd-728ec5dd5ca3766e",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2957",
+      "source": "nist_nvd",
+      "id": "nist_nvd-c06865dd59bdaa95",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2957",
+      "source": "nist_nvd",
+      "id": "nist_nvd-49bc96ed73849743",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2957",
+      "source": "nist_nvd",
+      "id": "nist_nvd-b5153cf39d12ffd8",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2957",
+      "source": "nist_nvd",
+      "id": "nist_nvd-b3c07d5050c1443e",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2957",
+      "source": "nist_nvd",
+      "id": "nist_nvd-24a17163f57e99bc",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2959",
+      "source": "nist_nvd",
+      "id": "nist_nvd-07147619d167817f",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2958",
+      "source": "nist_nvd",
+      "id": "nist_nvd-455b90fc79468992",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2960",
+      "source": "nist_nvd",
+      "id": "nist_nvd-582a56f954fdb029",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2960",
+      "source": "nist_nvd",
+      "id": "nist_nvd-01accd9f7a66e2f2",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2960",
+      "source": "nist_nvd",
+      "id": "nist_nvd-caf48e773f544dc4",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2960",
+      "source": "nist_nvd",
+      "id": "nist_nvd-14a8767c6b4170fd",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2962",
+      "source": "nist_nvd",
+      "id": "nist_nvd-e38cf347b119a1c6",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2941",
+      "source": "nist_nvd",
+      "id": "nist_nvd-1a95aae0478c9c42",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2959",
+      "source": "nist_nvd",
+      "id": "nist_nvd-7c0c5dc134a04fa1",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2945",
+      "source": "nist_nvd",
+      "id": "nist_nvd-116343767c498319",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2959",
+      "source": "nist_nvd",
+      "id": "nist_nvd-7bb92f42e4b00c7b",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2964",
+      "source": "nist_nvd",
+      "id": "nist_nvd-afa1f47ac26a2b3c",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2945",
+      "source": "nist_nvd",
+      "id": "nist_nvd-e0c3833a7fdf4eed",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2965",
+      "source": "nist_nvd",
+      "id": "nist_nvd-2059431bbc3e6f4c",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2953",
+      "source": "nist_nvd",
+      "id": "nist_nvd-d2a770a12926647a",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2966",
+      "source": "nist_nvd",
+      "id": "nist_nvd-4ad19630466b0c52",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2969",
+      "source": "nist_nvd",
+      "id": "nist_nvd-4b9d4293329da15f",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2951",
+      "source": "nist_nvd",
+      "id": "nist_nvd-d297208810e47cc5",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2957",
+      "source": "nist_nvd",
+      "id": "nist_nvd-7decb23a67053423",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2953",
+      "source": "nist_nvd",
+      "id": "nist_nvd-62683a7730ca9b60",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2970",
+      "source": "nist_nvd",
+      "id": "nist_nvd-f27f38ddfe02a819",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2971",
+      "source": "nist_nvd",
+      "id": "nist_nvd-57b8c48994d82c70",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2960",
+      "source": "nist_nvd",
+      "id": "nist_nvd-4a1d891c99a90ca4",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2974",
+      "source": "nist_nvd",
+      "id": "nist_nvd-700cf3cf68f7c5e3",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2981",
+      "source": "nist_nvd",
+      "id": "nist_nvd-41c9a7ad2d7a1429",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2981",
+      "source": "nist_nvd",
+      "id": "nist_nvd-ef0300d36d5d0f27",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3067",
+      "source": "nist_nvd",
+      "id": "nist_nvd-c437b2c92055aa0f",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3067",
+      "source": "nist_nvd",
+      "id": "nist_nvd-e694ebebeb2a7e50",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2909",
+      "source": "nist_nvd",
+      "id": "nist_nvd-55defd2f5fd60324",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3081",
+      "source": "nist_nvd",
+      "id": "nist_nvd-cdec1702312fbb9c",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3081",
+      "source": "nist_nvd",
+      "id": "nist_nvd-dfe4dcb3ac45e256",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3082",
+      "source": "nist_nvd",
+      "id": "nist_nvd-e8bdf852297f8523",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3082",
+      "source": "nist_nvd",
+      "id": "nist_nvd-3e64222d60581a55",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3084",
+      "source": "nist_nvd",
+      "id": "nist_nvd-a2178f33d3f6dfb6",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3085",
+      "source": "nist_nvd",
+      "id": "nist_nvd-dcfadbbb845ad358",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3093",
+      "source": "nist_nvd",
+      "id": "nist_nvd-bbca15338806e585",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3094",
+      "source": "nist_nvd",
+      "id": "nist_nvd-bb75bd37727af6a5",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2909",
+      "source": "nist_nvd",
+      "id": "nist_nvd-8d5e06a701d88538",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3114",
+      "source": "nist_nvd",
+      "id": "nist_nvd-04d48b525b0c730f",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3114",
+      "source": "nist_nvd",
+      "id": "nist_nvd-b68db3a739f02d47",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3117",
+      "source": "nist_nvd",
+      "id": "nist_nvd-85a136e80145df7d",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3114",
+      "source": "nist_nvd",
+      "id": "nist_nvd-0c309d32622b80e9",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3125",
+      "source": "nist_nvd",
+      "id": "nist_nvd-8e1dc98248c38650",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3114",
+      "source": "nist_nvd",
+      "id": "nist_nvd-af276ffa8549c108",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3126",
+      "source": "nist_nvd",
+      "id": "nist_nvd-0fa8a057008901a0",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3130",
+      "source": "nist_nvd",
+      "id": "nist_nvd-78477a7075dc72cd",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3126",
+      "source": "nist_nvd",
+      "id": "nist_nvd-c4e32b014558b703",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3118",
+      "source": "nist_nvd",
+      "id": "nist_nvd-11631048afc423cc",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3120",
+      "source": "nist_nvd",
+      "id": "nist_nvd-30e4a6a9081e886b",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3162",
+      "source": "nist_nvd",
+      "id": "nist_nvd-6f45576caab8d266",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3163",
+      "source": "nist_nvd",
+      "id": "nist_nvd-fca3e37358be47f7",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3163",
+      "source": "nist_nvd",
+      "id": "nist_nvd-516ca2418b67cefc",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3167",
+      "source": "nist_nvd",
+      "id": "nist_nvd-8f86c6e071b628b3",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3206",
+      "source": "nist_nvd",
+      "id": "nist_nvd-c0834cd0c34e2ab1",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3205",
+      "source": "nist_nvd",
+      "id": "nist_nvd-28ce83f287234f71",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3205",
+      "source": "nist_nvd",
+      "id": "nist_nvd-c4bd21e6a7d0f31a",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3219",
+      "source": "nist_nvd",
+      "id": "nist_nvd-22daf734a4a37262",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3219",
+      "source": "nist_nvd",
+      "id": "nist_nvd-10442d0f55bf8c75",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3219",
+      "source": "nist_nvd",
+      "id": "nist_nvd-dae5d02f695b28c7",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3224",
+      "source": "nist_nvd",
+      "id": "nist_nvd-74dbd33b49b44fa3",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3224",
+      "source": "nist_nvd",
+      "id": "nist_nvd-2771328e90a72c9a",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3224",
+      "source": "nist_nvd",
+      "id": "nist_nvd-9209a1ff5e50751b",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3224",
+      "source": "nist_nvd",
+      "id": "nist_nvd-16122810486181d1",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3224",
+      "source": "nist_nvd",
+      "id": "nist_nvd-085d491317622ae9",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3229",
+      "source": "nist_nvd",
+      "id": "nist_nvd-889310d8ad7a8e44",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3228",
+      "source": "nist_nvd",
+      "id": "nist_nvd-ca74b204a13ab1f4",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3230",
+      "source": "nist_nvd",
+      "id": "nist_nvd-dc7e2432bf3f320b",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3225",
+      "source": "nist_nvd",
+      "id": "nist_nvd-48af8e61a0612efc",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3225",
+      "source": "nist_nvd",
+      "id": "nist_nvd-f48f08fe80108e5c",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3232",
+      "source": "nist_nvd",
+      "id": "nist_nvd-9c9beea536e826a1",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3226",
+      "source": "nist_nvd",
+      "id": "nist_nvd-5187cd233b8df88c",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3246",
+      "source": "nist_nvd",
+      "id": "nist_nvd-e113de2baf9e9da9",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3246",
+      "source": "nist_nvd",
+      "id": "nist_nvd-9ecc17b44d9355ba",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3226",
+      "source": "nist_nvd",
+      "id": "nist_nvd-e45829ba611b430f",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3232",
+      "source": "nist_nvd",
+      "id": "nist_nvd-dcfe41cd0ff2b6a0",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3221",
+      "source": "nist_nvd",
+      "id": "nist_nvd-d265d06072059b63",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3232",
+      "source": "nist_nvd",
+      "id": "nist_nvd-acd7e408b796c8d3",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3270",
+      "source": "nist_nvd",
+      "id": "nist_nvd-f0ab03de55de88bd",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3265",
+      "source": "nist_nvd",
+      "id": "nist_nvd-aadddfc1d02c4272",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3278",
+      "source": "nist_nvd",
+      "id": "nist_nvd-b4669d9696c5e5a2",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3265",
+      "source": "nist_nvd",
+      "id": "nist_nvd-be83af1703652d7a",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3265",
+      "source": "nist_nvd",
+      "id": "nist_nvd-be074e95fca4976f",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3305",
+      "source": "nist_nvd",
+      "id": "nist_nvd-6cee5ea313a4172d",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3284",
+      "source": "nist_nvd",
+      "id": "nist_nvd-8102349499f6903d",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3280",
+      "source": "nist_nvd",
+      "id": "nist_nvd-d187adfa06c224b8",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3319",
+      "source": "nist_nvd",
+      "id": "nist_nvd-a85778effffe2e96",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3324",
+      "source": "nist_nvd",
+      "id": "nist_nvd-64de01ef95fd9179",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3330",
+      "source": "nist_nvd",
+      "id": "nist_nvd-7afe501d9a965646",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3353",
+      "source": "nist_nvd",
+      "id": "nist_nvd-6e9ae538e16f81b7",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3415",
+      "source": "nist_nvd",
+      "id": "nist_nvd-8ff8907edd0ff881",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3416",
+      "source": "nist_nvd",
+      "id": "nist_nvd-d2f6d1bee8ddfce7",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2929",
+      "source": "nist_nvd",
+      "id": "nist_nvd-2ca6740b56309e84",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3430",
+      "source": "nist_nvd",
+      "id": "nist_nvd-616e0665f7fa8849",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3427",
+      "source": "nist_nvd",
+      "id": "nist_nvd-96961ffa972d0f4a",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3494",
+      "source": "nist_nvd",
+      "id": "nist_nvd-9075430ca44b15fe",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3510",
+      "source": "nist_nvd",
+      "id": "nist_nvd-3ddc134f97ae3a70",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3177",
+      "source": "nist_nvd",
+      "id": "nist_nvd-826a225b4595f11c",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3538",
+      "source": "nist_nvd",
+      "id": "nist_nvd-8d080484e8459839",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3538",
+      "source": "nist_nvd",
+      "id": "nist_nvd-a545796f407e9881",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3538",
+      "source": "nist_nvd",
+      "id": "nist_nvd-b4994abcaf11448a",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2620",
+      "source": "nist_nvd",
+      "id": "nist_nvd-a64ec8d10a49ceb0",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3177",
+      "source": "nist_nvd",
+      "id": "nist_nvd-c68ee84099301b79",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3619",
+      "source": "nist_nvd",
+      "id": "nist_nvd-4e7435b19a442038",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3640",
+      "source": "nist_nvd",
+      "id": "nist_nvd-f7f6c2bfcbee3ae3",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3705",
+      "source": "nist_nvd",
+      "id": "nist_nvd-9420b6e729b8eafe",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3707",
+      "source": "nist_nvd",
+      "id": "nist_nvd-8dcae0b31a433e52",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2909",
+      "source": "nist_nvd",
+      "id": "nist_nvd-ce7f1a460ebf97c3",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2909",
+      "source": "nist_nvd",
+      "id": "nist_nvd-d363a2dd56268022",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2911",
+      "source": "nist_nvd",
+      "id": "nist_nvd-2771c73131e52ff2",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2908",
+      "source": "nist_nvd",
+      "id": "nist_nvd-f656180d63c98f18",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3735",
+      "source": "nist_nvd",
+      "id": "nist_nvd-e0c5d500e92d0387",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3773",
+      "source": "nist_nvd",
+      "id": "nist_nvd-5ac26011c6288f78",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3774",
+      "source": "nist_nvd",
+      "id": "nist_nvd-ab5c85df4b21b961",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3749",
+      "source": "nist_nvd",
+      "id": "nist_nvd-e388f38e71a18bc4",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2909",
+      "source": "nist_nvd",
+      "id": "nist_nvd-6effa25369a4afe5",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3807",
+      "source": "nist_nvd",
+      "id": "nist_nvd-7f113351318733b2",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3814",
+      "source": "nist_nvd",
+      "id": "nist_nvd-bb74e71761abadc2",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3818",
+      "source": "nist_nvd",
+      "id": "nist_nvd-72d406d88dbf2aba",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3839",
+      "source": "nist_nvd",
+      "id": "nist_nvd-85c49cc455a64738",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3839",
+      "source": "nist_nvd",
+      "id": "nist_nvd-462301523a4117f4",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3839",
+      "source": "nist_nvd",
+      "id": "nist_nvd-0eaba906fa50e674",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3857",
+      "source": "nist_nvd",
+      "id": "nist_nvd-978ef2674773a553",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3857",
+      "source": "nist_nvd",
+      "id": "nist_nvd-9aca06497ab060b1",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3857",
+      "source": "nist_nvd",
+      "id": "nist_nvd-9587acb1ecff2d64",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3858",
+      "source": "nist_nvd",
+      "id": "nist_nvd-08056364e8c0199d",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3857",
+      "source": "nist_nvd",
+      "id": "nist_nvd-4e80a4680280776b",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3860",
+      "source": "nist_nvd",
+      "id": "nist_nvd-6cdf621635cb3d29",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3860",
+      "source": "nist_nvd",
+      "id": "nist_nvd-64cd9e24fa20f14e",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3880",
+      "source": "nist_nvd",
+      "id": "nist_nvd-b789c36e406a653e",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3880",
+      "source": "nist_nvd",
+      "id": "nist_nvd-a751123402009430",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3880",
+      "source": "nist_nvd",
+      "id": "nist_nvd-48a8af18ec078f05",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3880",
+      "source": "nist_nvd",
+      "id": "nist_nvd-93229f6e40c832b6",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3880",
+      "source": "nist_nvd",
+      "id": "nist_nvd-e8720b17a8bb4d13",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3880",
+      "source": "nist_nvd",
+      "id": "nist_nvd-65bcfb3b3a1a96d7",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3880",
+      "source": "nist_nvd",
+      "id": "nist_nvd-b0567078d82d666f",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3880",
+      "source": "nist_nvd",
+      "id": "nist_nvd-7caa66df5435160c",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3880",
+      "source": "nist_nvd",
+      "id": "nist_nvd-79dbd73f310f0ef8",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3880",
+      "source": "nist_nvd",
+      "id": "nist_nvd-54d0eea645b141eb",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3882",
+      "source": "nist_nvd",
+      "id": "nist_nvd-daba423c98496ecc",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3882",
+      "source": "nist_nvd",
+      "id": "nist_nvd-16b6434e4106a5b0",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3881",
+      "source": "nist_nvd",
+      "id": "nist_nvd-381e4400c1e3faa9",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3880",
+      "source": "nist_nvd",
+      "id": "nist_nvd-ed5ab1c4f0a02b9d",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3884",
+      "source": "nist_nvd",
+      "id": "nist_nvd-d9716a743d2b7f06",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3880",
+      "source": "nist_nvd",
+      "id": "nist_nvd-bc5a3173a427bf17",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3885",
+      "source": "nist_nvd",
+      "id": "nist_nvd-142e695d886e4e9c",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3880",
+      "source": "nist_nvd",
+      "id": "nist_nvd-4d4437e043010b9c",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3947",
+      "source": "nist_nvd",
+      "id": "nist_nvd-a84d22d70de011a9",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3945",
+      "source": "nist_nvd",
+      "id": "nist_nvd-52cb1aa7adc61555",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3947",
+      "source": "nist_nvd",
+      "id": "nist_nvd-52cb435618967037",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3945",
+      "source": "nist_nvd",
+      "id": "nist_nvd-65dfed13b6caf358",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3949",
+      "source": "nist_nvd",
+      "id": "nist_nvd-0ddfb5e15b9e9921",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3944",
+      "source": "nist_nvd",
+      "id": "nist_nvd-a47938d15ddc37ea",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3944",
+      "source": "nist_nvd",
+      "id": "nist_nvd-da4df64419d936c1",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3944",
+      "source": "nist_nvd",
+      "id": "nist_nvd-3b4bfe38c6164bce",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3946",
+      "source": "nist_nvd",
+      "id": "nist_nvd-7a820326065fc123",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3946",
+      "source": "nist_nvd",
+      "id": "nist_nvd-dee380e44b95c39b",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3951",
+      "source": "nist_nvd",
+      "id": "nist_nvd-8fc84f1ba38f34fc",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3969",
+      "source": "nist_nvd",
+      "id": "nist_nvd-6092e7340160ddce",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3970",
+      "source": "nist_nvd",
+      "id": "nist_nvd-fb35d05b588a05fe",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3970",
+      "source": "nist_nvd",
+      "id": "nist_nvd-5488cfdcf09ce70b",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3970",
+      "source": "nist_nvd",
+      "id": "nist_nvd-9afae0ebf63efefc",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3979",
+      "source": "nist_nvd",
+      "id": "nist_nvd-2ea07f892ea37a4e",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3979",
+      "source": "nist_nvd",
+      "id": "nist_nvd-ccf78ddeda83f2ff",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:4041",
+      "source": "nist_nvd",
+      "id": "nist_nvd-2373db9627592626",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:4043",
+      "source": "nist_nvd",
+      "id": "nist_nvd-459f4bb0ba2716ee",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:4064",
+      "source": "nist_nvd",
+      "id": "nist_nvd-daaa2af711d6c3ec",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:4064",
+      "source": "nist_nvd",
+      "id": "nist_nvd-fda086c9a860f3be",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:4064",
+      "source": "nist_nvd",
+      "id": "nist_nvd-ecab246d54a92b02",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:4134",
+      "source": "nist_nvd",
+      "id": "nist_nvd-dcb84b13bf421e67",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:4203",
+      "source": "nist_nvd",
+      "id": "nist_nvd-16ba08f8fc63d9b3",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:4203",
+      "source": "nist_nvd",
+      "id": "nist_nvd-b154ed1d53628775",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:4203",
+      "source": "nist_nvd",
+      "id": "nist_nvd-9aab9784920f9eb8",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:4206",
+      "source": "nist_nvd",
+      "id": "nist_nvd-7eabd0fffa7a8231",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:4202",
+      "source": "nist_nvd",
+      "id": "nist_nvd-33a2b87f023c8bd0",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:4206",
+      "source": "nist_nvd",
+      "id": "nist_nvd-0ee9d745e947913b",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:4214",
+      "source": "nist_nvd",
+      "id": "nist_nvd-c3d3edf25a7eb19a",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:4214",
+      "source": "nist_nvd",
+      "id": "nist_nvd-c1385e30646f76f5",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:4215",
+      "source": "nist_nvd",
+      "id": "nist_nvd-1aa5d32c5ba0cd62",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:4223",
+      "source": "nist_nvd",
+      "id": "nist_nvd-a26a693405e7cfdf",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:4223",
+      "source": "nist_nvd",
+      "id": "nist_nvd-2dfdc35dd9f7b04e",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:4274",
+      "source": "nist_nvd",
+      "id": "nist_nvd-e0f56e1b1cb793bb",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:4280",
+      "source": "nist_nvd",
+      "id": "nist_nvd-9a0c284b7c883c89",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:4280",
+      "source": "nist_nvd",
+      "id": "nist_nvd-9600fc2de01d7797",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:4280",
+      "source": "nist_nvd",
+      "id": "nist_nvd-7259d800a1b05c0c",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:4280",
+      "source": "nist_nvd",
+      "id": "nist_nvd-2759986a6c1c01b6",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:4279",
+      "source": "nist_nvd",
+      "id": "nist_nvd-7b21b5ad09dd7e16",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:4285",
+      "source": "nist_nvd",
+      "id": "nist_nvd-9c62f05edb4f5b4e",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:4285",
+      "source": "nist_nvd",
+      "id": "nist_nvd-973ca2738dfdf6b7",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:4296",
+      "source": "nist_nvd",
+      "id": "nist_nvd-472c7cae51ba2c9e",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3827",
+      "source": "nist_nvd",
+      "id": "nist_nvd-247ad1eb77b2c598",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:4307",
+      "source": "nist_nvd",
+      "id": "nist_nvd-3ba3de1ff664bfee",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:4309",
+      "source": "nist_nvd",
+      "id": "nist_nvd-3b8303d37fdcce10",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2631",
+      "source": "nist_nvd",
+      "id": "nist_nvd-61bc11347ed25926",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:4376",
+      "source": "nist_nvd",
+      "id": "nist_nvd-16d785ac05f68879",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3642",
+      "source": "nist_nvd",
+      "id": "nist_nvd-bdabfda9cafd6461",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2620",
+      "source": "nist_nvd",
+      "id": "nist_nvd-370aefb067bae6ad",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3831",
+      "source": "nist_nvd",
+      "id": "nist_nvd-a548122787b844e8",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:4443",
+      "source": "nist_nvd",
+      "id": "nist_nvd-3eab8707fa9e2648",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:4452",
+      "source": "nist_nvd",
+      "id": "nist_nvd-785772659374dedd",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:4457",
+      "source": "nist_nvd",
+      "id": "nist_nvd-3a589ef5742e56fd",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:4459",
+      "source": "nist_nvd",
+      "id": "nist_nvd-5a523d8af64488dd",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:4458",
+      "source": "nist_nvd",
+      "id": "nist_nvd-fa7655ef937fac48",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:4457",
+      "source": "nist_nvd",
+      "id": "nist_nvd-2f1005472ea1d0ed",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:4463",
+      "source": "nist_nvd",
+      "id": "nist_nvd-f3163314b1e36b4b",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:4463",
+      "source": "nist_nvd",
+      "id": "nist_nvd-9d40743e9e1e7727",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:4463",
+      "source": "nist_nvd",
+      "id": "nist_nvd-9e179fcbe37b2393",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3710",
+      "source": "nist_nvd",
+      "id": "nist_nvd-5ff17c75044c659b",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:4402",
+      "source": "nist_nvd",
+      "id": "nist_nvd-ecf4eec20068bcc4",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:4402",
+      "source": "nist_nvd",
+      "id": "nist_nvd-80cdfc29cea94070",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:4481",
+      "source": "nist_nvd",
+      "id": "nist_nvd-7845a10dba55cc0a",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:4481",
+      "source": "nist_nvd",
+      "id": "nist_nvd-28880f0040aa7ad3",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3710",
+      "source": "nist_nvd",
+      "id": "nist_nvd-7001211df4495d8d",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3710",
+      "source": "nist_nvd",
+      "id": "nist_nvd-f42ae82b166c024e",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:4482",
+      "source": "nist_nvd",
+      "id": "nist_nvd-24f052c218d9a92e",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:4482",
+      "source": "nist_nvd",
+      "id": "nist_nvd-ae6d04b0ce39e3a7",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3710",
+      "source": "nist_nvd",
+      "id": "nist_nvd-c8fce10c303922af",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:4482",
+      "source": "nist_nvd",
+      "id": "nist_nvd-910610efd0852838",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:4482",
+      "source": "nist_nvd",
+      "id": "nist_nvd-9f46dc4ce8a8887e",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:4482",
+      "source": "nist_nvd",
+      "id": "nist_nvd-f74bbd9250aaf1d6",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:4482",
+      "source": "nist_nvd",
+      "id": "nist_nvd-666951fbbfae95b4",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3710",
+      "source": "nist_nvd",
+      "id": "nist_nvd-3ea15daf9a7b62d5",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:4482",
+      "source": "nist_nvd",
+      "id": "nist_nvd-082c4664e8c6eec8",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:4482",
+      "source": "nist_nvd",
+      "id": "nist_nvd-55af2af777882fe4",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:4482",
+      "source": "nist_nvd",
+      "id": "nist_nvd-d65fa36e321e4fff",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:4482",
+      "source": "nist_nvd",
+      "id": "nist_nvd-20f717cc29ec663a",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:4482",
+      "source": "nist_nvd",
+      "id": "nist_nvd-defbebca8a22e623",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:4482",
+      "source": "nist_nvd",
+      "id": "nist_nvd-6ed1286b513f2c3f",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:4482",
+      "source": "nist_nvd",
+      "id": "nist_nvd-af47595e4cf37a7b",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:4482",
+      "source": "nist_nvd",
+      "id": "nist_nvd-c4b96bb383878858",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:4482",
+      "source": "nist_nvd",
+      "id": "nist_nvd-76161df510091bf4",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3710",
+      "source": "nist_nvd",
+      "id": "nist_nvd-bb2741073d27813d",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3710",
+      "source": "nist_nvd",
+      "id": "nist_nvd-b3c36514bffc4cda",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:4482",
+      "source": "nist_nvd",
+      "id": "nist_nvd-fc5986cd19934d4c",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:4482",
+      "source": "nist_nvd",
+      "id": "nist_nvd-da6354c0706cad54",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:4482",
+      "source": "nist_nvd",
+      "id": "nist_nvd-c98acbac7578a555",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3710",
+      "source": "nist_nvd",
+      "id": "nist_nvd-5f447dfe1453b49a",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:4482",
+      "source": "nist_nvd",
+      "id": "nist_nvd-58c453b8ad942f10",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:4482",
+      "source": "nist_nvd",
+      "id": "nist_nvd-8ca1fa0ea9118868",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3710",
+      "source": "nist_nvd",
+      "id": "nist_nvd-871c150cfd0e5212",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:4402",
+      "source": "nist_nvd",
+      "id": "nist_nvd-63bc2af79afb5c11",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:4482",
+      "source": "nist_nvd",
+      "id": "nist_nvd-c8190ef7ae6124b1",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:4482",
+      "source": "nist_nvd",
+      "id": "nist_nvd-edaa3ab40ac93ce4",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:4482",
+      "source": "nist_nvd",
+      "id": "nist_nvd-c02877aac9474929",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:4402",
+      "source": "nist_nvd",
+      "id": "nist_nvd-8e620f8681c9e042",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2929",
+      "source": "nist_nvd",
+      "id": "nist_nvd-6a2ef643bfdeb5f9",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:4568",
+      "source": "nist_nvd",
+      "id": "nist_nvd-39229aaf956f7fe2",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2701",
+      "source": "nist_nvd",
+      "id": "nist_nvd-8a4ac0645cf28e33",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3146",
+      "source": "nist_nvd",
+      "id": "nist_nvd-780d59e1ac34cd8d",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2615",
+      "source": "nist_nvd",
+      "id": "nist_nvd-ce6a7d66bdea7c6f",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2559",
+      "source": "nist_nvd",
+      "id": "nist_nvd-a11ea85a503d2963",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:4653",
+      "source": "nist_nvd",
+      "id": "nist_nvd-f49f998b5eb1af57",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:4595",
+      "source": "nist_nvd",
+      "id": "nist_nvd-d4e1a5de9a404a2a",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:4595",
+      "source": "nist_nvd",
+      "id": "nist_nvd-8251b53b82776a33",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:4704",
+      "source": "nist_nvd",
+      "id": "nist_nvd-f9ddba59a997a067",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:4704",
+      "source": "nist_nvd",
+      "id": "nist_nvd-b88f91b9a4b6ab55",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3592",
+      "source": "nist_nvd",
+      "id": "nist_nvd-f0f74d46b5e9f5fc",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3154",
+      "source": "nist_nvd",
+      "id": "nist_nvd-4a0a1772c8995950",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:4861",
+      "source": "nist_nvd",
+      "id": "nist_nvd-499cd8bd58245e57",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:4868",
+      "source": "nist_nvd",
+      "id": "nist_nvd-ec7c492a9280d7b9",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:4868",
+      "source": "nist_nvd",
+      "id": "nist_nvd-2eccd3124868b49e",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:4868",
+      "source": "nist_nvd",
+      "id": "nist_nvd-5abe16828e848334",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3449",
+      "source": "nist_nvd",
+      "id": "nist_nvd-da798fbdaf162310",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:4394",
+      "source": "nist_nvd",
+      "id": "nist_nvd-211fda32e53d5bb2",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:4893",
+      "source": "nist_nvd",
+      "id": "nist_nvd-04f49ecdd6e691e6",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:4894",
+      "source": "nist_nvd",
+      "id": "nist_nvd-3ffc37f6002f2ca6",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:4893",
+      "source": "nist_nvd",
+      "id": "nist_nvd-5e7075fcbf2cf1fc",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:4911",
+      "source": "nist_nvd",
+      "id": "nist_nvd-9784ff7e01065a55",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:4402",
+      "source": "nist_nvd",
+      "id": "nist_nvd-c2772b95fa6a877e",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:4943",
+      "source": "nist_nvd",
+      "id": "nist_nvd-2f17dd5f43667343",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:4954",
+      "source": "nist_nvd",
+      "id": "nist_nvd-73f6b225c368a205",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:4954",
+      "source": "nist_nvd",
+      "id": "nist_nvd-6c92ba20bdf04383",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:4954",
+      "source": "nist_nvd",
+      "id": "nist_nvd-394f1b923f686e9a",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:4954",
+      "source": "nist_nvd",
+      "id": "nist_nvd-2d6a1e2b289f36af",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:4954",
+      "source": "nist_nvd",
+      "id": "nist_nvd-1f52661823bbb0ea",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:4954",
+      "source": "nist_nvd",
+      "id": "nist_nvd-531b619367d902e6",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:4954",
+      "source": "nist_nvd",
+      "id": "nist_nvd-5abd090cf7d2b42e",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:4952",
+      "source": "nist_nvd",
+      "id": "nist_nvd-27996ec54d20e944",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2850",
+      "source": "nist_nvd",
+      "id": "nist_nvd-2d1dfcc5c2578fd2",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2850",
+      "source": "nist_nvd",
+      "id": "nist_nvd-800f886e4dca123c",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:4958",
+      "source": "nist_nvd",
+      "id": "nist_nvd-041fe04598dee6f6",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:2850",
+      "source": "nist_nvd",
+      "id": "nist_nvd-7c9bf34916a7e2c3",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:4952",
+      "source": "nist_nvd",
+      "id": "nist_nvd-8c01d8fc01d6975b",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:4952",
+      "source": "nist_nvd",
+      "id": "nist_nvd-7df3e8adaa6bb683",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:4963",
+      "source": "nist_nvd",
+      "id": "nist_nvd-bdda29dc6df3d519",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:4952",
+      "source": "nist_nvd",
+      "id": "nist_nvd-ab858cc8ef430450",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:4434",
+      "source": "nist_nvd",
+      "id": "nist_nvd-2b8e94dfd1f713d4",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:4988",
+      "source": "nist_nvd",
+      "id": "nist_nvd-7016c6af7ea13e9a",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:3643",
+      "source": "nist_nvd",
+      "id": "nist_nvd-f8cf5d5a539b7ab1",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:5076",
+      "source": "nist_nvd",
+      "id": "nist_nvd-96b35971ffdce76b",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:5097",
+      "source": "nist_nvd",
+      "id": "nist_nvd-9d5f0226c1e51389",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:5126",
+      "source": "nist_nvd",
+      "id": "nist_nvd-38e7edca6037ef2b",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:5275",
+      "source": "owasp_cheatsheets",
+      "id": "owasp_cheatsheets-fc56d18100833add",
+      "other_source": ""
+    },
+    {
+      "reason": "duplicate:near:6160",
+      "source": "owasp_cheatsheets",
+      "id": "owasp_cheatsheets-24fe40490ba5f32d",
+      "other_source": ""
+    }
+  ],
+  "rejection_counts": {
+    "duplicate": 417,
+    "quality": 119
+  },
+  "group_split_violations": [],
+  "cross_split_leakage": [],
+  "provenance_gaps": {
+    "url": 0,
+    "source_version": 0,
+    "license": 0,
+    "task": 0,
+    "upstream_id": 0
+  },
+  "task_imbalance": {
+    "min_count": 4,
+    "max_count": 2615,
+    "ratio": 653.75,
+    "balanced": false,
+    "note": "A ratio above 10 indicates a task category with very little coverage; it is a review prompt, not an automatic rejection."
+  },
+  "manual_review": {
+    "completed": false,
+    "reviewed_records": 0,
+    "required": true,
+    "target_records": 200,
+    "note": "No human review has been recorded. Generate a review sample with scripts/audit_dataset.py; do not mark this complete until reviewers have actually assessed the sample.",
+    "review_sample_command": "python scripts/audit_dataset.py --dataset data/processed/pilot-v2 --out data/manifests/pilot-v2/audit --review-out data/processed/pilot-v2/review_samples.jsonl --tokenizer Qwen/Qwen3.5-0.8B --max-seq-len 1024"
+  },
+  "reproduction": {
+    "command": "python scripts/prepare_dataset.py --config configs/dataset_pilot.yaml --force",
+    "pinned_inputs": "See sources[].inputs[] SHA-256 values.",
+    "offline": "Re-run with --offline against the same cache to rebuild without network."
+  },
+  "environment": {
+    "python": "3.12.3",
+    "platform": "Linux-6.8.0-151-generic-x86_64-with-glibc2.39"
+  },
+  "files": {
+    "train": {
+      "path": "data/processed/pilot-v2/train.jsonl",
+      "records": 6351,
+      "sha256": "db008cf7d50f3fc2b98387d07069aed36375833072df80bf75c048a0935c95e5",
+      "bytes": 18536037
+    },
+    "validation": {
+      "path": "data/processed/pilot-v2/validation.jsonl",
+      "records": 416,
+      "sha256": "22ac9d49b92b55ea685dd3afebd6aad2e4950bb3e44ebcc27503692fcf42e91b",
+      "bytes": 1315091
+    },
+    "test": {
+      "path": "data/processed/pilot-v2/test.jsonl",
+      "records": 421,
+      "sha256": "9145f39a766c13e97961acb3c586caa610eda5babc7edd831957894401a0c2c1",
+      "bytes": 1225139
+    },
+    "quarantine": {
+      "path": "data/processed/pilot-v2/quarantine.jsonl",
+      "records": 536,
+      "sha256": "e0aa8f574d2f76f15bdcb2095eeffa2e92018db6ae0e3e6f42bd4c213b929696",
+      "bytes": 65026
+    }
+  },
+  "limitations": [
+    "Quality gates are heuristics and can reject useful text or accept questionable text.",
+    "The 13-gram screen does not detect paraphrase, translation, or conceptual overlap.",
+    "Token counts are a length signal, not a quality or factuality measure.",
+    "Manual review is pending; no record is described as human-verified."
+  ],
+  "dataset_version": "cyberlite-data-2.0.0-04b01b437805",
+  "manifest_path": "data/processed/pilot-v2/manifest.json",
+  "reports": {
+    "quality_report": {
+      "path": "data/manifests/pilot-v2/quality_report.json",
+      "sha256": "8ac69029abbd1a21e1c100ad588f511ff4c2e96123d3b1b12078bff304c49333",
+      "bytes": 11040
+    },
+    "contamination_report": {
+      "path": "data/manifests/pilot-v2/contamination_report.json",
+      "sha256": "ee6f2c9dabe2bb426a9682c8b97f07a10862d6cdd5b32aa142b5820e49e1c319",
+      "bytes": 4370
+    },
+    "license_report": {
+      "path": "data/manifests/pilot-v2/license_report.json",
+      "sha256": "568bfbdd3ee6e10041bca175f57db0dbe4de599156bf5ed9371ed486c44b4430",
+      "bytes": 14334
+    },
+    "license_report_markdown": {
+      "path": "data/manifests/pilot-v2/license_report.md",
+      "sha256": "dd22fd538f944c5a00b7c313b147ff3145d45517555656de3ca9fe5a91023493",
+      "bytes": 4341
+    }
+  },
+  "audit": {
+    "report": "audit/audit.json",
+    "report_markdown": "audit/audit.md",
+    "review_sample_size": 200,
+    "manual_review_completed": false,
+    "verified_contamination_removals": 0,
+    "contamination_verified": true,
+    "tokenizer": "Qwen/Qwen3.5-0.8B",
+    "token_truncation": {
+      "over_limit": 216,
+      "ratio": 0.0301,
+      "risk": "low"
+    },
+    "files": {
+      "audit.json": {
+        "path": "data/manifests/pilot-v2/audit/audit.json",
+        "sha256": "2de137bfca1aa4148447173774122db654e329f115e149809648dca186e51b2a",
+        "bytes": 24148
+      },
+      "audit.md": {
+        "path": "data/manifests/pilot-v2/audit/audit.md",
+        "sha256": "c5f4d27b466e2dfb02e9046182367764b98a82d294851e217e123652c61542b3",
+        "bytes": 3796
+      },
+      "quality_report.json": {
+        "path": "data/manifests/pilot-v2/audit/quality_report.json",
+        "sha256": "2de137bfca1aa4148447173774122db654e329f115e149809648dca186e51b2a",
+        "bytes": 24148
+      },
+      "contamination_report.json": {
+        "path": "data/manifests/pilot-v2/audit/contamination_report.json",
+        "sha256": "aa562faef915aabeba178da4d32af50677fb16efaed034699a0d2cbe9969368b",
+        "bytes": 4371
+      },
+      "license_report.json": {
+        "path": "data/manifests/pilot-v2/audit/license_report.json",
+        "sha256": "7a8da80c5df963006380e8e79bd4af90c43e513a6436efafa7dcfaf0eebb8ae2",
+        "bytes": 14334
+      },
+      "license_report.md": {
+        "path": "data/manifests/pilot-v2/audit/license_report.md",
+        "sha256": "dd22fd538f944c5a00b7c313b147ff3145d45517555656de3ca9fe5a91023493",
+        "bytes": 4341
+      },
+      "review_template.md": {
+        "path": "data/manifests/pilot-v2/audit/review_template.md",
+        "sha256": "462d7eb295dfba96977d7d6c54b92fd8d90f118c3f9c561390d8061304ffc460",
+        "bytes": 2063
+      },
+      "review_plan.json": {
+        "path": "data/manifests/pilot-v2/audit/review_plan.json",
+        "sha256": "5b00bc8ad4c01a2fa635f741c7ec0dfa623b5e3d58ef190cf03cad8d8272e9fb",
+        "bytes": 9425
+      }
+    }
+  }
+}

@@ -1,0 +1,701 @@
+{
+  "config_sha256": "f16a637704a964c6caab7c58320d8e5da6b9434168cf20c3570595116465209f",
+  "contamination": {
+    "index": {
+      "findings": [],
+      "group_removed_ids": [],
+      "ngram": 13,
+      "removed": 0,
+      "removed_groups": [],
+      "sets": [
+        {
+          "items": 36,
+          "license": "Synthetic",
+          "matched_ids": [],
+          "matched_records": 0,
+          "metadata": {
+            "benchmark": "baseline-probe-v1",
+            "evaluation_only": true,
+            "items": 36,
+            "license": "Synthetic",
+            "note": "36 project-authored capability-probe items; a regression signal, not a validated benchmark.",
+            "redistribution": "project-authored; may be redistributed with attribution",
+            "sha256": "f5a7055c5168e77529b52e0d572cf8f987c60d15e6e5c49a0d3099b70857baf4",
+            "version": "v1"
+          },
+          "name": "baseline-probe-v1",
+          "ngrams": 594,
+          "path": "baseline_probe_v1.jsonl",
+          "populated": true,
+          "sha256": "f5a7055c5168e77529b52e0d572cf8f987c60d15e6e5c49a0d3099b70857baf4",
+          "version": "v1"
+        },
+        {
+          "items": 2182,
+          "license": "CC-BY-NC-SA-4.0",
+          "matched_ids": [],
+          "matched_records": 0,
+          "metadata": {
+            "benchmark": "seceval",
+            "converted_items": 2182,
+            "converted_sha256": "6ae74b2c9c45d1024f99453be00ae82d00567f0b5f1ffa1cc4109a2fa4ef1c03",
+            "downloaded_at": "2026-11-25T04:02:40.001947+00:00",
+            "evaluation_only": true,
+            "license": "CC-BY-NC-SA-4.0",
+            "multi_answer_items": 925,
+            "redistribution": "not permitted",
+            "single_answer_items": 1257,
+            "skipped": {
+              "unusable_or_empty_answer": 7
+            },
+            "topics": {
+              "ApplicationSecurity": 807,
+              "Cryptography": 14,
+              "MemorySafety": 48,
+              "NetworkSecurity": 228,
+              "PenTest": 473,
+              "SoftwareSecurity": 232,
+              "SystemSecurity": 1062,
+              "Vulnerability": 334,
+              "WebSecurity": 771
+            },
+            "upstream_items": 2189,
+            "upstream_revision": "205dab7b0888a06f4b53ca7d9c7093e1326683e1",
+            "upstream_sha256": "194c3a511104be422a678675a71d44315d0c0392b040745155aeebc321e692e0",
+            "upstream_url": "https://huggingface.co/datasets/XuanwuAI/SecEval"
+          },
+          "name": "seceval",
+          "ngrams": 240755,
+          "path": "seceval_v1.jsonl",
+          "populated": true,
+          "sha256": "6ae74b2c9c45d1024f99453be00ae82d00567f0b5f1ffa1cc4109a2fa4ef1c03",
+          "version": "205dab7b0888a06f4b53ca7d9c7093e1326683e1"
+        },
+        {
+          "items": 8,
+          "license": "Synthetic",
+          "matched_ids": [],
+          "matched_records": 0,
+          "metadata": {
+            "benchmark": "smoke-eval",
+            "evaluation_only": true,
+            "items": 8,
+            "license": "Synthetic",
+            "note": "Eight original synthetic harness-validation items; not a benchmark.",
+            "redistribution": "project-authored; may be redistributed with attribution",
+            "sha256": "111132beb36f65d9bc57bdb42efe9d801d5971d0f355f23b08723e7b6be5fc3d",
+            "version": "v1"
+          },
+          "name": "smoke-eval",
+          "ngrams": 166,
+          "path": "smoke_eval.jsonl",
+          "populated": true,
+          "sha256": "111132beb36f65d9bc57bdb42efe9d801d5971d0f355f23b08723e7b6be5fc3d",
+          "version": "v1"
+        }
+      ],
+      "threshold": 0.2,
+      "total_indexed_ngrams": 241515
+    },
+    "limitations": [
+      "13-gram overlap detects verbatim and near-verbatim leakage only.",
+      "Paraphrase, translation, and conceptual overlap are not detected."
+    ],
+    "passed": true,
+    "verified": true,
+    "verified_kept": 7188,
+    "verified_removed": 0
+  },
+  "counts": {
+    "accepted_records": 7188,
+    "rejected_records": 536,
+    "splits": {
+      "test": 421,
+      "train": 6351,
+      "validation": 416
+    },
+    "total_records": 7724
+  },
+  "cross_split_leakage": [],
+  "dataset_name": "pilot-v2",
+  "dataset_version": "cyberlite-data-2.0.0-04b01b437805",
+  "duplicate_analysis": {
+    "cross_source_duplicates": 0,
+    "exact_duplicates": 0,
+    "exact_rate": 0.0,
+    "near_duplicates": 0,
+    "near_rate": 0.0,
+    "records_checked": 7188
+  },
+  "file_inventory": {
+    "manifest.json": {
+      "bytes": 107899,
+      "sha256": "522c37e4c0e4f283fd0d0e3457d323fd732be39b8eddfbc431404295c8feeb64"
+    },
+    "quarantine.jsonl": {
+      "bytes": 65026,
+      "sha256": "e0aa8f574d2f76f15bdcb2095eeffa2e92018db6ae0e3e6f42bd4c213b929696"
+    },
+    "test.jsonl": {
+      "bytes": 1225139,
+      "sha256": "9145f39a766c13e97961acb3c586caa610eda5babc7edd831957894401a0c2c1"
+    },
+    "train.jsonl": {
+      "bytes": 18536037,
+      "sha256": "db008cf7d50f3fc2b98387d07069aed36375833072df80bf75c048a0935c95e5"
+    },
+    "validation.jsonl": {
+      "bytes": 1315091,
+      "sha256": "22ac9d49b92b55ea685dd3afebd6aad2e4950bb3e44ebcc27503692fcf42e91b"
+    }
+  },
+  "group_split_violations": [],
+  "license_distribution": {
+    "CC-BY-SA-4.0": 1965,
+    "GPL-1.0-or-later": 6,
+    "GPL-2.0-only": 40,
+    "GPL-2.0-or-later": 10,
+    "GPL-3.0-or-later": 8,
+    "IETF-Trust": 393,
+    "Linux-man-pages-1-para": 67,
+    "Linux-man-pages-copyleft": 155,
+    "MITRE-ATTACK": 959,
+    "MITRE-CWE": 906,
+    "OpenSSH": 28,
+    "Public-Domain": 2615,
+    "Synthetic": 36
+  },
+  "license_report": {
+    "disclaimer": "This report is a research aid, not legal advice. Public accessibility does not imply permission for unrestricted use. Verify upstream terms before redistributing derived text or a trained model.",
+    "licenses": [
+      {
+        "allowed_by_config": true,
+        "attribution_required": true,
+        "identifier": "CC-BY-SA-4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "permitted_uses": [
+          "training",
+          "research"
+        ],
+        "records": 1965,
+        "redistribution": "Share-alike; redistribution of derived text must satisfy CC BY-SA 4.0.",
+        "restrictions": "Attribute OWASP and the Cheat Sheet Series authors; indicate changes.",
+        "source_records": {
+          "owasp_cheatsheets": 1965
+        },
+        "source_redistribution_notes": "Share-alike. CyberLite does not redistribute the Markdown text or derived splits; attribution and change indication are required for any redistribution.",
+        "sources": [
+          "owasp_cheatsheets"
+        ],
+        "terms_url": "https://github.com/OWASP/CheatSheetSeries/blob/master/LICENSE.md",
+        "unresolved": [
+          "CyberLite does not redistribute OWASP text.",
+          "Whether a trained model or derived training corpus is a derivative work is unsettled."
+        ]
+      },
+      {
+        "allowed_by_config": true,
+        "attribution_required": true,
+        "identifier": "GPL-1.0-or-later",
+        "permitted_uses": [
+          "training",
+          "research"
+        ],
+        "records": 6,
+        "redistribution": "Copyleft; redistribute only with the license text and notices.",
+        "restrictions": "Review before redistributing derived text.",
+        "sources": [
+          "linux_man_pages"
+        ],
+        "unresolved": [
+          "Derived-corpus licensing is unsettled."
+        ]
+      },
+      {
+        "allowed_by_config": true,
+        "attribution_required": true,
+        "identifier": "GPL-2.0-only",
+        "license_url": "https://www.netfilter.org/projects/nftables/",
+        "permitted_uses": [
+          "training",
+          "research"
+        ],
+        "records": 40,
+        "redistribution": "Copyleft; redistribution of derived text may trigger GPL obligations.",
+        "restrictions": "Retain notices; do not redistribute derived text without a license review.",
+        "source_records": {
+          "netfilter_nftables": 40
+        },
+        "source_redistribution_notes": "Copyleft; do not redistribute derived text without a license review.",
+        "sources": [
+          "netfilter_nftables"
+        ],
+        "terms_url": "https://www.gnu.org/licenses/old-licenses/gpl-2.0.html",
+        "unresolved": [
+          "Derived-corpus and model-output licensing is unsettled.",
+          "Mixed GPL-2.0-only and GPL-2.0-or-later contributions; treated conservatively as GPL-2.0-only."
+        ]
+      },
+      {
+        "allowed_by_config": true,
+        "attribution_required": true,
+        "identifier": "GPL-2.0-or-later",
+        "permitted_uses": [
+          "training",
+          "research"
+        ],
+        "records": 10,
+        "redistribution": "Copyleft; redistribution of derived text may trigger GPL obligations.",
+        "restrictions": "Retain notices; do not redistribute derived text without a license review.",
+        "sources": [
+          "linux_man_pages"
+        ],
+        "unresolved": [
+          "Derived-corpus and model-output licensing is unsettled."
+        ]
+      },
+      {
+        "allowed_by_config": true,
+        "attribution_required": true,
+        "identifier": "GPL-3.0-or-later",
+        "permitted_uses": [
+          "training",
+          "research"
+        ],
+        "records": 8,
+        "redistribution": "Copyleft; redistribution of derived text may trigger GPL obligations.",
+        "restrictions": "Retain notices; review before redistributing derived text.",
+        "sources": [
+          "linux_man_pages"
+        ],
+        "unresolved": [
+          "Derived-corpus and model-output licensing is unsettled."
+        ]
+      },
+      {
+        "allowed_by_config": true,
+        "attribution_required": true,
+        "identifier": "IETF-Trust",
+        "license_url": "https://trustee.ietf.org/license-info",
+        "permitted_uses": [
+          "training",
+          "research"
+        ],
+        "records": 393,
+        "redistribution": "Subject to the IETF Trust legal provisions; retain copyright notices.",
+        "restrictions": "Do not redistribute modified RFC text without reviewing BCP 78.",
+        "source_records": {
+          "ietf_rfcs": 393
+        },
+        "source_redistribution_notes": "Subject to the IETF Trust legal provisions. Retain copyright notices and do not redistribute modified RFC text without reviewing BCP 78.",
+        "sources": [
+          "ietf_rfcs"
+        ],
+        "terms_url": "https://www.rfc-editor.org/rfc/rfc5378",
+        "unresolved": [
+          "Derived-text redistribution requires a terms review."
+        ]
+      },
+      {
+        "allowed_by_config": true,
+        "attribution_required": true,
+        "identifier": "Linux-man-pages-1-para",
+        "permitted_uses": [
+          "training",
+          "research"
+        ],
+        "records": 67,
+        "redistribution": "One-paragraph permission notice; preserve it with copies.",
+        "restrictions": "Preserve the notice.",
+        "sources": [
+          "linux_man_pages"
+        ],
+        "unresolved": [
+          "Training use is not explicitly addressed."
+        ]
+      },
+      {
+        "allowed_by_config": true,
+        "attribution_required": true,
+        "identifier": "Linux-man-pages-copyleft",
+        "permitted_uses": [
+          "training",
+          "research"
+        ],
+        "records": 155,
+        "redistribution": "Permission to copy and distribute verbatim or modified versions with the notice preserved.",
+        "restrictions": "Preserve the copyright and permission notice; acknowledge authors.",
+        "sources": [
+          "linux_man_pages"
+        ],
+        "unresolved": [
+          "Training use is not explicitly addressed; no derived text is redistributed."
+        ]
+      },
+      {
+        "allowed_by_config": true,
+        "attribution_required": true,
+        "identifier": "MITRE-ATTACK",
+        "license_url": "https://attack.mitre.org/resources/legal-and-branding/",
+        "permitted_uses": [
+          "training",
+          "research",
+          "commercial-use"
+        ],
+        "records": 959,
+        "redistribution": "Raw STIX is not redistributed; derived records remain subject to MITRE terms.",
+        "restrictions": "Preserve MITRE copyright and attribution. Review current terms before publishing derived text.",
+        "source_records": {
+          "mitre_attack": 959
+        },
+        "source_redistribution_notes": "Do not redistribute raw STIX data. Derived records must preserve MITRE attribution and comply with the ATT&CK terms.",
+        "sources": [
+          "mitre_attack"
+        ],
+        "terms_url": "https://attack.mitre.org/resources/legal-and-branding/",
+        "unresolved": [
+          "Derived-text redistribution requires a terms review.",
+          "Whether a derived training corpus or model is a derivative work remains a legal question."
+        ]
+      },
+      {
+        "allowed_by_config": true,
+        "attribution_required": true,
+        "identifier": "MITRE-CWE",
+        "license_url": "https://cwe.mitre.org/about/termsofuse.html",
+        "permitted_uses": [
+          "training",
+          "research",
+          "commercial-use"
+        ],
+        "records": 906,
+        "redistribution": "Raw CWE XML is not redistributed; derived records preserve CWE identifiers.",
+        "restrictions": "Preserve the MITRE copyright designation and CWE terms.",
+        "source_records": {
+          "mitre_cwe": 906
+        },
+        "source_redistribution_notes": "Do not redistribute raw CWE XML. Preserve the MITRE copyright designation and CWE identifiers in derived records.",
+        "sources": [
+          "mitre_cwe"
+        ],
+        "terms_url": "https://cwe.mitre.org/about/termsofuse.html",
+        "unresolved": [
+          "Derived-text redistribution requires a terms review."
+        ]
+      },
+      {
+        "allowed_by_config": true,
+        "attribution_required": true,
+        "identifier": "Mixed-SPDX",
+        "license_url": "https://git.kernel.org/pub/scm/docs/man-pages/man-pages.git/tree/LICENSES",
+        "permitted_uses": [
+          "training",
+          "research"
+        ],
+        "records": 0,
+        "redistribution": "Per-document SPDX licenses; see each record's license field.",
+        "restrictions": "Do not assume a single license for the collection.",
+        "source_records": {
+          "linux_man_pages": 246
+        },
+        "source_redistribution_notes": "Licenses are per page (SPDX headers). Copyleft and one-paragraph notices require attribution; CyberLite does not redistribute the manual text.",
+        "sources": [
+          "linux_man_pages"
+        ],
+        "terms_url": "https://www.kernel.org/doc/man-pages/",
+        "unresolved": [
+          "Documents without an explicit SPDX line are quarantined.",
+          "Pages without an SPDX header are quarantined and excluded from the corpus.",
+          "Training use of Linux-man-pages-copyleft pages is not explicitly addressed."
+        ]
+      },
+      {
+        "allowed_by_config": true,
+        "attribution_required": true,
+        "identifier": "OpenSSH",
+        "license_url": "https://github.com/openssh/openssh-portable/blob/master/LICENCE",
+        "permitted_uses": [
+          "training",
+          "research"
+        ],
+        "records": 28,
+        "redistribution": "BSD-style OpenSSH licence; retain the copyright and permission notice.",
+        "restrictions": "Do not use the OpenSSH name to endorse derived material.",
+        "source_records": {
+          "openssh_docs": 28
+        },
+        "source_redistribution_notes": "BSD-style OpenSSH licence. Keep the copyright and permission notice; do not use the OpenSSH name to endorse derived material.",
+        "sources": [
+          "openssh_docs"
+        ],
+        "terms_url": "https://www.openssh.com/txt/release-notes",
+        "unresolved": []
+      },
+      {
+        "allowed_by_config": true,
+        "attribution_required": false,
+        "identifier": "Public-Domain",
+        "license_url": "https://www.nist.gov/open/copyright-fair-use-and-licensing-statements-srd-data-software-and-technical-series-publications",
+        "permitted_uses": [
+          "training",
+          "research",
+          "commercial-use",
+          "redistribution"
+        ],
+        "records": 2615,
+        "redistribution": "Generally permitted for U.S. Government works; NVD requests attribution.",
+        "restrictions": "Attribute NIST NVD. Do not imply NIST endorsement.",
+        "source_records": {
+          "nist_nvd": 2615
+        },
+        "source_redistribution_notes": "NIST data is generally a U.S. Government work; NVD requests attribution. Do not imply NIST endorsement.",
+        "sources": [
+          "nist_nvd"
+        ],
+        "terms_url": "https://nvd.nist.gov/developers/terms-of-use",
+        "unresolved": []
+      },
+      {
+        "allowed_by_config": true,
+        "attribution_required": false,
+        "identifier": "Synthetic",
+        "license_url": "https://github.com/braydos-h/CyberLite/blob/main/LICENSE",
+        "permitted_uses": [
+          "training",
+          "research",
+          "redistribution"
+        ],
+        "records": 36,
+        "redistribution": "Project-authored content; repository code is Apache-2.0.",
+        "restrictions": "AI-assisted drafts are not manually reviewed unless the record says so.",
+        "source_records": {
+          "project_examples": 36
+        },
+        "source_redistribution_notes": "Original project-authored drafts. They are AI-assisted and not manually reviewed unless a record's metadata says otherwise.",
+        "sources": [
+          "project_examples"
+        ],
+        "terms_url": "https://github.com/braydos-h/CyberLite/blob/main/LICENSE",
+        "unresolved": [
+          "Human quality and safety review is pending for all project-authored records.",
+          "No human quality review has been completed."
+        ]
+      }
+    ],
+    "redistribution_policy": "CyberLite commits manifests and reports only. Raw downloads, derived splits, and restricted benchmark items remain outside Git.",
+    "report": "source-license",
+    "schema_version": 1,
+    "unresolved_or_quarantined": [],
+    "unresolved_questions": [
+      {
+        "license": "CC-BY-SA-4.0",
+        "questions": [
+          "CyberLite does not redistribute OWASP text.",
+          "Whether a trained model or derived training corpus is a derivative work is unsettled."
+        ]
+      },
+      {
+        "license": "GPL-1.0-or-later",
+        "questions": [
+          "Derived-corpus licensing is unsettled."
+        ]
+      },
+      {
+        "license": "GPL-2.0-only",
+        "questions": [
+          "Derived-corpus and model-output licensing is unsettled.",
+          "Mixed GPL-2.0-only and GPL-2.0-or-later contributions; treated conservatively as GPL-2.0-only."
+        ]
+      },
+      {
+        "license": "GPL-2.0-or-later",
+        "questions": [
+          "Derived-corpus and model-output licensing is unsettled."
+        ]
+      },
+      {
+        "license": "GPL-3.0-or-later",
+        "questions": [
+          "Derived-corpus and model-output licensing is unsettled."
+        ]
+      },
+      {
+        "license": "IETF-Trust",
+        "questions": [
+          "Derived-text redistribution requires a terms review."
+        ]
+      },
+      {
+        "license": "Linux-man-pages-1-para",
+        "questions": [
+          "Training use is not explicitly addressed."
+        ]
+      },
+      {
+        "license": "Linux-man-pages-copyleft",
+        "questions": [
+          "Training use is not explicitly addressed; no derived text is redistributed."
+        ]
+      },
+      {
+        "license": "MITRE-ATTACK",
+        "questions": [
+          "Derived-text redistribution requires a terms review.",
+          "Whether a derived training corpus or model is a derivative work remains a legal question."
+        ]
+      },
+      {
+        "license": "MITRE-CWE",
+        "questions": [
+          "Derived-text redistribution requires a terms review."
+        ]
+      },
+      {
+        "license": "Mixed-SPDX",
+        "questions": [
+          "Documents without an explicit SPDX line are quarantined.",
+          "Pages without an SPDX header are quarantined and excluded from the corpus.",
+          "Training use of Linux-man-pages-copyleft pages is not explicitly addressed."
+        ]
+      },
+      {
+        "license": "Synthetic",
+        "questions": [
+          "Human quality and safety review is pending for all project-authored records.",
+          "No human quality review has been completed."
+        ]
+      }
+    ]
+  },
+  "limitations": [
+    "Quality gates are heuristics and can reject useful text or accept questionable text.",
+    "The 13-gram screen does not detect paraphrase, translation, or conceptual overlap.",
+    "Token counts are a length signal, not a quality or factuality measure.",
+    "Manual review is pending; no record is described as human-verified."
+  ],
+  "manifest_file_hash_mismatches": [],
+  "manual_review": {
+    "completed": false,
+    "fields": [
+      "accuracy",
+      "relevance",
+      "completeness",
+      "provenance",
+      "safety",
+      "overall_quality"
+    ],
+    "note": "No human review has been recorded. The auditor generates samples and a template only; it never marks review complete.",
+    "required": true,
+    "review_files": {
+      "samples": "data/processed/pilot-v2/review_samples.jsonl",
+      "template": "data/manifests/pilot-v2/audit/review_template.md"
+    },
+    "reviewed_records": 0,
+    "sample_size": 200
+  },
+  "missing_provenance": {
+    "id": 0,
+    "license": 0,
+    "source": 0,
+    "source_url": 0,
+    "source_version": 0,
+    "task": 0,
+    "upstream_id": 0
+  },
+  "pipeline_version": "2.0.0",
+  "rejection_reasons": {
+    "duplicate": 417,
+    "quality": 119
+  },
+  "report": "dataset-audit",
+  "schema_version": 1,
+  "seed": 42,
+  "source_distribution": {
+    "ietf_rfcs": 393,
+    "linux_man_pages": 246,
+    "mitre_attack": 959,
+    "mitre_cwe": 906,
+    "netfilter_nftables": 40,
+    "nist_nvd": 2615,
+    "openssh_docs": 28,
+    "owasp_cheatsheets": 1965,
+    "project_examples": 36
+  },
+  "task_distribution": {
+    "attack-technique": 712,
+    "cryptography": 4,
+    "defensive-control": 247,
+    "detection-engineering": 6,
+    "dns": 109,
+    "documentation": 1467,
+    "incident-response": 6,
+    "log-analysis": 6,
+    "logging-monitoring": 73,
+    "networking": 95,
+    "permissions": 93,
+    "secure-coding": 504,
+    "ssh": 82,
+    "system-administration": 48,
+    "system-hardening": 68,
+    "tls": 141,
+    "vulnerability": 2615,
+    "vulnerability-remediation": 6,
+    "weakness": 906
+  },
+  "task_imbalance": {
+    "balanced": false,
+    "max_count": 2615,
+    "min_count": 4,
+    "note": "A high ratio is a review prompt, not an automatic defect.",
+    "ratio": 653.75
+  },
+  "token_lengths": {
+    "limitations": "Token counts are a length signal, not a quality measure. Truncation risk assumes the configured maximum sequence length and does not model the training collator or packing.",
+    "max_sequence_tokens": 1024,
+    "records": 7188,
+    "tokenizer": "Qwen/Qwen3.5-0.8B",
+    "tokenizer_info": {
+      "estimated": false,
+      "kind": "transformers",
+      "local_only": true,
+      "name": "Qwen/Qwen3.5-0.8B",
+      "revision": ""
+    },
+    "tokens": {
+      "max": 3474,
+      "mean": 395.26,
+      "min": 53,
+      "p50": 373,
+      "p90": 616,
+      "p95": 798,
+      "p99": 1539
+    },
+    "truncation": {
+      "over_limit": 216,
+      "ratio": 0.0301,
+      "risk": "low"
+    },
+    "truncation_by_limit": {
+      "1024": {
+        "over_limit": 216,
+        "ratio": 0.0301
+      },
+      "2048": {
+        "over_limit": 31,
+        "ratio": 0.0043
+      },
+      "4096": {
+        "over_limit": 0,
+        "ratio": 0.0
+      },
+      "512": {
+        "over_limit": 1495,
+        "ratio": 0.208
+      },
+      "8192": {
+        "over_limit": 0,
+        "ratio": 0.0
+      }
+    }
+  }
+}
