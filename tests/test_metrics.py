@@ -83,6 +83,13 @@ def test_bootstrap_ci_bounds() -> None:
     assert 0.0 <= low <= high <= 1.0
 
 
+def test_bootstrap_default_matches_preregistration() -> None:
+    import inspect
+
+    signature = inspect.signature(metrics.bootstrap_accuracy_ci)
+    assert signature.parameters["n_bootstrap"].default == 10_000
+
+
 def test_performance_per_billion() -> None:
     assert metrics.performance_per_billion(0.5, 0.8) == 62.5
     assert metrics.performance_per_billion(0.5, 0) is None

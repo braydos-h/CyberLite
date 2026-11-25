@@ -205,6 +205,38 @@ contamination statistics, rejection reasons, and the exact reproduction command.
 Identical pinned inputs and configurations produce identical dataset content and
 split hashes; report timestamps are not part of the dataset version.
 
+## Training-time integrity and license gate
+
+Training does not trust the directory name or the processed manifest alone. The
+preflight and `scripts/train.py` load `data/manifests/pilot-v2/manifest.json`,
+require dataset version `cyberlite-data-2.0.0-04b01b437805` and split counts
+6,351 / 416 / 421, and verify:
+
+- SHA-256 and byte size for every split file;
+- schema validity and required provenance (`source`, `license`, `task`, URL,
+  source version, upstream identifier);
+- duplicate record identifiers (within and across splits);
+- exact/SimHash cross-split leakage;
+- evaluation-only metadata, sources, licenses, and local benchmark overlap;
+- the processed `manifest.json` beside the splits, when present, against the
+  frozen manifest.
+
+A mismatch is a hard failure. The pipeline never edits or regenerates a frozen
+manifest to make a check pass; rebuild the dataset from pinned inputs instead.
+Smoke data uses an explicitly separate, relaxed profile (no required upstream
+provenance, no frozen dataset version, no contamination screen) and is never
+treated as research-ready.
+
+The training license policy is narrower than ingestion. Every record must carry a
+license that is both explicitly allow-listed and reviewed for training.
+Missing, unknown, prohibited, and evaluation-only licenses are rejected for both
+train and validation splits. Licenses whose guidance still contains unresolved
+questions are rejected unless a human names that exact license in
+`data.allow_unresolved_licenses`; there is no blanket approval switch. The
+pilot-v2 license report currently lists unresolved questions for several
+licenses, so production configs intentionally do not acknowledge them and
+research training remains blocked until a documented decision exists.
+
 ## Limits of this pilot
 
 - 7,188 accepted records is a pilot, not a research-scale corpus.
@@ -229,6 +261,10 @@ python scripts/prepare_dataset.py \
   --input data/processed/distill_raw.jsonl \
   --out data/processed/distill
 ```
+
+`configs/distillation.yaml` requires `data/processed/distill/manifest.json` and
+the train/validation/test splits. It has no fallback to pilot-v2: missing teacher
+data is an actionable failure, not a reason to train on a different corpus.
 
 ## What is committed
 

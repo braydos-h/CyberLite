@@ -52,6 +52,18 @@ without redistributing restricted text.
   `license_report.json` and `license_report.md` record permitted uses,
   attribution, redistribution obligations, and unresolved questions for every
   observed license.
+- [x] Training-time dataset integrity and license gates fail closed before model
+  or GPU allocation.
+
+  Production configs point at `data/processed/pilot-v2/` and verify the frozen
+  manifest version `cyberlite-data-2.0.0-04b01b437805`, split counts
+  6,351 / 416 / 421, SHA-256 hashes, schema, provenance, duplicate IDs,
+  cross-split leakage, evaluation-only records, and local benchmark overlap.
+  Missing, unknown, prohibited, evaluation-only, and unacknowledged unresolved
+  licenses are rejected for both training and validation splits; smoke data uses
+  an explicitly separate relaxed path. Verified by the integrity, licensing, and
+  preflight tests; unresolved licensing and pending manual review still block
+  research readiness.
 - [x] Contamination is measured against each available held-out benchmark subset.
 
   The 13-gram screen indexed 241,515 n-grams from SecEval, the project baseline
@@ -72,6 +84,16 @@ at 4–16 GB VRAM.
 
 - [x] Architecture-aware Qwen3.5 loading is verified by a local load and a LoRA backward pass.
 - [x] LoRA and 4-bit QLoRA SFT pipelines support config hashing, resumption, and memory logging.
+
+  Resumption now also verifies the recorded experiment fingerprint and refuses a
+  changed configuration.
+- [x] A CPU-only training preflight validates data integrity, licenses, and the
+  pinned base revision without downloading model weights.
+
+  `python scripts/train.py --config configs/qlora.yaml --preflight` reports
+  software and research readiness separately, supports JSON, and exits nonzero
+  when mandatory checks fail or research blockers remain. Verified by the
+  preflight test suite.
 - [x] A CPU smoke run exercises the full training path end to end.
 - [ ] A bf16 LoRA reference checkpoint is trained at matched data and steps.
 - [ ] A 4-bit QLoRA checkpoint is trained at matched data and steps.

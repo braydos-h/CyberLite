@@ -22,7 +22,7 @@ MODEL_ID = "Qwen/Qwen3.5-0.8B"
 
 def test_architecture_and_lora_backward() -> None:
     import torch
-    from cyberlite.config import ExperimentConfig
+    from cyberlite.config import PINNED_QWEN35_REVISION, ExperimentConfig
     from cyberlite.training.dataset import DataCollatorForCausalLM, build_datasets
     from cyberlite.training.lora import apply_lora, prepare_for_training
     from cyberlite.training.model import freeze_vision_tower, load_base_model
@@ -34,6 +34,8 @@ def test_architecture_and_lora_backward() -> None:
     assert tokenizer.convert_tokens_to_ids("<|fim_middle|>") != tokenizer.unk_token_id
 
     experiment = ExperimentConfig()
+    experiment.model.revision = PINNED_QWEN35_REVISION
+    experiment.model.require_pinned_revision = True
     experiment.model.dtype = "float32"
     experiment.lora.r = 4
     experiment.lora.alpha = 8
@@ -57,6 +59,8 @@ def test_architecture_and_lora_backward() -> None:
         max_seq_length=128,
         system_prompt="You are CyberLite.",
         max_train_samples=2,
+        allowed_licenses=["Synthetic"],
+        require_resolved_licenses=False,
     )
     batch = DataCollatorForCausalLM(tokenizer)([train[0], train[1]])
     model.train()

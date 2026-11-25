@@ -10,7 +10,9 @@ run:
 
 model:
   id: Qwen/Qwen3.5-0.8B
-  revision: null
+  revision: 2fc06364715b967f1860aea9cf38778875588b17
+  require_pinned_revision: true
+  matched_baseline: true
   dtype: bfloat16
   device: auto
   attn_implementation: sdpa
@@ -60,9 +62,20 @@ training:
   smoke: false
 
 data:
-  train_file: data/processed/train.jsonl
-  validation_file: data/processed/validation.jsonl
-  test_file: data/processed/test.jsonl
+  train_file: data/processed/pilot-v2/train.jsonl
+  validation_file: data/processed/pilot-v2/validation.jsonl
+  test_file: data/processed/pilot-v2/test.jsonl
+  manifest_file: data/manifests/pilot-v2/manifest.json
+  dataset_version: cyberlite-data-2.0.0-04b01b437805
+  expected_split_counts:
+    train: 6351
+    validation: 416
+    test: 421
+  require_manifest: true
+  verify_integrity: true
+  require_provenance: true
+  require_validation: true
+  require_contamination_screen: true
   format: auto
   system_prompt: >-
     You are CyberLite, a defensive cybersecurity assistant. Prefer verifiable,
@@ -84,9 +97,20 @@ data:
     - Synthetic
     - MITRE-ATTACK
     - MITRE-CWE
+    - GPL-1.0-or-later
     - GPL-2.0-only
     - GPL-2.0-or-later
+    - GPL-3.0-or-later
     - IETF-Trust
+    - Linux-man-pages-1-para
+    - Linux-man-pages-copyleft
+    - OpenSSH
+  # pilot-v2 contains licenses with unresolved model-output questions. Leave
+  # this empty until a human records a licensing decision; do not auto-approve.
+  require_resolved_licenses: true
+  allow_unresolved_licenses: []
+  truncation_policy: truncate
+  min_supervised_tokens: 1
 
 distillation:
   enabled: false

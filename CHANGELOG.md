@@ -16,6 +16,11 @@ Move entries into a versioned section only when a release is tagged.
 
 ### Added
 
+- CPU-only training preflight (`python scripts/train.py --config ... --preflight`) that checks configuration, dataset availability, frozen-manifest integrity, license compliance, model revision, split statistics, hardware compatibility, and research readiness without downloading or loading the model; supports JSON output, distinguishes software from research readiness, and exits nonzero when mandatory checks fail or research blockers remain.
+- Fail-closed training license validation for both train and validation splits: missing, unknown, prohibited, evaluation-only, and unacknowledged unresolved licenses are rejected with record-level reasons, and the result is stored in `run_metadata.json`.
+- Frozen-manifest dataset verification before model or GPU allocation: dataset version, split counts, SHA-256 and byte hashes, schema, required provenance, duplicate record identifiers, cross-split leakage, evaluation-only contamination, and processed-vs-frozen manifest agreement, with an explicitly separate smoke pathway.
+- Pinned base checkpoint `Qwen/Qwen3.5-0.8B` revision `2fc06364715b967f1860aea9cf38778875588b17` for matched experiments, with resolved model/tokenizer revisions recorded in training and evaluation metadata.
+- Regression tests for pilot-v2 config paths, missing/modified datasets and manifests, disallowed/missing/evaluation-only licenses, train/validation enforcement, revision propagation, repeated-text masking, truncation and zero-supervision statistics, split leakage, preflight success/failure, resume integrity, and smoke compatibility.
 - Configuration-driven multi-source ingestion (`configs/dataset_pilot.yaml`) with per-source paths and limits, explicit include/exclude, global cleaning/deduplication/splitting, a local acquisition cache, and offline rebuilds.
 - NVD API 2.0 collection with publication-date chunking, pagination, resumable per-page cache, timeouts, retries, exponential backoff, `Retry-After`, rate limiting, optional `NVD_API_KEY`, and factual defensive normalization without invented remediation.
 - Heading-aware Markdown segmentation that preserves fenced code, removes navigation/boilerplate, and ingests recursive directories; roff/mdoc manual-page and IETF RFC parsers with per-section provenance and per-page SPDX licenses.
@@ -49,6 +54,9 @@ Move entries into a versioned section only when a release is tagged.
 
 ### Changed
 
+- Production LoRA, QLoRA, low-VRAM, and distillation configs now use the expanded pilot paths (`data/processed/pilot-v2/{train,validation,test}.jsonl`) or the explicit distillation corpus, with `pilot-v2` manifest version/count expectations; smoke paths remain separate and must opt into the smoke profile.
+- Training and evaluation metadata now record requested/resolved checkpoint revisions, full dataset-integrity and license-validation reports, and a resume fingerprint; matched experiments refuse a different revision.
+- `scripts/evaluate.py` accepts `--revision` and defaults to the pinned baseline revision for `Qwen/Qwen3.5-0.8B`, so the E0 checkpoint cannot drift silently.
 - `data/sources.yaml` now registers pinned ATT&CK v20.1, CWE 5.0, NVD API 2.0, a pinned OWASP revision, Linux man-pages 6.9, OpenSSH V_10_6_P2, nftables 1.1.1, ten selected IETF RFCs, and project-authored examples, with license, attribution, redistribution, and unresolved-question metadata.
 - Dataset versions now use pipeline version `2.0.0` and include the configuration hash; splits are group-aware so sections of one document or views of one security identifier cannot straddle train/validation/test.
 - `DATASET_CARD.md`, `docs/dataset.md`, `docs/reproducibility.md`, `README.md`, `GOALS.md`, and `docs/roadmap.md` distinguish implemented infrastructure, the executed pilot-v2 build, pending manual review, and unresolved licensing/benchmark access.
@@ -59,7 +67,7 @@ Move entries into a versioned section only when a release is tagged.
 - `README.md` gains a Funding and compute section linking the ask, budget, bring-up protocol, pre-registration, and governance; the repository layout lists the new documents.
 - `GOALS.md` links G3 to the pre-registration thresholds and G6 to the funding and bring-up documents.
 - `docs/README.md` indexes the new compute, bring-up, and pre-registration pages.
-- `scripts/validate_repo.py` now requires the funding, governance, pre-registration, budget, and bring-up documents, plus `GOALS.md`, `AGENTS.md`, `CHANGELOG.md`, and the progress script.
+- `scripts/validate_repo.py` now requires the training-integrity, licensing, and preflight modules in addition to the funding, governance, pre-registration, budget, and bring-up documents, `GOALS.md`, `AGENTS.md`, `CHANGELOG.md`, and the progress script.
 - `docs/reproducibility.md` and `results/README.md` note which small artifacts are committed and which remain ignored.
 - `Makefile` gains `progress`, `progress-check`, and `budget` targets.
 - CI now fails when the generated README progress block is out of date.
@@ -68,6 +76,11 @@ Move entries into a versioned section only when a release is tagged.
 
 ### Fixed
 
+- Assistant-only chat masking no longer supervises an earlier user turn when the same text appears again in the assistant response; message spans are located in order from the previous turn.
+- Truncation now reserves the EOS position and discards examples whose assistant supervision was removed, instead of silently training on a prompt or counting EOS alone as supervision; stats report actual truncated and discarded records by reason.
+- A configured validation file that is missing is now a hard error instead of being silently skipped, and the training loader no longer ignores `require_license`/`allowed_licenses`.
+- Resuming a run no longer overwrites the original effective config or silently accepts a different experiment definition; the recorded fingerprint is checked first, and an incomplete checkpoint without a readable `trainer_state.json` is rejected.
+- Accuracy intervals now default to 10,000 bootstrap resamples, matching `docs/preregistration.md`, and every evaluation summary records the resample count. The committed E0 snapshot and its stored interval are unchanged.
 - Deduplication now keeps single-character numeric tokens, so identifiers such as `alpha-1` and `alpha-2` no longer collide; the expanded pilot reports zero exact duplicates after the fix.
 - Roff paragraph splitting no longer duplicates accumulated text, removing an out-of-memory failure on large manual pages such as `proc_sys_kernel(5)`.
 - Archive inputs are recorded as provenance but no longer normalized as if the compressed bytes were text, which had produced bogus OWASP records keyed by the commit hash.
@@ -77,11 +90,13 @@ Move entries into a versioned section only when a release is tagged.
 
 ### Security
 
+- Research training now fails closed on evaluation-only records and on licenses with unresolved model-output questions; acknowledgements must name the exact license, and no blanket override exists. Pending manual review and external pre-registration remain explicit research blockers rather than inferred approvals.
 - `.gitignore` excludes `data/cache/` and local review samples/summaries so raw source text and acquisition artifacts cannot be committed accidentally.
 - `.gitignore` now excludes `web/.taste-skill/`, which contains a real browser profile (history, cookies, login databases), and `.wrangler/`, preventing accidental publication of local browser state.
 
 ### Docs
 
+- `README.md`, `docs/reproducibility.md`, `docs/dataset.md`, `docs/evaluation.md`, `docs/testing.md`, `GOALS.md`, and `docs/roadmap.md` document the preflight, frozen-manifest gate, license policy, pinned revision, resume integrity, and the still-open licensing/manual-review/pre-registration blockers.
 - `docs/dataset.md` documents the source registry versus build configuration, NVD collection, normalizers, quality/contamination controls, audit workflow, licensing limits, and the pilot-v2 reproduction commands.
 - `DATASET_CARD.md` now reports measured pilot-v2 composition, licenses, token lengths, rejection reasons, and the explicit manual-review and CyberSecEval blockers.
 - `README.md` quick start includes the pilot-v2 build and audit commands; the experimental-status table no longer describes data preparation as smoke-only.

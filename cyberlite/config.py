@@ -18,6 +18,17 @@ from pydantic import BaseModel, ConfigDict, Field, PrivateAttr, field_validator,
 
 SCHEMA_VERSION = 1
 
+# The E0 SecEval baseline in results/baseline/e0-instruct-seceval/README.md was
+# produced from this exact checkpoint. Matched-comparison configs pin it so a
+# changed upstream revision cannot silently change the starting model.
+PINNED_QWEN35_MODEL_ID = "Qwen/Qwen3.5-0.8B"
+PINNED_QWEN35_REVISION = "2fc06364715b967f1860aea9cf38778875588b17"
+
+# Production pilot-v2 artifact. Splits are generated locally and ignored by Git;
+# the frozen manifest under data/manifests/ is the integrity reference.
+PILOT_V2_DATASET_VERSION = "cyberlite-data-2.0.0-04b01b437805"
+PILOT_V2_SPLIT_COUNTS = {"train": 6351, "validation": 416, "test": 421}
+
 
 class StrictModel(BaseModel):
     """Base model that rejects unknown keys to catch configuration typos."""
@@ -34,8 +45,13 @@ class RunConfig(StrictModel):
 
 
 class ModelConfig(StrictModel):
-    id: str = "Qwen/Qwen3.5-0.8B"
+    id: str = PINNED_QWEN35_MODEL_ID
     revision: str | None = None
+    # Research configs set this true so a missing revision is a hard error.
+    require_pinned_revision: bool = False
+    # A matched experiment must use the same checkpoint as its reference run.
+    # Set false only for a deliberately separate model/revision experiment.
+    matched_baseline: bool = True
     dtype: Literal["auto", "float32", "float16", "bfloat16"] = "bfloat16"
     device: Literal["auto", "cpu", "cuda", "mps"] = "auto"
     attn_implementation: Literal["auto", "sdpa", "eager", "flash_attention_2"] = "sdpa"
@@ -53,6 +69,26 @@ class ModelConfig(StrictModel):
         if not value.strip():
             raise ValueError("model.id must be a non-empty Hugging Face model identifier")
         return value.strip()
+
+    @model_validator(mode="after")
+    def _revision_policy(self) -> ModelConfig:
+        if self.require_pinned_revision and not self.revision:
+            raise ValueError(
+                "model.require_pinned_revision=true requires model.revision; "
+                f"use {PINNED_QWEN35_REVISION} for the registered baseline checkpoint"
+            )
+        if (
+            self.matched_baseline
+            and self.id == PINNED_QWEN35_MODEL_ID
+            and self.revision is not None
+            and self.revision != PINNED_QWEN35_REVISION
+        ):
+            raise ValueError(
+                "model.matched_baseline=true requires the registered revision "
+                f"{PINNED_QWEN35_REVISION}; set model.matched_baseline=false for a "
+                "deliberately separate checkpoint experiment"
+            )
+        return self
 
 
 class QuantizationConfig(StrictModel):
@@ -122,9 +158,11 @@ class TrainingConfig(StrictModel):
 
 
 class DataConfig(StrictModel):
-    train_file: str = "data/processed/train.jsonl"
-    validation_file: str | None = "data/processed/validation.jsonl"
-    test_file: str | None = "data/processed/test.jsonl"
+    # Production defaults point at the expanded pilot. Smoke and distillation
+    # configs override every path explicitly.
+    train_file: str = "data/processed/pilot-v2/train.jsonl"
+    validation_file: str | None = "data/processed/pilot-v2/validation.jsonl"
+    test_file: str | None = "data/processed/pilot-v2/test.jsonl"
     format: Literal["auto", "chat", "completion", "fim"] = "auto"
     system_prompt: str | None = (
         "You are CyberLite, a defensive cybersecurity assistant. Prefer verifiable, "
@@ -133,6 +171,23 @@ class DataConfig(StrictModel):
     chat_template_kwargs: dict[str, Any] = Field(default_factory=lambda: {"enable_thinking": False})
     max_train_samples: int | None = Field(default=None, ge=1)
     max_eval_samples: int | None = Field(default=256, ge=1)
+
+    # --- Dataset identity and integrity -------------------------------------
+    manifest_file: str | None = "data/manifests/pilot-v2/manifest.json"
+    dataset_version: str | None = PILOT_V2_DATASET_VERSION
+    expected_split_counts: dict[str, int] = Field(
+        default_factory=lambda: dict(PILOT_V2_SPLIT_COUNTS)
+    )
+    require_manifest: bool = True
+    verify_integrity: bool = True
+    require_provenance: bool = True
+    require_validation: bool = True
+    # Run the local 13-gram screen against data/evaluation during preflight and
+    # before training. Missing evaluation files are reported, not silently
+    # treated as a pass.
+    require_contamination_screen: bool = True
+
+    # --- Licensing ----------------------------------------------------------
     require_license: bool = True
     allowed_licenses: list[str] = Field(
         default_factory=lambda: [
@@ -147,6 +202,55 @@ class DataConfig(StrictModel):
             "Synthetic",
         ]
     )
+    # Fail closed on licenses whose guidance still contains unresolved
+    # questions. A specific license may be opted into only by naming it here;
+    # there is deliberately no blanket "accept everything" switch.
+    require_resolved_licenses: bool = True
+    allow_unresolved_licenses: list[str] = Field(default_factory=list)
+
+    # --- Tokenization -------------------------------------------------------
+    # "truncate" keeps the first max_seq_length tokens and reserves one for EOS;
+    # "drop" discards an over-length example instead. Neither changes the
+    # configured sequence length.
+    truncation_policy: Literal["truncate", "drop"] = "truncate"
+    min_supervised_tokens: int = Field(default=1, ge=1)
+
+    @model_validator(mode="after")
+    def _license_and_path_policy(self) -> DataConfig:
+        if self.require_license and not self.allowed_licenses:
+            raise ValueError(
+                "data.require_license=true requires a non-empty data.allowed_licenses list"
+            )
+        if self.require_validation and not self.validation_file:
+            raise ValueError(
+                "data.require_validation=true requires data.validation_file; "
+                "set data.require_validation=false only for non-research runs"
+            )
+        unknown_splits = set(self.expected_split_counts) - {"train", "validation", "test"}
+        if unknown_splits:
+            raise ValueError(
+                f"unknown split names in data.expected_split_counts: {sorted(unknown_splits)}"
+            )
+        if any(value < 0 for value in self.expected_split_counts.values()):
+            raise ValueError("data.expected_split_counts values must be non-negative")
+        paths = [
+            ("train", self.train_file),
+            ("validation", self.validation_file),
+            ("test", self.test_file),
+        ]
+        resolved: dict[str, str] = {}
+        for name, value in paths:
+            if not value:
+                continue
+            normalized = str(Path(value).expanduser().resolve())
+            for other_name, other_path in resolved.items():
+                if normalized == other_path:
+                    raise ValueError(
+                        f"data.{name}_file and data.{other_name}_file must be distinct; "
+                        "training, validation, and test isolation require separate files"
+                    )
+            resolved[name] = normalized
+        return self
 
 
 class DistillationConfig(StrictModel):
@@ -206,6 +310,20 @@ class ExperimentConfig(StrictModel):
 
     def sha256(self) -> str:
         return hashlib.sha256(self.canonical_json().encode("utf-8")).hexdigest()
+
+    def training_fingerprint(self) -> str:
+        """Hash of the experiment definition, excluding resume bookkeeping.
+
+        Resuming must not look like a different experiment merely because
+        ``training.resume_from_checkpoint`` changed from null to a path.
+        """
+
+        payload = self.model_dump(mode="json")
+        training = payload.get("training", {})
+        training["resume_from_checkpoint"] = None
+        return hashlib.sha256(
+            json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
+        ).hexdigest()
 
 
 def _deep_set(payload: dict[str, Any], dotted_key: str, value: Any) -> None:

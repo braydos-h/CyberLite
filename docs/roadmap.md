@@ -13,7 +13,10 @@ been established. Outcome-level progress is tracked in
 - [x] Typed configuration, validation, effective-config hashing
 - [x] Dataset schema, provenance, secret redaction, dedup, contamination screen
 - [x] Deterministic splitting and manifest generation
-- [x] LoRA/QLoRA SFT pipeline with checkpoint resumption and memory logging
+- [x] Frozen-manifest integrity, license, and evaluation-only gates before
+      training, including a CPU-only preflight
+- [x] LoRA/QLoRA SFT pipeline with checkpoint resumption, resumption-fingerprint
+      verification, and memory logging
 - [x] Local inference engine, streaming, OpenAI-compatible API
 - [x] FIM/prefix autocomplete engine and local API
 - [x] BM25 retrieval and citation-aware RAG

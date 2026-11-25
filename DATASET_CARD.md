@@ -20,6 +20,8 @@ committed.
 | Licenses | Source-dependent; see the committed license report |
 | Distribution | Manifests and reports only; external source text is not redistributed |
 | Manual review | **Not completed** (200 samples generated, zero reviewed) |
+| Training readiness | **Blocked**: frozen-manifest/license gates are implemented, but unresolved licensing, manual review, and external pre-registration are unfinished |
+| Trainer access | Production configs require manifest `cyberlite-data-2.0.0-04b01b437805`, split counts 6,351 / 416 / 421, and a passing training license policy |
 | Maintainer | CyberLite contributors |
 
 The original ATT&CK + CWE slice remains frozen under
