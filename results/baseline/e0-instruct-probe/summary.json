@@ -1,0 +1,145 @@
+{
+  "run": {
+    "name": "cyberlite-eval-20261125T021731Z",
+    "cyberlite_version": "0.1.0",
+    "created_at": "2026-11-25T02:17:31.593708+00:00",
+    "seed": 42,
+    "temperature": 0.0,
+    "prompt_style": "chat",
+    "max_new_tokens": null,
+    "examples": 36,
+    "wall_clock_seconds": 25.25,
+    "research_status": "experimental; results require review before publication"
+  },
+  "model": {
+    "model_id": "Qwen/Qwen3.5-0.8B",
+    "adapter_path": null,
+    "adapter_sha256": null,
+    "auto_class": "AutoModelForImageTextToText",
+    "device": "cpu",
+    "dtype": "torch.float32",
+    "quantized": false,
+    "max_context": 262144,
+    "parameters": 852985920,
+    "hidden_size": 1024,
+    "layers": 24,
+    "loaded": true
+  },
+  "task_counts": {
+    "classification": 12,
+    "mcq": 24
+  },
+  "source_counts": {
+    "project-authored-probe-v1": 36
+  },
+  "metrics": {
+    "mcq": {
+      "examples": 24,
+      "accuracy": 0.9583333333333334,
+      "invalid_rate": 0.0,
+      "accuracy_95ci": [
+        0.875,
+        1.0
+      ]
+    },
+    "classification": {
+      "examples": 12,
+      "labels": [
+        "benign",
+        "vulnerable"
+      ],
+      "accuracy": 0.5,
+      "macro_f1": 0.3333333333333333,
+      "invalid_rate": 0.0,
+      "per_class": {
+        "benign": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 6
+        },
+        "vulnerable": {
+          "tp": 6,
+          "fp": 6,
+          "fn": 0
+        }
+      },
+      "positive_label": "vulnerable",
+      "false_positive_rate": 1.0
+    }
+  },
+  "operational": {
+    "latency_seconds": {
+      "count": 36,
+      "mean": 0.6974919936944085,
+      "median": 0.7128215509992515,
+      "p50": 0.7128215509992515,
+      "p95": 0.7819014279998555,
+      "min": 0.6009861559996352,
+      "max": 0.8173150809998333
+    },
+    "generated_tokens": 84,
+    "tokens_per_second": 3.3453191641302684,
+    "peak_memory": {
+      "device": "cpu",
+      "process_peak_rss_gb": 5.337
+    },
+    "cost": {
+      "duration_hours": 0.007,
+      "note": "no cost rates configured; cost not estimated"
+    }
+  },
+  "derived": {
+    "mcq_accuracy_points_per_billion": 112.35042816806794,
+    "classification_accuracy_points_per_billion": 58.61761469638327,
+    "tokens_per_second": 3.3453191641302684
+  },
+  "reproducibility": {
+    "created_at": "2026-11-25T02:17:31.593953+00:00",
+    "python": "3.12.3",
+    "platform": "Linux-6.8.0-151-generic-x86_64-with-glibc2.39",
+    "machine": "x86_64",
+    "processor": "x86_64",
+    "cpu_count": 6,
+    "packages": {
+      "torch": "2.15.0+cpu",
+      "transformers": "5.24.1",
+      "peft": "0.22.0",
+      "accelerate": "1.16.0",
+      "datasets": "5.2.0",
+      "numpy": "2.5.5",
+      "pydantic": "2.14.4",
+      "fastapi": "0.165.0",
+      "bitsandbytes": "not-installed",
+      "torchao": "not-installed"
+    },
+    "git": {
+      "commit": "923643b235bdc222a4074de34f9b2940b1e06540",
+      "dirty": false
+    }
+  },
+  "hardware": {
+    "platform": "Linux-6.8.0-151-generic-x86_64-with-glibc2.39",
+    "system": "Linux",
+    "release": "6.8.0-151-generic",
+    "python_version": "3.12.3",
+    "cpu_count": 6,
+    "cpu_model": "Intel(R) Core(TM) i5-9500T CPU @ 2.20GHz",
+    "ram_gb": 15.4,
+    "gpus": [],
+    "mps_available": false,
+    "torch_version": "2.15.0+cpu",
+    "torch_cuda_version": null
+  },
+  "limitations": [
+    "No result is a claim of state-of-the-art performance.",
+    "unsupported_token_rate_proxy measures lexical overlap, not truth.",
+    "Generated code is syntax-checked only; it is never executed by this harness.",
+    "Benchmark licenses and versions must be reported with any published result."
+  ],
+  "run_sha256": "1e4fac943e79a552a9208b178450060fb97b74f8678f158fd966b722c3c8bd86",
+  "dataset": {
+    "path": "/home/bh/qwen-cyber/CyberLite/data/evaluation/baseline_probe_v1.jsonl",
+    "sha256": "074afb896c33ae1c1e943fb26b6daf728e80a1b77dc0f0619b49314ddeff359c",
+    "examples": 36
+  }
+}

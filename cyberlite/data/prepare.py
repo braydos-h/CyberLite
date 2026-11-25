@@ -26,7 +26,7 @@ from cyberlite.data.cleaning import (
     normalize_text,
     redact_secrets,
 )
-from cyberlite.data.contamination import check_contamination
+from cyberlite.data.contamination import build_index, check_contamination
 from cyberlite.data.schema import Record, load_records, sha256_file, write_jsonl
 from cyberlite.data.sources import (
     SourceRegistry,
@@ -189,12 +189,15 @@ def prepare_records(
 
     contamination_findings: list[dict[str, Any]] = []
     eval_files = eval_files or []
+    contamination_index = None
     if eval_files:
+        contamination_index = build_index(eval_files, n=options.contamination_n)
         unique, contamination_findings = check_contamination(
             unique,
             eval_files,
             n=options.contamination_n,
             threshold=options.contamination_threshold,
+            index=contamination_index,
         )
         for finding in contamination_findings:
             rejected.append(
@@ -241,6 +244,7 @@ def prepare_records(
         },
         "contamination": {
             "evaluation_files": [Path(path).name for path in eval_files],
+            "evaluation_ngrams": contamination_index.size if contamination_index else 0,
             "removed": len(contamination_findings),
             "findings": contamination_findings[:100],
             "ngram": options.contamination_n,

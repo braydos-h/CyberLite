@@ -9,26 +9,31 @@ The harness is designed for local, reproducible evaluation of:
 - grounded or reference-based generation,
 - secure code completion.
 
-It does not download benchmarks, does not execute generated code, and does not
-produce a single composite "cyber score" that hides task-specific trade-offs.
+The harness does not download benchmarks, does not execute generated code, and
+does not produce a single composite "cyber score" that hides task-specific
+trade-offs. Benchmark data is obtained and converted by the separate, explicit
+`scripts/prepare_benchmarks.py` step.
 
 ## Evaluation record schema
 
 ```json
 {"id": "mcq-1", "task": "mcq", "question": "...", "choices": ["...", "..."], "answer": "A"}
+{"id": "mcq-2", "task": "mcq", "question": "...", "choices": ["...", "...", "...", "..."], "answer": "AC"}
 {"id": "cls-1", "task": "classification", "text": "...", "label": "vulnerable", "labels": ["benign", "vulnerable"]}
 {"id": "gen-1", "task": "generation", "prompt": "...", "reference": "...", "evidence": "optional grounding text"}
 {"id": "cmp-1", "task": "completion", "prefix": "def f():\n", "suffix": "\n", "reference": "    return 1", "language": "python"}
 ```
 
-Answers can be an index, a letter, or exact choice text. IDs must be unique.
-Malformed records fail with a line number.
+Answers can be an index, a letter, exact choice text, or a multi-select set such
+as `"AC"` / `["A", "C"]`. Multi-select items are correct only when the predicted
+set exactly equals the key. IDs must be unique. Malformed records fail with a
+line number.
 
 ## Protocols
 
 - **Chat-style models:** the system prompt identifies CyberLite as a defensive
-  assistant; the user prompt asks for a concise answer. MCQ prompts ask for the
-  letter only.
+  assistant; the user prompt asks for a concise answer. MCQ prompts ask for one
+  letter, or the exact letter set when several choices are correct.
 - **Base models:** use `--prompt-style raw` to avoid relying on instruction
   following. `auto` selects raw for model IDs ending in `-base`.
 - **Decoding:** temperature 0 by default, fixed per-example seeds, no
@@ -38,12 +43,17 @@ Malformed records fail with a line number.
   executed.
 - **Retrieval:** the RAG condition retrieves from a versioned local BM25 index.
   Report `top_k`, index contents/hash, and whether citations are required.
+- **SecEval:** `--protocol seceval` follows the upstream chat evaluation script:
+  the official instruction, its single worked example, choices rendered as
+  `A: ... B: ...`, `max_new_tokens=5`, temperature 0, and exact set match over the
+  letters A–D. Use `--group-by topics` for the nine topic breakdown. This protocol
+  is chat-only; multi-select items are never scored as correct by subset.
 
 ## Metrics
 
 | Metric | Definition | Notes |
 |---|---|---|
-| MCQ accuracy | parsed letter equals key | bootstrap 95% CI reported |
+| MCQ accuracy | predicted set exactly equals the key set | bootstrap 95% CI reported; single- and multi-answer subsets reported separately |
 | Invalid rate | answer not parseable | reveals format-following failures |
 | Classification accuracy | exact label match | task-specific |
 | Macro F1 | unweighted mean per-label F1 | handles class imbalance |
@@ -102,9 +112,17 @@ upstream license and your organization's policy.
 Frozen reference runs live in [`results/baseline/`](../results/baseline/README.md).
 They pair task metrics from `scripts/evaluate.py` with a separate throughput
 protocol from `scripts/benchmark.py` (time to first token, tokens per second,
-and peak memory at fixed prompt lengths). The bundled data is project-authored
-and small: use these snapshots for regression checks and for comparing later
-adapters against a fixed starting point, not as benchmark results.
+and peak memory at fixed prompt lengths).
+
+Two kinds of snapshot exist:
+
+- **Regression probes** use project-authored data (`baseline_probe_v1.jsonl`,
+  `smoke_eval.jsonl`). They are small, synthetic, and not scientific benchmarks.
+- **Real-benchmark baselines** use a locally obtained benchmark with its upstream
+  protocol. `e0-instruct-seceval/` is the first: full SecEval (2,182 usable
+  items), official chat prompt, exact set match. The items are not redistributed;
+  the snapshot records the upstream revision, source and converted hashes, and
+  the exact command.
 
 Keep task quality and throughput separate. A single composite score would hide
 the trade-off between knowledge accuracy, selective classification, generation
@@ -120,6 +138,7 @@ quality, and speed.
 - [ ] Decoding parameters and seeds
 - [ ] Number of examples and per-task counts
 - [ ] Accuracy with confidence interval
+- [ ] For SecEval: single- vs multi-answer subsets and per-topic breakdown
 - [ ] False-positive rate for classification tasks
 - [ ] Grounding proxy with explicit interpretation limits
 - [ ] Peak training and inference memory, measured

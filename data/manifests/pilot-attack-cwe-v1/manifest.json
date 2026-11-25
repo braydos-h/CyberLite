@@ -1,0 +1,114 @@
+{
+  "dataset_schema": 1,
+  "cyberlite_version": "0.1.0",
+  "created_at": "2026-11-25T04:12:45.080410+00:00",
+  "seed": 42,
+  "options": {
+    "out_dir": "data/processed/pilot",
+    "seed": 42,
+    "ratios": {
+      "train": 0.9,
+      "validation": 0.05,
+      "test": 0.05
+    },
+    "allowed_licenses": [
+      "Apache-2.0",
+      "MIT",
+      "BSD-2-Clause",
+      "BSD-3-Clause",
+      "CC-BY-4.0",
+      "CC-BY-SA-4.0",
+      "CC0-1.0",
+      "Public-Domain",
+      "Synthetic",
+      "MITRE-ATTACK",
+      "MITRE-CWE",
+      "GPL-2.0-only",
+      "GPL-2.0-or-later",
+      "IETF-Trust"
+    ],
+    "redact": true,
+    "min_chars": 80,
+    "max_chars": 200000,
+    "dedup_threshold": 3,
+    "contamination_n": 13,
+    "contamination_threshold": 0.2,
+    "force": true,
+    "smoke": false
+  },
+  "source_registry_sha256": "28c37b6f8c2478358673b5e9cb74c917326b2bf0b8f50757356861231a528c32",
+  "input_records": 2102,
+  "output_records": 2006,
+  "split_counts": {
+    "train": 1808,
+    "validation": 98,
+    "test": 100
+  },
+  "source_counts": {
+    "mitre_attack": 1083,
+    "mitre_cwe": 923
+  },
+  "task_counts": {
+    "attack-technique": 837,
+    "defensive-control": 246,
+    "weakness": 923
+  },
+  "license_counts": {
+    "MITRE-ATTACK": 1126,
+    "MITRE-CWE": 976
+  },
+  "cleaning": {
+    "redacted_secrets": 0,
+    "dedup": {
+      "kept": 2006,
+      "exact_duplicates": 0,
+      "near_duplicates": 96
+    },
+    "duplicates": 96
+  },
+  "contamination": {
+    "evaluation_files": [
+      "baseline_probe_v1.jsonl",
+      "seceval_v1.jsonl",
+      "smoke_eval.jsonl"
+    ],
+    "evaluation_ngrams": 241515,
+    "removed": 0,
+    "findings": [],
+    "ngram": 13,
+    "threshold": 0.2
+  },
+  "rejected_counts": {
+    "duplicate": 96
+  },
+  "environment": {
+    "python": "3.12.3",
+    "platform": "Linux-6.8.0-151-generic-x86_64-with-glibc2.39"
+  },
+  "files": {
+    "train": {
+      "path": "data/processed/pilot/train.jsonl",
+      "records": 1808,
+      "sha256": "b983d25c1b335d810a6e438745615f89bdc4bea6b63c0388583418a0c7ea01b6",
+      "bytes": 3502298
+    },
+    "validation": {
+      "path": "data/processed/pilot/validation.jsonl",
+      "records": 98,
+      "sha256": "bce9890850528688263cd970eeb49af802922fa567d52cacb68ff171bae3872b",
+      "bytes": 176540
+    },
+    "test": {
+      "path": "data/processed/pilot/test.jsonl",
+      "records": 100,
+      "sha256": "a9f2cb659793ad58166117cbf6e4c05de0bb83136203c6cb48ac953cf1653823",
+      "bytes": 190895
+    },
+    "quarantine": {
+      "path": "data/processed/pilot/quarantine.jsonl",
+      "records": 96,
+      "sha256": "0616cc244fea0298211fd6a165226004de5023d930526609b6a3b0558d1d1d00"
+    }
+  },
+  "dataset_version": "cyberlite-data-0.1.0-26c6d44ae6bc"
+}

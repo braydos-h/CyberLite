@@ -18,6 +18,9 @@ Every evaluation run writes:
   latency/memory, cost assumptions, limitations, and a run hash;
 - `predictions.jsonl` — outputs, output hashes, scores, tokens, latency.
 
+Small baseline and bring-up artifacts are committed so their quoted hashes can
+be verified from a clean clone; bulk run output stays git-ignored.
+
 Dataset preparation writes `manifest.json` with split hashes, dataset version,
 source registry hash, license counts, deduplication and contamination stats.
 
@@ -68,6 +71,8 @@ benchmark results and should not be cited as model capabilities.
 | 2026-11-25 | Two-step smoke training | 26--29 s training after load, ~6.3 GiB peak RSS, adapter and metadata saved |
 | 2026-11-25 | Adapter reload + generation | Adapter loaded; chat and FIM code paths executed on CPU |
 | 2026-11-25 | Evaluation harness | Eight synthetic smoke items processed end to end; outputs kept outside the repository |
+| 2026-11-25 | Pilot corpus build | ATT&CK + CWE: 2,102 records in, 2,006 out, 96 near-duplicates removed, 241,515 evaluation n-grams screened, zero 13-gram findings |
+| 2026-11-25 | SecEval baseline | Full 2,182 items, 59 min, 1.63 s/item, 34.65% accuracy (59.11% single-answer, 1.41% multi-answer), 5.45 GB peak RSS |
 | 2026-11-25 | Test suite | Unit tests pass without downloading model weights |
 
 Machine: 6-thread Intel i5-9500T, 15.4 GiB RAM, no GPU; PyTorch 2.15.0 CPU,

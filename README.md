@@ -20,9 +20,10 @@
 [![Progress](https://img.shields.io/badge/progress-36%25-yellow.svg)](#goals-and-live-progress) <!-- progress-badge -->
 
 > **Research preview.** CyberLite is an active research project, not a released
-> security product. There are **no trained checkpoints and no verified benchmark
-> results** in this repository yet. Tables marked *pending* are experiment plans,
-> not findings. See [Experimental status](#experimental-status).
+> security product. There are **no trained checkpoints**. The only verified
+> real-benchmark number is the untrained base model's SecEval baseline; every
+> other benchmark table is marked *pending* and is an experiment plan, not a
+> finding. See [Experimental status](#experimental-status).
 
 ---
 
@@ -196,6 +197,31 @@ GPU so post-training can continue at research scale (larger LoRA/QLoRA runs,
 distillation, and the full experimental matrix). Until that happens, any GPU
 results in this repository should be read as planned, not measured.
 
+## Funding and compute
+
+The request, its assumptions, and what it buys are public:
+
+| Document | Contents |
+|---|---|
+| [FUNDING.md](FUNDING.md) | The ask in three tiers, deliverables, risks, and use of funds |
+| [docs/compute-budget.md](docs/compute-budget.md) | GPU-hour model, hardware bill of materials, electricity |
+| [docs/gpu-bringup.md](docs/gpu-bringup.md) | The four-hour checklist that turns "GPU-ready" into a measurement |
+| [docs/preregistration.md](docs/preregistration.md) | Hypotheses, numeric success thresholds, analysis plan |
+| [GOVERNANCE.md](GOVERNANCE.md) | Decisions, money handling, conflicts, key-person plan |
+
+```bash
+make budget   # regenerate the planning estimates from explicit assumptions
+```
+
+The short version: training a 0.85B model is cheap (tens of GPU-hours). The
+honest costs are teacher distillation, hardware in the 4–8 GB classes this
+project studies, and external review. The first tier is therefore one used
+24 GB card, not a cluster or a cloud budget.
+
+CyberLite is a **single-maintainer project** with no employees or contractors.
+The budget is sized to what one person can run serially, not to an idealized
+experiment matrix.
+
 ## Installation
 
 CyberLite supports Linux, macOS (including Apple MPS where available), and
@@ -323,7 +349,7 @@ FIM limitations, editor integration, and acceptance-rate measurement.
 
 | ID | Condition | Status |
 |---|---|---|
-| E0 | Qwen3.5-0.8B base / instruct reference | Planned |
+| E0 | Qwen3.5-0.8B base / instruct reference | Measured (CPU) |
 | E1 | CyberLite LoRA (bf16) | Planned |
 | E2 | CyberLite QLoRA (4-bit) | Planned |
 | E3 | CyberLite offline-distilled | Planned |
@@ -334,13 +360,16 @@ FIM limitations, editor integration, and acceptance-rate measurement.
 
 ## Benchmark status
 
-**No verified results exist yet.** The table is a reporting template. Cells are
-intentionally blank; do not cite them as measurements.
+**One verified baseline exists.** The untrained `Qwen/Qwen3.5-0.8B` instruct
+model was evaluated on the full SecEval set with the upstream chat protocol; the
+number and its 95% confidence interval are below. All other cells are pending
+and must not be cited as measurements. See
+[`results/baseline/e0-instruct-seceval/`](results/baseline/e0-instruct-seceval/README.md).
 
 | Benchmark / task | Metric | Base | LoRA | QLoRA | Distilled | +RAG |
 |---|---|---:|---:|---:|---:|---:|
 | CyberSecEval subset | task accuracy | — | — | — | — | — |
-| SecEval subset (eval only) | MCQ accuracy | — | — | — | — | — |
+| SecEval (full local set, eval only) | MCQ accuracy (exact set) | 0.346 (95% CI 0.327–0.365; n=2,182) | — | — | — | — |
 | Held-out security MCQ | accuracy (95% CI) | — | — | — | — | — |
 | Vulnerability classification | macro F1 / FPR | — | — | — | — | — |
 | Secure code completion | exact match / syntax valid | — | — | — | — | — |
@@ -348,6 +377,11 @@ intentionally blank; do not cite them as measurements.
 | General retention | retention accuracy | — | — | — | — | — |
 | Inference | tokens/s, peak memory | — | — | — | — | — |
 | Training | peak VRAM, duration, cost | — | — | — | — | — |
+
+The SecEval baseline splits into **0.5911** on single-answer items (n=1,257) and
+**0.0141** on multi-answer items (n=925); the aggregate hides that gap. It is the
+untrained checkpoint, not a CyberLite model. Protocol, per-topic table, and
+hashes: [`results/baseline/e0-instruct-seceval/`](results/baseline/e0-instruct-seceval/README.md).
 
 Licenses differ: CyberSecEval is obtained under upstream terms; SecEval is
 CC-BY-NC-SA and evaluation-only. CyberLite does not redistribute either dataset.
@@ -359,13 +393,13 @@ See [docs/evaluation.md](docs/evaluation.md).
 |---|---|
 | Repository, package, tests, CI | Implemented |
 | Qwen3.5 architecture compatibility | Verified by local load and LoRA backward pass |
-| Data preparation, provenance, contamination screen | Implemented; smoke-validated |
+| Data preparation, provenance, contamination screen | Implemented; smoke-validated; first licensed pilot manifest (ATT&CK + CWE, 2,006 records) committed |
 | LoRA/QLoRA training pipeline | Implemented; smoke-tested on CPU |
 | Local inference and OpenAI-compatible API | Implemented; unit-tested |
 | Autocomplete (FIM + prefix fallback) | Implemented; unit-tested |
 | Offline distillation pipeline | Implemented; not yet run at research scale |
 | Quantization backends | bnb path implemented; GGUF delegated; CPU INT8 experimental |
-| Benchmark evaluation | Harness implemented; **no research results** |
+| Benchmark evaluation | Harness implemented; one untrained base-model SecEval baseline; **no trained-checkpoint results** |
 | Paper | Scaffold with explicit placeholders |
 
 ## Repository layout
@@ -373,17 +407,21 @@ See [docs/evaluation.md](docs/evaluation.md).
 ```text
 CyberLite/
 ├── GOALS.md               # goals, success criteria, live milestones
+├── FUNDING.md             # compute request, tiers, deliverables, use of funds
+├── GOVERNANCE.md          # decisions, money handling, key-person plan
 ├── CHANGELOG.md           # every notable change, newest first
 ├── AGENTS.md              # working rules for contributors and agents
 ├── configs/               # LoRA, QLoRA, low-VRAM, distillation, smoke
 ├── data/                  # source registry, seed data, local evaluation inputs
+│   └── manifests/         # committed, license-safe corpus manifests
 ├── cyberlite/             # installable package
 │   ├── data/              # cleaning, dedup, provenance, contamination, splits
 │   ├── training/          # model loading, LoRA, SFT, distillation, trainer
 │   ├── inference/         # engine, OpenAI-compatible server, quantization, benchmark
 │   ├── autocomplete/      # language profiles, FIM/prefix engine, API
 │   ├── retrieval/         # BM25 index and RAG
-│   └── evaluation/        # metrics, harness, benchmark registry
+│   ├── evaluation/        # metrics, harness, benchmark registry
+│   └── compute_budget.py  # GPU-hour and cost estimator
 ├── scripts/               # thin CLI entry points
 ├── tests/                 # unit tests; integration tests opt-in
 ├── docs/                  # architecture, hardware, data, evaluation, safety
@@ -391,7 +429,7 @@ CyberLite/
 ├── experiments/           # experiment definitions and reviewed analysis
 ├── benchmarks/            # local, license-compliant benchmark adapters
 ├── web/                   # static project website (no build step)
-└── results/               # reviewed artifacts only; currently empty of results
+└── results/               # reviewed artifacts only; baselines are hash-pinned
 ```
 
 ## Contributing

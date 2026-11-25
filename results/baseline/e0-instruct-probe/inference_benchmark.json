@@ -1,0 +1,147 @@
+{
+  "created_at": "2026-11-25T02:18:24.878113+00:00",
+  "model": {
+    "model_id": "Qwen/Qwen3.5-0.8B",
+    "adapter_path": null,
+    "adapter_sha256": null,
+    "auto_class": "AutoModelForImageTextToText",
+    "device": "cpu",
+    "dtype": "torch.float32",
+    "quantized": false,
+    "max_context": 262144,
+    "parameters": 852985920,
+    "hidden_size": 1024,
+    "layers": 24,
+    "loaded": true
+  },
+  "definition": {
+    "ttft_seconds": "time from generation start to the first decoded stream chunk",
+    "tokens_per_second": "tokenizer tokens in generated text divided by total wall time",
+    "note": "Synthetic prompts; results are hardware- and version-specific."
+  },
+  "config": {
+    "prompt_lengths": [
+      128,
+      512
+    ],
+    "max_new_tokens": 64,
+    "runs": 2,
+    "temperature": 0.0
+  },
+  "results": [
+    {
+      "prompt_tokens": 128,
+      "run": 0,
+      "ttft_seconds": 1.4516,
+      "total_latency_seconds": 10.5091,
+      "generated_tokens": 64,
+      "tokens_per_second": 6.09,
+      "peak_memory": {
+        "device": "cpu",
+        "process_peak_rss_gb": 5.346
+      }
+    },
+    {
+      "prompt_tokens": 128,
+      "run": 1,
+      "ttft_seconds": 0.7968,
+      "total_latency_seconds": 8.9317,
+      "generated_tokens": 64,
+      "tokens_per_second": 7.17,
+      "peak_memory": {
+        "device": "cpu",
+        "process_peak_rss_gb": 5.396
+      }
+    },
+    {
+      "prompt_tokens": 512,
+      "run": 0,
+      "ttft_seconds": 2.5664,
+      "total_latency_seconds": 11.0208,
+      "generated_tokens": 64,
+      "tokens_per_second": 5.81,
+      "peak_memory": {
+        "device": "cpu",
+        "process_peak_rss_gb": 5.47
+      }
+    },
+    {
+      "prompt_tokens": 512,
+      "run": 1,
+      "ttft_seconds": 2.6203,
+      "total_latency_seconds": 11.1128,
+      "generated_tokens": 64,
+      "tokens_per_second": 5.76,
+      "peak_memory": {
+        "device": "cpu",
+        "process_peak_rss_gb": 5.504
+      }
+    }
+  ],
+  "summary_by_prompt_tokens": {
+    "128": {
+      "runs": 2,
+      "ttft_seconds_mean": 1.1242,
+      "tokens_per_second_mean": 6.63,
+      "tokens_per_second_stdev": 0.54,
+      "total_latency_seconds_mean": 9.7204,
+      "peak_vram_allocated_gb": 0.0,
+      "process_peak_rss_gb": 5.396
+    },
+    "512": {
+      "runs": 2,
+      "ttft_seconds_mean": 2.5934,
+      "tokens_per_second_mean": 5.79,
+      "tokens_per_second_stdev": 0.02,
+      "total_latency_seconds_mean": 11.0668,
+      "peak_vram_allocated_gb": 0.0,
+      "process_peak_rss_gb": 5.504
+    }
+  },
+  "aggregate": {
+    "tokens_per_second": 6.16,
+    "generated_tokens": 256,
+    "cost": {
+      "duration_hours": 0.0115,
+      "note": "no cost rates configured; cost not estimated"
+    }
+  },
+  "hardware": {
+    "platform": "Linux-6.8.0-151-generic-x86_64-with-glibc2.39",
+    "system": "Linux",
+    "release": "6.8.0-151-generic",
+    "python_version": "3.12.3",
+    "cpu_count": 6,
+    "cpu_model": "Intel(R) Core(TM) i5-9500T CPU @ 2.20GHz",
+    "ram_gb": 15.4,
+    "gpus": [],
+    "mps_available": false,
+    "torch_version": "2.15.0+cpu",
+    "torch_cuda_version": null
+  },
+  "environment": {
+    "created_at": "2026-11-25T02:18:24.881434+00:00",
+    "python": "3.12.3",
+    "platform": "Linux-6.8.0-151-generic-x86_64-with-glibc2.39",
+    "machine": "x86_64",
+    "processor": "x86_64",
+    "cpu_count": 6,
+    "packages": {
+      "torch": "2.15.0+cpu",
+      "transformers": "5.24.1",
+      "peft": "0.22.0",
+      "accelerate": "1.16.0",
+      "datasets": "5.2.0",
+      "numpy": "2.5.5",
+      "pydantic": "2.14.4",
+      "fastapi": "0.165.0",
+      "bitsandbytes": "not-installed",
+      "torchao": "not-installed"
+    },
+    "git": {
+      "commit": "923643b235bdc222a4074de34f9b2940b1e06540",
+      "dirty": false
+    }
+  },
+  "platform": "Linux-6.8.0-151-generic-x86_64-with-glibc2.39"
+}

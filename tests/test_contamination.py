@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 from cyberlite.data.contamination import ContaminationIndex, check_contamination, ngram_fingerprints
@@ -22,6 +23,42 @@ def test_contamination_index_overlap() -> None:
     assert index.overlap(" ".join(["networking", "security", "guidance"] * 10)) == 1.0
     assert index.is_contaminated(" ".join(["networking", "security", "guidance"] * 10))
     assert index.size > 0
+
+
+def test_benchmark_schema_eval_file_is_indexed(tmp_path: Path) -> None:
+    shared = " ".join(["credential", "exposure", "rotation"] * 30)
+    eval_path = tmp_path / "benchmark.jsonl"
+    eval_path.write_text(
+        json.dumps(
+            {
+                "id": "q1",
+                "question": "Which control addresses credential exposure?",
+                "choices": {"A": shared, "B": "unrelated option", "C": "another", "D": "none"},
+                "answer": "A",
+            }
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    index = ContaminationIndex()
+    index.add_file(eval_path)
+    assert index.size > 0
+    assert index.is_contaminated(shared)
+
+
+def test_benchmark_schema_contamination_removes_training_record(tmp_path: Path) -> None:
+    shared = " ".join(["credential", "exposure", "rotation"] * 30)
+    eval_path = tmp_path / "benchmark.jsonl"
+    eval_path.write_text(
+        json.dumps({"question": "q", "choices": [shared], "answer": "A"}) + "\n",
+        encoding="utf-8",
+    )
+    train_record = Record(
+        id="train", source="train", license="Synthetic", prompt="q", response=shared
+    )
+    kept, findings = check_contamination([train_record], [str(eval_path)])
+    assert not kept
+    assert findings[0]["id"] == "train"
 
 
 def test_check_contamination_removes_verbatim(tmp_path: Path) -> None:

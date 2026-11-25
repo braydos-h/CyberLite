@@ -1,4 +1,4 @@
-.PHONY: install install-dev test lint format typecheck validate progress progress-check smoke data paper deploy-web preview-web clean
+.PHONY: install install-dev test lint format typecheck validate progress progress-check budget smoke data paper deploy-web preview-web clean
 
 install:
 	python -m pip install -e .
@@ -26,6 +26,17 @@ progress:
 
 progress-check:
 	python scripts/update_progress.py --check
+
+budget:
+	python scripts/compute_budget.py \
+		--config configs/lora.yaml \
+		--config configs/qlora.yaml \
+		--config configs/low_vram.yaml \
+		--config configs/distillation.yaml \
+		--train-tokens 30000000 --epochs 3 \
+		--distill-tokens 10000000 --eval-conditions 8 \
+		--effective-tflops 30 --gpu-hour-usd 0.60 --contingency 0.30 \
+		--markdown
 
 data:
 	python scripts/prepare_dataset.py --smoke

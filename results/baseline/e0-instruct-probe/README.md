@@ -83,7 +83,7 @@ software stack.
 
 ## Artifacts and verification
 
-Local, git-ignored per the experiment-output policy:
+Committed with this snapshot (small JSON/JSONL only; bulk output stays ignored):
 
 | File | SHA-256 |
 |---|---|

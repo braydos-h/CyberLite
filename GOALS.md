@@ -36,6 +36,10 @@ without redistributing restricted text.
 - [x] Cleaning, secret redaction, exact/SimHash dedup, and 13-gram contamination screening are implemented and smoke-tested.
 - [x] Deterministic content-hash splits and manifest hashing are implemented.
 - [ ] A licensed, versioned pilot corpus (ATT&CK, CWE, NVD, OWASP, Linux/networking docs) is published as a manifest.
+
+  Current slice: ATT&CK + CWE, 2,006 records, manifest committed under
+  [`data/manifests/pilot-attack-cwe-v1/`](data/manifests/pilot-attack-cwe-v1/).
+  NVD, OWASP, and the system/networking docs remain open.
 - [ ] The source-license report is published without redistributing restricted text.
 - [ ] A stratified manual quality and safety review of the pilot corpus is complete.
 - [ ] Contamination is measured against each selected benchmark subset.
@@ -62,6 +66,10 @@ and [roadmap Phase 6](docs/roadmap.md#phase-6--publication).
 
 **Success:** every published number traces back to raw predictions, configs,
 and hardware metadata.
+
+The numeric thresholds and the analysis plan are fixed in
+[docs/preregistration.md](docs/preregistration.md) before training; the project
+probe is a regression signal, not a benchmark.
 
 - [x] Evaluation harness, metrics, bootstrap intervals, and report schema are implemented.
 - [x] CyberSecEval, SecEval (evaluation-only), and held-out MCQ adapters exist behind license gates.
@@ -105,6 +113,10 @@ Advances [roadmap Phase 6](docs/roadmap.md#phase-6--publication).
 
 **Success:** a reviewable research release where every placeholder is replaced
 by a measurement or an explicit limitation.
+
+The compute request that unblocks the training matrix is in
+[FUNDING.md](FUNDING.md); the GPU validation protocol is in
+[docs/gpu-bringup.md](docs/gpu-bringup.md).
 
 - [x] Paper scaffold, model card, dataset card, and reproducibility docs exist with explicit placeholders.
 - [ ] Hypotheses and the analysis plan are pre-registered.

@@ -96,6 +96,91 @@ def test_load_examples_rejects_duplicate_ids(tmp_path: Path) -> None:
         load_examples(path)
 
 
+def test_load_examples_multi_select(tmp_path: Path) -> None:
+    rows = [
+        {
+            "id": "m1",
+            "task": "mcq",
+            "question": "Which apply?",
+            "choices": ["a", "b", "c", "d"],
+            "answer": "AC",
+        },
+        {
+            "id": "m2",
+            "task": "mcq",
+            "question": "Which apply?",
+            "choices": ["a", "b", "c", "d"],
+            "answer": ["A", "C"],
+        },
+    ]
+    path = tmp_path / "multi.jsonl"
+    path.write_text("\n".join(json.dumps(row) for row in rows) + "\n")
+    examples = load_examples(path)
+    assert examples[0].answer_indices == [0, 2]
+    assert examples[0].answer_index is None
+    assert examples[1].answer_indices == [0, 2]
+
+
+def test_multi_answer_scoring() -> None:
+    example = EvalExample(
+        id="m1",
+        task="mcq",
+        question="q",
+        choices=["a", "b", "c", "d"],
+        answer_indices=[0, 2],
+    )
+    harness = EvaluationHarness(FakeEngine(), [example])
+    assert harness._score(example, "AC")["correct"] is True
+    assert harness._score(example, "CA")["correct"] is True
+    assert harness._score(example, "A")["correct"] is False
+    assert harness._score(example, "no idea")["invalid"] is True
+
+
+def test_seceval_protocol_prompt() -> None:
+    from cyberlite.evaluation.harness import _messages
+
+    example = EvalExample(
+        id="s1",
+        task="mcq",
+        question="Which is correct?",
+        choices=["one", "two", "three", "four"],
+        answer_indices=[1],
+    )
+    messages = _messages(example, "seceval")
+    assert messages[0]["role"] == "system"
+    assert "respond with the letters ABCD only" in messages[0]["content"]
+    assert messages[1]["role"] == "user"
+    assert messages[2] == {"role": "assistant", "content": "Answer: ABC"}
+    assert "A: one B: two C: three D: four" in messages[-1]["content"]
+
+
+def test_grouped_mcq_summary() -> None:
+    examples = [
+        EvalExample(
+            id="g1",
+            task="mcq",
+            question="q",
+            choices=["a", "b"],
+            answer_indices=[0],
+            metadata={"topics": ["WebSecurity"]},
+        ),
+        EvalExample(
+            id="g2",
+            task="mcq",
+            question="q",
+            choices=["a", "b"],
+            answer_indices=[0],
+            metadata={"topics": ["WebSecurity", "Vulnerability"]},
+        ),
+    ]
+    harness = EvaluationHarness(FakeEngine(), examples, seed=1, group_by="topics")
+    summary = harness.run()
+    assert summary["groups"]["WebSecurity"]["examples"] == 2
+    assert summary["groups"]["Vulnerability"]["examples"] == 1
+    assert summary["groups"]["WebSecurity"]["accuracy"] == 1.0
+    assert summary["metrics"]["mcq"]["by_answer_count"]["single_answer"]["examples"] == 2
+
+
 def test_build_prompt_contains_choices() -> None:
     example = EvalExample(
         id="x",

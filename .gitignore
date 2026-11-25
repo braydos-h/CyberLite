@@ -42,11 +42,27 @@ data/evaluation/*
 !data/evaluation/smoke_eval.jsonl
 !data/evaluation/baseline_probe_v1.jsonl
 
+# Third-party benchmark items: local only, never redistributed
+benchmarks/*/*.json
+benchmarks/*/*.jsonl
+
 # Experiment outputs
 results/**/*.json
 results/**/*.jsonl
 results/**/*.csv
 !results/tables/.gitkeep
+# Small baseline artifacts are committed so reviewers can verify the hashes
+# quoted in results/*/README.md from a clean clone. Keep this list explicit:
+# unignoring a whole directory can republish restricted benchmark items.
+!results/baseline/e0-instruct-probe/summary.json
+!results/baseline/e0-instruct-probe/predictions.jsonl
+!results/baseline/e0-instruct-probe/inference_benchmark.json
+!results/baseline/e0-instruct-smoke/summary.json
+!results/baseline/e0-instruct-smoke/predictions.jsonl
+!results/baseline/e0-instruct-seceval/summary.json
+# GPU bring-up reports are small and are required by docs/gpu-bringup.md.
+!results/bringup/**/*.json
+!results/bringup/**/*.jsonl
 experiments/*/
 !experiments/README.md
 
@@ -59,6 +75,14 @@ secrets.yaml
 wandb/
 .hf/
 .cache/
+# Local environment capture written by docs/gpu-bringup.md
+/environment.lock.txt
+/hardware.json
+
+# Local design/QA tooling: contains a real browser profile (history, cookies,
+# login databases). Never commit it.
+web/.taste-skill/
+.wrangler/
 
 # OS / editor
 .DS_Store
