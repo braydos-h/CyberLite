@@ -14,6 +14,14 @@ Move entries into a versioned section only when a release is tagged.
 
 ## [Unreleased]
 
+### Removed
+
+- The autocomplete feature: the `cyberlite/autocomplete` package, the
+  `cyberlite-autocomplete` console script, the `/v1/autocomplete` and
+  `/v1/autocomplete/feedback` endpoints, the acceptance-feedback store and
+  metrics script, the autocomplete documentation page, and their tests. FIM
+  training and completion evaluation remain supported.
+
 ### Added
 
 - A deterministic synthesis pipeline (`cyberlite/data/synthesis.py`, `cyberlite/data/grounded.py`, `cyberlite/data/detection.py`, `cyberlite/data/build_synthesis.py`, `scripts/synthesize_dataset.py`) that composes committed knowledge packs and the frozen pilot training split into task-family datasets with stable IDs, groups, provenance, and content hashes.

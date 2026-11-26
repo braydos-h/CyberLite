@@ -87,11 +87,8 @@ The Qwen3.5 tokenizer defines:
 CyberLite trains with the standard order
 `<|fim_prefix|>{prefix}<|fim_suffix|>{suffix}<|fim_middle|>{middle}`. Token
 presence does not prove the base checkpoint was trained for FIM; that is an
-empirical question. The autocomplete engine therefore:
-
-- uses FIM when the tokens exist and the user requests `mode=fim`;
-- can force prefix/instruction completion with `mode=prefix`;
-- documents that prefix mode is the fallback when FIM quality is inadequate.
+empirical question. Completion evaluation uses FIM when the tokens exist and
+falls back to prefix completion otherwise.
 
 ## Optional accelerated kernels
 

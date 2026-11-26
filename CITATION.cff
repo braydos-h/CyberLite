@@ -11,8 +11,7 @@ abstract: >-
   language model can be post-trained into a practical, locally deployable cybersecurity
   assistant using LoRA/QLoRA, knowledge distillation, retrieval augmentation, and
   quantization. The repository provides a reproducible data pipeline, training and
-  inference tooling, a cybersecurity autocomplete engine, evaluation harnesses, and a
-  paper scaffold. No trained research checkpoint or verified benchmark result is
+  inference tooling, evaluation harnesses, and a paper scaffold. No trained research checkpoint or verified benchmark result is
   released in version 0.1.0.
 keywords:
   - cybersecurity
@@ -22,7 +21,6 @@ keywords:
   - QLoRA
   - knowledge distillation
   - quantization
-  - autocomplete
   - reproducibility
   - low-resource computing
 license: Apache-2.0

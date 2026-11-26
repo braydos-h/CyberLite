@@ -35,7 +35,6 @@ The default suite is network-free and does not download model weights. It covers
   codes, and resume fingerprint checks,
 - metrics and uncertainty estimates,
 - BM25 retrieval and RAG formatting,
-- autocomplete prompt construction and safety flags,
 - FastAPI endpoints with a fake engine,
 - dry-run CLIs.
 

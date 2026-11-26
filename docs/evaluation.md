@@ -38,9 +38,9 @@ line number.
   following. `auto` selects raw for model IDs ending in `-base`.
 - **Decoding:** temperature 0 by default, fixed per-example seeds, no
   benchmark-specific prompt tuning. Record `max_new_tokens`.
-- **Completion:** the autocomplete engine uses FIM when available; otherwise
-  prefix completion. Python syntax is checked with `ast.parse`; code is never
-  executed.
+- **Completion:** fill-in-the-middle when the tokenizer exposes the FIM control
+  tokens; otherwise prefix completion. Python syntax is checked with `ast.parse`;
+  code is never executed.
 - **Retrieval:** the RAG condition retrieves from a versioned local BM25 index.
   Report `top_k`, index contents/hash, and whether citations are required.
 - **SecEval:** `--protocol seceval` follows the upstream chat evaluation script:

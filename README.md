@@ -72,20 +72,19 @@ changing a checkbox; CI runs `make progress-check` and fails on a stale block.
 | [G1 — Licensed, reproducible data foundation](GOALS.md#g1--licensed-reproducible-data-foundation) | `████████░░` 85% | 11/13 |
 | [G2 — Post-training on consumer hardware](GOALS.md#g2--post-training-on-consumer-hardware) | `█████░░░░░` 50% | 4/8 |
 | [G3 — Honest, reproducible evaluation](GOALS.md#g3--honest-reproducible-evaluation) | `████░░░░░░` 43% | 3/7 |
-| [G4 — Practical local deployment](GOALS.md#g4--practical-local-deployment) | `█████░░░░░` 50% | 4/8 |
+| [G4 — Practical local deployment](GOALS.md#g4--practical-local-deployment) | `█████░░░░░` 50% | 3/6 |
 | [G5 — Distillation and retrieval](GOALS.md#g5--distillation-and-retrieval) | `██░░░░░░░░` 20% | 1/5 |
 | [G6 — Publication and release](GOALS.md#g6--publication-and-release) | `██░░░░░░░░` 17% | 1/6 |
-| **Overall** | `█████░░░░░` 51% | 24/47 |
+| **Overall** | `█████░░░░░` 51% | 23/45 |
 
 | Roadmap phase | Progress | Items |
 |---|---|---:|
-| Phase 0 — Reproducible foundation | `██████████` 100% | 11/11 |
+| Phase 0 — Reproducible foundation | `██████████` 100% | 10/10 |
 | Phase 1 — Dataset pilot | `█████████░` 88% | 7/8 |
 | Phase 2 — Core post-training comparison | `░░░░░░░░░░` 0% | 0/5 |
-| Phase 3 — Autocomplete | `░░░░░░░░░░` 0% | 0/4 |
-| Phase 4 — Distillation and retrieval | `░░░░░░░░░░` 0% | 0/4 |
-| Phase 5 — Quantization and CPU deployment | `░░░░░░░░░░` 0% | 0/4 |
-| Phase 6 — Publication | `░░░░░░░░░░` 0% | 0/5 |
+| Phase 3 — Distillation and retrieval | `░░░░░░░░░░` 0% | 0/4 |
+| Phase 4 — Quantization and CPU deployment | `░░░░░░░░░░` 0% | 0/4 |
+| Phase 5 — Publication | `░░░░░░░░░░` 0% | 0/5 |
 <!-- progress:end -->
 
 Every notable change, including documentation changes, is recorded in
@@ -98,7 +97,6 @@ Every notable change, including documentation changes, is recorded in
 | Base model | `Qwen/Qwen3.5-0.8B` (instruct); `Qwen/Qwen3.5-0.8B-Base` where available |
 | Adaptation | LoRA and 4-bit QLoRA supervised fine-tuning |
 | Distillation | Offline, local teacher-generated responses with filtering and review |
-| Autocomplete | FIM when the checkpoint supports it, prefix fallback otherwise |
 | Retrieval | Dependency-free BM25 baseline with citation-bearing, untrusted evidence |
 | Deployment | CPU/GPU/MPS local inference; OpenAI-compatible API; GGUF export path |
 | Evaluation | Local harness with fixed seeds, uncertainty intervals, memory and latency logging |
@@ -128,7 +126,6 @@ flowchart TB
     subgraph Serve["Local deployment"]
         A --> Z["quantize.py<br/>bitsandbytes · TorchAO · GGUF"]
         A --> API["OpenAI-compatible API"]
-        A --> AC["autocomplete API"]
         R["BM25 retrieval index"] --> RAG["RAG with citations"]
         RAG --> API
         A --> EV["evaluate.py<br/>fixed seeds · local data"]
@@ -337,25 +334,9 @@ curl http://127.0.0.1:8000/v1/chat/completions \
   }'
 ```
 
-Endpoints: `/health`, `/v1/models`, `/v1/completions`, `/v1/chat/completions`,
-`/v1/autocomplete`, `/v1/autocomplete/feedback`. Set `CYBERLITE_API_KEY` to
-require a bearer token. After the model is downloaded, inference is offline.
-
-### Autocomplete
-
-```bash
-cyberlite-autocomplete --model Qwen/Qwen3.5-0.8B --device cpu --port 8765
-```
-
-```bash
-curl http://127.0.0.1:8765/v1/autocomplete \
-  -H 'Content-Type: application/json' \
-  -d '{"prefix": "grep -R \"failed password\" ", "language": "bash", "mode": "auto"}'
-```
-
-The API returns text and metadata only. It **never executes** generated
-commands. See [docs/autocomplete.md](docs/autocomplete.md) for language support,
-FIM limitations, editor integration, and acceptance-rate measurement.
+Endpoints: `/health`, `/v1/models`, `/v1/completions`,
+`/v1/chat/completions`. Set `CYBERLITE_API_KEY` to require a bearer token.
+After the model is downloaded, inference is offline.
 
 ## Research methodology
 
@@ -430,7 +411,6 @@ See [docs/evaluation.md](docs/evaluation.md).
 | Training integrity and license gate | Implemented; manifest version/hash/count, schema, provenance, duplicate-ID, cross-split leakage, evaluation-only, and license checks fail closed before model allocation |
 | LoRA/QLoRA training pipeline | Implemented; smoke-tested on CPU; research configs pinned to the E0 revision and pilot-v2, but research-ready is blocked pending licensing, manual review, and pre-registration |
 | Local inference and OpenAI-compatible API | Implemented; unit-tested |
-| Autocomplete (FIM + prefix fallback) | Implemented; unit-tested |
 | Offline distillation pipeline | Implemented; not yet run at research scale |
 | Quantization backends | bnb path implemented; GGUF delegated; CPU INT8 experimental |
 | Benchmark evaluation | Harness implemented; one untrained base-model SecEval baseline; **no trained-checkpoint results** |
@@ -452,7 +432,6 @@ CyberLite/
 │   ├── data/              # config, acquisition, NVD, parsers, quality, audit, splits
 │   ├── training/          # model loading, LoRA, SFT, distillation, trainer
 │   ├── inference/         # engine, OpenAI-compatible server, quantization, benchmark
-│   ├── autocomplete/      # language profiles, FIM/prefix engine, API
 │   ├── retrieval/         # BM25 index and RAG
 │   ├── evaluation/        # metrics, harness, benchmark registry
 │   └── compute_budget.py  # GPU-hour and cost estimator

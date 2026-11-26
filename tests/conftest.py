@@ -33,7 +33,7 @@ def eval_file(repo_root: Path) -> Path:
 class FakeTokenizer:
     """Character-level tokenizer with chat and FIM control tokens.
 
-    It implements only the surface used by CyberLite's dataset and autocomplete
+    It implements only the surface used by CyberLite's dataset and completion
     code, keeping unit tests network-free.
     """
 
@@ -129,7 +129,7 @@ def sample_records() -> list[dict]:
         {
             "source": "cyberlite_smoke",
             "license": "Synthetic",
-            "task": "autocomplete",
+            "task": "completion",
             "prefix": "grep -R ",
             "suffix": " /var/log",
             "middle": '"failed password"',

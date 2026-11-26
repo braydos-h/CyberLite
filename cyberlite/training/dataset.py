@@ -71,7 +71,7 @@ def _fill_middle_ids(tokenizer: Any) -> dict[str, int]:
         if token_id is None or token_id == getattr(tokenizer, "unk_token_id", None):
             raise ValueError(
                 f"tokenizer does not define {token}; fill-in-the-middle training is unavailable. "
-                "Use prefix-based completion instead (see docs/autocomplete.md)."
+                "Use prefix-based completion instead."
             )
         ids[name] = int(token_id)
     return ids

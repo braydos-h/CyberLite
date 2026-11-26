@@ -133,7 +133,7 @@ benchmark results and should not be cited as model capabilities.
 | 2026-11-25 | Qwen3.5-0.8B load on CPU | `Qwen3_5ForConditionalGeneration`, 852,985,920 parameters, 100,592,896 vision parameters |
 | 2026-11-25 | LoRA backward pass, CPU | r=4, 2.71M trainable parameters, finite loss, gradients present |
 | 2026-11-25 | Two-step smoke training | 26--29 s training after load, ~6.3 GiB peak RSS, adapter and metadata saved |
-| 2026-11-25 | Adapter reload + generation | Adapter loaded; chat and FIM code paths executed on CPU |
+| 2026-11-25 | Adapter reload + generation | Adapter loaded; chat and completion code paths executed on CPU |
 | 2026-11-25 | Evaluation harness | Eight synthetic smoke items processed end to end; outputs kept outside the repository |
 | 2026-11-25 | Pilot v1 build | ATT&CK + CWE: 2,102 records in, 2,006 out, 96 near-duplicates removed, 241,515 evaluation n-grams screened, zero 13-gram findings |
 | 2026-11-25 | Pilot v2 build | Nine sources: 7,724 records in, 7,188 accepted, 536 rejected; 241,515 evaluation n-grams screened, zero 13-gram findings; Qwen3.5-0.8B tokenizer p50 373 / p95 798 / p99 1,539, max 3,474; 216 records over 1,024 tokens |

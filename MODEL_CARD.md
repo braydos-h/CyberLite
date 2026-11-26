@@ -31,7 +31,7 @@ CyberLite is intended for:
 - local, offline experimentation and teaching;
 - defensive detection engineering, secure coding, and remediation drafting with
   human review;
-- cybersecurity-aware autocomplete research in editors and lab notebooks.
+- cybersecurity-aware completion research in editors and lab notebooks.
 
 ## Out-of-scope use
 
@@ -55,7 +55,7 @@ Relevant variation includes:
   vulnerability management, detection rules.
 - **Deployment:** CPU (slow), consumer GPU, Apple MPS; 4/8-bit quantization;
   context length.
-- **Prompt style:** chat/instruct vs raw completion; FIM vs prefix autocomplete.
+- **Prompt style:** chat/instruct vs raw completion; FIM vs prefix completion.
 - **Data mix:** ATT&CK/CWE/NVD-derived explanations vs project-authored
   workflows and code.
 

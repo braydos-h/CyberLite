@@ -106,7 +106,7 @@ These are verifiable in the repository today:
   contamination screening, exercised on a committed pilot manifest: ATT&CK +
   CWE, 2,006 records, 96 near-duplicates removed, 241,515 evaluation n-grams
   screened with zero verbatim 13-gram overlap.
-- A local OpenAI-compatible API, autocomplete engine, and BM25 retrieval.
+- A local OpenAI-compatible API and BM25 retrieval.
 
 ## What does not exist yet
 
@@ -165,8 +165,8 @@ contributors. That shapes the plan more than the hardware does.
   weeks, full matrix 10–14 weeks, evaluation and paper 4–6 weeks. Milestones are
   ordered so a partial matrix is still publishable.
 - If time runs short, cut in this order: the 26B rung, multi-seed repeats, larger
-  control models, the autocomplete acceptance study. Do **not** cut: seed
-  fixing, raw predictions, the safety gate, or negative results.
+  control models. Do **not** cut: seed fixing, raw predictions, the safety
+  gate, or negative results.
 - The bus factor is one. Mitigations are committed configs and manifests, DOI
   artifacts where licenses allow, and paid external review at the end of a
   milestone — not a second employee.

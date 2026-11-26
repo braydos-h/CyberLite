@@ -124,7 +124,7 @@ at 4–16 GB VRAM.
 ## G3 — Honest, reproducible evaluation
 
 Advances [roadmap Phase 2](docs/roadmap.md#phase-2--core-post-training-comparison)
-and [roadmap Phase 6](docs/roadmap.md#phase-6--publication).
+and [roadmap Phase 5](docs/roadmap.md#phase-5--publication).
 
 **Success:** every published number traces back to raw predictions, configs,
 and hardware metadata.
@@ -147,23 +147,20 @@ probe is a regression signal, not a benchmark.
 
 ## G4 — Practical local deployment
 
-Advances [roadmap Phase 3](docs/roadmap.md#phase-3--autocomplete) and
-[roadmap Phase 5](docs/roadmap.md#phase-5--quantization-and-cpu-deployment).
+Advances [roadmap Phase 4](docs/roadmap.md#phase-4--quantization-and-cpu-deployment).
 
 **Success:** fast, offline, non-executing assistance on ordinary laptops.
 
 - [x] Local CPU/GPU inference engine with streaming is implemented.
 - [x] OpenAI-compatible API with optional bearer-token auth is implemented.
-- [x] FIM/prefix autocomplete engine and local API are implemented.
 - [x] Dependency-free BM25 retrieval and citation-bearing RAG are implemented.
 - [ ] GGUF export and llama.cpp inference are validated for Qwen3.5.
 - [ ] A CPU-only latency and memory profile is published for representative laptops.
 - [ ] Quality-regression thresholds for quantized deployment are defined and enforced.
-- [ ] An editor integration reference client ships with acceptance-rate measurement.
 
 ## G5 — Distillation and retrieval
 
-Advances [roadmap Phase 4](docs/roadmap.md#phase-4--distillation-and-retrieval).
+Advances [roadmap Phase 3](docs/roadmap.md#phase-3--distillation-and-retrieval).
 
 **Success:** evidence that distillation and retrieval beat plain supervised
 fine-tuning at matched compute, or a documented negative result.
@@ -176,7 +173,7 @@ fine-tuning at matched compute, or a documented negative result.
 
 ## G6 — Publication and release
 
-Advances [roadmap Phase 6](docs/roadmap.md#phase-6--publication).
+Advances [roadmap Phase 5](docs/roadmap.md#phase-5--publication).
 
 **Success:** a reviewable research release where every placeholder is replaced
 by a measurement or an explicit limitation.

@@ -21,7 +21,6 @@ from pathlib import Path
 from typing import Any
 
 from cyberlite import __version__
-from cyberlite.autocomplete.engine import AutocompleteEngine
 from cyberlite.config import PINNED_QWEN35_MODEL_ID, PINNED_QWEN35_REVISION
 from cyberlite.evaluation import metrics
 from cyberlite.evaluation.benchmarks import list_benchmarks
@@ -43,8 +42,39 @@ TASK_ALIASES = {
     "qa": "generation",
     "completion": "completion",
     "secure_code_completion": "completion",
-    "autocomplete": "completion",
 }
+
+FIM_PREFIX = "<|fim_prefix|>"
+FIM_SUFFIX = "<|fim_suffix|>"
+FIM_MIDDLE = "<|fim_middle|>"
+FIM_PAD = "<|fim_pad|>"
+_CODE_FENCE_RE = re.compile(r"^\s*```[a-zA-Z0-9_+-]*\s*\n(.*?)\n```\s*$", re.DOTALL)
+_LEADING_LABEL_RE = re.compile(
+    r"^\s*(?:completion|suggestion|output|code|answer)\s*:\s*", re.IGNORECASE
+)
+
+
+def _fim_supported(tokenizer: Any) -> bool:
+    token_id = tokenizer.convert_tokens_to_ids(FIM_MIDDLE)
+    return token_id is not None and token_id != getattr(tokenizer, "unk_token_id", None)
+
+
+def _sanitize_completion(text: str, prefix: str = "") -> str:
+    """Remove common model artifacts without changing the completion's meaning."""
+
+    text = text.replace(FIM_PAD, "").replace(FIM_MIDDLE, "").replace(FIM_SUFFIX, "")
+    text = text.replace(FIM_PREFIX, "")
+    fence = _CODE_FENCE_RE.match(text)
+    if fence:
+        text = fence.group(1)
+    text = _LEADING_LABEL_RE.sub("", text)
+    if prefix and text.startswith(prefix):
+        text = text[len(prefix) :]
+        if text.startswith((" ", "\t")) and not prefix.endswith((" ", "\t", "\n")):
+            text = text[1:]
+    return text.rstrip()
+
+
 SYSTEM_PROMPT = (
     "You are CyberLite, a defensive cybersecurity research assistant. Be technically precise, "
     "state uncertainty, and never claim to have executed commands or accessed systems."
@@ -339,9 +369,6 @@ class EvaluationHarness:
     bootstrap_resamples: int = 10_000
 
     def __post_init__(self) -> None:
-        self.autocomplete = (
-            AutocompleteEngine(self.engine) if hasattr(self.engine, "tokenizer") else None
-        )
         self.predictions: list[dict[str, Any]] = []
         self.peak_memory: dict[str, Any] = {}
 
@@ -353,20 +380,30 @@ class EvaluationHarness:
         else:
             max_tokens = _task_max_tokens(example.task)
         if example.task == "completion":
-            if self.autocomplete is None:
+            tokenizer = getattr(self.engine, "tokenizer", None)
+            if tokenizer is None:
                 raise RuntimeError("completion evaluation requires an inference engine tokenizer")
-            result = self.autocomplete.complete(
-                example.prefix or "",
-                suffix=example.suffix,
-                language=example.language,
+            prefix = example.prefix or ""
+            if _fim_supported(tokenizer):
+                prompt = f"{FIM_PREFIX}{prefix}{FIM_SUFFIX}{example.suffix}{FIM_MIDDLE}"
+                stop = [FIM_PAD, "<|endoftext|>", "<|im_end|>"]
+                mode = "fim"
+            else:
+                prompt = prefix
+                stop = ["<|im_end|>", "<|endoftext|>"]
+                mode = "prefix"
+            settings = GenerationSettings(
                 max_new_tokens=max_tokens,
                 temperature=max(self.temperature, 0.0),
+                seed=self.seed + index,
+                stop=stop,
             )
-            return result.completion, {
+            result = self.engine.complete(prompt, settings)
+            return _sanitize_completion(result.text, prefix=prefix), {
                 "latency_seconds": result.latency_seconds,
                 "prompt_tokens": result.prompt_tokens,
                 "completion_tokens": result.completion_tokens,
-                "mode": result.mode,
+                "mode": mode,
             }
         settings = GenerationSettings(
             max_new_tokens=max_tokens,

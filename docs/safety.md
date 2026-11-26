@@ -8,9 +8,8 @@ testing service, an autonomous agent, or an incident-response authority.
 
 ## Hard boundaries in the code
 
-- No generated command or code is executed by the inference, autocomplete,
-  evaluation, or server modules.
-- Autocomplete responses include `executed: false` and `requires_review: true`.
+- No generated command or code is executed by the inference, evaluation, or
+  server modules.
 - Evaluation checks Python syntax with `ast.parse`; it never imports or runs
   generated code.
 - The local API has no tool-calling or shell tool surface.

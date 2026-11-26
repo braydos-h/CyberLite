@@ -142,6 +142,8 @@ def check_required() -> list[str]:
 def check_artifacts(paths: list[Path]) -> list[str]:
     errors = []
     for path in paths:
+        if not path.is_file():
+            continue
         relative = path.relative_to(ROOT)
         if path.suffix.lower() in FORBIDDEN_SUFFIXES:
             errors.append(f"forbidden artifact in repository: {relative}")

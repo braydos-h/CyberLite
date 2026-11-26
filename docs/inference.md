@@ -39,8 +39,6 @@ cyberlite-serve --model Qwen/Qwen3.5-0.8B --adapter runs/qlora --device cpu
 | `/v1/models` | GET | OpenAI-style model list |
 | `/v1/completions` | POST | streaming and non-streaming |
 | `/v1/chat/completions` | POST | streaming and non-streaming |
-| `/v1/autocomplete` | POST | text completion, never executed |
-| `/v1/autocomplete/feedback` | POST | opt-in hash-only acceptance log |
 
 Implemented request fields: `model`, `prompt`/`messages`, `max_tokens`,
 `temperature`, `top_p`, `stream`, `stop`, `seed`. Extra fields are tolerated for

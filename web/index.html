@@ -142,40 +142,7 @@
 @media (max-width: 1023px) { .memory__classes { display: none; } }
 @media (max-width: 1023px) { .memory { margin-top: var(--s-7); } }
 
-/* ---------------------------------------------------------------- 4. completion */
-#completion .head { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--gutter); align-items: start; }
-#completion .head > div { grid-column: span 5; }
-#completion .head > p { grid-column: 7 / -1; margin: 0 0 2px; }
-#completion .head .link { margin-top: var(--s-3); }
-#completion .frame { margin-top: var(--s-7); overflow: hidden; isolation: isolate; color: var(--ground-ink); }
-#completion .frame .stage { position: absolute; inset: 0; }
-.completion-profiles { position: absolute; left: calc(50% + var(--s-3)); right: 2.5%; top: 13%; display: grid; gap: var(--s-4); align-content: start; }
-.completion-profiles .t-label { color: var(--ground-muted); }
-.profiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2px var(--s-5); margin: 0; padding: 0; list-style: none; }
-.profiles li { padding-block: 5px; border-top: 1px solid color-mix(in oklab, var(--ground-ink) 14%, transparent); font: 400 var(--t-small)/1.4 var(--font-mono); color: var(--ground-ink); }
-.profiles__note { color: var(--ground-muted); font-size: var(--t-small); line-height: 1.45; max-width: 30ch; }
-.completion-facts { position: absolute; left: 0; right: 0; bottom: 56px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--s-4); z-index: 2; }
-.completion-facts > div { display: grid; gap: var(--s-1); padding-top: var(--s-3); border-top: 1px solid color-mix(in oklab, var(--ground-ink) 16%, transparent); }
-.completion-facts dt { color: var(--ground-muted); font-size: var(--t-label); }
-.completion-facts dd { margin: 0; color: var(--ground-ink); font-size: var(--t-small); font-weight: 500; }
-@media (max-width: 639px) { .completion-facts { left: 0; right: 0; bottom: 56px; grid-template-columns: 1fr; gap: var(--s-1); } .completion-facts > div { padding-top: var(--s-2); } }
-#completion .at-rise { z-index: 1; }
-#completion .ui-code { --u-muted: #c8d1c3; --u-soft: #b6c0b0; --u-text-2: #dde5d8; }
-@media (max-width: 1023px) {
-  #completion .head { display: block; }
-  #completion .head > p { margin-top: var(--s-4); }
-  #completion .at-rise { display: none; }
-  .completion-profiles { position: absolute; left: calc(50% + var(--s-3)); right: 3%; top: 10%; }
-}
-@media (max-width: 639px) {
-  #completion .frame { min-height: 0; }
-  .completion-profiles { position: absolute; left: 0; right: 0; top: 40px; padding: 0; }
-  .completion-facts { display: none; }
-  .profiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  #completion .at-rise { display: none; }
-}
-
-/* ---------------------------------------------------------------- 5. safety */
+/* ---------------------------------------------------------------- 4. safety */
 #safety .grid { align-items: start; }
 #safety .facts { margin-top: var(--s-6); display: grid; gap: var(--s-2); }
 #safety .facts > div { display: flex; align-items: baseline; justify-content: space-between; gap: var(--s-4); padding-block: var(--s-3); border-top: 1px solid var(--line); }
@@ -219,7 +186,6 @@
   #memory { --h: 1; height: calc(1 * 100svh); min-height: 0; }
   #safety { --h: 2; height: calc(2 * 100svh); min-height: 0; }
   #memory .grid > .span-5, #safety .grid > .span-5 { width: 100%; }
-  #memory .wrap, #safety .wrap, #completion .wrap { display: flex; flex-direction: column; }
   #memory .wrap, #safety .wrap { display: flex; flex-direction: column; height: 100%; }
   #memory .grid { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
   #safety .grid { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
@@ -228,24 +194,18 @@
   #memory .runs-on { display: none; }
   #memory .frame { flex: 1 1 0; height: auto; min-height: 240px; margin-top: var(--s-6); }
   #memory .frame::before { padding-top: 0; }
-  #completion .frame { flex: 1 1 auto; min-height: 0; height: calc(100svh - var(--padt) - var(--padb) - 460px); aspect-ratio: auto; }
-  #completion .frame::before { padding-top: 0; }
   .ui-doc__note { display: none; }
   #phases .mo-mq__pause { top: auto; bottom: 0; transform: none; }
   #phases .mo-mq { padding-bottom: 48px; }
 }
-@media (max-width: 1279px) {
-  .profiles__note { display: none; }
-}
 @media (max-width: 639px) {
   #safety { --hm: 2; }
-  #memory, #completion { --hm: 1; }
+  #memory { --hm: 1; }
   #memory .facts { display: none; }
   .memory { padding: var(--s-5); }
   .memory__scale { display: none; }
   .snapshot__date { display: none; }
   #phases .marquee { padding-top: var(--s-4); }
-  #completion .frame { height: 320px; min-height: 0; }
   .phases__detail { display: none; }
   #phases .head > p { display: none; }
   #phases .snapshot { display: none; }
@@ -276,7 +236,7 @@ footer.closing .closing__cta .btn--xl { transition: transform var(--dur) var(--e
 </head>
 <body>
 <!-- type: software
-     deal: hero triptych, nav nav-centre (re-dealt from nav-cards: no photographs for its picture cards), close close-type (re-dealt from close-word: footer-dark sets the name large), footer footer-dark, rhythm dark-band, buttons arrow, mark dots, effect grain-gradient in the completion frame, backgrounds none (the inverse band carries the light section; bg-halo dropped), moments marquee-row in the phases section
+     deal: hero collage, nav nav-centre (re-dealt from nav-cards: no photographs for its picture cards), close close-type (re-dealt from close-word: footer-dark sets the name large), footer footer-dark, rhythm dark-band, buttons arrow, mark dots, backgrounds none (the inverse band carries the light section; bg-halo dropped), moments marquee-row in the phases section
      palette forest-pale-lime; type instrument; radius sharp -->
 
 <header class="nav nav--centre">
@@ -286,7 +246,6 @@ footer.closing .closing__cta .btn--xl { transition: transform var(--dur) var(--e
     <nav class="nav__links" aria-label="Main">
       <div class="nav__item"><a class="nav__link" href="#run">Run</a></div>
       <div class="nav__item"><a class="nav__link" href="#memory">Memory</a></div>
-      <div class="nav__item"><a class="nav__link" href="#completion">Completion</a></div>
       <div class="nav__item"><a class="nav__link" href="#phases">Milestones</a></div>
       <div class="nav__item"><a class="nav__link" href="#safety">Safety</a></div>
     </nav>
@@ -308,7 +267,7 @@ footer.closing .closing__cta .btn--xl { transition: transform var(--dur) var(--e
         <p class="hero__lead">An open research project testing whether a sub-billion-parameter model can do useful defensive-security work on a 6–8 GB laptop GPU. No trained checkpoint or benchmark result is released yet.</p>
         <p class="t-small muted hero__note">Open research · Apache-2.0 · text only</p>
       </div>
-      <div class="ly-collage span-6 start-4" role="img" aria-label="A QLoRA configuration, the E0 probe result, the autocomplete response contract and the run plan, each from the repository">
+      <div class="ly-collage span-6 start-4" role="img" aria-label="A QLoRA configuration, the E0 probe result and the run plan, each from the repository">
         <div class="ly-collage__set is-on">
           <div class="ly-piece pc-card pc-config" style="left:4%;top:6%;width:52%;height:38%">
             <div class="pc-bar">configs/qlora.yaml</div>
@@ -328,29 +287,6 @@ footer.closing .closing__cta .btn--xl { transition: transform var(--dur) var(--e
             <span class="pc-kicker">Text layers</span>
             <div class="pc-big">24</div>
             <span class="pc-sub">18 linear · 6 full attention</span>
-          </div>
-        </div>
-        <div class="ly-collage__set" aria-hidden="true">
-          <div class="ly-piece pc-card pc-code" style="left:4%;top:8%;width:46%;height:58%">
-            <div class="pc-bar">autocomplete/formats.py</div>
-            <pre class="pc-pre">LANGUAGES = {
-  "bash": ...,
-  "python": ...,
-  "yara": ...,
-  "sigma": ...,
-  "bpf": ...,
-  "sql": ...,
-}</pre>
-          </div>
-          <div class="ly-piece pc-card pc-response" style="left:52%;top:12%;width:44%;height:34%">
-            <div class="pc-bar">POST /v1/autocomplete</div>
-            <div class="pc-json">"mode": "prefix"</div>
-            <div class="pc-json">"executed": false</div>
-            <div class="pc-json">"requires_review": true</div>
-          </div>
-          <div class="ly-piece pc-card pc-profiles" style="left:52%;top:52%;width:44%;height:44%">
-            <span class="pc-kicker">13 profiles</span>
-            <div class="pc-list">bash · python · powershell · yara · sigma · regex · bpf · tcpdump · nginx · dockerfile · sql · json · generic</div>
           </div>
         </div>
         <div class="ly-collage__set" aria-hidden="true">
@@ -415,7 +351,6 @@ footer.closing .closing__cta .btn--xl { transition: transform var(--dur) var(--e
                   <li class="ui-win__row"><span class="ui-avatar" data-tone="4">Lo</span><span class="ui-win__who">bf16 LoRA</span><span class="ui-win__sub">12–16 GB class</span><span class="ui-win__st">Not run</span><span class="ui-win__age">—</span></li>
                   <li class="ui-win__row"><span class="ui-avatar" data-tone="5">Di</span><span class="ui-win__who">Distillation</span><span class="ui-win__sub">teacher corpus</span><span class="ui-win__st">Not run</span><span class="ui-win__age">—</span></li>
                   <li class="ui-win__row"><span class="ui-avatar" data-tone="1">RA</span><span class="ui-win__who">RAG</span><span class="ui-win__sub">BM25 index</span><span class="ui-win__st">Not run</span><span class="ui-win__age">—</span></li>
-                  <li class="ui-win__row"><span class="ui-avatar" data-tone="2">AC</span><span class="ui-win__who">Autocomplete</span><span class="ui-win__sub">13 profiles</span><span class="ui-win__st">Not run</span><span class="ui-win__age">—</span></li>
                   <li class="ui-win__row"><span class="ui-avatar" data-tone="3">Qu</span><span class="ui-win__who">Quantization</span><span class="ui-win__sub">GGUF · 4-bit</span><span class="ui-win__st">Not run</span><span class="ui-win__age">—</span></li>
                   <li class="ui-win__row"><span class="ui-avatar" data-tone="4">Ha</span><span class="ui-win__who">Harness</span><span class="ui-win__sub">summary and predictions</span><span class="ui-win__st is-done">Done</span><span class="ui-win__age">25 Nov</span></li>
                   <li class="ui-win__row"><span class="ui-avatar" data-tone="5">Pa</span><span class="ui-win__who">Paper</span><span class="ui-win__sub">results pending</span><span class="ui-win__st is-you">Draft</span><span class="ui-win__age">—</span></li>
@@ -498,65 +433,13 @@ footer.closing .closing__cta .btn--xl { transition: transform var(--dur) var(--e
     </div>
   </section>
 
-  <section class="section" id="completion" aria-labelledby="completion-h">
-    <div class="wrap">
-      <div class="head">
-        <div class="section-head">
-          <h2 id="completion-h">Completion for 13 profiles</h2>
-        </div>
-        <p class="t-lead">A local service returns text for the cursor's surroundings in 13 profiles. FIM when the checkpoint supports it, prefix when it does not. <a class="link" href="https://github.com/braydos-h/CyberLite/blob/main/docs/autocomplete.md" target="_blank" rel="noopener">Read the API</a></p>
-      </div>
-      <div class="frame frame--hero fill" data-visual data-fx="grain-gradient" data-fx-seed="19" data-fx-params='{"speed":0.18,"grain":0.55,"tint":0.35}' role="img" aria-label="The real language profile table from formats.py beside the 13 completion profiles">
-        <div class="stage">
-          <div class="at-rise" style="--ax:32px;--ay:64px;--w:440px" data-ui-loop>
-            <div class="ui ui-panel ui-code" data-ui="code">
-              <div class="ui-code__tabs">
-                <span class="ui-code__tab is-on"><i class="ui-code__lang">PY</i>formats.py</span>
-                <span class="ui-code__tab"><i class="ui-code__lang">PY</i>server.py</span>
-                <span class="ui-spacer"></span>
-                <span class="ui-chip ui-chip--plain ui-code__chip">13 profiles</span>
-              </div>
-              <pre class="ui-code__pre"><code><span class="ui-code__ln" data-n="61"><span class="k">LANGUAGES</span> = {</span>
-<span class="ui-code__ln" data-n="62">  <span class="f">"bash"</span>: LanguageProfile(...),</span>
-<span class="ui-code__ln" data-n="63">  <span class="f">"python"</span>: LanguageProfile(...),</span>
-<span class="ui-code__ln" data-n="64">  <span class="f">"powershell"</span>: LanguageProfile(...),</span>
-<span class="ui-code__ln is-mark" data-n="65" data-note="YARA rules get their own fence and // comments.">  <span class="f">"yara"</span>: LanguageProfile(...),</span>
-<span class="ui-code__ln" data-n="66" data-note="Sigma shares .yml with YAML; the profile maps it back.">  <span class="f">"sigma"</span>: LanguageProfile(...),</span>
-<span class="ui-code__ln" data-n="67">  <span class="c"># … and 7 more profiles</span></span>
-<span class="ui-code__ln" data-n="68">}</span></code></pre>
-              <div class="ui-code__hint" data-code-hint><span class="ui-dot"></span><span data-code-text>YARA rules get their own fence and // comments.</span></div>
-            </div>
-          </div>
-          <div class="completion-profiles">
-            <p class="t-label">Profiles</p>
-            <ul class="profiles">
-              <li>bash</li><li>python</li>
-              <li>powershell</li><li>yara</li>
-              <li>sigma</li><li>regex</li>
-              <li>bpf</li><li>tcpdump</li>
-              <li>nginx</li><li>dockerfile</li>
-              <li>sql</li><li>json</li>
-              <li>generic</li>
-            </ul>
-            <p class="profiles__note">The response is text. It does not execute, import or write generated code.</p>
-          </div>
-          <dl class="completion-facts">
-            <div><dt>Modes</dt><dd>auto, fim, prefix</dd></div>
-            <div><dt>Response</dt><dd>text only</dd></div>
-            <div><dt>Feedback</dt><dd>hashes, not completions</dd></div>
-          </dl>
-        </div>
-      </div>
-    </div>
-  </section>
-
   <section class="section" id="safety" aria-labelledby="safety-h">
     <div class="wrap">
       <div class="grid">
         <div class="span-5">
           <div class="section-head">
             <h2 id="safety-h">Safety boundaries</h2>
-            <p class="t-lead">Inference, autocomplete, evaluation and the server return text as data. No generated command is executed; Python is parsed with ast.parse; retrieved evidence is labelled untrusted.</p>
+            <p class="t-lead">Inference, evaluation and the server return text as data. No generated command is executed; Python is parsed with ast.parse; retrieved evidence is labelled untrusted.</p>
           </div>
           <dl class="facts">
             <div><dt>Tool calling</dt><dd>none</dd></div>
@@ -566,13 +449,12 @@ footer.closing .closing__cta .btn--xl { transition: transform var(--dur) var(--e
           <p class="t-small muted" style="margin-top:var(--s-4)"><a class="link" href="https://github.com/braydos-h/CyberLite/blob/main/docs/safety.md" target="_blank" rel="noopener">Read the safety notes</a></p>
         </div>
         <div class="frame frame--split span-6 start-7">
-          <div class="response" role="img" aria-label="The autocomplete response contract: executed false, requires review true, execution disabled false, and a warning that generated content is untrusted">
+          <div class="response" role="img" aria-label="The inference response contract: executed false, execution disabled false, and a warning that generated content is untrusted">
             <div class="response__head">
-            <span class="t-label">Autocomplete response</span>
+            <span class="t-label">Inference response</span>
             <span class="t-small muted">text only</span>
           </div>
           <div class="response__row"><code>"executed"</code><b>false</b></div>
-          <div class="response__row"><code>"requires_review"</code><b>true</b></div>
           <div class="response__row"><code>"execution_enabled"</code><b>false</b></div>
             <div class="response__warn">"Generated content is untrusted; review before use."</div>
             <div class="response__prompt">
@@ -589,23 +471,22 @@ footer.closing .closing__cta .btn--xl { transition: transform var(--dur) var(--e
     <div class="wrap">
       <div class="head">
         <div class="section-head">
-          <h2 id="phases-h">14 of 39 milestones</h2>
+          <h2 id="phases-h">23 of 45 milestones</h2>
         </div>
-        <p class="t-lead">Phase 0 is complete. <span class="phases__detail">Loading, configuration, data checks, LoRA and QLoRA, local inference, autocomplete, retrieval and evaluation are built.</span> The dataset pilot and the post-training comparisons are next.</p>
+        <p class="t-lead">Phase 0 is complete. <span class="phases__detail">Loading, configuration, data checks, LoRA and QLoRA, local inference, retrieval and evaluation are built.</span> The dataset pilot and the post-training comparisons are next.</p>
       </div>
       <p class="t-small muted phases-date">Snapshot, 25 November 2026. <a class="link" href="https://github.com/braydos-h/CyberLite/blob/main/docs/roadmap.md" target="_blank" rel="noopener">Roadmap</a></p>
       <div class="grid">
         <ul class="rows span-6">
           <li><span class="rows__name">Phase 0 · Reproducible foundation</span><span class="rows__value">10 of 10</span></li>
-          <li><span class="rows__name">Phase 1 · Dataset pilot</span><span class="rows__value">0 of 4</span></li>
+          <li><span class="rows__name">Phase 1 · Dataset pilot</span><span class="rows__value">7 of 8</span></li>
           <li><span class="rows__name">Phase 2 · Core post-training</span><span class="rows__value">0 of 5</span></li>
-          <li><span class="rows__name">Phase 3 · Autocomplete</span><span class="rows__value">0 of 4</span></li>
         </ul>
         <div class="span-6 start-7">
           <ul class="rows">
-            <li><span class="rows__name">Phase 4 · Distillation and retrieval</span><span class="rows__value">0 of 4</span></li>
-            <li><span class="rows__name">Phase 5 · Quantization and CPU</span><span class="rows__value">0 of 4</span></li>
-            <li><span class="rows__name">Phase 6 · Publication</span><span class="rows__value">0 of 5</span></li>
+            <li><span class="rows__name">Phase 3 · Distillation and retrieval</span><span class="rows__value">0 of 4</span></li>
+            <li><span class="rows__name">Phase 4 · Quantization and CPU</span><span class="rows__value">0 of 4</span></li>
+            <li><span class="rows__name">Phase 5 · Publication</span><span class="rows__value">0 of 5</span></li>
           </ul>
           <p class="snapshot"><span class="snapshot__date">Snapshot from GOALS.md and docs/roadmap.md, 25 November 2026.</span> <a class="link" href="https://github.com/braydos-h/CyberLite/blob/main/docs/roadmap.md" target="_blank" rel="noopener">Read the roadmap</a></p>
         </div>
@@ -639,7 +520,7 @@ footer.closing .closing__cta .btn--xl { transition: transform var(--dur) var(--e
         </div>
         <div class="span-2 footer__col">
           <h3>Project</h3>
-          <ul><li><a href="#run">Run report</a></li><li><a href="#completion">Completion</a></li><li><a href="#phases">Milestones</a></li><li><a href="#safety">Safety</a></li></ul>
+          <ul><li><a href="#run">Run report</a></li><li><a href="#phases">Milestones</a></li><li><a href="#safety">Safety</a></li></ul>
         </div>
         <div class="span-2 footer__col footer__col--less">
           <h3>Research</h3>
