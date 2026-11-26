@@ -18,7 +18,6 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, ConfigDict, Field
 
 from cyberlite import __version__
-from cyberlite.autocomplete.engine import AutocompleteEngine, FeedbackStore
 from cyberlite.inference.engine import GenerationSettings, InferenceEngine
 from cyberlite.logging_utils import configure_logging, get_logger
 
@@ -56,25 +55,6 @@ class CompletionRequest(BaseModel):
     seed: int | None = 42
 
 
-class AutocompleteRequest(BaseModel):
-    prefix: str = Field(min_length=1, max_length=100_000)
-    suffix: str = Field(default="", max_length=100_000)
-    language: str = "auto"
-    filename: str | None = None
-    mode: Literal["auto", "fim", "prefix"] = "auto"
-    max_tokens: int = Field(default=128, ge=1, le=512)
-    temperature: float = Field(default=0.1, ge=0, le=1)
-
-
-class FeedbackRequest(BaseModel):
-    accepted: bool
-    language: str = "generic"
-    mode: str = "fim"
-    latency_seconds: float = Field(default=0.0, ge=0)
-    completion: str = Field(default="", max_length=100_000)
-    model_id: str = ""
-
-
 def _stops(value: str | list[str] | None, defaults: list[str]) -> list[str]:
     if value is None:
         return defaults
@@ -97,12 +77,7 @@ def _sse(payload: dict[str, Any]) -> str:
     return f"data: {json.dumps(payload, ensure_ascii=False)}\n\n"
 
 
-def create_app(
-    *,
-    engine: Any,
-    autocomplete: AutocompleteEngine | None = None,
-    feedback: FeedbackStore | None = None,
-) -> FastAPI:
+def create_app(*, engine: Any) -> FastAPI:
     app = FastAPI(
         title="CyberLite local inference API",
         version=__version__,
@@ -118,8 +93,6 @@ def create_app(
         allow_headers=["*"],
     )
     app.state.engine = engine
-    app.state.autocomplete = autocomplete
-    app.state.feedback = feedback or FeedbackStore(None)
 
     @app.get("/health")
     def health() -> dict[str, Any]:
@@ -239,47 +212,6 @@ def create_app(
             "cyberlite": {"executed": False},
         }
 
-    @app.post("/v1/autocomplete", dependencies=[Depends(_authorize)])
-    def autocomplete_endpoint(request: AutocompleteRequest) -> dict[str, Any]:
-        if app.state.autocomplete is None:
-            raise HTTPException(status_code=503, detail="autocomplete engine is not configured")
-        try:
-            result = app.state.autocomplete.complete(
-                request.prefix,
-                suffix=request.suffix,
-                language=request.language,
-                filename=request.filename,
-                max_new_tokens=request.max_tokens,
-                temperature=request.temperature,
-                mode=request.mode,
-            )
-        except ValueError as exc:
-            raise HTTPException(status_code=400, detail=str(exc)) from exc
-        payload = result.to_dict()
-        payload["warning"] = "Generated content is untrusted; review before use."
-        return payload
-
-    @app.post("/v1/autocomplete/feedback", dependencies=[Depends(_authorize)])
-    def autocomplete_feedback(request: FeedbackRequest) -> dict[str, Any]:
-        store: FeedbackStore = app.state.feedback
-        if not store.path:
-            raise HTTPException(
-                status_code=501,
-                detail="feedback storage disabled; start with --feedback-file PATH",
-            )
-        try:
-            store.record(
-                accepted=request.accepted,
-                language=request.language,
-                mode=request.mode,
-                latency_seconds=request.latency_seconds,
-                completion=request.completion,
-                model_id=request.model_id or getattr(engine, "model_id", ""),
-            )
-        except OSError as exc:
-            raise HTTPException(status_code=500, detail=f"could not write feedback: {exc}") from exc
-        return {"recorded": True, "completion_text_stored": False}
-
     return app
 
 
@@ -365,8 +297,6 @@ def build_parser():
     parser.add_argument("--max-context", type=int, default=None)
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=8000)
-    parser.add_argument("--feedback-file", default=None)
-    parser.add_argument("--no-autocomplete", action="store_true")
     parser.add_argument("--json-logs", action="store_true")
     return parser
 
@@ -385,12 +315,7 @@ def main(argv: list[str] | None = None) -> int:
         load_in_8bit=args.load_in_8bit,
         max_context=args.max_context,
     )
-    autocomplete = None if args.no_autocomplete else AutocompleteEngine(engine)
-    app = create_app(
-        engine=engine,
-        autocomplete=autocomplete,
-        feedback=FeedbackStore(args.feedback_file),
-    )
+    app = create_app(engine=engine)
     logger.info("starting local API", extra={"host": args.host, "port": args.port})
     uvicorn.run(app, host=args.host, port=args.port, log_level="info")
     return 0

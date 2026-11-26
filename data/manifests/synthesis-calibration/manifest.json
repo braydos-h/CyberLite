@@ -1,0 +1,810 @@
+{
+  "acceptance_rate": 0.9259,
+  "accepted_records": 500,
+  "authored_synthetic_records": 420,
+  "build_id": "cyberlite-syn-2.0.0-04a21fdaa5ec",
+  "config_sha256": "c0917aa2deaf5f3fdad2d373255a2c1d285aee4325ab724c4c7e3ee8c6c284f1",
+  "considered_candidates": 2000,
+  "contamination": {
+    "benchmarks_available": [
+      "baseline_probe_v1",
+      "cyberlite_eval_factual_v1",
+      "cyberlite_eval_logs_ir_v1",
+      "cyberlite_eval_vulnerability_v1",
+      "seceval_v1",
+      "smoke_eval"
+    ],
+    "benchmarks_unavailable": [
+      "CyberSecEval (not present locally)"
+    ],
+    "files": [
+      "data/evaluation/baseline_probe_v1.jsonl",
+      "data/evaluation/cyberlite_eval_factual_v1.jsonl",
+      "data/evaluation/cyberlite_eval_logs_ir_v1.jsonl",
+      "data/evaluation/cyberlite_eval_vulnerability_v1.jsonl",
+      "data/evaluation/seceval_v1.jsonl",
+      "data/evaluation/smoke_eval.jsonl"
+    ],
+    "findings": [],
+    "group_removed_ids": [],
+    "limitations": "13-gram lexical overlap only. Paraphrase, translation, and conceptual overlap are not detected. An unavailable benchmark is not a pass.",
+    "ngram": 13,
+    "removed": 0,
+    "removed_groups": [],
+    "sets": [
+      {
+        "items": 36,
+        "license": "Synthetic",
+        "matched_ids": [],
+        "matched_records": 0,
+        "metadata": {
+          "benchmark": "baseline-probe-v1",
+          "evaluation_only": true,
+          "items": 36,
+          "license": "Synthetic",
+          "note": "36 project-authored capability-probe items; a regression signal, not a validated benchmark.",
+          "redistribution": "project-authored; may be redistributed with attribution",
+          "sha256": "f5a7055c5168e77529b52e0d572cf8f987c60d15e6e5c49a0d3099b70857baf4",
+          "version": "v1"
+        },
+        "name": "baseline-probe-v1",
+        "ngrams": 594,
+        "path": "data/evaluation/baseline_probe_v1.jsonl",
+        "populated": true,
+        "sha256": "f5a7055c5168e77529b52e0d572cf8f987c60d15e6e5c49a0d3099b70857baf4",
+        "version": "v1"
+      },
+      {
+        "items": 55,
+        "license": "Synthetic",
+        "matched_ids": [],
+        "matched_records": 0,
+        "metadata": {
+          "description": "Held-out CyberLite evaluation set. Evaluation-only; never a training source.",
+          "difficulties": {
+            "advanced": 14,
+            "expert": 3,
+            "foundational": 16,
+            "intermediate": 22
+          },
+          "evaluation_only": true,
+          "file": "cyberlite_eval_factual_v1.jsonl",
+          "frozen": true,
+          "items": 55,
+          "license": "Synthetic",
+          "name": "cyberlite_eval_factual_v1",
+          "schema_version": 1,
+          "sha256": "4f098917af536c3cfbcef6e47aa95a8a72433e1977833b92bdf877622ca88ed0",
+          "suites": {
+            "factual": 25,
+            "knowledge": 20,
+            "uncertainty": 10
+          },
+          "validation": {
+            "error_count": 0,
+            "ok": true,
+            "warning_count": 0
+          }
+        },
+        "name": "cyberlite_eval_factual_v1",
+        "ngrams": 7250,
+        "path": "data/evaluation/cyberlite_eval_factual_v1.jsonl",
+        "populated": true,
+        "sha256": "4f098917af536c3cfbcef6e47aa95a8a72433e1977833b92bdf877622ca88ed0",
+        "version": "unknown"
+      },
+      {
+        "items": 55,
+        "license": "Synthetic",
+        "matched_ids": [],
+        "matched_records": 0,
+        "metadata": {
+          "description": "Held-out CyberLite evaluation set. Evaluation-only; never a training source.",
+          "difficulties": {
+            "advanced": 14,
+            "expert": 3,
+            "foundational": 16,
+            "intermediate": 22
+          },
+          "evaluation_only": true,
+          "file": "cyberlite_eval_logs_ir_v1.jsonl",
+          "frozen": true,
+          "items": 55,
+          "license": "Synthetic",
+          "name": "cyberlite_eval_logs_ir_v1",
+          "schema_version": 1,
+          "sha256": "27f26ed40fc30b1e78a12bc8e08987076bf6cebf44beaf8fb79b6f4671f47b26",
+          "suites": {
+            "false-positive": 8,
+            "grounded-qa": 10,
+            "incident-response": 12,
+            "logs": 15,
+            "retention": 10
+          },
+          "validation": {
+            "error_count": 0,
+            "ok": true,
+            "warning_count": 0
+          }
+        },
+        "name": "cyberlite_eval_logs_ir_v1",
+        "ngrams": 15873,
+        "path": "data/evaluation/cyberlite_eval_logs_ir_v1.jsonl",
+        "populated": true,
+        "sha256": "27f26ed40fc30b1e78a12bc8e08987076bf6cebf44beaf8fb79b6f4671f47b26",
+        "version": "unknown"
+      },
+      {
+        "items": 55,
+        "license": "Synthetic",
+        "matched_ids": [],
+        "matched_records": 0,
+        "metadata": {
+          "description": "Held-out CyberLite evaluation set. Evaluation-only; never a training source.",
+          "difficulties": {
+            "advanced": 14,
+            "expert": 3,
+            "foundational": 16,
+            "intermediate": 22
+          },
+          "evaluation_only": true,
+          "file": "cyberlite_eval_vulnerability_v1.jsonl",
+          "frozen": true,
+          "items": 55,
+          "license": "Synthetic",
+          "name": "cyberlite_eval_vulnerability_v1",
+          "schema_version": 1,
+          "sha256": "3ce6fd0c14bc0ef42c571beede7e62835df54232e643b143e439939a23803cff",
+          "suites": {
+            "configuration": 10,
+            "false-positive": 10,
+            "secure-code": 20,
+            "vulnerability": 15
+          },
+          "validation": {
+            "error_count": 0,
+            "ok": true,
+            "warning_count": 0
+          }
+        },
+        "name": "cyberlite_eval_vulnerability_v1",
+        "ngrams": 13312,
+        "path": "data/evaluation/cyberlite_eval_vulnerability_v1.jsonl",
+        "populated": true,
+        "sha256": "3ce6fd0c14bc0ef42c571beede7e62835df54232e643b143e439939a23803cff",
+        "version": "unknown"
+      },
+      {
+        "items": 2182,
+        "license": "CC-BY-NC-SA-4.0",
+        "matched_ids": [],
+        "matched_records": 0,
+        "metadata": {
+          "benchmark": "seceval",
+          "converted_items": 2182,
+          "converted_sha256": "6ae74b2c9c45d1024f99453be00ae82d00567f0b5f1ffa1cc4109a2fa4ef1c03",
+          "downloaded_at": "2026-11-25T04:02:40.001947+00:00",
+          "evaluation_only": true,
+          "license": "CC-BY-NC-SA-4.0",
+          "multi_answer_items": 925,
+          "redistribution": "not permitted",
+          "single_answer_items": 1257,
+          "skipped": {
+            "unusable_or_empty_answer": 7
+          },
+          "topics": {
+            "ApplicationSecurity": 807,
+            "Cryptography": 14,
+            "MemorySafety": 48,
+            "NetworkSecurity": 228,
+            "PenTest": 473,
+            "SoftwareSecurity": 232,
+            "SystemSecurity": 1062,
+            "Vulnerability": 334,
+            "WebSecurity": 771
+          },
+          "upstream_items": 2189,
+          "upstream_revision": "205dab7b0888a06f4b53ca7d9c7093e1326683e1",
+          "upstream_sha256": "194c3a511104be422a678675a71d44315d0c0392b040745155aeebc321e692e0",
+          "upstream_url": "https://huggingface.co/datasets/XuanwuAI/SecEval"
+        },
+        "name": "seceval",
+        "ngrams": 240755,
+        "path": "data/evaluation/seceval_v1.jsonl",
+        "populated": true,
+        "sha256": "6ae74b2c9c45d1024f99453be00ae82d00567f0b5f1ffa1cc4109a2fa4ef1c03",
+        "version": "205dab7b0888a06f4b53ca7d9c7093e1326683e1"
+      },
+      {
+        "items": 8,
+        "license": "Synthetic",
+        "matched_ids": [],
+        "matched_records": 0,
+        "metadata": {
+          "benchmark": "smoke-eval",
+          "evaluation_only": true,
+          "items": 8,
+          "license": "Synthetic",
+          "note": "Eight original synthetic harness-validation items; not a benchmark.",
+          "redistribution": "project-authored; may be redistributed with attribution",
+          "sha256": "111132beb36f65d9bc57bdb42efe9d801d5971d0f355f23b08723e7b6be5fc3d",
+          "version": "v1"
+        },
+        "name": "smoke-eval",
+        "ngrams": 166,
+        "path": "data/evaluation/smoke_eval.jsonl",
+        "populated": true,
+        "sha256": "111132beb36f65d9bc57bdb42efe9d801d5971d0f355f23b08723e7b6be5fc3d",
+        "version": "v1"
+      }
+    ],
+    "status": "screened",
+    "threshold": 0.2,
+    "total_indexed_ngrams": 277950
+  },
+  "created_at": "2026-11-25T13:22:29.111693+00:00",
+  "cross_split_leakage": [],
+  "cyberlite_version": "0.1.0",
+  "dataset_name": "cyberlite-calibration",
+  "dataset_schema": 1,
+  "dataset_version": "cyberlite-syn-2.0.0-04a21fdaa5ec",
+  "deduplication": {
+    "exact_duplicates": 0,
+    "input": 1999,
+    "kept": 1960,
+    "semantic_method": "word 5-shingle MinHash/LSH (lexical approximation)",
+    "semantic_near_duplicates": 5,
+    "semantic_pairs": [
+      {
+        "left_id": "grnd-owasp-cheatsheets-owasp-cheatsheets-05dc657bde85e4ea-requirement-1",
+        "right_id": "grnd-owasp-cheatsheets-owasp-cheatsheets-05dc657bde85e4ea-requirement-2",
+        "similarity": 0.8923
+      },
+      {
+        "left_id": "grnd-netfilter-nftables-netfilter-nftables-b4529fd9fc104be1-requirement-1",
+        "right_id": "grnd-netfilter-nftables-netfilter-nftables-b4529fd9fc104be1-requirement-2",
+        "similarity": 0.8885
+      },
+      {
+        "left_id": "grnd-netfilter-nftables-netfilter-nftables-0c1de1a16afe4410-requirement-1",
+        "right_id": "grnd-netfilter-nftables-netfilter-nftables-0c1de1a16afe4410-requirement-2",
+        "similarity": 0.8828
+      },
+      {
+        "left_id": "grnd-ietf-rfcs-ietf-rfcs-0dfeec252d33deeb-requirement-1",
+        "right_id": "grnd-ietf-rfcs-ietf-rfcs-0dfeec252d33deeb-requirement-2",
+        "similarity": 0.8819
+      },
+      {
+        "left_id": "grnd-ietf-rfcs-ietf-rfcs-2981ce2371998984-requirement-1",
+        "right_id": "grnd-ietf-rfcs-ietf-rfcs-2981ce2371998984-requirement-2",
+        "similarity": 0.8819
+      }
+    ],
+    "semantic_threshold": 0.88,
+    "simhash_near_duplicates": 34
+  },
+  "deferred_for_target": 1460,
+  "distributions": {
+    "difficulty": {
+      "advanced": 125,
+      "expert": 25,
+      "foundational": 150,
+      "intermediate": 200
+    },
+    "domain": {
+      "cloud-container-supply-chain": 60,
+      "cryptography-identity-access": 50,
+      "fundamentals-linux-networking": 53,
+      "ietf_rfcs": 8,
+      "incident-response-forensics-threat-intel": 39,
+      "language-security-retention": 60,
+      "linux_man_pages": 8,
+      "mitre_attack": 14,
+      "mitre_cwe": 11,
+      "monitoring-detection-soc": 60,
+      "netfilter_nftables": 2,
+      "nist_nvd": 28,
+      "openssh_docs": 5,
+      "owasp_cheatsheets": 4,
+      "vulnerability-classification-remediation": 43,
+      "web-api-secure-development": 55
+    },
+    "kind": {
+      "chat": 12,
+      "completion": 473,
+      "fim": 15
+    },
+    "license": {
+      "CC-BY-SA-4.0": 4,
+      "GPL-1.0-or-later": 1,
+      "GPL-2.0-only": 2,
+      "GPL-2.0-or-later": 1,
+      "IETF-Trust": 8,
+      "Linux-man-pages-1-para": 3,
+      "Linux-man-pages-copyleft": 3,
+      "MITRE-ATTACK": 14,
+      "MITRE-CWE": 11,
+      "OpenSSH": 5,
+      "Public-Domain": 28,
+      "Synthetic": 420
+    },
+    "origin": {
+      "curated-synthetic": 420,
+      "source-derived": 80
+    },
+    "review_status": {
+      "automated-screened": 500
+    },
+    "source": {
+      "cyberlite_synthesis": 420,
+      "ietf_rfcs": 8,
+      "linux_man_pages": 8,
+      "mitre_attack": 14,
+      "mitre_cwe": 11,
+      "netfilter_nftables": 2,
+      "nist_nvd": 28,
+      "openssh_docs": 5,
+      "owasp_cheatsheets": 4
+    },
+    "task": {
+      "unset": 500
+    },
+    "task_family": {
+      "attack-technique-recognition": 4,
+      "code-remediation": 17,
+      "command-explanation": 47,
+      "comparison": 13,
+      "configuration-analysis": 30,
+      "configuration-completion": 20,
+      "detection-rule-interpretation": 4,
+      "error-diagnosis": 20,
+      "evidence-grounded-qa": 41,
+      "false-positive-recognition": 10,
+      "fill-in-the-middle": 15,
+      "general-retention": 8,
+      "incident-investigation": 2,
+      "instruction-response": 50,
+      "log-interpretation": 25,
+      "misconception-correction": 20,
+      "multi-turn-troubleshooting": 12,
+      "multiple-choice": 65,
+      "multiple-choice-multi-answer": 25,
+      "secure-code-review": 21,
+      "structured-json": 30,
+      "uncertainty-handling": 9,
+      "vulnerability-classification": 9,
+      "vulnerability-remediation": 3
+    }
+  },
+  "environment": {
+    "platform": "Linux-6.8.0-151-generic-x86_64-with-glibc2.39",
+    "python": "3.12.3"
+  },
+  "files": {
+    "preferences": {
+      "bytes": 468633,
+      "path": "data/processed/synthesis-calibration/preferences.jsonl",
+      "records": 183,
+      "sha256": "87b7efa93e4e55333715b07f9950ff98377df6db8da3b7c967f2eaa20948e16f"
+    },
+    "quarantine": {
+      "bytes": 6363,
+      "path": "data/processed/synthesis-calibration/quarantine.jsonl",
+      "records": 40,
+      "sha256": "f8728640039a1152b924f546193ec51f0eaab963c5094c363d33938395748454"
+    },
+    "test": {
+      "bytes": 71549,
+      "path": "data/processed/synthesis-calibration/test.jsonl",
+      "records": 23,
+      "sha256": "e131502494c867f5ef19df856c974288300ab5d95228ea5ddfc3a7fc1dcdb059"
+    },
+    "train": {
+      "bytes": 1431229,
+      "path": "data/processed/synthesis-calibration/train.jsonl",
+      "records": 444,
+      "sha256": "5e9673dc4b354ff20df9f02eeb0fdfa6873311742d48793004cf956849abc971"
+    },
+    "validation": {
+      "bytes": 108889,
+      "path": "data/processed/synthesis-calibration/validation.jsonl",
+      "records": 33,
+      "sha256": "5a018a4fd645d069f2a9c19111bc43a68d90371c0ca139c5f67e44a77b98343f"
+    }
+  },
+  "generated_candidates": 20360,
+  "group_split_violations": [],
+  "inputs": {
+    "detection": {
+      "records": 30,
+      "task_family": "detection-rule-interpretation"
+    },
+    "evaluation_files": [
+      "data/evaluation/baseline_probe_v1.jsonl",
+      "data/evaluation/cyberlite_eval_factual_v1.jsonl",
+      "data/evaluation/cyberlite_eval_logs_ir_v1.jsonl",
+      "data/evaluation/cyberlite_eval_vulnerability_v1.jsonl",
+      "data/evaluation/seceval_v1.jsonl",
+      "data/evaluation/smoke_eval.jsonl"
+    ],
+    "grounded": {
+      "extractive_records": 565,
+      "generated_records": 18177,
+      "input_records": 6351,
+      "license_counts": {
+        "CC-BY-SA-4.0": 771,
+        "GPL-1.0-or-later": 3,
+        "GPL-2.0-only": 8,
+        "GPL-2.0-or-later": 5,
+        "IETF-Trust": 182,
+        "Linux-man-pages-1-para": 11,
+        "Linux-man-pages-copyleft": 24,
+        "MITRE-ATTACK": 701,
+        "MITRE-CWE": 2326,
+        "OpenSSH": 19,
+        "Public-Domain": 14127
+      },
+      "skipped_records": 1689,
+      "source_counts": {
+        "ietf_rfcs": 182,
+        "linux_man_pages": 43,
+        "mitre_attack": 701,
+        "mitre_cwe": 2326,
+        "netfilter_nftables": 8,
+        "nist_nvd": 14127,
+        "openssh_docs": 19,
+        "owasp_cheatsheets": 771
+      },
+      "variant_counts": {
+        "attack-matching": 636,
+        "cwe-matching": 803,
+        "cwe-mitigation": 565,
+        "cwe-review-questions": 803,
+        "normative-requirement-application": 1243,
+        "nvd-cpe-applicability": 2371,
+        "nvd-cvss-counterfactual": 2371,
+        "nvd-cwe-explanation": 2272,
+        "nvd-extraction": 2371,
+        "nvd-insufficient-evidence": 2371,
+        "nvd-triage": 2371
+      }
+    },
+    "packs": {
+      "difficulty_counts": {
+        "advanced": 550,
+        "expert": 112,
+        "foundational": 627,
+        "intermediate": 820
+      },
+      "domain_counts": {
+        "cloud-container-supply-chain": 315,
+        "cryptography-identity-access": 254,
+        "fundamentals-linux-networking": 245,
+        "incident-response-forensics-threat-intel": 234,
+        "language-security-retention": 305,
+        "monitoring-detection-soc": 303,
+        "vulnerability-classification-remediation": 215,
+        "web-api-secure-development": 238
+      },
+      "facts": 439,
+      "facts_with_artifacts": 370,
+      "pack_hashes": {
+        "cloud-container-supply-chain": "dc0621269ce04199809a9ee07a4a41a952dfcfe3227faaf11e15d4fff4c59983",
+        "cryptography-identity-access": "917d68fa242a3a62fcf9b218571775ef7e06a435d59302f19cf04224cf25fae0",
+        "fundamentals-linux-networking": "333fa8340b8cbedf8e66690eb3d85ee2b3f12a5777e2758731a6988fa4ed8423",
+        "incident-response-forensics-threat-intel": "85863ffbb1b93b500a9566bc1495bbb8a0b505d911cbfa55c9c8ceedb6dbbd2a",
+        "language-security-retention": "6b8daa5627a3f8620e7e03df1b2cdd1a62503da07181742b0769773f2c78b67a",
+        "monitoring-detection-soc": "01ec7a0cae21e47306c2a4bf1e8e680cd45624b0f376c90754b8bbfa1e1b05b2",
+        "vulnerability-classification-remediation": "e872da03bf6874cc1a5988420a2d90effc17617e01cea9cf1d5b47c1016a1d11",
+        "web-api-secure-development": "2dada5783d613668cf9b24bcb0b546a96c5b846a32950d5649a49db36ed881a8"
+      },
+      "packs": 8,
+      "preference_pairs": 183,
+      "records": 2153,
+      "task_counts": {
+        "incident-response": 13,
+        "incident-triage": 46,
+        "log-analysis": 97,
+        "secure-autocomplete": 58,
+        "secure-coding": 136,
+        "security-knowledge": 1227,
+        "system-administration": 223,
+        "system-hardening": 197,
+        "troubleshooting": 112
+      }
+    },
+    "pilot": {
+      "dir": "data/processed/pilot-v2",
+      "splits": {
+        "test": {
+          "records": 421,
+          "sha256": "9145f39a766c13e97961acb3c586caa610eda5babc7edd831957894401a0c2c1"
+        },
+        "train": {
+          "records": 6351,
+          "sha256": "db008cf7d50f3fc2b98387d07069aed36375833072df80bf75c048a0935c95e5"
+        },
+        "validation": {
+          "records": 416,
+          "sha256": "22ac9d49b92b55ea685dd3afebd6aad2e4950bb3e44ebcc27503692fcf42e91b"
+        }
+      }
+    }
+  },
+  "limitations": [
+    "The corpus is English-language and biased toward public documentation.",
+    "Source-derived task views inherit the upstream licence and may not be redistributable.",
+    "MinHash near-duplicate detection is lexical; it does not detect semantic paraphrase.",
+    "The contamination screen is n-gram based; CyberSecEval is not locally available.",
+    "AI review is not human review and may miss plausible-sounding errors.",
+    "Token counts assume the configured tokenizer and do not model packing."
+  ],
+  "manual_review": {
+    "completed": false,
+    "human_reviewed_records": 0,
+    "note": "No human review has been recorded. AI review is not human review."
+  },
+  "options": {
+    "contamination_n": 13,
+    "contamination_threshold": 0.2,
+    "dedup_threshold": 3,
+    "include_pilot": false,
+    "manifest_dir": "data/manifests/synthesis-calibration",
+    "max_sequence_tokens": 1024,
+    "out_dir": "data/processed/synthesis-calibration",
+    "packs_dir": "data/synthesis/knowledge",
+    "pilot_dir": "data/processed/pilot-v2",
+    "semantic_threshold": 0.88,
+    "split": {
+      "test": 0.05,
+      "train": 0.9,
+      "validation": 0.05
+    },
+    "split_seed": 1337,
+    "tokenizer": "Qwen/Qwen3.5-0.8B",
+    "tokenizer_local_only": true
+  },
+  "pipeline_version": "2.0.0",
+  "preference_pairs": 183,
+  "quality": {
+    "assessed": 2000,
+    "limitations": "Heuristic gates; not a substitute for technical review.",
+    "rejection_counts": {
+      "duplicate:near": 34,
+      "near_duplicate:minhash": 5,
+      "quality:record_too_short": 1
+    },
+    "summary": {
+      "accepted": 1999,
+      "assessed": 2000,
+      "rejected": 1,
+      "rejection_reasons": {
+        "record_too_short": 1
+      },
+      "warning_counts": {
+        "pii_detected": 2,
+        "unsupported_absolute_claim": 394
+      }
+    },
+    "thresholds": {
+      "max_sequence_tokens": 1024,
+      "min_response_chars": 60
+    }
+  },
+  "quota_selection": {
+    "deferred": 1460,
+    "difficulty_counts": {
+      "advanced": 125,
+      "expert": 25,
+      "foundational": 150,
+      "intermediate": 200
+    },
+    "difficulty_quota": {
+      "advanced": 125,
+      "expert": 25,
+      "foundational": 150,
+      "intermediate": 200
+    },
+    "domain_cap_violations": {},
+    "family_cap_violations": {},
+    "selected": 500,
+    "target": 500
+  },
+  "rejected_records": 40,
+  "review_coverage": {
+    "ai_independent_review": 0,
+    "automated_screening": 500,
+    "human_review": 0,
+    "note": "Review coverage is updated by scripts/apply_reviews.py from an actual review ledger."
+  },
+  "seed": 42,
+  "source_derived_records": 80,
+  "split_counts": {
+    "test": 23,
+    "train": 444,
+    "validation": 33
+  },
+  "split_seed": 1337,
+  "stage": "calibration",
+  "stage_target": 500,
+  "template_concentration": [
+    {
+      "count": 15,
+      "sample_ids": [
+        "syn-web-api-secure-development-rev-node-001-fim-1",
+        "syn-vulnerability-classification-remediation-cwe-1321-prototype-pollution-fim-1",
+        "syn-language-security-retention-sql-inj-001-fim-1"
+      ],
+      "skeleton": ""
+    },
+    {
+      "count": 4,
+      "sample_ids": [
+        "syn-fundamentals-linux-networking-win-autoruns-misconception-1",
+        "syn-vulnerability-classification-remediation-vuln-prioritization-model-misconception-1",
+        "syn-monitoring-detection-soc-log-ssh-bruteforce-101-misconception-1"
+      ],
+      "skeleton": "w w w: \"w w w w w w w w w.\"\n\nw w w w? w w, w w w w w w w w w w w."
+    },
+    {
+      "count": 4,
+      "sample_ids": [
+        "syn-web-api-secure-development-web-password-hashing-001-misconception-1",
+        "syn-fundamentals-linux-networking-fund-cia-triad-misconception-1",
+        "syn-vulnerability-classification-remediation-vuln-epss-limits-misconception-1"
+      ],
+      "skeleton": "w w w: \"w w w w w w w w.\"\n\nw w w w? w w, w w w w w w w w w w w."
+    },
+    {
+      "count": 4,
+      "sample_ids": [
+        "syn-language-security-retention-gen-regex-004-explain",
+        "syn-web-api-secure-development-sdlc-secure-defaults-001-explain",
+        "syn-vulnerability-classification-remediation-cvss-v31-temporal-explain"
+      ],
+      "skeleton": "w w: w w w w w w w w w w. w w w w w w w w w w w w w, w w w w w w w w w w w w w."
+    },
+    {
+      "count": 3,
+      "sample_ids": [
+        "syn-web-api-secure-development-api-jwt-claims-001-explain",
+        "syn-fundamentals-linux-networking-net-mtu-pmtud-explain",
+        "syn-web-api-secure-development-api-oauth-audience-001-explain"
+      ],
+      "skeleton": "w w w w w w w w w w w? w: w w w w w w w w w w w. w w w w w w, w w w."
+    },
+    {
+      "count": 3,
+      "sample_ids": [
+        "grnd-nist-nvd-nist-nvd-00795ecd6c9525f0-json",
+        "grnd-nist-nvd-nist-nvd-00af596c1890db54-json",
+        "grnd-nist-nvd-nist-nvd-0062b87e4e98743f-json"
+      ],
+      "skeleton": "w w w w w w w w-w w. w w w w w w w `w`, `w`, `w`, `w`, w `w`. `w` w w w w. w w w w w, w w. w w w w.\n\n{\n  \"w\": \"w-w-w\",\n  \"w\": \"w-w-w:w:w.w\",\n  \"w\": \"w\",\n  \"w\": [\n    {\n      \"w\": \""
+    },
+    {
+      "count": 2,
+      "sample_ids": [
+        "syn-cloud-container-supply-chain-k8s-networkpolicy-additive-peers-diagnose",
+        "syn-language-security-retention-sql-priv-003-diagnose"
+      ],
+      "skeleton": "w w w w w w w w (w w w w w w w w w w w w) w w w w w w w w w w w w. w w w w w w w w w w."
+    },
+    {
+      "count": 2,
+      "sample_ids": [
+        "syn-monitoring-detection-soc-log-syslog-sd-003-diagnose",
+        "syn-cloud-container-supply-chain-cloud-gcp-iam-condition-binding-diagnose"
+      ],
+      "skeleton": "w w w w w w w w (w w w w w w w w w) w w w w w w w w w w w w. w w w w w w w w w w."
+    },
+    {
+      "count": 2,
+      "sample_ids": [
+        "syn-monitoring-detection-soc-hunt-falsification-404-explain",
+        "syn-incident-response-forensics-threat-intel-forensics-soundness-033-explain"
+      ],
+      "skeleton": "w w w w w w w w w w w. w w w w w w w w w w w w w w w w w w w: w w w w w w, w w w."
+    },
+    {
+      "count": 2,
+      "sample_ids": [
+        "grnd-nist-nvd-nist-nvd-000acc9a82d0be67-cvss",
+        "grnd-nist-nvd-nist-nvd-00b3cc38194e31f8-cvss"
+      ],
+      "skeleton": "w w w w w-w-w w w w w w w:w.w/w:w/w:w/w:w/w:w/w:w/w:w/w:w/w:w. w w w w w w w w w w w w w w, w w w w w w w? w w w w w w."
+    },
+    {
+      "count": 2,
+      "sample_ids": [
+        "grnd-openssh-docs-openssh-docs-841d94ec4f1d6d22-requirement-1",
+        "grnd-openssh-docs-openssh-docs-841d94ec4f1d6d22-requirement-2"
+      ],
+      "skeleton": "w w w w w. w w w w w w w. w w w w w w w? w w w w, w w w w w w, w w w w w w w w w w.\n\nw:\n\"\"\"\nw w w w w w w w w w w w w w w w w w w w. w w w w w w w w w w: w w w : w w w w w : w w w "
+    },
+    {
+      "count": 2,
+      "sample_ids": [
+        "syn-cloud-container-supply-chain-k8s-kubelet-authn-authz-explain",
+        "syn-language-security-retention-py-secrets-008-explain"
+      ],
+      "skeleton": "w w w w, w w w w w w w w w w: w w w w w w w w w w w w w. w w w w, w w w w, w, w w w w w."
+    },
+    {
+      "count": 2,
+      "sample_ids": [
+        "syn-monitoring-detection-soc-log-k8s-audit-014-explain",
+        "syn-monitoring-detection-soc-log-benign-corroboration-112-explain"
+      ],
+      "skeleton": "w w w w, w w w w w w w w w w: w w w w w w w. w w w w, w w w w, w, w w w w w."
+    },
+    {
+      "count": 2,
+      "sample_ids": [
+        "syn-vulnerability-classification-remediation-cwe-502-deserialization-misconception-1",
+        "syn-vulnerability-classification-remediation-cwe-352-csrf-misconception-1"
+      ],
+      "skeleton": "w w w: \"w w w w w w.\"\n\nw w w w? w w, w w w w w w w w w w w."
+    },
+    {
+      "count": 2,
+      "sample_ids": [
+        "syn-language-security-retention-go-tls-005-explain",
+        "syn-web-api-secure-development-api-webhook-001-explain"
+      ],
+      "skeleton": "w w: w w w w w w w w w. w w w w w w w w w w w w w, w w w w w w w w w w w w w."
+    }
+  ],
+  "token_lengths": {
+    "limitations": "Token counts are a length signal, not a quality measure. Truncation risk assumes the configured maximum sequence length and does not model the training collator or packing.",
+    "max_sequence_tokens": 1024,
+    "records": 500,
+    "removed_over_limit": 0,
+    "tokenizer": "Qwen/Qwen3.5-0.8B",
+    "tokenizer_info": {
+      "estimated": false,
+      "kind": "transformers",
+      "local_only": true,
+      "name": "Qwen/Qwen3.5-0.8B",
+      "revision": ""
+    },
+    "tokens": {
+      "max": 819,
+      "mean": 292.43,
+      "min": 29,
+      "p50": 278,
+      "p90": 401,
+      "p95": 438,
+      "p99": 557
+    },
+    "truncation": {
+      "over_limit": 0,
+      "ratio": 0.0,
+      "removed_over_limit": 0,
+      "risk": "low"
+    },
+    "truncation_by_limit": {
+      "1024": {
+        "over_limit": 0,
+        "ratio": 0.0
+      },
+      "2048": {
+        "over_limit": 0,
+        "ratio": 0.0
+      },
+      "4096": {
+        "over_limit": 0,
+        "ratio": 0.0
+      },
+      "512": {
+        "over_limit": 10,
+        "ratio": 0.02
+      },
+      "8192": {
+        "over_limit": 0,
+        "ratio": 0.0
+      }
+    }
+  }
+}

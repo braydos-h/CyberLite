@@ -47,11 +47,44 @@ without redistributing restricted text.
   [`data/manifests/pilot-v2/`](data/manifests/pilot-v2/). The original
   ATT&CK + CWE slice remains frozen under
   [`data/manifests/pilot-attack-cwe-v1/`](data/manifests/pilot-attack-cwe-v1/).
+- [x] A deterministic synthesis pipeline expands the corpus from committed knowledge packs and the frozen pilot training split, with per-record provenance, grouping, exact/SimHash/MinHash deduplication, contamination screening, token gating, and staged manifests.
+
+  `scripts/synthesize_dataset.py` builds calibration and production corpora
+  from `data/synthesis/knowledge/` (439 curated facts), a source-grounded
+  derivation layer, and a detection-rule teaching library. The pipeline
+  never uses validation, test, or evaluation material as generation seeds.
+  The expansion build screened 277,950 per-file n-grams across six local
+  evaluation files; the pilot-v2 figure above (241,515) covers its earlier
+  three-file screen and remains accurate for that frozen build.
+- [x] Held-out evaluation sets are authored independently of the training packs and frozen with SHA-256 metadata.
+
+  Three 55-item sets cover factual/knowledge, vulnerability/secure code, and
+  logs/incident response/false positives/uncertainty/retention. They live in
+  `data/evaluation/cyberlite_eval_*_v1.jsonl` and are screened against every
+  training build.
+- [ ] Every synthetic record has an independent technical and quality review.
+
+  The review ledger and rubric are implemented, and calibration samples have
+  been reviewed by independent AI agents. Coverage is sampled, not complete;
+  most accepted records remain `automated-screened`. No human review has been
+  recorded.
 - [x] The source-license report is published without redistributing restricted text.
 
   `license_report.json` and `license_report.md` record permitted uses,
   attribution, redistribution obligations, and unresolved questions for every
   observed license.
+- [x] Training-time dataset integrity and license gates fail closed before model
+  or GPU allocation.
+
+  Production configs point at `data/processed/pilot-v2/` and verify the frozen
+  manifest version `cyberlite-data-2.0.0-04b01b437805`, split counts
+  6,351 / 416 / 421, SHA-256 hashes, schema, provenance, duplicate IDs,
+  cross-split leakage, evaluation-only records, and local benchmark overlap.
+  Missing, unknown, prohibited, evaluation-only, and unacknowledged unresolved
+  licenses are rejected for both training and validation splits; smoke data uses
+  an explicitly separate relaxed path. Verified by the integrity, licensing, and
+  preflight tests; unresolved licensing and pending manual review still block
+  research readiness.
 - [x] Contamination is measured against each available held-out benchmark subset.
 
   The 13-gram screen indexed 241,515 n-grams from SecEval, the project baseline
@@ -72,6 +105,16 @@ at 4–16 GB VRAM.
 
 - [x] Architecture-aware Qwen3.5 loading is verified by a local load and a LoRA backward pass.
 - [x] LoRA and 4-bit QLoRA SFT pipelines support config hashing, resumption, and memory logging.
+
+  Resumption now also verifies the recorded experiment fingerprint and refuses a
+  changed configuration.
+- [x] A CPU-only training preflight validates data integrity, licenses, and the
+  pinned base revision without downloading model weights.
+
+  `python scripts/train.py --config configs/qlora.yaml --preflight` reports
+  software and research readiness separately, supports JSON, and exits nonzero
+  when mandatory checks fail or research blockers remain. Verified by the
+  preflight test suite.
 - [x] A CPU smoke run exercises the full training path end to end.
 - [ ] A bf16 LoRA reference checkpoint is trained at matched data and steps.
 - [ ] A 4-bit QLoRA checkpoint is trained at matched data and steps.
@@ -81,7 +124,7 @@ at 4–16 GB VRAM.
 ## G3 — Honest, reproducible evaluation
 
 Advances [roadmap Phase 2](docs/roadmap.md#phase-2--core-post-training-comparison)
-and [roadmap Phase 6](docs/roadmap.md#phase-6--publication).
+and [roadmap Phase 5](docs/roadmap.md#phase-5--publication).
 
 **Success:** every published number traces back to raw predictions, configs,
 and hardware metadata.
@@ -90,6 +133,11 @@ The numeric thresholds and the analysis plan are fixed in
 [docs/preregistration.md](docs/preregistration.md) before training; the project
 probe is a regression signal, not a benchmark.
 
+- [x] Frozen held-out evaluation sets exist for factual, vulnerability, secure-code, log, grounded-QA, incident-response, false-positive, configuration, uncertainty, and retention suites.
+
+  The sets are evaluation-only and were authored by agents isolated from the
+  training knowledge packs. They are not a validated public benchmark and no
+  trained-model performance is claimed.
 - [x] Evaluation harness, metrics, bootstrap intervals, and report schema are implemented.
 - [x] CyberSecEval, SecEval (evaluation-only), and held-out MCQ adapters exist behind license gates.
 - [ ] Base/instruct reference numbers replace the placeholders in the benchmark table.
@@ -99,23 +147,20 @@ probe is a regression signal, not a benchmark.
 
 ## G4 — Practical local deployment
 
-Advances [roadmap Phase 3](docs/roadmap.md#phase-3--autocomplete) and
-[roadmap Phase 5](docs/roadmap.md#phase-5--quantization-and-cpu-deployment).
+Advances [roadmap Phase 4](docs/roadmap.md#phase-4--quantization-and-cpu-deployment).
 
 **Success:** fast, offline, non-executing assistance on ordinary laptops.
 
 - [x] Local CPU/GPU inference engine with streaming is implemented.
 - [x] OpenAI-compatible API with optional bearer-token auth is implemented.
-- [x] FIM/prefix autocomplete engine and local API are implemented.
 - [x] Dependency-free BM25 retrieval and citation-bearing RAG are implemented.
 - [ ] GGUF export and llama.cpp inference are validated for Qwen3.5.
 - [ ] A CPU-only latency and memory profile is published for representative laptops.
 - [ ] Quality-regression thresholds for quantized deployment are defined and enforced.
-- [ ] An editor integration reference client ships with acceptance-rate measurement.
 
 ## G5 — Distillation and retrieval
 
-Advances [roadmap Phase 4](docs/roadmap.md#phase-4--distillation-and-retrieval).
+Advances [roadmap Phase 3](docs/roadmap.md#phase-3--distillation-and-retrieval).
 
 **Success:** evidence that distillation and retrieval beat plain supervised
 fine-tuning at matched compute, or a documented negative result.
@@ -128,7 +173,7 @@ fine-tuning at matched compute, or a documented negative result.
 
 ## G6 — Publication and release
 
-Advances [roadmap Phase 6](docs/roadmap.md#phase-6--publication).
+Advances [roadmap Phase 5](docs/roadmap.md#phase-5--publication).
 
 **Success:** a reviewable research release where every placeholder is replaced
 by a measurement or an explicit limitation.

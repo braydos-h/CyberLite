@@ -10,7 +10,10 @@ run:
 
 model:
   id: Qwen/Qwen3.5-0.8B
-  revision: null
+  revision: 2fc06364715b967f1860aea9cf38778875588b17
+  # Smoke is pipeline validation, not a matched research condition.
+  require_pinned_revision: false
+  matched_baseline: false
   dtype: float32
   device: auto
   attn_implementation: sdpa
@@ -63,6 +66,16 @@ data:
   train_file: data/processed/smoke/train.jsonl
   validation_file: data/processed/smoke/validation.jsonl
   test_file: data/processed/smoke/test.jsonl
+  manifest_file: data/processed/smoke/manifest.json
+  dataset_version: null
+  # The smoke corpus is regenerated locally; do not freeze counts here. Its
+  # manifest still checks each file hash and record count.
+  expected_split_counts: {}
+  require_manifest: true
+  verify_integrity: true
+  require_provenance: false
+  require_validation: true
+  require_contamination_screen: false
   format: auto
   system_prompt: >-
     You are CyberLite, a defensive cybersecurity assistant. Prefer verifiable,
@@ -74,6 +87,11 @@ data:
   require_license: true
   allowed_licenses:
     - Synthetic
+  require_resolved_licenses: false
+  allow_unresolved_licenses:
+    - Synthetic
+  truncation_policy: truncate
+  min_supervised_tokens: 1
 
 distillation:
   enabled: false

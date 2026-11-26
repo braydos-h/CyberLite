@@ -20,12 +20,44 @@ The default suite is network-free and does not download model weights. It covers
   parsing, and missing-SPDX quarantine,
 - quality gates, PII/secret checks, token-length percentiles, cross-split
   leakage, per-benchmark contamination, and audit review sampling,
-- tokenizer-facing SFT encoding with a fake tokenizer,
+- tokenizer-facing SFT encoding with a fake tokenizer, including repeated
+  user/assistant text, assistant-only masking, EOS preservation, truncation
+  statistics, zero-supervision discards, and the drop policy,
+- frozen-manifest integrity: file hashes, version and split counts, schema,
+  provenance, duplicate IDs, cross-split leakage, evaluation-only records,
+  benchmark contamination, processed-manifest mismatches, and the smoke
+  pathway,
+- training license enforcement for train and validation splits, including
+  missing, unknown, disallowed, prohibited, evaluation-only, and unresolved
+  licenses,
+- model revision pinning and propagation,
+- preflight success and failure, machine-readable JSON, exit
+  codes, and resume fingerprint checks,
 - metrics and uncertainty estimates,
 - BM25 retrieval and RAG formatting,
-- autocomplete prompt construction and safety flags,
 - FastAPI endpoints with a fake engine,
 - dry-run CLIs.
+
+## Training preflight
+
+The preflight tests are part of the default suite and are CPU-only:
+
+```bash
+pytest tests/test_dataset_integrity.py tests/test_training_licensing.py \
+  tests/test_tokenization_safety.py tests/test_training_preflight.py \
+  tests/test_checkpoint_resume.py tests/test_model_revision.py -q
+```
+
+Manual preflight against the locally built pilot:
+
+```bash
+python scripts/train.py --config configs/qlora.yaml --preflight
+python scripts/train.py --config configs/qlora.yaml --preflight --json
+```
+
+Research configs are expected to exit nonzero until licensing, manual review, and
+external pre-registration are resolved. Use `--software-only` only for
+software-readiness checks; it does not create a research approval.
 
 ## Integration tests
 

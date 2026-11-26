@@ -33,7 +33,7 @@ def eval_file(repo_root: Path) -> Path:
 class FakeTokenizer:
     """Character-level tokenizer with chat and FIM control tokens.
 
-    It implements only the surface used by CyberLite's dataset and autocomplete
+    It implements only the surface used by CyberLite's dataset and completion
     code, keeping unit tests network-free.
     """
 
@@ -129,7 +129,7 @@ def sample_records() -> list[dict]:
         {
             "source": "cyberlite_smoke",
             "license": "Synthetic",
-            "task": "autocomplete",
+            "task": "completion",
             "prefix": "grep -R ",
             "suffix": " /var/log",
             "middle": '"failed password"',
@@ -150,3 +150,135 @@ def write_jsonl(path: Path, records: list[dict]) -> Path:
 @pytest.fixture
 def jsonl_writer() -> Iterator:
     yield write_jsonl
+
+
+@pytest.fixture
+def dataset_builder(tmp_path: Path):
+    """Build a tiny dataset plus a frozen-manifest fixture."""
+
+    def build(
+        *,
+        name: str = "tiny-dataset",
+        splits: dict[str, list[dict]] | None = None,
+        version: str = "cyberlite-data-test-000000000000",
+        license_id: str = "Public-Domain",
+        provenance: bool = True,
+        manual_review_completed: bool = False,
+        manifest_dir: str | None = None,
+        allowed_licenses: list[str] | None = None,
+        dataset_schema: int = 2,
+        mutate_manifest: dict | None = None,
+    ) -> dict:
+        import hashlib
+        import json
+
+        root = tmp_path / name
+        root.mkdir(parents=True, exist_ok=True)
+        if splits is None:
+            splits = {
+                "train": [
+                    {
+                        "id": f"{name}-train-1",
+                        "source": "unit",
+                        "license": license_id,
+                        "task": "knowledge",
+                        "prompt": "How should an administrator verify a firewall rule?",
+                        "response": "Verify the rule in staging and record the evidence.",
+                        "split": "train",
+                    }
+                ],
+                "validation": [
+                    {
+                        "id": f"{name}-validation-1",
+                        "source": "unit",
+                        "license": license_id,
+                        "task": "knowledge",
+                        "prompt": "What should a defender check first?",
+                        "response": "Preserve evidence and follow the incident process.",
+                        "split": "validation",
+                    }
+                ],
+                "test": [
+                    {
+                        "id": f"{name}-test-1",
+                        "source": "unit",
+                        "license": license_id,
+                        "task": "knowledge",
+                        "prompt": "Is a smoke test a benchmark?",
+                        "response": "No; it validates the pipeline only.",
+                        "split": "test",
+                    }
+                ],
+            }
+        paths: dict[str, Path] = {}
+        files: dict[str, dict] = {}
+        for split, rows in splits.items():
+            path = root / f"{split}.jsonl"
+            with path.open("w", encoding="utf-8") as handle:
+                for index, row in enumerate(rows):
+                    payload = dict(row)
+                    payload.setdefault("id", f"{name}-{split}-{index}")
+                    payload.setdefault("source", "unit")
+                    payload.setdefault("license", license_id)
+                    payload.setdefault("task", "knowledge")
+                    payload["split"] = split
+                    if provenance:
+                        payload.setdefault("url", "https://example.invalid/source")
+                        metadata = dict(payload.get("metadata") or {})
+                        metadata.setdefault("source_version", "v1")
+                        metadata.setdefault("upstream_id", f"upstream-{index}")
+                        payload["metadata"] = metadata
+                    handle.write(json.dumps(payload, sort_keys=True) + "\n")
+            paths[split] = path
+            files[split] = {
+                "path": str(path),
+                "records": len(rows),
+                "sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+                "bytes": path.stat().st_size,
+            }
+        manifest = {
+            "dataset_schema": dataset_schema,
+            "dataset_name": name,
+            "dataset_version": version,
+            "pipeline_version": "2.0.0",
+            "split_counts": {split: len(rows) for split, rows in splits.items()},
+            "output_records": sum(len(rows) for rows in splits.values()),
+            "files": files,
+            "options": {
+                "allowed_licenses": allowed_licenses or [license_id],
+                "seed": 42,
+            },
+            "manual_review": {
+                "completed": manual_review_completed,
+                "reviewed_records": 0,
+                "note": "fixture",
+            },
+            "audit": {
+                "token_truncation": {"over_limit": 0, "ratio": 0.0, "risk": "low"},
+            },
+            "quality": {"token_lengths": {"tokens": {"p50": 10, "p95": 20, "p99": 30}}},
+        }
+        if mutate_manifest:
+            manifest.update(mutate_manifest)
+        if manifest_dir:
+            frozen_dir = root / manifest_dir
+            frozen_dir.mkdir(parents=True, exist_ok=True)
+            manifest_path = frozen_dir / "manifest.json"
+        else:
+            manifest_path = root / "manifest.json"
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        if manifest_dir:
+            # Also write the processed manifest that a real build leaves beside
+            # the splits.
+            (root / "manifest.json").write_text(
+                json.dumps(manifest, indent=2) + "\n", encoding="utf-8"
+            )
+        return {
+            "root": root,
+            "manifest": manifest_path,
+            "paths": paths,
+            "version": version,
+            "manifest_data": manifest,
+        }
+
+    return build

@@ -10,6 +10,8 @@ committed.
 | Field | Value |
 |---|---|
 | Frozen pilot | `pilot-v2`, dataset version `cyberlite-data-2.0.0-04b01b437805` |
+| Synthesis production build | `cyberlite-syn-2.0.0-c7a2b7f426ce-rev1`, 15,590 accepted |
+| Balanced training view | `…-balanced-f13f867d`, 8,287 accepted |
 | Pipeline version | `2.0.0` |
 | Normalized inputs | 7,724 |
 | Accepted records | 7,188 |
@@ -20,6 +22,8 @@ committed.
 | Licenses | Source-dependent; see the committed license report |
 | Distribution | Manifests and reports only; external source text is not redistributed |
 | Manual review | **Not completed** (200 samples generated, zero reviewed) |
+| Training readiness | **Blocked**: frozen-manifest/license gates are implemented, but unresolved licensing, manual review, and external pre-registration are unfinished |
+| Trainer access | Production configs require manifest `cyberlite-data-2.0.0-04b01b437805`, split counts 6,351 / 416 / 421, and a passing training license policy |
 | Maintainer | CyberLite contributors |
 
 The original ATT&CK + CWE slice remains frozen under
@@ -74,6 +78,66 @@ The pipeline exists to make cybersecurity post-training data auditable:
 
 License counts are measured after cleaning and before global deduplication; the
 accepted-record table is authoritative for final composition.
+
+### Synthesis expansion (production build)
+
+Measured from `data/manifests/synthesis-production/manifest.json` and the
+accepted splits. The stage target was 25,000 accepted records; the validated
+corpus reached **15,590**. The target was not padded. A mixture-capped training
+view of **8,287** records is published separately.
+
+| Field | Value |
+|---|---:|
+| Generated candidates | 22,503 |
+| Accepted unique records | 15,590 |
+| Rejected after automated gates | 6,900 |
+| Review-quarantined after independent sampling | 13 |
+| Acceptance rate | 69.3% |
+| Splits (train / validation / test) | 13,990 / 818 / 782 |
+| Curated synthetic / source-derived | 1,781 / 13,809 |
+| Preference pairs (separate schema) | 183 |
+| Exact duplicates | 0 |
+| SimHash near-duplicates removed | 3,625 |
+| MinHash/LSH near-duplicates removed | 6 |
+| Response-level duplicate answers removed | 3,052 |
+| Records dropped over 1,024 tokens | 200 |
+| 13-gram contamination removals | 0 of 277,950 per-file indexed n-grams (6 evaluation files) |
+| Cross-split leakage findings | 0 |
+| Group split violations | 0 |
+| Token p50 / p95 / p99 / max | 376 / 772 / 892 / 1,024 |
+| AI-independently-reviewed records | 5 (0.03%); all other accepted records automated-screened |
+| Human-reviewed records | 0 |
+| Accepted-review mean (5 records) | 8.69 overall, 9.15 technical, 9.00 grounding |
+
+Source distribution: NVD 7,317; MITRE CWE 2,192; OWASP 1,924; synthetic 1,781;
+MITRE ATT&CK 1,585; IETF RFCs 493; Linux man-pages 197; nftables 39; OpenSSH 8;
+project examples 35.
+
+Task-family distribution (largest): vulnerability-classification 6,656;
+instruction-response 2,482; attack-technique-recognition 1,342; structured-json
+1,251; uncertainty-handling 605; false-positive-recognition 569; secure code
+review 562; vulnerability remediation 526; multiple-choice 402; detection-rule
+interpretation 26; incident investigation 6.
+
+Difficulty (assigned proxy, not calibrated): foundational 2,262; intermediate
+11,559; advanced 1,677; expert 92 (0.6%). The expert share is below the 5%
+planning target; expert records were not padded or relabelled to meet a quota.
+
+The **balanced view** (`data/manifests/synthesis-production-balanced/`) applies
+the family/domain caps in `configs/synthesis/mix.yaml` and the 30/40/25/5
+difficulty targets: 8,287 records, split 7,418 / 462 / 407. It is the
+recommended training mixture; the full build remains the archive. Both views
+keep the same group-aware split membership.
+
+The production build's rejection ledger is dominated by near-duplicate and
+response-level duplicate removal, not by factual screening. Independent review
+coverage is **5 records** after content-hash-bound review application; 29
+records were sampled against the final corpus, 5 accepted, 13 quarantined, and
+the rest revised or stale. The accepted-review means meet the 8.5/9/9 rubric,
+but this is not evidence that the other 15,585 records are correct. The
+independent audit verdict is conditional; this corpus is **not approved for
+training** until review coverage and the open factual defects are resolved.
+CyberSecEval remains unavailable, so contamination coverage is incomplete.
 
 ### Committed smoke set and project examples
 
@@ -202,6 +266,9 @@ locally available, so it is an open contamination-coverage blocker.
 - Security issues follow `SECURITY.md`.
 - A new build must regenerate the manifest, quality, contamination, license, and
   audit reports; never edit a frozen manifest by hand.
+- Synthesis builds are reproducible from the committed packs and the frozen
+  pilot train split; `docs/synthesis.md` documents the pipeline and the
+  balanced-view distinction.
 
 ## Citation
 

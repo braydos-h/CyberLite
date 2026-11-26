@@ -22,7 +22,7 @@ findings, not footnotes.
 - Optional accelerated kernels (`causal-conv1d`, `flash-linear-attention`) may
   not be installed; the reference path is slower.
 - The base checkpoint's fill-in-the-middle training status is unknown. Token
-  presence is not evidence of FIM quality. Prefix completion is the fallback.
+  presence is not evidence of FIM quality.
 - Knowledge is frozen at the checkpoint's training cutoff. Security facts,
   versions, and mitigations change.
 
@@ -65,7 +65,6 @@ findings, not footnotes.
   code is never executed by the harness.
 - Benchmark subsets, prompt formats, and answer parsing affect scores. Report
   all three.
-- Acceptance rate for autocomplete is self-selected and UI-dependent.
 - Single-machine latency and memory numbers are not portable.
 
 ## Deployment

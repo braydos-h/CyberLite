@@ -8,14 +8,112 @@ and selects an appropriate auto class, and it records the choice in run metadata
 
 from __future__ import annotations
 
+import contextlib
 import re
 from dataclasses import dataclass
 from typing import Any
 
-from cyberlite.config import ExperimentConfig
+from cyberlite.config import (
+    PINNED_QWEN35_MODEL_ID,
+    PINNED_QWEN35_REVISION,
+    ExperimentConfig,
+)
 from cyberlite.logging_utils import get_logger
 
 logger = get_logger(__name__)
+
+_COMMIT_PATTERN = re.compile(r"^[0-9a-f]{40}$")
+
+
+def looks_like_commit(value: str | None) -> bool:
+    return bool(value and _COMMIT_PATTERN.fullmatch(value))
+
+
+def checkpoint_revision(obj: Any) -> str | None:
+    """Read the resolved commit hash from a model, config, or tokenizer."""
+
+    if obj is None:
+        return None
+    if isinstance(obj, dict):
+        for key in ("_commit_hash", "commit_hash", "revision"):
+            value = obj.get(key)
+            if value:
+                return str(value)
+        init_kwargs = obj.get("init_kwargs")
+        if isinstance(init_kwargs, dict):
+            return checkpoint_revision(init_kwargs)
+        return None
+    for attribute in ("_commit_hash", "commit_hash"):
+        value = getattr(obj, attribute, None)
+        if value:
+            return str(value)
+    init_kwargs = getattr(obj, "init_kwargs", None)
+    if isinstance(init_kwargs, dict):
+        for key in ("_commit_hash", "commit_hash", "revision"):
+            value = init_kwargs.get(key)
+            if value:
+                return str(value)
+    return None
+
+
+def model_revision_info(config: ExperimentConfig, model: Any, tokenizer: Any) -> dict[str, Any]:
+    """Describe the requested and resolved checkpoint revisions for metadata."""
+
+    requested = config.model.revision
+    resolved = checkpoint_revision(getattr(model, "config", None)) or checkpoint_revision(model)
+    tokenizer_revision = checkpoint_revision(tokenizer)
+    verified = False
+    if looks_like_commit(requested):
+        verified = resolved == requested and (
+            tokenizer_revision is None or tokenizer_revision == requested
+        )
+    return {
+        "model_id": config.model.id,
+        "requested_revision": requested,
+        "resolved_revision": resolved,
+        "tokenizer_revision": tokenizer_revision,
+        "revision_verified": verified,
+        "require_pinned_revision": config.model.require_pinned_revision,
+        "matched_baseline": config.model.matched_baseline,
+        "baseline_reference_revision": PINNED_QWEN35_REVISION,
+        "matches_baseline": (
+            config.model.id == PINNED_QWEN35_MODEL_ID and requested == PINNED_QWEN35_REVISION
+        ),
+    }
+
+
+def _verify_revision(config: ExperimentConfig, model: Any, tokenizer: Any) -> None:
+    requested = config.model.revision
+    if config.model.matched_baseline and config.model.id == PINNED_QWEN35_MODEL_ID:
+        if requested is None:
+            raise RuntimeError(
+                "model.matched_baseline=true requires model.revision="
+                f"{PINNED_QWEN35_REVISION}; set model.matched_baseline=false for a "
+                "deliberately separate checkpoint experiment"
+            )
+        if requested != PINNED_QWEN35_REVISION:
+            raise RuntimeError(
+                f"matched experiment requested revision {requested}, but the registered "
+                f"baseline revision is {PINNED_QWEN35_REVISION}; set "
+                "model.matched_baseline=false to override deliberately"
+            )
+    if not looks_like_commit(requested):
+        return
+    model_revision = checkpoint_revision(getattr(model, "config", None)) or checkpoint_revision(
+        model
+    )
+    tokenizer_revision = checkpoint_revision(tokenizer)
+    if model_revision and model_revision != requested:
+        raise RuntimeError(
+            f"model checkpoint resolved to revision {model_revision}, but "
+            f"{requested} was requested; refuse to train on a silently changed base model"
+        )
+    if tokenizer_revision and tokenizer_revision != requested:
+        raise RuntimeError(
+            f"tokenizer resolved to revision {tokenizer_revision}, but {requested} was "
+            "requested; model and tokenizer revisions must match"
+        )
+
 
 _DTYPE_MAP = {
     "float32": "float32",
@@ -173,6 +271,10 @@ def load_base_model(
             model.to(device)
 
     tokenizer = load_tokenizer(config)
+    _verify_revision(config, model, tokenizer)
+    info = model_revision_info(config, model, tokenizer)
+    with contextlib.suppress(AttributeError):
+        model._cyberlite_revision_info = info
     return model, tokenizer, class_name
 
 

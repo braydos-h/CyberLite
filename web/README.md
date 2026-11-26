@@ -160,7 +160,6 @@ The project is a research preview. Three rules matter:
   hardware and throughput
 - `configs/qlora.yaml` — the 6–8 GB starting configuration
 - `docs/hardware.md` — VRAM classes and measurement protocol
-- `docs/autocomplete.md` — the 13 profiles, FIM/prefix modes and API contract
 - `docs/safety.md` — execution and evidence boundaries
 - `paper/main.tex` — abstract and hypotheses
 

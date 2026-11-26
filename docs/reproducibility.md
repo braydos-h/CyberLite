@@ -5,10 +5,12 @@
 Every training run writes:
 
 - `config.effective.yaml` — the exact merged configuration;
-- `run_metadata.json` — config hash, model class and parameter counts, dataset
-  manifest link, hardware, Python/packages, Git commit and dirty state, command;
+- `run_metadata.json` — config hash and resume fingerprint, requested and
+  resolved model/tokenizer revision, model class and parameter counts, full
+  dataset-integrity report, license-validation report, frozen manifest link,
+  hardware, Python/packages, Git commit and dirty state, command;
 - `training_metrics.json` — duration, steps, approximate tokens/second, peak
-  VRAM/RSS, cost assumptions;
+  VRAM/RSS, cost assumptions, and discarded/truncated tokenization counts;
 - `trainer_log_history.json` — Trainer logs;
 - adapter weights and tokenizer files.
 
@@ -26,8 +28,14 @@ source registry hash, license counts, deduplication and contamination stats.
 
 ## Determinism
 
-Fixed seeds are set for Python, PyTorch, and Transformers. Determinism is still
-not guaranteed across:
+Fixed seeds are set for Python, PyTorch, and Transformers. Matched experiments
+also pin `Qwen/Qwen3.5-0.8B` to revision
+`2fc06364715b967f1860aea9cf38778875588b17`, the checkpoint used for the E0
+SecEval baseline. Model and tokenizer loading use the same revision, and run
+metadata records both the requested and resolved commit. A deliberately
+different checkpoint requires `model.matched_baseline: false`.
+
+Determinism is still not guaranteed across:
 
 - GPU models/drivers and CUDA/cuDNN versions,
 - attention kernels and optional fused kernels,
@@ -48,6 +56,34 @@ git rev-parse HEAD
 
 Attach these to a result archive. Do not commit environment locks containing
 credentials or local paths.
+
+## Training preflight (CPU only)
+
+Run the preflight before any research training. It never downloads or loads model
+weights, and it fails before GPU allocation when the dataset is not the frozen
+build.
+
+```bash
+python scripts/train.py --config configs/qlora.yaml --preflight
+python scripts/train.py --config configs/qlora.yaml --preflight --json
+```
+
+It checks configuration validity, dataset availability, the frozen manifest,
+SHA-256 file hashes, dataset version and split counts, schema, required
+provenance, duplicate IDs, cross-split leakage, evaluation-only records, local
+13-gram contamination, training licenses, and the pinned model revision. It then
+reports `software_ready` and `research_ready` separately.
+
+Exit codes: `0` = research-ready; `1` = software checks pass but research
+blockers remain; `2` = invalid configuration; `3` = mandatory software checks
+failed. `--software-only` returns 0 when software checks pass, but it is not a
+claim that research training is authorized. Pending manual review, external
+pre-registration, and unresolved licensing remain blockers; the tool never marks
+them complete.
+
+Resuming requires the same config fingerprint as the original run. `config`
+changes beyond `training.resume_from_checkpoint` are rejected, so a checkpoint
+cannot be silently continued under a different experiment definition.
 
 ## Expanded pilot workflow (pilot-v2)
 
@@ -97,7 +133,7 @@ benchmark results and should not be cited as model capabilities.
 | 2026-11-25 | Qwen3.5-0.8B load on CPU | `Qwen3_5ForConditionalGeneration`, 852,985,920 parameters, 100,592,896 vision parameters |
 | 2026-11-25 | LoRA backward pass, CPU | r=4, 2.71M trainable parameters, finite loss, gradients present |
 | 2026-11-25 | Two-step smoke training | 26--29 s training after load, ~6.3 GiB peak RSS, adapter and metadata saved |
-| 2026-11-25 | Adapter reload + generation | Adapter loaded; chat and FIM code paths executed on CPU |
+| 2026-11-25 | Adapter reload + generation | Adapter loaded; chat and completion code paths executed on CPU |
 | 2026-11-25 | Evaluation harness | Eight synthetic smoke items processed end to end; outputs kept outside the repository |
 | 2026-11-25 | Pilot v1 build | ATT&CK + CWE: 2,102 records in, 2,006 out, 96 near-duplicates removed, 241,515 evaluation n-grams screened, zero 13-gram findings |
 | 2026-11-25 | Pilot v2 build | Nine sources: 7,724 records in, 7,188 accepted, 536 rejected; 241,515 evaluation n-grams screened, zero 13-gram findings; Qwen3.5-0.8B tokenizer p50 373 / p95 798 / p99 1,539, max 3,474; 216 records over 1,024 tokens |

@@ -1,0 +1,41 @@
+{
+  "exact_duplicates": 0,
+  "input": 22486,
+  "kept": 15803,
+  "semantic_method": "word 5-shingle MinHash/LSH (lexical approximation)",
+  "semantic_near_duplicates": 6,
+  "semantic_pairs": [
+    {
+      "left_id": "grnd-mitre-cwe-mitre-cwe-34577ca27ff11ffc-mitigation",
+      "right_id": "grnd-mitre-cwe-mitre-cwe-37d45372e3afc115-mitigation",
+      "similarity": 0.9201
+    },
+    {
+      "left_id": "grnd-mitre-cwe-mitre-cwe-1965665224cc92b5-mitigation",
+      "right_id": "grnd-mitre-cwe-mitre-cwe-34577ca27ff11ffc-mitigation",
+      "similarity": 0.9057
+    },
+    {
+      "left_id": "grnd-ietf-rfcs-ietf-rfcs-bb6cce0284b3d2d6-requirement-1",
+      "right_id": "grnd-ietf-rfcs-ietf-rfcs-bb6cce0284b3d2d6-requirement-2",
+      "similarity": 0.8925
+    },
+    {
+      "left_id": "grnd-mitre-cwe-mitre-cwe-0224f8f94abee99e-mitigation",
+      "right_id": "grnd-mitre-cwe-mitre-cwe-1fabedadb50ef1de-mitigation",
+      "similarity": 0.8851
+    },
+    {
+      "left_id": "grnd-ietf-rfcs-ietf-rfcs-0dfeec252d33deeb-requirement-1",
+      "right_id": "grnd-ietf-rfcs-ietf-rfcs-0dfeec252d33deeb-requirement-2",
+      "similarity": 0.8819
+    },
+    {
+      "left_id": "grnd-ietf-rfcs-ietf-rfcs-2981ce2371998984-requirement-1",
+      "right_id": "grnd-ietf-rfcs-ietf-rfcs-2981ce2371998984-requirement-2",
+      "similarity": 0.8819
+    }
+  ],
+  "semantic_threshold": 0.88,
+  "simhash_near_duplicates": 3625
+}

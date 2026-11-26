@@ -38,9 +38,9 @@ line number.
   following. `auto` selects raw for model IDs ending in `-base`.
 - **Decoding:** temperature 0 by default, fixed per-example seeds, no
   benchmark-specific prompt tuning. Record `max_new_tokens`.
-- **Completion:** the autocomplete engine uses FIM when available; otherwise
-  prefix completion. Python syntax is checked with `ast.parse`; code is never
-  executed.
+- **Completion:** fill-in-the-middle when the tokenizer exposes the FIM control
+  tokens; otherwise prefix completion. Python syntax is checked with `ast.parse`;
+  code is never executed.
 - **Retrieval:** the RAG condition retrieves from a versioned local BM25 index.
   Report `top_k`, index contents/hash, and whether citations are required.
 - **SecEval:** `--protocol seceval` follows the upstream chat evaluation script:
@@ -53,7 +53,7 @@ line number.
 
 | Metric | Definition | Notes |
 |---|---|---|
-| MCQ accuracy | predicted set exactly equals the key set | bootstrap 95% CI reported; single- and multi-answer subsets reported separately |
+| MCQ accuracy | predicted set exactly equals the key set | bootstrap 95% CI (10,000 resamples, matching pre-registration) reported; single- and multi-answer subsets reported separately |
 | Invalid rate | answer not parseable | reveals format-following failures |
 | Classification accuracy | exact label match | task-specific |
 | Macro F1 | unweighted mean per-label F1 | handles class imbalance |
@@ -90,6 +90,7 @@ upstream version/commit and access date for every published result.
 ```bash
 python scripts/evaluate.py \
   --model Qwen/Qwen3.5-0.8B \
+  --revision 2fc06364715b967f1860aea9cf38778875588b17 \
   --adapter runs/qlora \
   --dataset /path/to/heldout.jsonl \
   --out results/evaluation/qlora-heldout \
@@ -100,8 +101,9 @@ python scripts/evaluate.py \
 
 Outputs:
 
-- `summary.json` — metrics, model info, dataset hash, environment, hardware,
-  latency, memory, cost assumptions, limitations, and a run hash;
+- `summary.json` — metrics, model info (including requested, resolved, and
+  tokenizer revision), dataset hash, environment, hardware, latency, memory,
+  cost assumptions, limitations, and a run hash;
 - `predictions.jsonl` — outputs, hashes, per-example scores, tokens, latency.
 
 Predictions can contain benchmark-derived outputs; store them according to the
@@ -123,6 +125,12 @@ Two kinds of snapshot exist:
   items), official chat prompt, exact set match. The items are not redistributed;
   the snapshot records the upstream revision, source and converted hashes, and
   the exact command.
+
+The committed E0 SecEval snapshot was produced before the bootstrap default was
+aligned with the pre-registration and therefore used 1,000 resamples. Its stored
+point estimate and interval are left unchanged; new runs default to 10,000 and
+record `bootstrap_resamples` in `summary.json`. Do not describe the old interval
+as having used the new default.
 
 Keep task quality and throughput separate. A single composite score would hide
 the trade-off between knowledge accuracy, selective classification, generation

@@ -36,7 +36,7 @@ CyberLite explicitly does **not** execute model output. The primary security
 properties are:
 
 - generated text is returned as data;
-- the autocomplete and inference APIs have no shell/tool execution surface;
+- the inference API has no shell/tool execution surface;
 - dataset preparation redacts common secrets before training;
 - the local API binds to loopback by default and supports a bearer token;
 - RAG evidence is labelled untrusted.

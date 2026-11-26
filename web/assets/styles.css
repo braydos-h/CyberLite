@@ -1040,15 +1040,6 @@ section[id] {
   border-color: #e4d2a7;
 }
 
-/* ---------- Autocomplete ---------- */
-
-.autocomplete-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: clamp(2rem, 5vw, 3.5rem);
-  align-items: start;
-}
-
 .tag-list--chips li {
   padding: 0.3rem 0.55rem;
   background: var(--paper-2);
@@ -1484,7 +1475,6 @@ section[id] {
 
   .hero-grid,
   .overview-grid,
-  .autocomplete-grid,
   .hardware-note,
   .safety-grid,
   .paper-grid,

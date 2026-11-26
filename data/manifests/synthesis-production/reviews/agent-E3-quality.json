@@ -1,0 +1,471 @@
+{
+  "reviewer": "agent-E3",
+  "review_type": "quality",
+  "artifact": "synthesis-production-final",
+  "dataset_version": "cyberlite-syn-2.0.0-37b01792c2d8",
+  "items": [
+    {
+      "record_id": "syn-cloud-container-supply-chain-cloud-azure-diagnostic-settings-command-1",
+      "content_hash": "1c04aca0bf13ed6512b148084efbfe0c32faa9e162fbdf9061e5dcba19a6ea90",
+      "scores": {
+        "technical_accuracy": 8,
+        "source_grounding": 8,
+        "completeness": 5,
+        "relevance": 6,
+        "clarity": 7,
+        "practical_usefulness": 6,
+        "originality_diversity": 4,
+        "small_model_suitability": 6.5
+      },
+      "findings": [
+        "Does not explain the command's parts: --name collision behaviour, subscription-scope --resource, the --workspace target, or that --logs defines the routed category set; only a one-line purpose statement is given.",
+        "The requested 'what could go wrong' is not answered for this command (overwriting an existing 'send-activity-log' setting, missing Microsoft.Insights/diagnosticSettings/write, assuming resource logs are covered); generic Activity Log background is substituted.",
+        "Verification advice ('compare it with an independent source such as the service configuration or audit log') is not actionable; the applicable check is `az monitor diagnostic-settings show` plus a workspace query.",
+        "Ends with corpus meta-text: 'Generated commands in this corpus are examples and are never executed by the project.' The sentence appears verbatim in 3 records and is not training content.",
+        "Four Activity Log background sentences are shared verbatim with the YAML/compare records in the same batch."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "source_dependent": true
+    },
+    {
+      "record_id": "syn-cloud-container-supply-chain-cloud-azure-diagnostic-settings-compare-cloud-azure-rbac-vs-entra-roles",
+      "content_hash": "bd306859929b83173ac22b029d4a76a55cdf9be079e4a147028861adf070257e",
+      "scores": {
+        "technical_accuracy": 8.5,
+        "source_grounding": 7.5,
+        "completeness": 6,
+        "relevance": 7,
+        "clarity": 7,
+        "practical_usefulness": 6,
+        "originality_diversity": 5,
+        "small_model_suitability": 6.5
+      },
+      "findings": [
+        "Never answers 'what mistake conflates them': it omits the common error of treating Global Administrator as subscription Owner, or an Entra directory role as granting Azure resource access.",
+        "The closing paragraph ('They are not interchangeable... choose the control that matches the asset, threat model, and evidence you actually have') is generic and gives no decision rule for either control.",
+        "Source mismatch: source_url and both references are Azure Monitor diagnostic-settings/Activity Log pages and do not support the Azure RBAC vs Entra roles claims in the second half.",
+        "The first block reuses four sentences verbatim from the diagnostic-settings records, so the comparison half is copied background rather than an independent analysis.",
+        "The two 'controls' are heterogeneous (a retention requirement vs an authorization-plane distinction), which makes 'when should an engineer choose one' ill-posed."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "source_dependent": true
+    },
+    {
+      "record_id": "syn-cloud-container-supply-chain-cloud-ci-oidc-federation-config-1",
+      "content_hash": "9586c31458c260559cb3176aa157d022c829a755c8160f5c05dff89bbe6b9756",
+      "scores": {
+        "technical_accuracy": 8,
+        "source_grounding": 8,
+        "completeness": 6,
+        "relevance": 7,
+        "clarity": 8,
+        "practical_usefulness": 6,
+        "originality_diversity": 4,
+        "small_model_suitability": 7
+      },
+      "findings": [
+        "Does not state the decisive assumption: the role's trust policy is not shown, so the required `sub`/`aud`/issuer pinning cannot be verified from the snippet; this is exactly the 'assumption that could make it unsafe' the prompt asks for.",
+        "Misses a concrete supply-chain defect: actions/checkout is SHA-pinned but aws-actions/configure-aws-credentials@v4 is tag-pinned, so the step that handles cloud credentials is the mutable one.",
+        "Verification advice ('parse the YAML and inspect the effective object after defaults and admission') uses Kubernetes/admission-control vocabulary that does not apply to GitHub Actions; the applicable checks are the role trust policy and a CloudTrail AssumeRoleWithWebIdentity event.",
+        "Does not discuss the workflow-level `id-token: write` grant or environment protection rules, both visible and relevant in the snippet."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "source_dependent": true
+    },
+    {
+      "record_id": "syn-cloud-container-supply-chain-cloud-ci-oidc-federation-diagnose",
+      "content_hash": "24328c9d50609ae9cfb8c16b49cef66684f490bff3e4eed68231beaed5ad9ae3",
+      "scores": {
+        "technical_accuracy": 7,
+        "source_grounding": 8,
+        "completeness": 3.5,
+        "relevance": 3.5,
+        "clarity": 7,
+        "practical_usefulness": 4,
+        "originality_diversity": 4,
+        "small_model_suitability": 5
+      },
+      "findings": [
+        "Both 'likely causes' are wrong as diagnoses: a workflow-wide `id-token: write` grant cannot make the OIDC property absent (it is a prerequisite), and an over-broad trust policy yields unauthorised success, not a missing property.",
+        "The real failure causes are absent: trust-policy `sub`/`aud`/issuer mismatch, missing `id-token: write` on the job, an unregistered OIDC provider, or a wrong role ARN/region.",
+        "The 'check that distinguishes them' is a single generic paragraph that cannot separate cause 1 from cause 2 and names no command or log (e.g. CloudTrail AssumeRoleWithWebIdentity error code, `aws sts get-caller-identity`).",
+        "The two bullets are anti-patterns copied from the multi-answer distractors, so the record teaches a non-sequitur: 'property not in effect' is explained with least-privilege advice."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "source_dependent": true
+    },
+    {
+      "record_id": "syn-cloud-container-supply-chain-cloud-guardduty-finding-triage-triage-dialogue",
+      "content_hash": "28412636e5352289cc6e22e30906c7be63d2f7fe119fa1cfe0a9324e55f1e44f",
+      "scores": {
+        "technical_accuracy": 8,
+        "source_grounding": 8,
+        "completeness": 7,
+        "relevance": 6.5,
+        "clarity": 7.5,
+        "practical_usefulness": 7,
+        "originality_diversity": 5,
+        "small_model_suitability": 7
+      },
+      "findings": [
+        "Remediation is imprecise: 'rotate the role credentials' is not the action for instance-profile credentials; the correct steps are to isolate/stop the instance and revoke active sessions (deny-all session policy or revoke session), then review CloudTrail.",
+        "Ends with two bare bullets ('Treating a GuardDuty finding as a blocked attack...', 'Enabling GuardDuty only in the home region...') that are unrelated to the false-positive question and have no lead-in; they are pasted failure-mode fragments.",
+        "The second turn answers false-positive closure generically and names no GuardDuty-specific evidence such as the peer-instance baseline, VPC Flow Logs for the source IP, or the IP's ASN/reputation.",
+        "The finding's severity 8.0 and its specific type are not used to prioritise the containment order."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "source_dependent": true
+    },
+    {
+      "record_id": "syn-cloud-container-supply-chain-cloud-ci-oidc-federation-multi-answer",
+      "content_hash": "446a2e17950d4636dfa72de65b2c61b50350e387a66972e9c267e8c1d79be1cf",
+      "scores": {
+        "technical_accuracy": 8.5,
+        "source_grounding": 9,
+        "completeness": 7,
+        "relevance": 7.5,
+        "clarity": 7,
+        "practical_usefulness": 7,
+        "originality_diversity": 5,
+        "small_model_suitability": 7
+      },
+      "findings": [
+        "Options B and C are declarative facts while the stem asks which practices should be avoided; the form mismatch is a test-wiseness cue that lets a model answer without knowing OIDC.",
+        "Option A (workflow-wide `id-token: write`) is a least-privilege nit rather than a security failure and is defensible for a single-job workflow, so labelling it a must-avoid practice overstates the rule.",
+        "The explanation repeats the two chosen options verbatim and then pastes the OIDC paragraph used in four other records; it never explains why B and C are safe beyond 'The other options describe correct behaviour.'",
+        "Does not mention environment protection or the concrete `sub` claim format that make option B true."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "source_dependent": true
+    },
+    {
+      "record_id": "syn-cloud-container-supply-chain-cloud-gcp-audit-log-types-checklist",
+      "content_hash": "a2c081bf54e7253ac1c6a3fa3a3479761b539f45303432ea5ae1d16d67e76c07",
+      "scores": {
+        "technical_accuracy": 8.5,
+        "source_grounding": 8.5,
+        "completeness": 5.5,
+        "relevance": 6.5,
+        "clarity": 7,
+        "practical_usefulness": 6,
+        "originality_diversity": 5,
+        "small_model_suitability": 6.5
+      },
+      "findings": [
+        "`checks` contains statements of fact, not checks: none is an action an operator can run or verify ('Data Access logs can be enabled per service' is background, not a check).",
+        "`principle` truncates the guidance to its first clause and omits the retention facts a runbook needs (400-day `_Required`, 30-day `_Default`, Policy Denied).",
+        "Only two failure modes are returned and neither covers the retention split, so the output would not help a reader catch the most likely mistake (assuming 30-day retention is sufficient).",
+        "Entries are 80-110 character sentences, not the 'short strings' the prompt explicitly requires."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "source_dependent": true
+    },
+    {
+      "record_id": "syn-cryptography-identity-access-crypto-aead-002-codefix-1",
+      "content_hash": "54a17310fd7fa06192caac64a320d67decac1f672a464cf094cd3ec92578ae31",
+      "scores": {
+        "technical_accuracy": 9,
+        "source_grounding": 9,
+        "completeness": 8,
+        "relevance": 9,
+        "clarity": 9,
+        "practical_usefulness": 9,
+        "originality_diversity": 7,
+        "small_model_suitability": 8.5
+      },
+      "findings": [
+        "Root cause is correct (CBC without a MAC, fixed IV) but omits the snippet's second defect: `encryptor().update()` without `finalize()` returns an incomplete block and drops padding, so the original function is broken beyond the IV.",
+        "The corrected function adds a required `aad` argument and therefore changes the public signature; the answer should say callers must be updated or the AAD defaulted.",
+        "The AEAD background paragraph is shared verbatim with the other AEAD records; it is accurate but not specific to this diff.",
+        "No guidance on key-length validation or the decrypt path's tag verification."
+      ],
+      "decision": "accept",
+      "critical": false,
+      "source_dependent": true
+    },
+    {
+      "record_id": "syn-cryptography-identity-access-auth-ldap-051-config-complete",
+      "content_hash": "4714adcb318e27a57b4eb6684d2e8a97a57e5a04d4a61950d35c4a1a1bf47670",
+      "scores": {
+        "technical_accuracy": 9,
+        "source_grounding": 8.5,
+        "completeness": 8,
+        "relevance": 8.5,
+        "clarity": 8,
+        "practical_usefulness": 8,
+        "originality_diversity": 6,
+        "small_model_suitability": 8
+      },
+      "findings": [
+        "The completed line is correct, but the justification is circular: 'it sets `ldap_uri` to ..., which is the condition needed for the stated purpose' restates the line instead of explaining why the ldaps:// scheme plus `ldap_tls_reqcert = demand` validates the certificate.",
+        "Grounding mismatch: RFC 4511 does not define the `ldaps://` URI (RFC 4516 does), and neither cited source documents SSSD option semantics.",
+        "Verification advice is generic ('reload the service and read the effective value from the running process'); for SSSD the check is `sssctl domain-status`, the domain log, or `openssl s_client -connect dc01:636`.",
+        "The LDAP security paragraph is accurate but not tied to the blank, and it repeats the 'Check:' template shared by three other configuration records."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "source_dependent": true
+    },
+    {
+      "record_id": "syn-cryptography-identity-access-crypto-aead-002-fim-1",
+      "content_hash": "6a7f3e38f553b5327c543e3ebef37cd41d57b76f0bf86b034b0cc4bbf08bd3d0",
+      "scores": {
+        "technical_accuracy": 9,
+        "source_grounding": 9,
+        "completeness": 3,
+        "relevance": 2,
+        "clarity": 6,
+        "practical_usefulness": 2,
+        "originality_diversity": 2,
+        "small_model_suitability": 4
+      },
+      "findings": [
+        "The completion target is `import os`, a trivial import line; the security-relevant content (nonce generation and the AESGCM call) sits in the suffix, so the record trains an autocomplete guess rather than AEAD knowledge.",
+        "The suffix contains the entire corrected function, so the blank is inferable from context without reasoning about nonces or AAD.",
+        "No file path, module context, or instruction accompanies the fragment; as an instruct example it has no natural prompt.",
+        "Duplicates the codefix record's code without adding a distinct learning signal."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "source_dependent": true
+    },
+    {
+      "record_id": "syn-cryptography-identity-access-auth-gpo-052-log-1",
+      "content_hash": "89b8737a98a2f34130f7f0488c83d59b28d5d7d8be5578225d4aed635a2c7ab4",
+      "scores": {
+        "technical_accuracy": 9.5,
+        "source_grounding": 9,
+        "completeness": 9,
+        "relevance": 9.5,
+        "clarity": 9,
+        "practical_usefulness": 9,
+        "originality_diversity": 8,
+        "small_model_suitability": 8.5
+      },
+      "findings": [
+        "Strong: separates the observed versionNumber change from a link addition, explains that gPLink lives on a scope-of-management object, and gives the exact 5136 shape that would prove a link.",
+        "States what the event does not prove and what to correlate next, and cites MS14-025/cpassword risk without overclaiming.",
+        "Minor: versionNumber increments on any policy rewrite, including a no-op re-save, so the record should not imply the value proves a meaningful settings change.",
+        "Closing advice ('Do not treat a single log line as proof of intent') is a shared template sentence, but here it is contextually appropriate."
+      ],
+      "decision": "accept",
+      "critical": false,
+      "source_dependent": true
+    },
+    {
+      "record_id": "syn-cryptography-identity-access-auth-delegation-050-misconception-1",
+      "content_hash": "3667cb10de64f8dbdecd495b63e903792227e383c933ad0ca977669219b3c9aa",
+      "scores": {
+        "technical_accuracy": 8.5,
+        "source_grounding": 9,
+        "completeness": 6,
+        "relevance": 5.5,
+        "clarity": 7,
+        "practical_usefulness": 6,
+        "originality_diversity": 4,
+        "small_model_suitability": 6
+      },
+      "findings": [
+        "After correcting constrained delegation, the answer pivots to unconstrained delegation, which the prompt did not ask about; the paragraph is true but off-topic and blurs the distinction the record is meant to teach.",
+        "The required practical consequence is not delivered: 'applying this claim to kerberos would leave the condition described above unaddressed and create a false sense of assurance' is circular filler that appears verbatim in 3 misconception records.",
+        "Does not name the concrete consequence: a service with protocol transition and a broad allowed-SPN list can impersonate arbitrary users to those SPNs, so 'limited SPNs' still permits lateral movement to tier-0 services.",
+        "No mention of resource-based constrained delegation or the S4U2Self/S4U2Proxy conditions that determine exploitability."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "source_dependent": true
+    },
+    {
+      "record_id": "syn-cryptography-identity-access-crypto-gcm-nonce-003-multi-answer",
+      "content_hash": "15c41b324807bea8af0fec1554d8b759917192c7e367908736fc9970244116cb",
+      "scores": {
+        "technical_accuracy": 8.5,
+        "source_grounding": 9,
+        "completeness": 8,
+        "relevance": 8.5,
+        "clarity": 8,
+        "practical_usefulness": 8,
+        "originality_diversity": 7,
+        "small_model_suitability": 7.5
+      },
+      "findings": [
+        "Option D is ambiguous: a 128-bit IV is permitted by SP 800-38D (processed through GHASH), so the practice to avoid is using one without checking the governing profile, not the IV length itself; the option reads as banning non-96-bit IVs.",
+        "The stem ('AES-GCM needs a 96-bit IV') overstates the standard in the same way and reinforces that misreading.",
+        "Option A is a statement about TLS 1.3 nonce derivation, not a practice a developer chooses; like B it is a fact rather than a practice, weakening the item.",
+        "The explanation is accurate on GHASH and the 2^32 invocation cap, but the answer scaffolding ('The other options describe correct behaviour') is shared with the OIDC multi-answer record."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "source_dependent": true
+    },
+    {
+      "record_id": "syn-cryptography-identity-access-crypto-aead-002-codereview-1",
+      "content_hash": "1e8a3f171ebbd4f5e06af6b04fc8d1c178865c81e5c5e2c55d39175cd335ef71",
+      "scores": {
+        "technical_accuracy": 7,
+        "source_grounding": 8.5,
+        "completeness": 4,
+        "relevance": 5,
+        "clarity": 6.5,
+        "practical_usefulness": 5,
+        "originality_diversity": 2.5,
+        "small_model_suitability": 5.5
+      },
+      "findings": [
+        "'Exploit precondition: untrusted input or state reaches the affected operation while the missing control is absent' is vacuous and not specific to fixed-IV CBC; it should state that the attacker observes ciphertexts or supplies chosen plaintext under the repeated IV.",
+        "'Impact: the flaw violates the security property in the principle below; assess confidentiality, integrity, and availability effects for this deployment' is a meta-instruction, not an impact; the concrete effects (plaintext-equality leakage, undetected modification) are only implied.",
+        "Reuses the codefix record's fix and the shared AEAD paragraph, so half the answer is not about this review task.",
+        "Does not mention the snippet's missing `finalize()`/padding failure."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "source_dependent": true
+    },
+    {
+      "record_id": "syn-fundamentals-linux-networking-fund-trust-boundary-config-complete",
+      "content_hash": "ae7e7bdf7486ddd6057fd3fd5984d56860c5e9138e62263992482a27ae9292cb",
+      "scores": {
+        "technical_accuracy": 8,
+        "source_grounding": 7.5,
+        "completeness": 5,
+        "relevance": 4.5,
+        "clarity": 6,
+        "practical_usefulness": 5,
+        "originality_diversity": 3,
+        "small_model_suitability": 5.5
+      },
+      "findings": [
+        "The line is correct but the justification is malformed: 'it sets `chain` to `forward {`' is not a meaningful description of an nftables chain declaration and restates the purpose instead of explaining the hook/policy interaction.",
+        "The trust-boundary paragraph never mentions nftables, zones, or forwarding; it is a generic architecture essay that does not explain why `policy drop` plus `ct state established,related accept` satisfies the stated purpose.",
+        "Verification advice is wrong for this tool: there is no service to reload; the check is `nft -f`, `nft list ruleset`, and a packet test across eth0/eth1.",
+        "The blank is a structural line rather than a security value, so the 'why the value matters' framing does not fit the task."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "source_dependent": true
+    },
+    {
+      "record_id": "grnd-ietf-rfcs-ietf-rfcs-004bfcfa7226989d-requirement-1",
+      "content_hash": "9b5b758d23ad3fd09ad9bd2e1ccdf46e1c7f02ae0c242430e47e7f2ccaf8e9a6",
+      "scores": {
+        "technical_accuracy": 8.5,
+        "source_grounding": 9,
+        "completeness": 6,
+        "relevance": 7.5,
+        "clarity": 8,
+        "practical_usefulness": 6.5,
+        "originality_diversity": 5.5,
+        "small_model_suitability": 7
+      },
+      "findings": [
+        "Correctly identifies the REQUIRED vs OPTIONAL contradiction and quotes the sentence, but then explains it in MUST/SHOULD terms that do not appear in the excerpt, blurring the exact normative keyword the prompt asks about.",
+        "The requested operational consequence is vague ('changes interoperability or security assumptions'); it should say that omitting group14-sha1 breaks key exchange with conforming peers that require it, or pins peers to the weaker group1.",
+        "Introduces a SHOULD discussion that is not in the excerpt, contrary to the evidence-only framing.",
+        "Does not note that both listed methods are REQUIRED (not alternatives) or that the proposal also strips the Section 8 pointer."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "source_dependent": true
+    },
+    {
+      "record_id": "syn-fundamentals-linux-networking-fund-authn-authz-mcq-1",
+      "content_hash": "83572c6d9d7874ac7e7ba44f089cc37f5916d9ef32cf0333f106b60c59cb55cc",
+      "scores": {
+        "technical_accuracy": 9.5,
+        "source_grounding": 9,
+        "completeness": 9,
+        "relevance": 9.5,
+        "clarity": 9,
+        "practical_usefulness": 9,
+        "originality_diversity": 6.5,
+        "small_model_suitability": 8.5
+      },
+      "findings": [
+        "Correct answer with a clear 401-vs-403 rationale that matches RFC 9110 and the NIST glossary definitions.",
+        "The 'Supporting point' paragraph is a canned authn/authz primer reused across records; it is accurate but longer than the question needs.",
+        "Minor: 'can leak object existence' is stated without the mechanism (returning 403 where 404 is expected reveals that the object exists); one clause of example would make it operational."
+      ],
+      "decision": "accept",
+      "critical": false,
+      "source_dependent": true
+    },
+    {
+      "record_id": "syn-fundamentals-linux-networking-fund-hash-vs-encrypt-codereview-1",
+      "content_hash": "1fca424ebe9b9cbe0e3329cbccc4ca08dc3bb4157a8bde0a3e5c42ca03f71656",
+      "scores": {
+        "technical_accuracy": 8.5,
+        "source_grounding": 9,
+        "completeness": 5,
+        "relevance": 6,
+        "clarity": 7.5,
+        "practical_usefulness": 6,
+        "originality_diversity": 3,
+        "small_model_suitability": 7
+      },
+      "findings": [
+        "The opening weakness statement is specific and correct (fast unsalted SHA-256 is GPU-enumerable, identical passwords collide), and the scrypt fix with a per-user salt is sound.",
+        "'Exploit precondition: untrusted input or state reaches the affected operation while the missing control is absent' is generic filler; for password hashing the precondition is offline access to the digest store plus weak user passwords.",
+        "'Impact: the flaw violates the security property in the principle below...' is a meta-instruction rather than an impact; it should state credential cracking and cross-account credential stuffing.",
+        "The fix does not encode KDF parameters or an algorithm identifier with the digest, so parameters cannot be migrated; `n=2**14` is also below current OWASP guidance.",
+        "The three-paragraph precondition/impact/principle scaffold is shared with the AEAD code-review record, confirming a template that spans domains."
+      ],
+      "decision": "revise",
+      "critical": false,
+      "source_dependent": true
+    },
+    {
+      "record_id": "ietf_rfcs-004bfcfa7226989d",
+      "content_hash": "87a1d25fab71e2b46465b2ba00e4de091806e46b7a51e5bece4d2807f93d47e0",
+      "scores": {
+        "technical_accuracy": 9.5,
+        "source_grounding": 10,
+        "completeness": 2,
+        "relevance": 2,
+        "clarity": 8,
+        "practical_usefulness": 1,
+        "originality_diversity": 1,
+        "small_model_suitability": 2
+      },
+      "findings": [
+        "The response is a verbatim reproduction of RFC 4253 §6.5, including layout whitespace; it adds no explanation, no defender guidance, and no operational security implications, which are the only things the prompt asks for.",
+        "Zero instruction-following signal: a model trained on this learns to copy source text when asked to explain it.",
+        "Reproduces IETF Trust copyrighted text verbatim in a record licensed 'Synthetic' with no transformation or attribution beyond metadata; resolve licensing before any use.",
+        "Near-duplicate of the evidence-grounded requirement record built from the same excerpt, but without the analysis.",
+        "Replace, do not patch: the intended answer is a summary of the two REQUIRED methods, group1-sha1's weakness, and peer-compatibility implications, without adding requirements."
+      ],
+      "decision": "quarantine",
+      "critical": true,
+      "source_dependent": true
+    },
+    {
+      "record_id": "grnd-mitre-attack-mitre-attack-00dbb2cb3426ae0c-match",
+      "content_hash": "05a7cf5833635f0832b2b6c8f08d50be7175873967e2a90a7495d6b8e5ce8f07",
+      "scores": {
+        "technical_accuracy": 9,
+        "source_grounding": 9.5,
+        "completeness": 8.5,
+        "relevance": 9,
+        "clarity": 9,
+        "practical_usefulness": 8,
+        "originality_diversity": 6.5,
+        "small_model_suitability": 8.5
+      },
+      "findings": [
+        "Correct mapping to T1027.005 with the technique ID and a reasonable caution that ATT&CK mapping is analytic judgement.",
+        "'in the stealth phase' is not ATT&CK terminology; T1027.005 sits under Defense Evasion, and the answer should use the tactic name.",
+        "The observed-behaviour stem is verbatim ATT&CK description text, so the item tests recognition of copied wording more than reasoning, and the three distractors are unrelated techniques.",
+        "Does not explain why B/C/D are wrong beyond 'would require different evidence'."
+      ],
+      "decision": "accept",
+      "critical": false,
+      "source_dependent": true
+    }
+  ]
+}
